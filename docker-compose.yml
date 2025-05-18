@@ -8,8 +8,6 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
-    volumes:
-      - ./backend:/app
     restart: unless-stopped
 
   frontend:
@@ -17,6 +15,4 @@ services:
       context: ./frontend
     ports:
       - "3000:3000"
-    volumes:
-      - ./frontend:/app
     restart: unless-stopped

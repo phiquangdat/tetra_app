@@ -1,6 +1,5 @@
 stages:
   - test
-  - build
   - push
 
 variables:
@@ -9,45 +8,54 @@ variables:
   BACKEND_IMAGE: $DOCKER_REGISTRY/${PROJECT_NAME}-backend:latest
   FRONTEND_IMAGE: $DOCKER_REGISTRY/${PROJECT_NAME}-frontend:latest
 
-
+# Backend tests
 test_backend:
+  image: gradle:8.4-jdk21
   stage: test
   script:
-    - echo "Running tests for backend"
+    - echo "Running backend tests"
     - cd backend
+    - chmod +x gradlew
     - ./gradlew test --no-daemon
   artifacts:
     when: always
     reports:
       junit: backend/build/test-results/test/TEST-*.xml
 
-
+# Frontend tests
 test_frontend:
-  stage: test
   image: node:20
+  stage: test
   script:
-    - echo "Running tests for frontend"
+    - echo "Running frontend tests"
     - cd frontend
     - npm install
-    - npm test -- --watchAll=false
+    - npm test
 
-
+# Build and push backend image (runs only if tests pass)
 build_and_push_backend:
+  image: docker:latest
+  services:
+    - docker:dind
   stage: push
   needs:
-    - job: test_backend
-      artifacts: false
+    - test_backend
+    - test_frontend
   script:
     - echo "Building backend Docker image"
     - docker build -t $BACKEND_IMAGE ./backend
     - echo $CI_JOB_TOKEN | docker login -u $CI_REGISTRY_USER --password-stdin $DOCKER_REGISTRY
     - docker push $BACKEND_IMAGE
 
+# Build and push frontend image (runs only if tests pass)
 build_and_push_frontend:
+  image: docker:latest
+  services:
+    - docker:dind
   stage: push
   needs:
-    - job: test_frontend
-      artifacts: false
+    - test_backend
+    - test_frontend
   script:
     - echo "Building frontend Docker image"
     - docker build -t $FRONTEND_IMAGE ./frontend

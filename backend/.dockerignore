@@ -1,0 +1,17 @@
+# Ignore build artifacts
+build/
+.gradle/
+*.log
+*.jar
+
+# Maven & Gradle caches
+.mvn/
+.gradle/
+
+# Temporary files
+*.tmp
+*.swp
+
+# IDE files
+.idea/
+.vscode/

@@ -1,27 +1,27 @@
-# Use the official Node.js image
-FROM node:20-alpine AS build
+# 1. Stage: Build and test
+FROM node:20-alpine AS builder
 
-# Set the working directory
 WORKDIR /app
 
-# Copy dependencies and install them
-COPY package.json package-lock.json ./
+# Copy and install deps
+COPY package*.json ./
 RUN npm install
 
-# Copy project files
+# Copy source
 COPY . .
 
-# Build the application
+# Run tests
+RUN npm run test
+
+# Build app
 RUN npm run build
 
-# Use Nginx to serve static files
+# 2. Stage: Serve with Nginx
 FROM nginx:alpine
 
-# Copy built frontend files
-COPY --from=build /app/dist /usr/share/nginx/html
+# Copy built app
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Expose frontend port
 EXPOSE 80
 
-# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]

@@ -17,15 +17,15 @@ RUN chmod +x gradlew
 # Build the application (creates `build/libs/*.jar`)
 RUN ./gradlew build --no-daemon
 
-# 2️ Stage: Runtime
-FROM openjdk:21-jdk-slim
+# Stage 2: Runtime
+FROM openjdk:21-jdk-slim AS runtime
 
 WORKDIR /app
 
-# **Key difference:** Copy JAR from the build stage
-COPY --from=build /app/build/libs/*.jar ./app.jar
+# Copy the correct JAR file (backend-0.0.1-SNAPSHOT.jar)
+COPY --from=build /app/build/libs/backend-0.0.1-SNAPSHOT.jar ./app.jar
 
-# Expose backend port
+# Expose the backend port
 EXPOSE 8080
 
 # Start the Spring Boot application

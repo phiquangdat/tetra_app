@@ -24,6 +24,7 @@ test_backend:
 
 test_frontend:
   stage: test
+  image: node:20
   script:
     - echo "Running tests for frontend"
     - cd frontend

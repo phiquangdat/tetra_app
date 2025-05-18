@@ -1,0 +1,22 @@
+# Node modules and cache
+node_modules/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build files
+dist/
+build/
+
+# Editor configurations
+.idea/
+.vscode/
+*.swp
+
+# Environment files (if you don't want to include them in the container)
+.env
+.env.local
+.env.development
+.env.production

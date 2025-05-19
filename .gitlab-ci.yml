@@ -4,9 +4,9 @@ stages:
 
 variables:
   DOCKER_REGISTRY: registry.gitlab.com
-  PROJECT_NAME: tetra_project/tetra_app
-  BACKEND_IMAGE: $DOCKER_REGISTRY/${PROJECT_NAME}-backend:latest
-  FRONTEND_IMAGE: $DOCKER_REGISTRY/${PROJECT_NAME}-frontend:latest
+  PROJECT_PATH: tetra_project/tetra_app
+  BACKEND_IMAGE: $DOCKER_REGISTRY/$PROJECT_PATH/backend:latest
+  FRONTEND_IMAGE: $DOCKER_REGISTRY/$PROJECT_PATH/frontend:latest
 
 # Backend tests
 test_backend:
@@ -32,7 +32,6 @@ test_frontend:
     - npm install
     - npm test
 
-# Build and push backend image
 build_and_push_backend:
   image: docker:latest
   services:
@@ -40,14 +39,11 @@ build_and_push_backend:
   stage: push
   needs:
     - test_backend
-    - test_frontend
   script:
     - echo "Building backend Docker image"
     - docker build -t $BACKEND_IMAGE ./backend
-    - echo "$CI_JOB_TOKEN" | docker login -u gitlab-ci-token --password-stdin $DOCKER_REGISTRY
+    - echo "$DEPLOY_TOKEN" | docker login -u "$DEPLOY_USER" --password-stdin $DOCKER_REGISTRY
     - docker push $BACKEND_IMAGE
-  only:
-    - main
 
 # Build and push frontend image
 build_and_push_frontend:
@@ -56,12 +52,10 @@ build_and_push_frontend:
     - docker:dind
   stage: push
   needs:
-    - test_backend
     - test_frontend
   script:
     - echo "Building frontend Docker image"
     - docker build -t $FRONTEND_IMAGE ./frontend
-    - echo "$CI_JOB_TOKEN" | docker login -u gitlab-ci-token --password-stdin $DOCKER_REGISTRY
+    - echo "$DEPLOY_TOKEN" | docker login -u "$DEPLOY_USER" --password-stdin $DOCKER_REGISTRY
     - docker push $FRONTEND_IMAGE
-  only:
-    - main
+

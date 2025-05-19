@@ -44,9 +44,10 @@ build_and_push_backend:
   script:
     - echo "Building backend Docker image"
     - docker build -t $BACKEND_IMAGE ./backend
-    # Login to GitLab Container Registry using CI_JOB_TOKEN
-    - echo $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $DOCKER_REGISTRY
+    - echo "$DEPLOY_TOKEN" | docker login -u "$DEPLOY_USER" --password-stdin $DOCKER_REGISTRY
     - docker push $BACKEND_IMAGE
+  only:
+    - main
 
 # Build and push frontend image
 build_and_push_frontend:
@@ -60,6 +61,6 @@ build_and_push_frontend:
   script:
     - echo "Building frontend Docker image"
     - docker build -t $FRONTEND_IMAGE ./frontend
-    # Login to GitLab Container Registry using CI_JOB_TOKEN
-    - echo $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $DOCKER_REGISTRY
+    - echo "$DEPLOY_TOKEN" | docker login -u "$DEPLOY_USER" --password-stdin $DOCKER_REGISTRY
     - docker push $FRONTEND_IMAGE
+ 

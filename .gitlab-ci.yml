@@ -1,0 +1,61 @@
+stages:
+  - test
+  - push
+
+variables:
+  DOCKER_REGISTRY: registry.gitlab.com
+  PROJECT_PATH: tetra_project/tetra_app
+  BACKEND_IMAGE: $DOCKER_REGISTRY/$PROJECT_PATH/backend:latest
+  FRONTEND_IMAGE: $DOCKER_REGISTRY/$PROJECT_PATH/frontend:latest
+
+# Backend tests
+test_backend:
+  image: gradle:8.4-jdk21
+  stage: test
+  script:
+    - echo "Running backend tests"
+    - cd backend
+    - chmod +x gradlew
+    - ./gradlew test --no-daemon
+  artifacts:
+    when: always
+    reports:
+      junit: backend/build/test-results/test/TEST-*.xml
+
+# Frontend tests
+test_frontend:
+  image: node:20
+  stage: test
+  script:
+    - echo "Running frontend tests"
+    - cd frontend
+    - npm install
+    - npm test
+
+build_and_push_backend:
+  image: docker:latest
+  services:
+    - docker:dind
+  stage: push
+  needs:
+    - test_backend
+  script:
+    - echo "Building backend Docker image"
+    - docker build -t $BACKEND_IMAGE ./backend
+    - echo "$DEPLOY_TOKEN" | docker login -u "$DEPLOY_USER" --password-stdin $DOCKER_REGISTRY
+    - docker push $BACKEND_IMAGE
+
+# Build and push frontend image
+build_and_push_frontend:
+  image: docker:latest
+  services:
+    - docker:dind
+  stage: push
+  needs:
+    - test_frontend
+  script:
+    - echo "Building frontend Docker image"
+    - docker build -t $FRONTEND_IMAGE ./frontend
+    - echo "$DEPLOY_TOKEN" | docker login -u "$DEPLOY_USER" --password-stdin $DOCKER_REGISTRY
+    - docker push $FRONTEND_IMAGE
+

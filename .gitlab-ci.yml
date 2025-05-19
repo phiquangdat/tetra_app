@@ -11,7 +11,7 @@ variables:
 before_script:
   - echo "Preparing Docker environment"
   - docker info
-  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $DOCKER_REGISTRY
+  - docker login -u $DEPLOY_USER -p $DEPLOY_TOKEN $DOCKER_REGISTRY
 
 build_backend:
   stage: build

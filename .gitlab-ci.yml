@@ -1,50 +1,65 @@
 stages:
-  - build
   - test
-  - deploy
+  - push
 
 variables:
   DOCKER_REGISTRY: $CI_REGISTRY
-  BACKEND_IMAGE: $CI_REGISTRY_IMAGE/backend:latest
-  FRONTEND_IMAGE: $CI_REGISTRY_IMAGE/frontend:latest
+  PROJECT_NAME: tetra_project/tetra_test
+  BACKEND_IMAGE: $DOCKER_REGISTRY/${PROJECT_NAME}-backend:latest
+  FRONTEND_IMAGE: $DOCKER_REGISTRY/${PROJECT_NAME}-frontend:latest
 
-before_script:
-  - echo "Preparing Docker environment"
-  - docker info
-  - docker login -u $DEPLOY_USER -p $DEPLOY_TOKEN $DOCKER_REGISTRY
-
-build_backend:
-  stage: build
-  script:
-    - echo "Building backend Docker image"
-    - docker build -t $BACKEND_IMAGE ./backend
-    - docker push $BACKEND_IMAGE
-
-build_frontend:
-  stage: build
-  script:
-    - echo "Building frontend Docker image"
-    - docker build -t $FRONTEND_IMAGE ./frontend
-    - docker push $FRONTEND_IMAGE
-
+# Backend tests
 test_backend:
+  image: gradle:8.4-jdk21
   stage: test
   script:
     - echo "Running backend tests"
     - cd backend
+    - chmod +x gradlew
     - ./gradlew test --no-daemon
+  artifacts:
+    when: always
+    reports:
+      junit: backend/build/test-results/test/TEST-*.xml
 
+# Frontend tests
 test_frontend:
+  image: node:20
   stage: test
   script:
     - echo "Running frontend tests"
     - cd frontend
     - npm install
-    - npm test -- --watchAll=false
+    - npm test
 
-deploy:
-  stage: deploy
+# Build and push backend image
+build_and_push_backend:
+  image: docker:latest
+  services:
+    - docker:dind
+  stage: push
+  needs:
+    - test_backend
+    - test_frontend
   script:
-    - echo "Deploying images to production"
-    - docker pull $BACKEND_IMAGE
-    - docker pull $FRONTEND_IMAGE
+    - echo "Building backend Docker image"
+    - docker build -t $BACKEND_IMAGE ./backend
+    # Login to GitLab Container Registry using CI_JOB_TOKEN
+    - echo $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $DOCKER_REGISTRY
+    - docker push $BACKEND_IMAGE
+
+# Build and push frontend image
+build_and_push_frontend:
+  image: docker:latest
+  services:
+    - docker:dind
+  stage: push
+  needs:
+    - test_backend
+    - test_frontend
+  script:
+    - echo "Building frontend Docker image"
+    - docker build -t $FRONTEND_IMAGE ./frontend
+    # Login to GitLab Container Registry using CI_JOB_TOKEN
+    - echo $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $DOCKER_REGISTRY
+    - docker push $FRONTEND_IMAGE

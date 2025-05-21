@@ -1,5 +1,5 @@
 # Stage: Build
-FROM openjdk:21-jdk-slim AS build
+FROM openjdk:24-jdk-slim AS build
 
 WORKDIR /app
 
@@ -18,7 +18,7 @@ RUN chmod +x gradlew
 RUN ./gradlew clean build --no-daemon
 
 # Stage 2: Runtime
-FROM openjdk:21-jdk-slim AS runtime
+FROM openjdk:24-jdk-slim AS runtime
 
 WORKDIR /app
 

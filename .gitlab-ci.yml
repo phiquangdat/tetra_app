@@ -12,6 +12,10 @@ variables:
 test_backend:
   image: gradle:8.14-jdk24
   stage: test
+  before_script:
+    - apt-get update -y
+    - apt-get install openjdk-24-jdk -y
+    - export JAVA_HOME=/usr/lib/jvm/java-24-openjdk-amd64
   script:
     - echo "Running backend tests"
     - cd backend

@@ -14,16 +14,16 @@ COPY src ./src
 # Make Gradle Wrapper executable
 RUN chmod +x gradlew
 
-# Build the application (creates `build/libs/*.jar`)
-RUN ./gradlew build --no-daemon
+# Clean and build the application (creates `build/libs/*.jar`)
+RUN ./gradlew clean build --no-daemon
 
 # Stage 2: Runtime
 FROM openjdk:21-jdk-slim AS runtime
 
 WORKDIR /app
 
-# Copy the correct JAR file (backend-0.0.1-SNAPSHOT.jar)
-COPY --from=build /app/build/libs/backend-0.0.1-SNAPSHOT.jar ./app.jar
+# Copy the correct JAR file (backend-1.0.0.jar)
+COPY --from=build /app/build/libs/backend-1.0.0.jar ./app.jar
 
 # Expose the backend port
 EXPOSE 8080

@@ -2,10 +2,13 @@ package com.tetra.app.controller;
 
 import com.tetra.app.model.TestResult;
 import com.tetra.app.service.TestResultService;
+import com.tetra.app.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -16,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(TestResultController.class)
+@Import(SecurityConfig.class)
 @SuppressWarnings("removal")
 class TestResultControllerTest {
 
@@ -26,6 +30,7 @@ class TestResultControllerTest {
     private TestResultService testResultService;
 
     @Test
+    @WithMockUser
     void testAddTestResult() throws Exception {
         TestResult result = new TestResult();
         result.setId(1L);

@@ -10,7 +10,7 @@ variables:
 
 # Backend tests
 test_backend:
-  image: gradle:8.14-jdk24
+  image: gradle:8.4-jdk21
   stage: test
   script:
     - echo "Running backend tests"
@@ -58,5 +58,3 @@ build_and_push_frontend:
     - docker build -t $FRONTEND_IMAGE ./frontend
     - echo "$DEPLOY_TOKEN" | docker login -u "$DEPLOY_USER" --password-stdin $DOCKER_REGISTRY
     - docker push $FRONTEND_IMAGE
-#    
-

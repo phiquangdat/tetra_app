@@ -30,3 +30,9 @@ lerna-debug.log*
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+.env
+
+pgdata/
+
+db_snapshot.dump

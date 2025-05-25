@@ -10,7 +10,7 @@ variables:
 
 # Backend tests
 test_backend:
-  image: gradle:8.4-jdk21
+  image: gradle:8.14-jdk24
   stage: test
   script:
     - echo "Running backend tests"

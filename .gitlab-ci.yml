@@ -1,6 +1,6 @@
 stages:
   - test
-  - push
+  #- push
 
 variables:
   DOCKER_REGISTRY: registry.gitlab.com
@@ -32,29 +32,29 @@ test_frontend:
     - npm install
     - npm test
 
-build_and_push_backend:
-  image: docker:latest
-  services:
-    - docker:dind
-  stage: push
-  needs:
-    - test_backend
-  script:
-    - echo "Building backend Docker image"
-    - docker build -t $BACKEND_IMAGE ./backend
-    - echo "$DEPLOY_TOKEN" | docker login -u "$DEPLOY_USER" --password-stdin $DOCKER_REGISTRY
-    - docker push $BACKEND_IMAGE
+#build_and_push_backend:
+  #image: docker:latest
+  #services:
+    #- docker:dind
+  #stage: push
+  #needs:
+    #- test_backend
+  #script:
+    #- echo "Building backend Docker image"
+    #- docker build -t $BACKEND_IMAGE ./backend
+    #- echo "$DEPLOY_TOKEN" | docker login -u "$DEPLOY_USER" --password-stdin $DOCKER_REGISTRY
+    #- docker push $BACKEND_IMAGE
 
 # Build and push frontend image
-build_and_push_frontend:
-  image: docker:latest
-  services:
-    - docker:dind
-  stage: push
-  needs:
-    - test_frontend
-  script:
-    - echo "Building frontend Docker image"
-    - docker build -t $FRONTEND_IMAGE ./frontend
-    - echo "$DEPLOY_TOKEN" | docker login -u "$DEPLOY_USER" --password-stdin $DOCKER_REGISTRY
-    - docker push $FRONTEND_IMAGE
+#build_and_push_frontend:
+  #image: docker:latest
+  #services:
+   # - docker:dind
+  #stage: push
+  #needs:
+    #- test_frontend
+  #script:
+    #- echo "Building frontend Docker image"
+    #- docker build -t $FRONTEND_IMAGE ./frontend
+    #- echo "$DEPLOY_TOKEN" | docker login -u "$DEPLOY_USER" --password-stdin $DOCKER_REGISTRY
+    #- docker push $FRONTEND_IMAGE

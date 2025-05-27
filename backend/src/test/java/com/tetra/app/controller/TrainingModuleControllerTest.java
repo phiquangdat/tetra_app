@@ -1,5 +1,6 @@
 package com.tetra.app.controller;
 
+import com.tetra.app.config.SecurityConfig;
 import com.tetra.app.model.TrainingModule;
 import com.tetra.app.repository.TrainingModuleRepository;
 import org.junit.jupiter.api.Test;
@@ -7,6 +8,8 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
@@ -17,6 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(TrainingModuleController.class)
+@Import(SecurityConfig.class)
 class TrainingModuleControllerTest {
 
     @Autowired
@@ -26,6 +30,7 @@ class TrainingModuleControllerTest {
     private TrainingModuleRepository trainingModuleRepository;
 
     @Test
+    @WithMockUser
     void testGetAllModules() throws Exception {
         TrainingModule module = new TrainingModule();
         module.setId(1L);
@@ -43,6 +48,7 @@ class TrainingModuleControllerTest {
     }
 
     @Test
+    @WithMockUser
     void testGetModuleById_found() throws Exception {
         TrainingModule module = new TrainingModule();
         module.setId(1L);
@@ -60,6 +66,7 @@ class TrainingModuleControllerTest {
     }
 
     @Test
+    @WithMockUser
     void testGetModuleById_notFound() throws Exception {
         when(trainingModuleRepository.findById(2L)).thenReturn(Optional.empty());
 
@@ -68,6 +75,7 @@ class TrainingModuleControllerTest {
     }
 
     @Test
+    @WithMockUser
     void testPing() throws Exception {
         mockMvc.perform(get("/api/modules/ping"))
                 .andExpect(status().isOk())

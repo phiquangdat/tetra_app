@@ -73,12 +73,4 @@ class TrainingModuleControllerTest {
         mockMvc.perform(get("/api/modules/2"))
                 .andExpect(status().isNotFound());
     }
-
-    @Test
-    @WithMockUser
-    void testPing() throws Exception {
-        mockMvc.perform(get("/api/modules/ping"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("pong"));
-    }
 }

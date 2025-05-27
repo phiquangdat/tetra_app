@@ -30,9 +30,4 @@ public class TrainingModuleController {
         return trainingModuleRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Module not found with id: " + id));
     }
-
-    @GetMapping("/ping")
-    public String ping() {
-        return "pong";
-    }
 }

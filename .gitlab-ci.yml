@@ -29,4 +29,4 @@ test_frontend:
     - echo "Running frontend tests"
     - cd frontend
     - npm install
-    - npm test
+    - npx vitest run --reporter=verbose

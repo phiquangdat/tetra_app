@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { GetAPITest } from "../../api/http";
+import { GetAPITest } from "../api/http";
 
 const EndpointTesting: React.FC = () => {
   const [data, setData] = useState(null);

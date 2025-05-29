@@ -3,7 +3,7 @@ import reactLogo from './assets/react.svg';
 import viteLogo from '/vite.svg';
 import './App.css';
 
-import EndpointTesting from './components/tests/EndpointTesting';
+import EndpointTesting from './components/EndpointTesting';
 
 function App() {
   const [count, setCount] = useState(0);

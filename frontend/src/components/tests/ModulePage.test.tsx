@@ -18,7 +18,6 @@ describe('ModulePage', () => {
     vi.spyOn(api, 'fetchModuleById').mockImplementation(
       () => new Promise(() => {}),
     );
-
     render(<ModulePage id="123" />);
     expect(screen.getByText(/loading module/i)).toBeInTheDocument();
   });
@@ -27,9 +26,7 @@ describe('ModulePage', () => {
     vi.spyOn(api, 'fetchModuleById').mockRejectedValue(
       new Error('Network error'),
     );
-
     render(<ModulePage id="123" />);
-
     await waitFor(() => expect(screen.getByText(/error/i)).toBeInTheDocument());
     expect(screen.getByText(/network error/i)).toBeInTheDocument();
   });
@@ -37,13 +34,10 @@ describe('ModulePage', () => {
   it('logs fetched data to console', async () => {
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(api, 'fetchModuleById').mockResolvedValue(mockModule);
-
     render(<ModulePage id="123" />);
-
     await waitFor(() => {
       expect(consoleSpy).toHaveBeenCalledWith('Fetched module:', mockModule);
     });
-
     consoleSpy.mockRestore();
   });
 
@@ -51,9 +45,7 @@ describe('ModulePage', () => {
     const fetchSpy = vi
       .spyOn(api, 'fetchModuleById')
       .mockResolvedValue(mockModule);
-
     render(<ModulePage id="123" />);
-
     await waitFor(() => {
       expect(fetchSpy).toHaveBeenCalledWith('123');
     });
@@ -62,7 +54,7 @@ describe('ModulePage', () => {
   it('renders the module title and Start button', async () => {
     vi.spyOn(api, 'fetchModuleById').mockResolvedValue(mockModule);
     render(<ModulePage id="123" />);
-    await wairFor(() => {
+    await waitFor(() => {
       expect(
         screen.getByRole('heading', { name: /Intro to Python/i }),
       ).toBeInTheDocument();
@@ -75,13 +67,15 @@ describe('ModulePage', () => {
     render(<ModulePage id="123" />);
     await waitFor(() => {
       expect(screen.getByText(/about this module/i)).toBeInTheDocument();
+      expect(screen.getByText(/a beginner-friendly course covering python fundamentals/i)).toBeInTheDocument();
+      expect(screen.getByText(/points available: 50/i)).toBeInTheDocument();
     });
   });
 
   it('renders the Syllabus placeholder', async () => {
     vi.spyOn(api, 'fetchModuleById').mockResolvedValue(mockModule);
     render(<ModulePage id="123" />);
-    await wairFor(() => {
+    await waitFor(() => {
       expect(screen.getByText(/syllabus placeholder/i)).toBeInTheDocument();
     });
   });

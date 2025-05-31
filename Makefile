@@ -21,4 +21,21 @@ db/restore:
 		postgres:16 \
 		pg_restore --no-owner --no-privileges -h localhost -p $(DB_PORT) -U $(DB_USER) -d $(DB_NAME) -v /backups/db_snapshot.dump
 
-
+# Restore into local DB using Dockerized pg_restore with DB recreate
+db/recreate:
+	docker run --rm \
+		--network=host \
+		-e PGPASSWORD=$(DB_PASSWORD) \
+		postgres:16 \
+		psql -h localhost -p $(DB_PORT) -U $(DB_USER) -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='$(DB_NAME)';" && \
+	docker run --rm \
+		--network=host \
+		-e PGPASSWORD=$(DB_PASSWORD) \
+		postgres:16 \
+		psql -h localhost -p $(DB_PORT) -U $(DB_USER) -d postgres -c "DROP DATABASE IF EXISTS $(DB_NAME);" && \
+	docker run --rm \
+		--network=host \
+		-e PGPASSWORD=$(DB_PASSWORD) \
+		postgres:16 \
+		psql -h localhost -p $(DB_PORT) -U $(DB_USER) -d postgres -c "CREATE DATABASE $(DB_NAME);" && \
+		cmd /c "docker run --rm --network=host -e PGPASSWORD=$(DB_PASSWORD) -v $(CURRENT_DIR):/backups postgres:16 pg_restore --clean --no-owner --no-privileges -h localhost -p $(DB_PORT) -U $(DB_USER) -d $(DB_NAME) -v /backups/db_snapshot.dump || exit 0"

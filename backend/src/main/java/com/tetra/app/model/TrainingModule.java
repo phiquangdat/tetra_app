@@ -2,14 +2,15 @@ package com.tetra.app.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import java.util.UUID;
 
 @Entity
 @Table(name = "training_modules")
 public class TrainingModule {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "title", nullable = false)
     private String title;
@@ -27,11 +28,11 @@ public class TrainingModule {
     @JsonProperty("coverUrl")
     private String coverurl;
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

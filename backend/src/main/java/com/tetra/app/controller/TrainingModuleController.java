@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/modules")
@@ -26,7 +27,7 @@ public class TrainingModuleController {
     }
 
     @GetMapping("/{id}")
-    public TrainingModule getModuleById(@PathVariable Long id) {
+    public TrainingModule getModuleById(@PathVariable UUID id) {
         return trainingModuleRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Module not found with id: " + id));
     }

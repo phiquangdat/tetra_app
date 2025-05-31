@@ -3,14 +3,16 @@ import reactLogo from './assets/react.svg';
 import viteLogo from '/vite.svg';
 import './App.css';
 
-import EndpointTesting from './components/EndpointTesting';
+//import EndpointTesting from './components/EndpointTesting';
+import ModuleCards from './components/ModuleCards';
 
 function App() {
   const [count, setCount] = useState(0);
 
   return (
     <>
-      <EndpointTesting />
+      {/* <EndpointTesting /> */}
+      <ModuleCards />
       <div>
         <a href="https://vite.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />

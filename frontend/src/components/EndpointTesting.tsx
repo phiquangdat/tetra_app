@@ -10,7 +10,7 @@ const EndpointTesting: React.FC = () => {
       try {
         const resData = await GetAPITest();
         setData(resData);
-        console.log("Response data:", resData);
+        // console.log("Response data:", resData);
       } catch (err) {
         setError((err as Error).message);
       }

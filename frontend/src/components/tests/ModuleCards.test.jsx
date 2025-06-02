@@ -2,6 +2,7 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import ModuleCards from '../ModuleCards';
 import { afterEach, beforeEach, vi } from 'vitest';
 import { GetModules } from '../../api/http';
+import { BrowserRouter } from 'react-router-dom';
 
 // Mock the successful API call (GetModules) to return mock data
 vi.mock('../../api/http', () => ({
@@ -27,6 +28,10 @@ vi.mock('../../api/http', () => ({
   ]),
 }));
 
+const renderWithRouter = (component) => {
+  return render(<BrowserRouter>{component}</BrowserRouter>);
+};
+
 describe('ModuleCards', () => {
   beforeEach(() => {
     // Clear all mocks before each test
@@ -35,13 +40,13 @@ describe('ModuleCards', () => {
   });
 
   it('renders header text', () => {
-    render(<ModuleCards />);
+    renderWithRouter(<ModuleCards />);
     const headerText = screen.getByText(/Learning Modules/i);
     expect(headerText).toBeInTheDocument();
   });
 
   it('renders a list of module cards', async () => {
-    render(<ModuleCards />);
+    renderWithRouter(<ModuleCards />);
 
     // Wait for the modules to be loaded
     await waitFor(() => screen.getByText(/Intro to Python/i));
@@ -54,7 +59,7 @@ describe('ModuleCards', () => {
   });
 
   it('displays the correct points for each module', async () => {
-    render(<ModuleCards />);
+    renderWithRouter(<ModuleCards />);
 
     // Wait for the modules to be loaded
     await waitFor(() => screen.getByText(/Intro to Python/i));
@@ -68,7 +73,7 @@ describe('ModuleCards', () => {
   });
 
   it('displays module cover images correctly', async () => {
-    render(<ModuleCards />);
+    renderWithRouter(<ModuleCards />);
 
     // Wait for the modules to be loaded
     await waitFor(() => screen.getByAltText(/Intro to Python/i));
@@ -91,7 +96,7 @@ describe('ModuleCards', () => {
     // Mock GetModules to return an error
     GetModules.mockRejectedValue(new Error('Failed to fetch modules'));
 
-    render(<ModuleCards />);
+    renderWithRouter(<ModuleCards />);
 
     // Wait for error message to appear
     await waitFor(() => screen.getByText(/Failed to load data/i));

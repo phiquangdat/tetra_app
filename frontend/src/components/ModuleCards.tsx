@@ -43,6 +43,7 @@ function ModuleCards() {
         {modules.map((module: Module) => (
           <li key={module.id}>
             <ModuleCard
+              id={module.id}
               title={module.title}
               topic={module.topic}
               points={module.points}

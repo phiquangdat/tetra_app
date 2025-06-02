@@ -3,7 +3,7 @@ import reactLogo from './assets/react.svg';
 import viteLogo from '/vite.svg';
 import './App.css';
 
-//import EndpointTesting from './components/EndpointTesting';
+import EndpointTesting from './components/EndpointTesting';
 import ModuleCards from './components/ModuleCards';
 
 function App() {
@@ -11,8 +11,8 @@ function App() {
 
   return (
     <>
-      {/* <EndpointTesting /> */}
       <ModuleCards />
+      <EndpointTesting />
       <div>
         <a href="https://vite.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />

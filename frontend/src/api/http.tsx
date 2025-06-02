@@ -18,7 +18,7 @@ export async function GetAPITest(): Promise<any> {
 
 export async function GetModules(): Promise<any> {
   try {
-    const response = await fetch("http://localhost:8080/api/modules");
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/modules`);
     const modulesData = await response.json();
 
     if (!response.ok) throw new Error("Failed to fetch modules");

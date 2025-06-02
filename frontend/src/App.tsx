@@ -4,12 +4,14 @@ import viteLogo from '/vite.svg';
 import './App.css';
 
 import EndpointTesting from './components/EndpointTesting';
+import ModuleCards from './components/ModuleCards';
 
 function App() {
   const [count, setCount] = useState(0);
 
   return (
     <>
+      <ModuleCards />
       <EndpointTesting />
       <div>
         <a href="https://vite.dev" target="_blank">

@@ -1,5 +1,16 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { BrowserRouter } from 'react-router-dom';
 import ModuleCard from '../ModuleCard';
+
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
 
 describe('ModuleCard', () => {
   const mockModule = {
@@ -11,6 +22,10 @@ describe('ModuleCard', () => {
     coverUrl:
       'https://www.pngall.com/wp-content/uploads/2016/05/Python-Logo-Free-PNG-Image.png',
   };
+
+  beforeEach(() => {
+    mockNavigate.mockClear();
+  });
 
   it('renders module title', () => {
     render(<ModuleCard module={mockModule} />);
@@ -44,4 +59,14 @@ describe('ModuleCard', () => {
     expect(topic).toBeInTheDocument();
   });
 
+  it('clicking View button navigates to /modules/:id with the correct ID', () => {
+    render(
+      <BrowserRouter>
+        <ModuleCard module={mockModule} />
+      </BrowserRouter>,
+    );
+    const viewButton = screen.getByRole('button', { name: 'View' });
+    fireEvent.click(viewButton);
+    expect(mockNavigate).toHaveBeenCalledWith(`/modules/${mockModule.id}`);
   });
+});

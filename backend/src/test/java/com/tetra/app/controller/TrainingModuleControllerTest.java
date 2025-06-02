@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -33,7 +34,7 @@ class TrainingModuleControllerTest {
     @WithMockUser
     void testGetAllModules() throws Exception {
         TrainingModule module = new TrainingModule();
-        module.setId(1L);
+        module.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
         module.setTitle("Test");
         module.setDescription("Desc");
         module.setPoints(10);
@@ -51,16 +52,16 @@ class TrainingModuleControllerTest {
     @WithMockUser
     void testGetModuleById_found() throws Exception {
         TrainingModule module = new TrainingModule();
-        module.setId(1L);
+        module.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
         module.setTitle("Test");
         module.setDescription("Desc");
         module.setPoints(10);
         module.setTopic("Topic");
         module.setCoverurl("cover.jpg");
 
-        when(trainingModuleRepository.findById(1L)).thenReturn(Optional.of(module));
+        when(trainingModuleRepository.findById(UUID.fromString("00000000-0000-0000-0000-000000000001"))).thenReturn(Optional.of(module));
 
-        mockMvc.perform(get("/api/modules/1"))
+        mockMvc.perform(get("/api/modules/00000000-0000-0000-0000-000000000001"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Test"));
     }
@@ -68,9 +69,9 @@ class TrainingModuleControllerTest {
     @Test
     @WithMockUser
     void testGetModuleById_notFound() throws Exception {
-        when(trainingModuleRepository.findById(2L)).thenReturn(Optional.empty());
+        when(trainingModuleRepository.findById(UUID.fromString("00000000-0000-0000-0000-000000000002"))).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/modules/2"))
+        mockMvc.perform(get("/api/modules/00000000-0000-0000-0000-000000000002"))
                 .andExpect(status().isNotFound());
     }
 }

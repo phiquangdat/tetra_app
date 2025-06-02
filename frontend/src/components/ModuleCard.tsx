@@ -11,13 +11,13 @@ function ModuleCard({ title, topic, points, coverUrl }: ModuleCardProps) {
   const [imgError, setImgError] = useState(false);
 
   return (
-    <div className="flex items-center border-2 border-blue-500 bg-gray-50 rounded-lg p-6 max-w-4xl w-150 h-50">
+    <div className="flex items-center bg-gray-50 rounded-3xl w-125 h-54 shadow-lg shadow-gray-300">
       {/* Cover Image */}
-      <div className="flex-shrink-0 w-24 h-24 mr-8">
-        <div className="w-full h-full bg-gray-300 rounded-lg flex items-center justify-center overflow-hidden">
+      <div className="w-62 h-54 rounded-s-3xl overflow-hidden">
+        <div className="w-full h-full">
           {imgError ? (
-            <div className="w-full h-full bg-gray-400 flex items-center justify-center">
-              <span className="text-white text-sm">Image not available</span>
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="text-black text-sm">Image not available</span>
             </div>
           ) : (
             <img
@@ -32,21 +32,23 @@ function ModuleCard({ title, topic, points, coverUrl }: ModuleCardProps) {
       </div>
 
       {/* Content */}
-      <div className="flex-1">
-        <h2 className="text-2xl font-bold text-black mb-2">{title}</h2>
-        <p className="text-lg text-gray-700 mb-1">
-          <span className="font-medium">Topic:</span> {topic}
-        </p>
-        <p className="text-lg text-gray-700">
-          <span className="font-medium">Earn:</span> {points} points
-        </p>
-      </div>
+      <div className="w-62 h-54 border-l-2 border-gray-300 flex flex-col justify-between">
+        <div className="text-start mt-4 ml-4 flex flex-col gap-2">
+          <h2 className="text-lg font-bold text-black">{title}</h2>
+          <p className="text-base text-black">
+            <span>Topic:</span> {topic}
+          </p>
+          <p className="text-base text-black">
+            <span>Earn:</span> {points} points
+          </p>
+        </div>
 
-      {/* View Button */}
-      <div className="flex-shrink-0 ml-8">
-        <button className="bg-blue-300 hover:bg-blue-400 text-black font-medium py-3 px-8 rounded-full transition-colors duration-200">
-          View
-        </button>
+        {/* View Button */}
+        <div className="flex justify-end mb-4 mr-4">
+          <button className="w-30 h-10 cursor-pointer bg-blue-200 hover:bg-blue-400 text-black font-semibold px-8 rounded-full transition-colors duration-200 flex items-center justify-center">
+            View
+          </button>
+        </div>
       </div>
     </div>
   );

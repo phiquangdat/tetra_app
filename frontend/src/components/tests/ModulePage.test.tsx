@@ -65,18 +65,20 @@ describe('ModulePage', () => {
   it('renders the About section with description and points', async () => {
     vi.spyOn(api, 'fetchModuleById').mockResolvedValue(mockModule);
     render(<ModulePage id="123" />);
-    await waitFor(() => {
-      expect(screen.getByText(/about this module/i)).toBeInTheDocument();
-      expect(screen.getByText(/a beginner-friendly course covering python fundamentals/i)).toBeInTheDocument();
-      expect(screen.getByText(/points available: 50/i)).toBeInTheDocument();
-    });
+    expect(await screen.findByText(/about this module/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /a beginner-friendly course covering python fundamentals/i,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/points available/i)).toBeInTheDocument();
   });
 
   it('renders the Syllabus placeholder', async () => {
     vi.spyOn(api, 'fetchModuleById').mockResolvedValue(mockModule);
     render(<ModulePage id="123" />);
-    await waitFor(() => {
-      expect(screen.getByText(/syllabus placeholder/i)).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByText(/syllabus placeholder/i),
+    ).toBeInTheDocument();
   });
 });

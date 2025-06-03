@@ -1,15 +1,18 @@
-stages:
-  - test
-
 variables:
   DOCKER_REGISTRY: registry.gitlab.com
   PROJECT_PATH: tetra_project/tetra_app
-  BACKEND_IMAGE: $DOCKER_REGISTRY/$PROJECT_PATH/backend:latest
-  FRONTEND_IMAGE: $DOCKER_REGISTRY/$PROJECT_PATH/frontend:latest
+  BACKEND_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
+  FRONTEND_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
+  BACKEND_IMAGE: $DOCKER_REGISTRY/$PROJECT_PATH/backend:$BACKEND_IMAGE_TAG
+  FRONTEND_IMAGE: $DOCKER_REGISTRY/$PROJECT_PATH/frontend:$FRONTEND_IMAGE_TAG
+
+stages:
+  - test
+  - push
 
 # Backend tests
 test_backend:
-  image: gradle:8.14-jdk24
+  image: gradle:8.14.1-jdk24
   stage: test
   script:
     - echo "Running backend tests"
@@ -23,10 +26,49 @@ test_backend:
 
 # Frontend tests
 test_frontend:
-  image: node:20
+  image: node:24.0.0
   stage: test
   script:
     - echo "Running frontend tests"
     - cd frontend
     - npm install
-    - npx vitest run --reporter=verbose
+    - mkdir -p test-results
+    - npx vitest run --reporter=verbose --reporter=junit --outputFile.junit=dist/test-results/junit.xml
+  artifacts:
+    when: always
+    reports:
+      junit: frontend/dist/test-results/junit.xml
+
+# Build and Push Backend Image
+build_and_push_backend:
+  image: docker:28.2.1
+  services:
+    - docker:28.2.1-dind
+  stage: push
+  needs: [test_backend]
+  script:
+    - |
+      echo "Building backend Docker image with tag: $BACKEND_IMAGE_TAG"
+      docker build -t $BACKEND_IMAGE ./backend
+      echo "$DEPLOY_TOKEN" | docker login -u "$DEPLOY_USER" --password-stdin $DOCKER_REGISTRY
+      docker push $BACKEND_IMAGE
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+
+# Build and Push Frontend Image
+build_and_push_frontend:
+  image: docker:28.2.1
+  services:
+    - docker:28.2.1-dind
+  stage: push
+  needs: [test_frontend]
+  script:
+    - |
+      echo "Building frontend Docker image with tag: $FRONTEND_IMAGE_TAG"
+      docker build -t $FRONTEND_IMAGE ./frontend
+      echo "$DEPLOY_TOKEN" | docker login -u "$DEPLOY_USER" --password-stdin $DOCKER_REGISTRY
+      docker push $FRONTEND_IMAGE
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'

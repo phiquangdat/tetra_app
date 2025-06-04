@@ -1,10 +1,4 @@
-import React from 'react';
-
-interface UnitPageProps {
-  id: string;
-}
-
-const UnitPage: React.FC<UnitPageProps> = ({ id }: UnitPageProps) => {
+const UnitPage = () => {
   return (
     <div>
       <h1>Introduction to Cyber Threats</h1>

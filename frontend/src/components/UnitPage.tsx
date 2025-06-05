@@ -125,22 +125,24 @@ const UnitPage = () => {
         </div>
       </div>
 
-      <div className="bg-gray-100 rounded-2xl p-6 shadow-md w-full md:w-full mx-auto">
+      <div className="bg-gray-100 rounded-2xl p-6 shadow-lg w-full md:w-full mx-auto border border-gray-200">
         {contentList.map((item, index) => (
           <div
             key={index}
-            className={`grid grid-cols-[24px_80px_1fr_32px] gap-6 items-center p-4 rounded-xl cursor-pointer transition-colors
-${checkedIndex === index ? 'bg-blue-100' : 'bg-white hover:bg-gray-200'}`}
+            className={`grid grid-cols-[24px_80px_1fr_32px] gap-4 hover:bg-gray-200 items-center p-4 rounded-xl cursor-pointer transition-colors
+              ${checkedIndex === index ? 'bg-gray-300' : ''}`}
             onClick={() => handleRowClick(index)}
           >
             <div className="w-6 h-6 flex items-center justify-center">
               {icons[item.type as keyof typeof icons]}
             </div>
-            <div className="capitalize font-medium text-sm text-gray-600">
+            <div className="capitalize font-medium text-sm text-gray-700">
               {item.label}
             </div>
-            <div>{item.title}</div>
-            {checkedIndex === index ? icons.check : ''}
+            <div className="text-gray-900">{item.title}</div>
+            <div className="flex justify-end items-center">
+              {checkedIndex === index ? icons.check : ''}
+            </div>
           </div>
         ))}
       </div>

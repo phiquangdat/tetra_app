@@ -24,7 +24,7 @@ const ArticlePage: React.FC = () => {
             </div>
 
             <h1 className="text-3xl font-bold mb-6 text-gray-800 text-center">{articleToDisplay.title}</h1>
-            <div className="bg-gray-100 rounded-2xl p-6 shadow-md w-full md:w-full mx-auto">
+            <div className="bg-gray-100 rounded-2xl p-12 shadow-md w-full md:w-full mx-auto">
                 <div
                     className="prose prose-lg max-w-none"
                     dangerouslySetInnerHTML={{ __html: articleToDisplay.content }}

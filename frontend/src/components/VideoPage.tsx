@@ -56,6 +56,15 @@ const VideoPage: React.FC = () => {
                     {video.content}
                 </div>
             </div>
+
+            <div className="w-full max-w-4xl mt-8 flex justify-end">
+                <button
+                    className="bg-blue-200 font-semibold px-16 py-3 rounded-full text-lg shadow-md hover:bg-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition w-fit"
+                    type="button"
+                >
+                    Up next
+                </button>
+            </div>
         </div>
     );
 };

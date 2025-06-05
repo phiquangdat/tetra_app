@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { fetchModuleById, type Module } from '../api/modules';
+import Syllabus from './Syllabus.tsx';
 
 interface ModulePageProps {
   id: string;
@@ -124,10 +125,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
         </div>
       </div>
 
-      <div className="mt-8">
-        <h2 className="text-xl font-bold mb-4">Syllabus</h2>
-        <div className="text-gray-500">Syllabus placeholder</div>
-      </div>
+      <Syllabus />
     </div>
   );
 };

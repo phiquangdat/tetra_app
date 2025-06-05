@@ -3,11 +3,14 @@ import React from 'react';
 type Video = {
     title: string;
     url: string;
+    content: string;
 };
 
 const video: Video = {
     title: 'Video title',
-    url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    url: 'https://www.youtube.com/watch?v=inWWhr5tnEA',
+    content: `This video provides an introduction to the topic and outlines key concepts that will be covered in the module. 
+    Make sure to watch carefully and take notes where needed.`
 };
 
 const isYouTubeUrl = (url: string): boolean => {
@@ -16,7 +19,7 @@ const isYouTubeUrl = (url: string): boolean => {
 
 const getYouTubeEmbedUrl = (url: string): string => {
     const videoId = new URL(url).searchParams.get('v');
-    return `https://www.youtube.com/embed/${videoId}?autoplay=0&mute=1`;
+    return `https://www.youtube.com/embed/${videoId}?autoplay=0&mute=0`;
 };
 
 const VideoPage: React.FC = () => {
@@ -24,7 +27,7 @@ const VideoPage: React.FC = () => {
     const embedUrl = isYouTube ? getYouTubeEmbedUrl(video.url) : video.url;
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+        <div className="flex flex-col items-center justify-center min-h-screen p-4">
             <h1 className="text-3xl font-semibold mb-6 text-center">{video.title}</h1>
             <div className="w-full max-w-4xl aspect-video rounded-2xl overflow-hidden shadow-lg">
                 {isYouTube ? (

@@ -93,7 +93,7 @@ const UnitPage = () => {
   const [checkedIndex, setCheckedIndex] = useState<number | null>(null);
 
   const handleRowClick = (idx: number) => {
-    setCheckedIndex(idx);
+    setCheckedIndex((current) => (current === idx ? null : idx));
   };
 
   return (

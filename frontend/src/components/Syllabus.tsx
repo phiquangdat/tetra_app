@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 
 type Unit = {
     title: string;
@@ -28,6 +28,12 @@ const units: Unit[] = [
 ];
 
 const Syllabus: React.FC = () => {
+    const [openUnit, setOpenUnit] = useState<number | null>(null);
+
+    const toggleUnit = (index: number) => {
+        setOpenUnit(openUnit === index ? null : index);
+    };
+
     const icons = {
         video: (
             <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -63,27 +69,36 @@ const Syllabus: React.FC = () => {
     };
 
     return (
-        <div>
-            <h2>Syllabus</h2>
+        <div className="bg-gray-100 rounded-2xl p-6 shadow-md w-full md:w-full mx-auto">
+            <h2 className="text-xl font-semibold mb-4">Syllabus</h2>
             {units.map((unit, index) => (
-                <div key={index}>
-                    <div>
+                <div key={index} className="mb-4">
+                    <div
+                        className={`flex justify-between items-center p-4 rounded-xl cursor-pointer transition-colors
+              ${openUnit === index ? 'bg-blue-100' : 'bg-white hover:bg-gray-200'}`}
+                        onClick={() => toggleUnit(index)} >
                         <div>
-                            <div>Unit {index + 1}: {unit.title}</div>
-                            <div>1 Article, 1 Video, 1 Quiz</div>
-                            {unit.content.map((contentItem, idx) => (
-                                <div key={idx} >
-                                    <div>
-                                        {icons[contentItem.type]}
-                                    </div>
-                                    <div >{contentItem.type}</div>
-                                    <div>{contentItem.title}</div>
-                                </div>
-                            ))}
+                            <div className="font-bold">Unit {index + 1}: {unit.title}</div>
+                            <div className="text-sm text-gray-600">1 Article, 1 Video, 1 Quiz</div>
                         </div>
-
+                            {openUnit === index ? icons.chevronUp : icons.chevronDown}
                     </div>
+                            {openUnit === index && (
+                                <div className="mt-2 ml-4 space-y-1 text-sm">
+
+                                {unit.content.map((contentItem, index) => (
+                                    <div key={index} className="grid grid-cols-[24px_80px_1fr] gap-2 items-center text-gray-700">
+                                        <div className="w-6 h-6 flex items-center justify-center">
+                                            {icons[contentItem.type]}
+                                        </div>
+                                        <div className="capitalize font-medium text-sm text-gray-600">{contentItem.type}</div>
+                                        <div>{contentItem.title}</div>
+                                    </div>
+                                ))}
+                                </div>
+                            )}
                 </div>
+
             ))}
         </div>
     );

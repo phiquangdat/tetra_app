@@ -74,11 +74,11 @@ describe('ModulePage', () => {
     expect(screen.getByText(/points available/i)).toBeInTheDocument();
   });
 
-  it('renders the Syllabus placeholder', async () => {
+  it('renders the Syllabus component with heading', async () => {
     vi.spyOn(api, 'fetchModuleById').mockResolvedValue(mockModule);
     render(<ModulePage id="123" />);
     expect(
-      await screen.findByText(/syllabus placeholder/i),
+        await screen.findByRole('heading', { name: /syllabus/i })
     ).toBeInTheDocument();
   });
 });

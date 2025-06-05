@@ -49,6 +49,13 @@ const VideoPage: React.FC = () => {
                     </video>
                 )}
             </div>
+
+            <div className="w-full max-w-4xl text-left mt-5">
+                <h2 className="text-xl font-bold ml-4 mb-4">About</h2>
+                <div className="bg-gray-200 rounded-3xl p-6 text-gray-700 text-base shadow-sm">
+                    {video.content}
+                </div>
+            </div>
         </div>
     );
 };

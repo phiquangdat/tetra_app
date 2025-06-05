@@ -30,6 +30,15 @@ const ArticlePage: React.FC = () => {
                     dangerouslySetInnerHTML={{ __html: articleToDisplay.content }}
                 />
             </div>
+
+            <div className="flex justify-end mt-8">
+                <button
+                    className="bg-blue-200 font-semibold px-16 py-3 rounded-full text-lg shadow-md hover:bg-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition w-fit"
+                    type="button"
+                >
+                    Up next
+                </button>
+            </div>
         </div>
     )
 }

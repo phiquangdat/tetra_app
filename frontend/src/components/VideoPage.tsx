@@ -28,6 +28,16 @@ const VideoPage: React.FC = () => {
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen p-4">
+            <div className="w-full max-w-4xl mb-6 text-left">
+                <a
+                    href="/unit"
+                    className="inline-flex items-center text-gray-500 hover:text-black px-3 py-1 rounded-lg hover:bg-gray-100 hover:border hover:border-gray-300 active:bg-gray-200 transition-all"
+                >
+                    <span className="mr-2 text-xl">←</span>
+                    Back to Unit page
+                </a>
+            </div>
+
             <h1 className="text-3xl font-semibold mb-6 text-center">{video.title}</h1>
             <div className="w-full max-w-4xl aspect-video rounded-2xl overflow-hidden shadow-lg">
                 {isYouTube ? (

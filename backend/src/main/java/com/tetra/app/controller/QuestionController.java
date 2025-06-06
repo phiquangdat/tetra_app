@@ -1,8 +1,12 @@
 package com.tetra.app.controller;
 
 import com.tetra.app.model.Question;
+import com.tetra.app.model.UnitContent;
 import com.tetra.app.repository.QuestionRepository;
+import com.tetra.app.repository.UnitContentRepository;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import java.util.List;
 import java.util.UUID;
 
@@ -11,9 +15,11 @@ import java.util.UUID;
 public class QuestionController {
 
     private final QuestionRepository questionRepository;
+    private final UnitContentRepository unitContentRepository;
 
-    public QuestionController(QuestionRepository questionRepository) {
+    public QuestionController(QuestionRepository questionRepository, UnitContentRepository unitContentRepository) {
         this.questionRepository = questionRepository;
+        this.unitContentRepository = unitContentRepository;
     }
 
     @GetMapping
@@ -32,14 +38,32 @@ public class QuestionController {
     }
 
     @PostMapping
-    public Question create(@RequestBody Question question) {
-        return questionRepository.save(question);
+    public ResponseEntity<?> create(@RequestBody Question question) {
+        if (question.getUnitContent() == null || question.getUnitContent().getId() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("UnitContent id is required");
+        }
+        UnitContent unitContent = unitContentRepository.findById(question.getUnitContent().getId()).orElse(null);
+        if (unitContent == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("UnitContent not found");
+        }
+        question.setUnitContent(unitContent);
+        Question saved = questionRepository.save(question);
+        return ResponseEntity.ok(saved);
     }
 
     @PutMapping("/{id}")
-    public Question update(@PathVariable UUID id, @RequestBody Question question) {
+    public ResponseEntity<?> update(@PathVariable UUID id, @RequestBody Question question) {
+        if (question.getUnitContent() == null || question.getUnitContent().getId() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("UnitContent id is required");
+        }
+        UnitContent unitContent = unitContentRepository.findById(question.getUnitContent().getId()).orElse(null);
+        if (unitContent == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("UnitContent not found");
+        }
         question.setId(id);
-        return questionRepository.save(question);
+        question.setUnitContent(unitContent);
+        Question saved = questionRepository.save(question);
+        return ResponseEntity.ok(saved);
     }
 
     @DeleteMapping("/{id}")

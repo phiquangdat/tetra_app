@@ -41,12 +41,13 @@ class QuestionControllerTest {
     private Question question;
     private UUID questionId;
     private UUID contentId;
+    private UnitContent unitContent;
 
     @BeforeEach
     void setUp() {
         contentId = UUID.randomUUID();
         questionId = UUID.randomUUID();
-        UnitContent unitContent = new UnitContent();
+        unitContent = new UnitContent();
         unitContent.setId(contentId);
 
         question = new Question();
@@ -75,20 +76,74 @@ class QuestionControllerTest {
 
     @Test
     void testCreate() throws Exception {
+        when(unitContentRepository.findById(contentId)).thenReturn(Optional.of(unitContent));
         when(questionRepository.save(any(Question.class))).thenReturn(question);
+
+        Map<String, Object> questionMap = new HashMap<>();
+        questionMap.put("title", "Sample Question");
+        questionMap.put("type", "single");
+        questionMap.put("sortOrder", 1);
+        Map<String, Object> unitContentMap = new HashMap<>();
+        unitContentMap.put("id", contentId.toString());
+        questionMap.put("unitContent", unitContentMap);
+
         mockMvc.perform(post("/api/questions")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(question)))
+                .content(objectMapper.writeValueAsString(questionMap)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Sample Question"));
     }
 
     @Test
+    void testCreateWithoutUnitContentId() throws Exception {
+        Map<String, Object> questionMap = new HashMap<>();
+        questionMap.put("title", "Sample Question");
+        questionMap.put("type", "single");
+        questionMap.put("sortOrder", 1);
+        questionMap.put("unitContent", new HashMap<>()); // unitContent без id
+
+        mockMvc.perform(post("/api/questions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(questionMap)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("UnitContent id is required"));
+    }
+
+    @Test
+    void testCreateWithNonexistentUnitContent() throws Exception {
+        when(unitContentRepository.findById(contentId)).thenReturn(Optional.empty());
+
+        Map<String, Object> questionMap = new HashMap<>();
+        questionMap.put("title", "Sample Question");
+        questionMap.put("type", "single");
+        questionMap.put("sortOrder", 1);
+        Map<String, Object> unitContentMap = new HashMap<>();
+        unitContentMap.put("id", contentId.toString());
+        questionMap.put("unitContent", unitContentMap);
+
+        mockMvc.perform(post("/api/questions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(questionMap)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("UnitContent not found"));
+    }
+
+    @Test
     void testUpdate() throws Exception {
+        when(unitContentRepository.findById(contentId)).thenReturn(Optional.of(unitContent));
         when(questionRepository.save(any(Question.class))).thenReturn(question);
+
+        Map<String, Object> questionMap = new HashMap<>();
+        questionMap.put("title", "Sample Question");
+        questionMap.put("type", "single");
+        questionMap.put("sortOrder", 1);
+        Map<String, Object> unitContentMap = new HashMap<>();
+        unitContentMap.put("id", contentId.toString());
+        questionMap.put("unitContent", unitContentMap);
+
         mockMvc.perform(put("/api/questions/" + questionId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(question)))
+                .content(objectMapper.writeValueAsString(questionMap)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(questionId.toString()));
     }

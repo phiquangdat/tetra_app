@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tetra.app.model.Answer;
 import com.tetra.app.model.Question;
 import com.tetra.app.repository.AnswerRepository;
+import com.tetra.app.repository.QuestionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,18 +32,22 @@ class AnswerControllerTest {
     @MockBean
     private AnswerRepository answerRepository;
 
+    @MockBean
+    private QuestionRepository questionRepository;
+
     @Autowired
     private ObjectMapper objectMapper;
 
     private Answer answer;
     private UUID answerId;
     private UUID questionId;
+    private Question question;
 
     @BeforeEach
     void setUp() {
         questionId = UUID.randomUUID();
         answerId = UUID.randomUUID();
-        Question question = new Question();
+        question = new Question();
         question.setId(questionId);
 
         answer = new Answer();
@@ -71,20 +76,74 @@ class AnswerControllerTest {
 
     @Test
     void testCreate() throws Exception {
+        when(questionRepository.findById(questionId)).thenReturn(Optional.of(question));
         when(answerRepository.save(any(Answer.class))).thenReturn(answer);
+
+        Map<String, Object> answerMap = new HashMap<>();
+        answerMap.put("title", "Sample Answer");
+        answerMap.put("isCorrect", true);
+        answerMap.put("sortOrder", 1);
+        Map<String, Object> questionMap = new HashMap<>();
+        questionMap.put("id", questionId.toString());
+        answerMap.put("question", questionMap);
+
         mockMvc.perform(post("/api/answers")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(answer)))
+                .content(objectMapper.writeValueAsString(answerMap)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Sample Answer"));
     }
 
     @Test
+    void testCreateWithoutQuestionId() throws Exception {
+        Map<String, Object> answerMap = new HashMap<>();
+        answerMap.put("title", "Sample Answer");
+        answerMap.put("isCorrect", true);
+        answerMap.put("sortOrder", 1);
+        answerMap.put("question", new HashMap<>()); // question без id
+
+        mockMvc.perform(post("/api/answers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(answerMap)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Question id is required"));
+    }
+
+    @Test
+    void testCreateWithNonexistentQuestion() throws Exception {
+        when(questionRepository.findById(questionId)).thenReturn(Optional.empty());
+
+        Map<String, Object> answerMap = new HashMap<>();
+        answerMap.put("title", "Sample Answer");
+        answerMap.put("isCorrect", true);
+        answerMap.put("sortOrder", 1);
+        Map<String, Object> questionMap = new HashMap<>();
+        questionMap.put("id", questionId.toString());
+        answerMap.put("question", questionMap);
+
+        mockMvc.perform(post("/api/answers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(answerMap)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Question not found"));
+    }
+
+    @Test
     void testUpdate() throws Exception {
+        when(questionRepository.findById(questionId)).thenReturn(Optional.of(question));
         when(answerRepository.save(any(Answer.class))).thenReturn(answer);
+
+        Map<String, Object> answerMap = new HashMap<>();
+        answerMap.put("title", "Sample Answer");
+        answerMap.put("isCorrect", true);
+        answerMap.put("sortOrder", 1);
+        Map<String, Object> questionMap = new HashMap<>();
+        questionMap.put("id", questionId.toString());
+        answerMap.put("question", questionMap);
+
         mockMvc.perform(put("/api/answers/" + answerId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(answer)))
+                .content(objectMapper.writeValueAsString(answerMap)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(answerId.toString()));
     }

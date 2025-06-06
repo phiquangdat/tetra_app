@@ -1,10 +1,12 @@
 package com.tetra.app.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.util.UUID;
 
 @Entity
 @Table(name = "answers")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Answer {
 
     @Id
@@ -13,6 +15,7 @@ public class Answer {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_id", foreignKey = @ForeignKey(name = "answers_question_fk"))
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Question question;
 
     @Column(name = "title")

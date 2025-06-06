@@ -1,5 +1,6 @@
 package com.tetra.app.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.util.UUID;
@@ -15,7 +16,7 @@ public class Answer {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_id", foreignKey = @ForeignKey(name = "answers_question_fk"))
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIgnore
     private Question question;
 
     @Column(name = "title")
@@ -32,6 +33,12 @@ public class Answer {
     public void setId(UUID id) { this.id = id; }
     public Question getQuestion() { return question; }
     public void setQuestion(Question question) { this.question = question; }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("questionId")
+    public UUID getQuestionId() {
+        return question != null ? question.getId() : null;
+    }
+
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public Boolean getIsCorrect() { return isCorrect; }

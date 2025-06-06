@@ -92,7 +92,8 @@ class AnswerControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(answerMap)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Sample Answer"));
+                .andExpect(jsonPath("$.title").value("Sample Answer"))
+                .andExpect(jsonPath("$.questionId").value(questionId.toString()));
     }
 
     @Test

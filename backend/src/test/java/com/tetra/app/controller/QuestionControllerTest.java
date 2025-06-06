@@ -157,9 +157,10 @@ class QuestionControllerTest {
 
     @Test
     void testGetByContent() throws Exception {
-        when(questionRepository.findByUnitContentId(contentId)).thenReturn(List.of(question));
+        when(questionRepository.findByUnitContent_Id(contentId)).thenReturn(List.of(question));
         mockMvc.perform(get("/api/questions/by-content/" + contentId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].unitContent.id").value(contentId.toString()));
+                .andExpect(jsonPath("$[0].unitContent").exists())
+                .andExpect(jsonPath("$[0].unitContentId").value(contentId.toString()));
     }
 }

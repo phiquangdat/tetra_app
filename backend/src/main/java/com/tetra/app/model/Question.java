@@ -66,4 +66,9 @@ public class Question {
     public void setSortOrder(Integer sortOrder) {
         this.sortOrder = sortOrder;
     }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("unitContentId")
+    public UUID getUnitContentId() {
+        return unitContent != null ? unitContent.getId() : null;
+    }
 }

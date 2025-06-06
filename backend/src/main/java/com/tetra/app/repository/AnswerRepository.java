@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface AnswerRepository extends JpaRepository<Answer, UUID> {
-    List<Answer> findByQuestionId(UUID questionId);
+    List<Answer> findByQuestion_Id(UUID questionId);
 }

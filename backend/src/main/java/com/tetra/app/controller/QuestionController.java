@@ -29,7 +29,7 @@ public class QuestionController {
 
     @GetMapping("/by-content/{contentId}")
     public List<Question> getByContent(@PathVariable UUID contentId) {
-        return questionRepository.findByUnitContentId(contentId);
+        return questionRepository.findByUnitContent_Id(contentId);
     }
 
     @GetMapping("/{id}")

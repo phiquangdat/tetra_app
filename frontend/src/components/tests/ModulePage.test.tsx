@@ -78,7 +78,7 @@ describe('ModulePage', () => {
     vi.spyOn(api, 'fetchModuleById').mockResolvedValue(mockModule);
     render(<ModulePage id="123" />);
     expect(
-        await screen.findByRole('heading', { name: /syllabus/i })
+      await screen.findByRole('heading', { name: /syllabus/i }),
     ).toBeInTheDocument();
   });
 });

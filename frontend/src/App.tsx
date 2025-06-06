@@ -10,7 +10,6 @@ function ModulePageWrapper() {
 }
 
 function App() {
-
   return (
     <>
       <Routes>

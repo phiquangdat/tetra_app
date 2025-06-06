@@ -1,16 +1,16 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       fontFamily: {
-        sans: ["system-ui", "Avenir", "Helvetica", "Arial", "sans-serif"],
+        sans: ['system-ui', 'Avenir', 'Helvetica', 'Arial', 'sans-serif'],
       },
       lineHeight: {
-        base: "1.5",
+        base: '1.5',
       },
       fontWeight: {
-        normal: "400",
+        normal: '400',
       },
     },
   },

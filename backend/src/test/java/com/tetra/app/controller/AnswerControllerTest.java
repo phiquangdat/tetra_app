@@ -63,7 +63,8 @@ class AnswerControllerTest {
         when(answerRepository.findAll()).thenReturn(List.of(answer));
         mockMvc.perform(get("/api/answers"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("Sample Answer"));
+                .andExpect(jsonPath("$[0].title").value("Sample Answer"))
+                .andExpect(jsonPath("$[0].questionId").value(questionId.toString()));
     }
 
     @Test
@@ -100,7 +101,7 @@ class AnswerControllerTest {
         answerMap.put("title", "Sample Answer");
         answerMap.put("isCorrect", true);
         answerMap.put("sortOrder", 1);
-        answerMap.put("question", new HashMap<>()); // question без id
+        answerMap.put("question", new HashMap<>());
 
         mockMvc.perform(post("/api/answers")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -160,6 +161,6 @@ class AnswerControllerTest {
         when(answerRepository.findByQuestionId(questionId)).thenReturn(List.of(answer));
         mockMvc.perform(get("/api/answers/by-question/" + questionId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].question.id").value(questionId.toString()));
+                .andExpect(jsonPath("$[0].questionId").value(questionId.toString()));
     }
 }

@@ -2,10 +2,13 @@ package com.tetra.app.controller;
 
 import com.tetra.app.model.Unit;
 import com.tetra.app.repository.UnitRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/units")
@@ -22,4 +25,12 @@ public class UnitController {
         List<Unit> units = unitRepository.findAll();
         return ResponseEntity.ok(units);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Unit> getUnitById(@PathVariable String id) {
+        return unitRepository.findById(UUID.fromString(id))
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Unit is not found with id: " + id));
+    }
+
 }

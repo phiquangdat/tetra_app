@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -29,4 +30,10 @@ public class UnitContentController {
         return new ResponseEntity<>(unitContent, HttpStatus.OK);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<UnitContent> getById(@PathVariable UUID id) {
+        Optional<UnitContent> unitContent = unitContentRepository.findById(id);
+        return unitContent.map(content -> new ResponseEntity<>(content, HttpStatus.OK))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Unit content is not found with id: " + id));
+    }
 }

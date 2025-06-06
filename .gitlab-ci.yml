@@ -24,6 +24,20 @@ test_backend:
     reports:
       junit: backend/build/test-results/test/TEST-*.xml
 
+# Prettier format check
+check_prettier:
+  image: node:24.0.0
+  stage: test
+  script:
+    - echo "Checking Prettier formatting"
+    - cd frontend
+    - npm ci
+    - npm run format
+    - git diff --exit-code
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH != "main"
+
 # Frontend tests
 test_frontend:
   image: node:24.0.0

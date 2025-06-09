@@ -14,6 +14,8 @@ stages:
 test_backend:
   image: gradle:8.14.1-jdk24
   stage: test
+  tags:
+    - "Docker"
   script:
     - echo "Running backend tests"
     - cd backend
@@ -28,6 +30,8 @@ test_backend:
 check_prettier:
   image: node:24.0.0
   stage: test
+  tags:
+    - "Docker"
   script:
     - echo "Checking Prettier formatting"
     - cd frontend
@@ -42,6 +46,8 @@ check_prettier:
 test_frontend:
   image: node:24.0.0
   stage: test
+  tags:
+    - "Docker"
   script:
     - echo "Running frontend tests"
     - cd frontend
@@ -53,12 +59,15 @@ test_frontend:
     reports:
       junit: frontend/dist/test-results/junit.xml
 
+
 # Build and Push Backend Image
 build_and_push_backend:
   image: docker:28.2.1
   services:
     - docker:28.2.1-dind
   stage: push
+  tags:
+    - "Docker"
   needs: [test_backend]
   script:
     - |
@@ -76,6 +85,8 @@ build_and_push_frontend:
   services:
     - docker:28.2.1-dind
   stage: push
+  tags:
+    - "Docker"
   needs: [test_frontend]
   script:
     - |

@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,22 +26,6 @@ public class UnitControllerTest {
 
     @InjectMocks
     private UnitController unitController;
-
-    @Test
-    void testGetAllUnits() {
-        Unit unit1 = new Unit(null, "Unit 1", "Description 1");
-        Unit unit2 = new Unit(null, "Unit 2", "Description 2");
-        List<Unit> mockUnits = List.of(unit1, unit2);
-
-        when(unitRepository.findAll()).thenReturn(mockUnits);
-
-        ResponseEntity<List<Unit>> response = unitController.getAllUnits();
-
-        assertEquals(200, response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals(2, response.getBody().size());
-        verify(unitRepository, times(1)).findAll();
-    }
 
     @Test
     void testGetUnitById_Success() {
@@ -68,5 +53,34 @@ public class UnitControllerTest {
         assertEquals(404, exception.getStatusCode().value());
         assertEquals("Unit is not found with id: " + unitId, exception.getReason());
         verify(unitRepository, times(1)).findById(unitId);
+    }
+
+    @Test
+    void testGetUnitsByModuleId_ReturnsCorrectUnits() {
+        UUID moduleId = UUID.randomUUID();
+        Unit unit1 = new Unit();
+        unit1.setId(UUID.randomUUID());
+        unit1.setTitle("Unit 1");
+        Unit unit2 = new Unit();
+        unit2.setId(UUID.randomUUID());
+        unit2.setTitle("Unit 2");
+
+        when(unitRepository.findByModule_Id(moduleId)).thenReturn(List.of(unit1, unit2));
+
+        ResponseEntity<?> response = unitController.getUnitsByModuleId(moduleId);
+
+        assertEquals(200, response.getStatusCode().value());
+        List<?> body = (List<?>) response.getBody();
+        assertEquals(2, body.size());
+        Map<?, ?> first = (Map<?, ?>) body.get(0);
+        assertTrue(first.containsKey("id"));
+        assertTrue(first.containsKey("title"));
+    }
+
+    @Test
+    void testGetUnitsByModuleId_MissingModuleId() {
+        ResponseEntity<?> response = unitController.getUnitsByModuleId(null);
+        assertEquals(400, response.getStatusCode().value());
+        assertEquals("moduleId query parameter is required", response.getBody());
     }
 }

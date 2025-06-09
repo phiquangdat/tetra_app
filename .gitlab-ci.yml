@@ -65,10 +65,10 @@ test_frontend:
     reports:
       junit: frontend/dist/test-results/junit.xml
 
-
 # Build and Push Backend Image
 build_and_push_backend:
   image: docker:28.2.1
+  stage: push
   services:
     - docker:28.2.1-dind
   tags:

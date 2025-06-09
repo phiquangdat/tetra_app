@@ -14,6 +14,8 @@ stages:
 test_backend:
   image: gradle:8.14.1-jdk24
   stage: test
+  services:
+    - docker:28.2.1-dind
   tags:
     - "Docker"
   script:
@@ -30,6 +32,8 @@ test_backend:
 check_prettier:
   image: node:24.0.0
   stage: test
+  services:
+    - docker:28.2.1-dind
   tags:
     - "Docker"
   script:
@@ -46,6 +50,8 @@ check_prettier:
 test_frontend:
   image: node:24.0.0
   stage: test
+  services:
+    - docker:28.2.1-dind
   tags:
     - "Docker"
   script:
@@ -65,7 +71,6 @@ build_and_push_backend:
   image: docker:28.2.1
   services:
     - docker:28.2.1-dind
-  stage: push
   tags:
     - "Docker"
   needs: [test_backend]

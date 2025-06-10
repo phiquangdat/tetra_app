@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { GetModules, GetUnitTitleByModuleId } from '../api/http';
+import { GetUnitTitleByModuleId } from '../api/http';
+
+interface SyllabusProps {
+  moduleID: string | null;
+}
 
 type Unit = {
+  moduleId: string;
   title: string;
   content: {
     type: 'video' | 'article' | 'quiz';
@@ -9,63 +14,45 @@ type Unit = {
   }[];
 };
 
-const fetchUnitTitleByModuleId = async (id: string): Promise<string> => {
+const fetchUnitsByModuleId = async (id: string): Promise<Unit[]> => {
   try {
-    const title = await GetUnitTitleByModuleId(id);
-    return title;
+    return await GetUnitTitleByModuleId(id);
   } catch (error) {
-    console.error('Error fetching unit:', error);
-    return 'Error fetching unit title';
+    console.error('Error fetching units:', error);
+    return [{ moduleId: id, title: 'Error fetching unit', content: [] }];
   }
 };
 
-const Syllabus: React.FC = () => {
+const Syllabus: React.FC<SyllabusProps> = ({ moduleID }) => {
   const [openUnit, setOpenUnit] = useState<number | null>(null);
   const [units, setUnits] = useState<Unit[]>([]);
-  const [listIds, setListIds] = useState<string[] | null>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!moduleID) {
+      setErrorMessage('failed to fetch units: units is not found');
+      return;
+    }
+
+    const fetchUnits = async () => {
+      try {
+        const unitsData = await fetchUnitsByModuleId(moduleID);
+        setUnits(unitsData);
+      } catch (error) {
+        if (error instanceof Error) {
+          setErrorMessage(error.message);
+        } else {
+          setErrorMessage('An unknown error occurred');
+        }
+      }
+    };
+
+    fetchUnits();
+  }, [moduleID]);
 
   const toggleUnit = (index: number) => {
     setOpenUnit(openUnit === index ? null : index);
   };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const modules = await GetModules();
-        if (modules && modules.length > 0) {
-          const ids = modules.map((module: any) => module.id);
-          setListIds(ids);
-        }
-      } catch (error) {
-        console.error('Error fetching modules:', error);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    if (!listIds || listIds.length === 0) return;
-
-    const fetchAllUnits = async () => {
-      try {
-        const fetchedUnits = await Promise.all(
-          listIds.map(async (id) => {
-            const unitTitle = await fetchUnitTitleByModuleId(id);
-            return {
-              title: unitTitle,
-              content: [],
-            };
-          }),
-        );
-        setUnits(fetchedUnits);
-      } catch (error) {
-        console.error('Error fetching units:', error);
-      }
-    };
-
-    fetchAllUnits();
-  }, [listIds]);
 
   const icons = {
     video: (
@@ -134,6 +121,7 @@ const Syllabus: React.FC = () => {
   return (
     <div className="bg-gray-100 rounded-2xl p-6 shadow-md w-full md:w-full mx-auto">
       <h2 className="text-xl font-semibold mb-4">Syllabus</h2>
+      {errorMessage && <p className="text-red-500">{errorMessage}</p>}
       {units.map((unit, index) => (
         <div key={index} className="mb-4">
           <div

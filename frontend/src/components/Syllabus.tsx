@@ -1,6 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { GetUnitTitleByModuleId } from '../api/http';
+
+interface SyllabusProps {
+  moduleID: string | null;
+}
 
 type Unit = {
+  moduleId: string;
   title: string;
   content: {
     type: 'video' | 'article' | 'quiz';
@@ -8,27 +14,41 @@ type Unit = {
   }[];
 };
 
-const units: Unit[] = [
-  {
-    title: 'Data Protection',
-    content: [
-      { type: 'video', title: 'Strategies for data protection' },
-      { type: 'article', title: 'Case studies on breaches and prevention' },
-      { type: 'quiz', title: 'Key concepts of data protection' },
-    ],
-  },
-  {
-    title: 'Cybersecurity Fundamentals',
-    content: [
-      { type: 'video', title: 'Introduction to Cyber Threats' },
-      { type: 'article', title: 'Best Practices for Secure Systems' },
-      { type: 'quiz', title: 'Cybersecurity Knowledge Check' },
-    ],
-  },
-];
+const fetchUnitsByModuleId = async (id: string): Promise<Unit[]> => {
+  try {
+    return await GetUnitTitleByModuleId(id);
+  } catch (error) {
+    console.error('Error fetching units:', error);
+    return [{ moduleId: id, title: 'Error fetching unit', content: [] }];
+  }
+};
 
-const Syllabus: React.FC = () => {
+const Syllabus: React.FC<SyllabusProps> = ({ moduleID }) => {
   const [openUnit, setOpenUnit] = useState<number | null>(null);
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!moduleID) {
+      setErrorMessage('failed to fetch units: units is not found');
+      return;
+    }
+
+    const fetchUnits = async () => {
+      try {
+        const unitsData = await fetchUnitsByModuleId(moduleID);
+        setUnits(unitsData);
+      } catch (error) {
+        if (error instanceof Error) {
+          setErrorMessage(error.message);
+        } else {
+          setErrorMessage('An unknown error occurred');
+        }
+      }
+    };
+
+    fetchUnits();
+  }, [moduleID]);
 
   const toggleUnit = (index: number) => {
     setOpenUnit(openUnit === index ? null : index);
@@ -101,6 +121,7 @@ const Syllabus: React.FC = () => {
   return (
     <div className="bg-gray-100 rounded-2xl p-6 shadow-md w-full md:w-full mx-auto">
       <h2 className="text-xl font-semibold mb-4">Syllabus</h2>
+      {errorMessage && <p className="text-red-500">{errorMessage}</p>}
       {units.map((unit, index) => (
         <div key={index} className="mb-4">
           <div
@@ -120,20 +141,21 @@ const Syllabus: React.FC = () => {
           </div>
           {openUnit === index && (
             <div className="mt-2 ml-4 space-y-1 text-sm">
-              {unit.content.map((contentItem, index) => (
-                <div
-                  key={index}
-                  className="grid grid-cols-[24px_80px_1fr] gap-2 items-center text-gray-700"
-                >
-                  <div className="w-6 h-6 flex items-center justify-center">
-                    {icons[contentItem.type]}
+              {unit.content &&
+                unit.content.map((contentItem, index) => (
+                  <div
+                    key={index}
+                    className="grid grid-cols-[24px_80px_1fr] gap-2 items-center text-gray-700"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center">
+                      {icons[contentItem.type]}
+                    </div>
+                    <div className="capitalize font-medium text-sm text-gray-600">
+                      {contentItem.type}
+                    </div>
+                    <div>{contentItem.title}</div>
                   </div>
-                  <div className="capitalize font-medium text-sm text-gray-600">
-                    {contentItem.type}
-                  </div>
-                  <div>{contentItem.title}</div>
-                </div>
-              ))}
+                ))}
             </div>
           )}
         </div>

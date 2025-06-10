@@ -17,3 +17,28 @@ export async function GetModules(): Promise<any> {
     return [];
   }
 }
+
+const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+
+export async function GetUnitTitleByModuleId(
+  moduleId: string,
+): Promise<string> {
+  try {
+    const response = await fetch(
+      `${BASE_URL}/api/units?moduleId=${encodeURIComponent(moduleId)}`,
+    );
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch UNIT title: ${response.status} ${response.statusText}`,
+      );
+    }
+    const data = await response.json();
+    return data[0].title;
+  } catch (error) {
+    console.error(
+      'Error fetching UNIT title:',
+      error instanceof Error ? error.message : 'Unknown error',
+    );
+    throw error instanceof Error ? error : new Error('Unknown error occurred');
+  }
+}

@@ -2,7 +2,7 @@ import React from 'react';
 
 type Video = {
   title: string;
-  url: string;
+  url?: string;
   content: string;
 };
 
@@ -18,13 +18,45 @@ const isYouTubeUrl = (url: string): boolean => {
 };
 
 const getYouTubeEmbedUrl = (url: string): string => {
-  const videoId = new URL(url).searchParams.get('v');
-  return `https://www.youtube.com/embed/${videoId}?autoplay=0&mute=0`;
+  try {
+    const videoId = new URL(url).searchParams.get('v');
+    return `https://www.youtube.com/embed/${videoId}?autoplay=0&mute=0`;
+  } catch {
+    return '';
+  }
 };
 
+const FallbackVideo = () => (
+  <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100 rounded-2xl">
+    <svg
+      className="w-24 h-24 text-gray-400 mb-4"
+      viewBox="0 0 1024 1024"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      strokeWidth={1}
+    >
+      <path d="M918.613333 305.066667a42.666667 42.666667 0 0 0-42.666666 0L725.333333 379.306667A128 128 0 0 0 597.333333 256H213.333333a128 128 0 0 0-128 128v256a128 128 0 0 0 128 128h384a128 128 0 0 0 128-123.306667l151.893334 75.946667A42.666667 42.666667 0 0 0 896 725.333333a42.666667 42.666667 0 0 0 22.613333-6.4A42.666667 42.666667 0 0 0 938.666667 682.666667V341.333333a42.666667 42.666667 0 0 0-20.053334-36.266666zM640 640a42.666667 42.666667 0 0 1-42.666667 42.666667H213.333333a42.666667 42.666667 0 0 1-42.666666-42.666667V384a42.666667 42.666667 0 0 1 42.666666-42.666667h384a42.666667 42.666667 0 0 1 42.666667 42.666667z m213.333333-26.453333l-128-64v-75.093334l128-64z" />
+    </svg>
+
+    <span className="text-gray-500 text-lg font-medium">
+      No video available
+    </span>
+  </div>
+);
+
 const VideoPage: React.FC = () => {
-  const isYouTube = isYouTubeUrl(video.url);
-  const embedUrl = isYouTube ? getYouTubeEmbedUrl(video.url) : video.url;
+  const url = video.url;
+  let isValid = !!url;
+  let isYouTube = false;
+  let embedUrl = '';
+
+  if (url) {
+    isYouTube = isYouTubeUrl(url);
+    embedUrl = isYouTube ? getYouTubeEmbedUrl(url) : url;
+    isValid = !!embedUrl && (!isYouTube || embedUrl.includes('embed/'));
+  } else {
+    console.warn('No Video URL provided');
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
@@ -40,19 +72,27 @@ const VideoPage: React.FC = () => {
 
       <h1 className="text-3xl font-semibold mb-6 text-center">{video.title}</h1>
       <div className="w-full max-w-4xl aspect-video rounded-2xl overflow-hidden shadow-lg">
-        {isYouTube ? (
-          <iframe
-            className="w-full h-full"
-            src={embedUrl}
-            title={video.title}
-            style={{ border: 'none' }}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
+        {isValid ? (
+          isYouTube ? (
+            <iframe
+              className="w-full h-full"
+              src={embedUrl}
+              title={video.title}
+              style={{ border: 'none' }}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <video
+              className="w-full h-full object-cover"
+              src={embedUrl}
+              controls
+            >
+              Your browser does not support the video tag.
+            </video>
+          )
         ) : (
-          <video className="w-full h-full object-cover" src={embedUrl} controls>
-            Your browser does not support the video tag.
-          </video>
+          <FallbackVideo />
         )}
       </div>
 

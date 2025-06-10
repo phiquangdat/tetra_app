@@ -20,9 +20,7 @@ export async function GetModules(): Promise<any> {
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
-export async function GetUnitTitleByModuleId(
-  moduleId: string,
-): Promise<any> {
+export async function GetUnitTitleByModuleId(moduleId: string): Promise<any> {
   try {
     const response = await fetch(
       `${BASE_URL}/api/units?moduleId=${encodeURIComponent(moduleId)}`,

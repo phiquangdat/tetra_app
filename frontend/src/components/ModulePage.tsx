@@ -125,7 +125,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
         </div>
       </div>
 
-      <Syllabus moduleID={module.id}/>
+      <Syllabus moduleID={module.id} />
     </div>
   );
 };

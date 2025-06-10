@@ -22,7 +22,7 @@ const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
 export async function GetUnitTitleByModuleId(
   moduleId: string,
-): Promise<string> {
+): Promise<any> {
   try {
     const response = await fetch(
       `${BASE_URL}/api/units?moduleId=${encodeURIComponent(moduleId)}`,
@@ -33,7 +33,7 @@ export async function GetUnitTitleByModuleId(
       );
     }
     const data = await response.json();
-    return data[0].title;
+    return data;
   } catch (error) {
     console.error(
       'Error fetching UNIT title:',

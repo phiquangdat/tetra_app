@@ -28,17 +28,17 @@ public class UnitContentControllerTest {
 
     @Test
     void testGetAllUnitContent() {
-        // Arrange
+        
         UnitContent content1 = new UnitContent(null, 1, "text", "Title 1", "Content 1", "http://example.com/1");
         UnitContent content2 = new UnitContent(null, 2, "video", "Title 2", "Content 2", "http://example.com/2");
         List<UnitContent> mockUnitContent = List.of(content1, content2);
 
         when(unitContentRepository.findAll()).thenReturn(mockUnitContent);
 
-        // Act
+        
         ResponseEntity<List<UnitContent>> response = unitContentController.getAll();
 
-        // Assert
+        
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals(2, response.getBody().size());
@@ -47,16 +47,16 @@ public class UnitContentControllerTest {
 
     @Test
     void testGetUnitContentById_Success() {
-        // Arrange
+        
         UUID contentId = UUID.randomUUID();
         UnitContent mockContent = new UnitContent(null, 1, "text", "Title 1", "Content 1", "http://example.com/1");
 
         when(unitContentRepository.findById(contentId)).thenReturn(Optional.of(mockContent));
 
-        // Act
+        
         ResponseEntity<UnitContent> response = unitContentController.getById(contentId);
 
-        // Assert
+        
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals(mockContent, response.getBody());
@@ -65,12 +65,12 @@ public class UnitContentControllerTest {
 
     @Test
     void testGetUnitContentById_NotFound() {
-        // Arrange
+        
         UUID contentId = UUID.randomUUID();
 
         when(unitContentRepository.findById(contentId)).thenReturn(Optional.empty());
 
-        // Act & Assert
+       
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> unitContentController.getById(contentId));
 
         assertEquals(404, exception.getStatusCode().value());
@@ -80,7 +80,7 @@ public class UnitContentControllerTest {
 
     @Test
     void testGetUnitContentByUnitId_Success() {
-        // Arrange
+        
         UUID unitId = UUID.randomUUID();
         Unit unit = new Unit();
         unit.setId(unitId);
@@ -90,10 +90,10 @@ public class UnitContentControllerTest {
 
         when(unitContentRepository.findByUnit_Id(unitId)).thenReturn(mockUnitContent);
 
-        // Act
+        
         ResponseEntity<?> response = unitContentController.getByUnitId(unitId);
 
-        // Assert
+        
         assertEquals(200, response.getStatusCode().value());
         List<?> body = (List<?>) response.getBody();
         assertEquals(2, body.size());
@@ -112,15 +112,15 @@ public class UnitContentControllerTest {
 
     @Test
     void testGetUnitContentByUnitId_NoContent() {
-        // Arrange
+        
         UUID unitId = UUID.randomUUID();
 
         when(unitContentRepository.findByUnit_Id(unitId)).thenReturn(Collections.emptyList());
 
-        // Act
+        
         ResponseEntity<?> response = unitContentController.getByUnitId(unitId);
 
-        // Assert
+       
         assertEquals(200, response.getStatusCode().value());
         List<?> body = (List<?>) response.getBody();
         assertTrue(body.isEmpty());

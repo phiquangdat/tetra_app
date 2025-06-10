@@ -24,15 +24,17 @@ public class UnitContentController {
         this.unitContentRepository = unitContentRepository;
     }
 
-    @GetMapping("/all") // Changed the path for getAll()
+    
+    @GetMapping
     public ResponseEntity<List<UnitContent>> getAll() {
         List<UnitContent> unitContent = unitContentRepository.findAll();
-        if (unitContent == null) {
+        if (unitContent == null || unitContent.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(unitContent, HttpStatus.OK);
     }
 
+    
     @GetMapping("/{id}")
     public ResponseEntity<UnitContent> getById(@PathVariable UUID id) {
         Optional<UnitContent> unitContent = unitContentRepository.findById(id);
@@ -40,7 +42,8 @@ public class UnitContentController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Unit content is not found with id: " + id));
     }
 
-    @GetMapping(params = "unitId") // Keep params = "unitId" to ensure this method is only called when unitId is present
+    
+    @GetMapping(params = "unitId")
     public ResponseEntity<?> getByUnitId(@RequestParam("unitId") UUID unitId) {
         List<UnitContent> unitContentList = unitContentRepository.findByUnit_Id(unitId);
 

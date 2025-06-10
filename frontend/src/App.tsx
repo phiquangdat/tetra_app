@@ -1,23 +1,8 @@
-import { Route, Routes, useParams } from 'react-router-dom';
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { appRoutes } from './routes';
 
-import ModuleCards from './components/ModuleCards';
-import ModulePage from './components/ModulePage';
+const router = createBrowserRouter(appRoutes);
 
-function ModulePageWrapper() {
-  const { id } = useParams();
-  if (!id) return <div>Module ID not found</div>;
-  return <ModulePage id={id} />;
+export default function App() {
+  return <RouterProvider router={router} />;
 }
-
-function App() {
-  return (
-    <>
-      <Routes>
-        <Route path="/" element={<ModuleCards />} />
-        <Route path="/modules/:id" element={<ModulePageWrapper />} />
-      </Routes>
-    </>
-  );
-}
-
-export default App;

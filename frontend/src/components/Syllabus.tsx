@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { GetModules, GetUnitTitleByModuleId } from '../api/http';
 
 type Unit = {
   title: string;
@@ -8,31 +9,63 @@ type Unit = {
   }[];
 };
 
-const units: Unit[] = [
-  {
-    title: 'Data Protection',
-    content: [
-      { type: 'video', title: 'Strategies for data protection' },
-      { type: 'article', title: 'Case studies on breaches and prevention' },
-      { type: 'quiz', title: 'Key concepts of data protection' },
-    ],
-  },
-  {
-    title: 'Cybersecurity Fundamentals',
-    content: [
-      { type: 'video', title: 'Introduction to Cyber Threats' },
-      { type: 'article', title: 'Best Practices for Secure Systems' },
-      { type: 'quiz', title: 'Cybersecurity Knowledge Check' },
-    ],
-  },
-];
+const fetchUnitTitleByModuleId = async (id: string): Promise<string> => {
+  try {
+    const title = await GetUnitTitleByModuleId(id);
+    return title;
+  } catch (error) {
+    console.error('Error fetching unit:', error);
+    return 'Error fetching unit title';
+  }
+};
 
 const Syllabus: React.FC = () => {
   const [openUnit, setOpenUnit] = useState<number | null>(null);
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [listIds, setListIds] = useState<string[] | null>([]);
 
   const toggleUnit = (index: number) => {
     setOpenUnit(openUnit === index ? null : index);
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const modules = await GetModules();
+        if (modules && modules.length > 0) {
+          const ids = modules.map((module: any) => module.id);
+          setListIds(ids);
+        }
+      } catch (error) {
+        console.error('Error fetching modules:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (!listIds || listIds.length === 0) return;
+
+    const fetchAllUnits = async () => {
+      try {
+        const fetchedUnits = await Promise.all(
+          listIds.map(async (id) => {
+            const unitTitle = await fetchUnitTitleByModuleId(id);
+            return {
+              title: unitTitle,
+              content: [],
+            };
+          }),
+        );
+        setUnits(fetchedUnits);
+      } catch (error) {
+        console.error('Error fetching units:', error);
+      }
+    };
+
+    fetchAllUnits();
+  }, [listIds]);
 
   const icons = {
     video: (
@@ -120,20 +153,21 @@ const Syllabus: React.FC = () => {
           </div>
           {openUnit === index && (
             <div className="mt-2 ml-4 space-y-1 text-sm">
-              {unit.content.map((contentItem, index) => (
-                <div
-                  key={index}
-                  className="grid grid-cols-[24px_80px_1fr] gap-2 items-center text-gray-700"
-                >
-                  <div className="w-6 h-6 flex items-center justify-center">
-                    {icons[contentItem.type]}
+              {unit.content &&
+                unit.content.map((contentItem, index) => (
+                  <div
+                    key={index}
+                    className="grid grid-cols-[24px_80px_1fr] gap-2 items-center text-gray-700"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center">
+                      {icons[contentItem.type]}
+                    </div>
+                    <div className="capitalize font-medium text-sm text-gray-600">
+                      {contentItem.type}
+                    </div>
+                    <div>{contentItem.title}</div>
                   </div>
-                  <div className="capitalize font-medium text-sm text-gray-600">
-                    {contentItem.type}
-                  </div>
-                  <div>{contentItem.title}</div>
-                </div>
-              ))}
+                ))}
             </div>
           )}
         </div>

@@ -1,9 +1,9 @@
-import type { ReactNode } from 'react';
+import { Outlet } from 'react-router-dom';
 
-interface Props {
-  children: ReactNode;
-}
-
-export default function UserLayoutRoutes({ children }: Props) {
-  return <div>{children}</div>;
+export default function UserLayout() {
+  return (
+    <div>
+      <Outlet />
+    </div>
+  );
 }

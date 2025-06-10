@@ -1,0 +1,83 @@
+const icons = {
+  article: (
+    <svg
+      className="w-6 h-6"
+      viewBox="0 0 73.9 73.9"
+      xmlns="http://www.w3.org/2000/svg"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        d="m52.4 13.1h5.6v11.1h-5.6z"
+        fill="none"
+        transform="matrix(.7071 -.7071 .7071 .7071 2.9695 44.5346)"
+      />
+      <path d="m47.9 18.2-26.3 26.2v7.9h7.9l26.3-26.3z" fill="none" />
+      <g fill="currentColor">
+        <path d="m11.4 63.6h46.6c.6 0 1-.4 1-1v-26.4c0-.6-.4-1-1-1s-1 .4-1 1v25.4h-44.6v-44.6h25.4c.6 0 1-.4 1-1s-.4-1-1-1h-26.4c-.6 0-1 .4-1 1v46.6c0 .5.4 1 1 1z" />
+        <path d="m47.2 16.1-27.3 27.2c-.2.2-.3.4-.3.7v9.3c0 .6.4 1 1 1h9.3c.3 0 .5-.1.7-.3l27.3-27.3 5.4-5.4c.4-.4.4-1 0-1.4l-9.3-9.3c-.4-.4-1-.4-1.4 0zm-17.7 36.2h-7.8v-7.9l26.3-26.3 7.8 7.8zm23.8-39.5 7.8 7.9-4 4-7.8-7.9z" />
+      </g>
+    </svg>
+  ),
+  quiz: (
+    <svg
+      className="w-6 h-6"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 17.75l-6.172 3.245 1.179-6.873L2 9.755l6.908-1.004L12 2.5l3.092 6.251L22 9.755l-5.007 4.367 1.179 6.873z"
+      />
+    </svg>
+  ),
+};
+
+const QuizStartModal = () => {
+  return (
+    <div className="mx-auto px-8 py-8 min-h-screen text-left">
+      <div className="mb-6">
+        <a
+          href="/unit"
+          className="inline-flex items-center text-gray-500 hover:text-black px-3 py-1 rounded-lg hover:bg-gray-100 hover:border hover:border-gray-300 active:bg-gray-200 transition-all"
+        >
+          <span className="mr-2 text-xl">←</span>
+          Back to Unit
+        </a>
+      </div>
+      <div className="flex flex-1 items-center justify-center">
+        <div className="bg-gray-100 rounded-2xl p-12 shadow-md w-full max-w-2xl flex flex-col items-center">
+          <h2 className="text-4xl font-extrabold mb-6 text-center text-black">
+            Key concepts of data protection
+          </h2>
+          <div className="flex flex-row gap-10 mb-6 items-center justify-center">
+            <div className="flex items-center gap-2 text-lg text-gray-700">
+              <span className="inline-flex items-center justify-center">
+                {icons.article}
+              </span>
+              5 questions
+            </div>
+            <div className="flex items-center gap-2 text-lg text-gray-700">
+              <span className="inline-flex items-center justify-center">
+                {icons.quiz}
+              </span>
+              20 points
+            </div>
+          </div>
+          <p className="text-center text-gray-700 mb-10 max-w-xl">
+            Test your knowledge of core data protection principles, privacy
+            rights, and legal responsibilities.
+          </p>
+          <button className="bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-3 px-10 rounded-full text-lg transition-all">
+            Let's go
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default QuizStartModal;

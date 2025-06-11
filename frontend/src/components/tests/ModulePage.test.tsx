@@ -3,6 +3,10 @@ import { describe, it, expect, vi } from 'vitest';
 import ModulePage from '../ModulePage';
 import * as api from '../../api/modules';
 
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => vi.fn(),
+}));
+
 describe('ModulePage', () => {
   const mockModule = {
     id: '123',

@@ -60,4 +60,36 @@ public class UnitContentController {
 
         return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/quiz/{id}")
+    public ResponseEntity<?> getQuizPreview(@PathVariable UUID id) {
+        UnitContent content = unitContentRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz not found"));
+        if (!"quiz".equalsIgnoreCase(content.getContentType())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz not found");
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", content.getId());
+        result.put("title", content.getTitle());
+        result.put("content", content.getContentData());
+
+        Integer points = null;
+        Integer questionsNumber = null;
+        try {
+            com.fasterxml.jackson.databind.JsonNode node = new com.fasterxml.jackson.databind.ObjectMapper()
+                    .readTree(content.getContentData());
+            if (node.has("points")) {
+                points = node.get("points").asInt();
+            }
+            if (node.has("questions_number")) {
+                questionsNumber = node.get("questions_number").asInt();
+            }
+        } catch (Exception e) {
+        }
+        result.put("points", points);
+        result.put("questions_number", questionsNumber);
+
+        return ResponseEntity.ok(result);
+    }
 }

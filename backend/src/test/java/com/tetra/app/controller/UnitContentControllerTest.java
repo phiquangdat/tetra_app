@@ -4,26 +4,31 @@ import com.tetra.app.model.Unit;
 import com.tetra.app.model.UnitContent;
 import com.tetra.app.repository.UnitContentRepository;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
-public class UnitContentControllerTest {
+@WebMvcTest(UnitContentController.class)
+@AutoConfigureMockMvc(addFilters = false)
+class UnitContentControllerTest {
+    @Autowired
+    private MockMvc mockMvc;
 
-    @Mock
+    @MockBean
     private UnitContentRepository unitContentRepository;
 
-    @InjectMocks
+    @Autowired
     private UnitContentController unitContentController;
 
     @Test
@@ -65,14 +70,10 @@ public class UnitContentControllerTest {
 
     @Test
     void testGetUnitContentById_NotFound() {
-        
         UUID contentId = UUID.randomUUID();
-
         when(unitContentRepository.findById(contentId)).thenReturn(Optional.empty());
 
-       
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> unitContentController.getById(contentId));
-
         assertEquals(404, exception.getStatusCode().value());
         assertEquals("Unit content is not found with id: " + contentId, exception.getReason());
         verify(unitContentRepository, times(1)).findById(contentId);
@@ -124,5 +125,49 @@ public class UnitContentControllerTest {
         assertEquals(200, response.getStatusCode().value());
         List<?> body = (List<?>) response.getBody();
         assertTrue(body.isEmpty());
+    }
+
+    @Test
+    void testGetQuizPreview_Success() throws Exception {
+        UUID quizId = UUID.randomUUID();
+        UnitContent quiz = new UnitContent();
+        quiz.setId(quizId);
+        quiz.setTitle("Quiz Title");
+        quiz.setContentType("quiz");
+        quiz.setContentData("{\"points\":5,\"questions_number\":3,\"description\":\"desc\"}");
+
+        when(unitContentRepository.findById(quizId)).thenReturn(Optional.of(quiz));
+
+        mockMvc.perform(get("/api/unit_content/quiz/" + quizId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(quizId.toString()))
+                .andExpect(jsonPath("$.title").value("Quiz Title"))
+                .andExpect(jsonPath("$.content").value("{\"points\":5,\"questions_number\":3,\"description\":\"desc\"}"))
+                .andExpect(jsonPath("$.points").value(5))
+                .andExpect(jsonPath("$.questions_number").value(3));
+    }
+
+    @Test
+    void testGetQuizPreview_NotFound() throws Exception {
+        UUID quizId = UUID.randomUUID();
+        when(unitContentRepository.findById(quizId)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/unit_content/quiz/" + quizId))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testGetQuizPreview_NotQuizType() throws Exception {
+        UUID quizId = UUID.randomUUID();
+        UnitContent notQuiz = new UnitContent();
+        notQuiz.setId(quizId);
+        notQuiz.setTitle("Not Quiz");
+        notQuiz.setContentType("video");
+        notQuiz.setContentData("{\"points\":5,\"questions_number\":3}");
+
+        when(unitContentRepository.findById(quizId)).thenReturn(Optional.of(notQuiz));
+
+        mockMvc.perform(get("/api/unit_content/quiz/" + quizId))
+                .andExpect(status().isNotFound());
     }
 }

@@ -14,7 +14,7 @@ function ModuleCard({ id, title, topic, points, coverUrl }: ModuleCardProps) {
   const navigate = useNavigate();
 
   const handleViewClick = () => {
-    navigate(`/modules/${id}`);
+    navigate(`/user/modules/${id}`);
   };
 
   return (

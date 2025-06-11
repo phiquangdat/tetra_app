@@ -18,7 +18,6 @@ function UnitPageWrapper() {
   return <UnitPage id={id} />;
 }
 
-
 export const userRoutes: RouteObject = {
   path: '/user',
   element: <UserLayout />,
@@ -37,7 +36,7 @@ export const userRoutes: RouteObject = {
     },
     {
       path: 'unit/:id',
-      element: <UnitPageWrapper />
-    }
+      element: <UnitPageWrapper />,
+    },
   ],
 };

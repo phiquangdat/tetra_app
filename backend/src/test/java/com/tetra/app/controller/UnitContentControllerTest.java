@@ -40,14 +40,14 @@ public class UnitContentControllerTest {
 
     @Test
     void testGetAllUnitContent() throws Exception {
-        // Arrange
+        
         UnitContent content1 = new UnitContent(null, 1, "text", "Title 1", "Content 1", "http://example.com/1");
         UnitContent content2 = new UnitContent(null, 2, "video", "Title 2", "Content 2", "http://example.com/2");
         List<UnitContent> mockUnitContent = List.of(content1, content2);
 
         when(unitContentRepository.findAll()).thenReturn(mockUnitContent);
 
-        // Act & Assert
+        
         mockMvc.perform(get("/api/unit_content"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Title 1"))
@@ -56,13 +56,13 @@ public class UnitContentControllerTest {
 
     @Test
     void testGetUnitContentById_Success() throws Exception {
-        // Arrange
+        
         UUID contentId = UUID.randomUUID();
         UnitContent mockContent = new UnitContent(null, 1, "text", "Title 1", "Content 1", "http://example.com/1");
 
         when(unitContentRepository.findById(contentId)).thenReturn(Optional.of(mockContent));
 
-        // Act & Assert
+        
         mockMvc.perform(get("/api/unit_content/" + contentId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Title 1"));
@@ -70,19 +70,19 @@ public class UnitContentControllerTest {
 
     @Test
     void testGetUnitContentById_NotFound() throws Exception {
-        // Arrange
+        
         UUID contentId = UUID.randomUUID();
 
         when(unitContentRepository.findById(contentId)).thenReturn(Optional.empty());
 
-        // Act & Assert
+        
         mockMvc.perform(get("/api/unit_content/" + contentId))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void testGetUnitContentByUnitId_Success() throws Exception {
-        // Arrange
+        
         UUID unitId = UUID.randomUUID();
         Unit unit = new Unit();
         unit.setId(unitId);
@@ -96,7 +96,7 @@ public class UnitContentControllerTest {
 
         when(unitContentRepository.findByUnit_Id(unitId)).thenReturn(mockUnitContent);
 
-        // Act & Assert
+        
         mockMvc.perform(get("/api/unit_content?unitId=" + unitId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").exists())
@@ -107,12 +107,12 @@ public class UnitContentControllerTest {
 
     @Test
     void testGetUnitContentByUnitId_NoContent() throws Exception {
-        // Arrange
+       
         UUID unitId = UUID.randomUUID();
 
         when(unitContentRepository.findByUnit_Id(unitId)).thenReturn(Collections.emptyList());
 
-        // Act & Assert
+        
         mockMvc.perform(get("/api/unit_content?unitId=" + unitId))
                 .andExpect(status().isOk())
                 .andExpect(content().string("[]"));
@@ -120,7 +120,7 @@ public class UnitContentControllerTest {
 
     @Test
     void testGetAllVideoContent_Success() throws Exception {
-        // Arrange
+        
         UUID videoId1 = UUID.randomUUID();
         UUID videoId2 = UUID.randomUUID();
         UnitContent video1 = new UnitContent(null, 1, "video", "Video Title 1", "video content 1", "http://example.com/video1.mp4");
@@ -131,7 +131,7 @@ public class UnitContentControllerTest {
 
         when(unitContentRepository.findByContentTypeIgnoreCase("video")).thenReturn(mockVideoContent);
 
-        // Act & Assert
+        
         mockMvc.perform(get("/api/unit_content/video"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Video Title 1"))
@@ -140,10 +140,10 @@ public class UnitContentControllerTest {
 
     @Test
     void testGetAllVideoContent_NoContent() throws Exception {
-        // Arrange
+        
         when(unitContentRepository.findByContentTypeIgnoreCase("video")).thenReturn(Collections.emptyList());
 
-        // Act & Assert
+        
         mockMvc.perform(get("/api/unit_content/video"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("[]"));
@@ -151,14 +151,14 @@ public class UnitContentControllerTest {
 
     @Test
     void testGetVideoContent_Success() throws Exception {
-        // Arrange
+        
         UUID videoId = UUID.randomUUID();
         UnitContent video = new UnitContent(null, 1, "video", "Video Title", "video content data", "http://example.com/video.mp4");
         video.setId(videoId);
 
         when(unitContentRepository.findById(videoId)).thenReturn(Optional.of(video));
 
-        // Act & Assert
+        
         mockMvc.perform(get("/api/unit_content/video/" + videoId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(videoId.toString()))
@@ -169,25 +169,25 @@ public class UnitContentControllerTest {
 
     @Test
     void testGetVideoContent_NotFound() throws Exception {
-        // Arrange
+        
         UUID videoId = UUID.randomUUID();
         when(unitContentRepository.findById(videoId)).thenReturn(Optional.empty());
 
-        // Act & Assert
+        
         mockMvc.perform(get("/api/unit_content/video/" + videoId))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void testGetVideoContent_NotVideoType() throws Exception {
-        // Arrange
+        
         UUID videoId = UUID.randomUUID();
         UnitContent notVideo = new UnitContent(null, 1, "text", "Not Video", "some content", "http://example.com/notvideo");
         notVideo.setId(videoId);
 
         when(unitContentRepository.findById(videoId)).thenReturn(Optional.of(notVideo));
 
-        // Act & Assert
+        
         mockMvc.perform(get("/api/unit_content/video/" + videoId))
                 .andExpect(status().isNotFound());
     }

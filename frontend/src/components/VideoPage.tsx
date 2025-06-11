@@ -1,4 +1,5 @@
 import React from 'react';
+import { validateVideoUrl } from '../utils/videoHelpers';
 
 type Video = {
   title: string;
@@ -11,19 +12,6 @@ const video: Video = {
   url: 'https://www.youtube.com/watch?v=inWWhr5tnEA',
   content: `This video provides an introduction to the topic and outlines key concepts that will be covered in the module. 
     Make sure to watch carefully and take notes where needed.`,
-};
-
-const isYouTubeUrl = (url: string): boolean => {
-  return /youtube\.com|youtu\.be/.test(url);
-};
-
-const getYouTubeEmbedUrl = (url: string): string => {
-  try {
-    const videoId = new URL(url).searchParams.get('v');
-    return `https://www.youtube.com/embed/${videoId}?autoplay=0&mute=0`;
-  } catch {
-    return '';
-  }
 };
 
 const FallbackVideo = () => (
@@ -45,16 +33,9 @@ const FallbackVideo = () => (
 );
 
 const VideoPage: React.FC = () => {
-  const url = video.url;
-  let isValid = !!url;
-  let isYouTube = false;
-  let embedUrl = '';
+  const { isValid, isYouTube, embedUrl } = validateVideoUrl(video.url);
 
-  if (url) {
-    isYouTube = isYouTubeUrl(url);
-    embedUrl = isYouTube ? getYouTubeEmbedUrl(url) : url;
-    isValid = !!embedUrl && (!isYouTube || embedUrl.includes('embed/'));
-  } else {
+  if (!video.url) {
     console.warn('No Video URL provided');
   }
 

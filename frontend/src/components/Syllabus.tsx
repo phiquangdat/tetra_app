@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { GetUnitTitleByModuleId } from '../api/http';
+import { useNavigate } from 'react-router-dom';
 
 interface SyllabusProps {
   moduleID: string | null;
 }
 
 type Unit = {
-  moduleId: string;
+  id: string;
   title: string;
   content: {
     type: 'video' | 'article' | 'quiz';
@@ -19,11 +20,12 @@ const fetchUnitsByModuleId = async (id: string): Promise<Unit[]> => {
     return await GetUnitTitleByModuleId(id);
   } catch (error) {
     console.error('Error fetching units:', error);
-    return [{ moduleId: id, title: 'Error fetching unit', content: [] }];
+    return [{ id: id, title: 'Error fetching unit', content: [] }];
   }
 };
 
 const Syllabus: React.FC<SyllabusProps> = ({ moduleID }) => {
+  const navigate = useNavigate();
   const [openUnit, setOpenUnit] = useState<number | null>(null);
   const [units, setUnits] = useState<Unit[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -52,6 +54,10 @@ const Syllabus: React.FC<SyllabusProps> = ({ moduleID }) => {
 
   const toggleUnit = (index: number) => {
     setOpenUnit(openUnit === index ? null : index);
+  };
+
+  const handleTitleClick = (unitId: string) => {
+    navigate(`/unit/${unitId}`);
   };
 
   const icons = {
@@ -129,7 +135,13 @@ const Syllabus: React.FC<SyllabusProps> = ({ moduleID }) => {
               ${openUnit === index ? 'bg-blue-100' : 'bg-white hover:bg-gray-200'}`}
             onClick={() => toggleUnit(index)}
           >
-            <div>
+            <div
+              onClick={(e) => {
+                const unitId = unit.id;
+                e.stopPropagation();
+                handleTitleClick(unitId);
+              }}
+            >
               <div className="font-bold">
                 Unit {index + 1}: {unit.title}
               </div>

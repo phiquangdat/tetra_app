@@ -1,4 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+import { GetUnitDetailsById } from '../api/http';
+
+interface UnitPageProps {
+  id: string;
+}
+
+interface Unit {
+  id: string;
+  title: string;
+  description: string;
+  moduleId: string;
+}
 
 const icons = {
   video: (
@@ -89,8 +102,48 @@ const contentList = [
   { type: 'quiz', label: 'Quiz', title: 'Key concepts of data protection' },
 ];
 
-const UnitPage = () => {
+async function fetchUnitDetails(id: string) {
+  try {
+    const response = await GetUnitDetailsById(id);
+    return response;
+  } catch (error) {
+    console.error('Error fetching unit details:', error);
+    throw error;
+  }
+}
+
+const UnitPage = ({ id }: UnitPageProps) => {
   const [checkedIndex, setCheckedIndex] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [unitDetails, setUnitDetails] = useState<Unit>({
+    id: '',
+    title: '',
+    description: '',
+    moduleId: '',
+  });
+
+  useEffect(() => {
+    if (!id) {
+      setError('Unit ID is required');
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    const loadUnitDetails = async () => {
+      try {
+        const details = await fetchUnitDetails(id);
+        setUnitDetails(details);
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to load unit details:', error);
+        setError('Failed to load unit details');
+      }
+      setLoading(false);
+    };
+
+    loadUnitDetails();
+  }, [id]);
 
   const handleRowClick = (idx: number) => {
     setCheckedIndex((current) => (current === idx ? null : idx));
@@ -100,17 +153,15 @@ const UnitPage = () => {
     <div className="mx-auto px-8 py-8 min-h-screen text-left">
       <div className="flex flex-col gap-4 py-8 mb-6">
         <h1 className="text-2xl md:text-3xl font-extrabold text-gray-800 tracking-tight mb-0 md:mb-0">
-          Introduction to Cyber Threats
+          {loading ? 'Loading...' : unitDetails.title}
         </h1>
       </div>
       <h2 className="text-xl font-bold ml-4 mb-4">About this unit</h2>
 
       <div className="flex flex-col md:flex-row gap-16 items-stretch mb-8">
         <div className="flex-1 flex flex-col bg-gray-200 rounded-3xl p-6 text-gray-700 text-base text-left shadow-sm justify-center">
-          This module introduces the foundational concepts of cybersecurity,
-          including common threats like phishing and malware. You'll learn how
-          to protect your personal and workplace data through videos, articles,
-          and interactive quizzes.
+          {loading ? 'Loading description...' : unitDetails.description}
+          {error && <p className="text-red-500">{error}</p>}
         </div>
         <div className="border rounded-3xl p-6 flex flex-row gap-8 min-w-[340px] bg-white hover:shadow-lg transition items-center">
           {stats.map((stat) => (

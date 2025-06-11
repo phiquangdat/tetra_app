@@ -40,3 +40,24 @@ export async function GetUnitTitleByModuleId(moduleId: string): Promise<any> {
     throw error instanceof Error ? error : new Error('Unknown error occurred');
   }
 }
+
+export async function GetUnitDetailsById(unitId: string): Promise<any> {
+  try {
+    const response = await fetch(
+      `${BASE_URL}/api/units/${encodeURIComponent(unitId)}`,
+    );
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch UNIT details: ${response.status} ${response.statusText}`,
+      );
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(
+      'Error fetching UNIT details:',
+      error instanceof Error ? error.message : 'Unknown error',
+    );
+    throw error instanceof Error ? error : new Error('Unknown error occurred');
+  }
+}

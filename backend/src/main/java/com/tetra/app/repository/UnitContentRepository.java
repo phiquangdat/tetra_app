@@ -9,4 +9,5 @@ import java.util.UUID;
 @Repository
 public interface UnitContentRepository extends JpaRepository<UnitContent, UUID> {
     List<UnitContent> findByUnit_Id(UUID unitId);
+    List<UnitContent> findByContentTypeIgnoreCase(String contentType);
 }

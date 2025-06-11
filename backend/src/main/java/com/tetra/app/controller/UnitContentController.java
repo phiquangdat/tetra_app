@@ -24,7 +24,6 @@ public class UnitContentController {
         this.unitContentRepository = unitContentRepository;
     }
 
-    
     @GetMapping
     public ResponseEntity<List<UnitContent>> getAll() {
         List<UnitContent> unitContent = unitContentRepository.findAll();
@@ -34,7 +33,6 @@ public class UnitContentController {
         return new ResponseEntity<>(unitContent, HttpStatus.OK);
     }
 
-    
     @GetMapping("/{id}")
     public ResponseEntity<UnitContent> getById(@PathVariable UUID id) {
         Optional<UnitContent> unitContent = unitContentRepository.findById(id);
@@ -42,7 +40,6 @@ public class UnitContentController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Unit content is not found with id: " + id));
     }
 
-    
     @GetMapping(params = "unitId")
     public ResponseEntity<?> getByUnitId(@RequestParam("unitId") UUID unitId) {
         List<UnitContent> unitContentList = unitContentRepository.findByUnit_Id(unitId);
@@ -90,6 +87,40 @@ public class UnitContentController {
         result.put("points", points);
         result.put("questions_number", questionsNumber);
 
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/video")
+    public ResponseEntity<?> getAllVideoContent() {
+        List<UnitContent> videoContentList = unitContentRepository.findByContentTypeIgnoreCase("video");
+
+        List<Map<String, Object>> result = videoContentList.stream()
+                .map(content -> {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("id", content.getId());
+                    item.put("title", content.getTitle());
+                    item.put("content", content.getContentData());
+                    item.put("url", content.getUrl());
+                    return item;
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/video/{id}")
+    public ResponseEntity<?> getVideoContent(@PathVariable UUID id) {
+        UnitContent content = unitContentRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Content block does not exist"));
+        if (!"video".equalsIgnoreCase(content.getContentType())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Content block is not of type video");
+        }
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", content.getId());
+        result.put("title", content.getTitle());
+        result.put("content", content.getContentData());
+        result.put("url", content.getUrl());
         return ResponseEntity.ok(result);
     }
 }

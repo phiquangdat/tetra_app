@@ -57,7 +57,7 @@ const Syllabus: React.FC<SyllabusProps> = ({ moduleID }) => {
   };
 
   const handleTitleClick = (unitId: string) => {
-    navigate(`/unit/${unitId}`);
+    navigate(`/user/unit/${unitId}`);
   };
 
   const icons = {

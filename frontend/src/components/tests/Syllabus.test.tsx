@@ -60,7 +60,7 @@ describe('Syllabus Component', () => {
     unitTitle.click();
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      '/unit/aaeacc19-4619-4f0a-8249-88ce37cf2a50',
+      '/user/unit/aaeacc19-4619-4f0a-8249-88ce37cf2a50',
     );
   });
 });

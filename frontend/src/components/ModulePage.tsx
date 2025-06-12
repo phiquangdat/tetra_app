@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { fetchModuleById, type Module } from '../api/modules';
-import Syllabus from './Syllabus/Syllabus';
-
+import Syllabus from './Syllabus.tsx';
+import { useNavigate } from 'react-router-dom';
 interface ModulePageProps {
   id: string;
 }
@@ -10,6 +10,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   const [module, setModule] = useState<Module | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const getModule = async () => {
@@ -37,6 +38,16 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
 
   return (
     <div className="mx-auto px-8 py-8 min-h-screen text-left">
+      <div className="mb-6">
+        <a
+          onClick={() => navigate('/user/modules')}
+          className="inline-flex items-center text-gray-500 hover:text-black px-3 py-1 rounded-lg hover:bg-gray-100 hover:border hover:border-gray-300 active:bg-gray-200 transition-all cursor-pointer"
+        >
+          <span className="mr-2 text-xl">←</span>
+          Back to Modules
+        </a>
+      </div>
+
       <div className="flex flex-col gap-4 py-8 mb-6">
         <h1 className="text-2xl md:text-3xl font-extrabold text-gray-800 tracking-tight mb-0 md:mb-0">
           {module.title}

@@ -3,14 +3,26 @@ import '@testing-library/jest-dom';
 import Syllabus from '../Syllabus';
 import { GetUnitTitleByModuleId } from '../../api/http';
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import { fetchUnitContentById } from '../../api/unitsApi';
+import userEvent from '@testing-library/user-event';
 
 const mockModuleId = 'aaeacc19-4619-4f0a-8249-88ce37cf2a50';
 const mockUnitTitles = [
   { id: mockModuleId, title: 'Cybersecurity Essentials', content: [] },
 ];
 
+const mockUnitContent = [
+  { content_type: 'video', title: 'Intro Video' },
+  { content_type: 'article', title: 'Reading Material' },
+  { content_type: 'quiz', title: 'Quiz Yourself' },
+];
+
 vi.mock('../../api/http', () => ({
   GetUnitTitleByModuleId: vi.fn(),
+}));
+
+vi.mock('../../api/unitsApi', () => ({
+  fetchUnitContentById: vi.fn(),
 }));
 
 const mockNavigate = vi.fn();
@@ -62,5 +74,23 @@ describe('Syllabus Component', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       '/user/unit/aaeacc19-4619-4f0a-8249-88ce37cf2a50',
     );
+  });
+
+  it('fetches and renders unit content when unit is toggled', async () => {
+    (GetUnitTitleByModuleId as Mock).mockResolvedValueOnce(mockUnitTitles);
+    (fetchUnitContentById as Mock).mockResolvedValueOnce(mockUnitContent);
+
+    renderSyllabus();
+
+    const unitContainer = await screen.findByText(
+      'Unit 1: Cybersecurity Essentials',
+    );
+    await userEvent.click(unitContainer.closest('.flex')!); // ← click the toggler, not the title
+
+    await waitFor(() => {
+      expect(screen.getByText(/Intro Video/i)).toBeInTheDocument();
+      expect(screen.getByText(/Reading Material/i)).toBeInTheDocument();
+      expect(screen.getByText(/Quiz Yourself/i)).toBeInTheDocument();
+    });
   });
 });

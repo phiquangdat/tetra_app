@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import Syllabus from '../Syllabus';
+import Syllabus from '../Syllabus/Syllabus';
 import { GetUnitTitleByModuleId } from '../../api/http';
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { fetchUnitContentById } from '../../api/unitsApi';

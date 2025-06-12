@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { GetUnitTitleByModuleId } from '../../api/http';
-import { useNavigate } from 'react-router-dom';
 import { fetchUnitContentById } from '../../api/unitsApi.ts';
 import UnitItem from './UnitItem';
 
@@ -36,7 +35,6 @@ const fetchUnitsByModuleId = async (id: string): Promise<Unit[]> => {
 };
 
 const Syllabus: React.FC<SyllabusProps> = ({ moduleID }) => {
-  const navigate = useNavigate();
   const [openUnit, setOpenUnit] = useState<number | null>(null);
   const [units, setUnits] = useState<Unit[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -92,10 +90,6 @@ const Syllabus: React.FC<SyllabusProps> = ({ moduleID }) => {
     }
   };
 
-  const handleTitleClick = (unitId: string) => {
-    navigate(`/user/unit/${unitId}`);
-  };
-
   return (
     <div className="bg-gray-100 rounded-2xl p-6 shadow-md w-full mx-auto">
       <h2 className="text-xl font-semibold mb-4">Syllabus</h2>
@@ -107,7 +101,6 @@ const Syllabus: React.FC<SyllabusProps> = ({ moduleID }) => {
           isOpen={openUnit === index}
           onToggle={() => toggleUnit(index)}
           index={index}
-          onTitleClick={handleTitleClick}
         />
       ))}
     </div>

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { fetchModuleById, type Module } from '../api/modules';
 import Syllabus from './Syllabus/Syllabus';
-
 interface ModulePageProps {
   id: string;
 }

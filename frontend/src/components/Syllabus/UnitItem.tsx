@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 type UnitItemProps = {
   unit: {
@@ -12,7 +13,6 @@ type UnitItemProps = {
   isOpen: boolean;
   onToggle: () => void;
   index: number;
-  onTitleClick: (unitId: string) => void;
 };
 
 const icons = {
@@ -84,8 +84,13 @@ const UnitItem: React.FC<UnitItemProps> = ({
   isOpen,
   onToggle,
   index,
-  onTitleClick,
 }) => {
+  const navigate = useNavigate();
+
+  const handleTitleClick = (unitId: string) => {
+    navigate(`/user/unit/${unitId}`);
+  };
+
   return (
     <div key={unit.id} className="mb-4">
       <div
@@ -97,7 +102,7 @@ const UnitItem: React.FC<UnitItemProps> = ({
         <div
           onClick={(e) => {
             e.stopPropagation();
-            onTitleClick(unit.id);
+            handleTitleClick(unit.id);
           }}
         >
           <div className="font-bold">

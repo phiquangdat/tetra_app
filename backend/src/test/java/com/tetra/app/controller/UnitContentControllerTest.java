@@ -191,4 +191,40 @@ public class UnitContentControllerTest {
         mockMvc.perform(get("/api/unit_content/video/" + videoId))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void testGetArticleContent_Success() throws Exception {
+        UUID articleId = UUID.randomUUID();
+        UnitContent article = new UnitContent(null, 1, "article", "Article Title", "article content data", null);
+        article.setId(articleId);
+
+        when(unitContentRepository.findByIdAndContentTypeIgnoreCase(articleId, "article")).thenReturn(Optional.of(article));
+
+        mockMvc.perform(get("/api/unit_content/article/" + articleId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(articleId.toString()))
+                .andExpect(jsonPath("$.title").value("Article Title"))
+                .andExpect(jsonPath("$.content").value("article content data"));
+    }
+
+    @Test
+    void testGetArticleContent_NotFound() throws Exception {
+        UUID articleId = UUID.randomUUID();
+        when(unitContentRepository.findByIdAndContentTypeIgnoreCase(articleId, "article")).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/unit_content/article/" + articleId))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testGetArticleContent_NotArticleType() throws Exception {
+        UUID articleId = UUID.randomUUID();
+        UnitContent notArticle = new UnitContent(null, 1, "video", "Not Article", "some content", null);
+        notArticle.setId(articleId);
+
+        when(unitContentRepository.findByIdAndContentTypeIgnoreCase(articleId, "article")).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/unit_content/article/" + articleId))
+                .andExpect(status().isNotFound());
+    }
 }

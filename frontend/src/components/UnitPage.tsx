@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-
+import { useNavigate } from 'react-router-dom';
 import { GetUnitDetailsById } from '../api/http';
 
 interface UnitPageProps {
@@ -122,6 +122,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
     description: '',
     moduleId: '',
   });
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!id) {
@@ -134,12 +135,12 @@ const UnitPage = ({ id }: UnitPageProps) => {
       try {
         const details = await fetchUnitDetails(id);
         setUnitDetails(details);
-        setLoading(false);
       } catch (error) {
         console.error('Failed to load unit details:', error);
         setError('Failed to load unit details');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     loadUnitDetails();
@@ -151,6 +152,16 @@ const UnitPage = ({ id }: UnitPageProps) => {
 
   return (
     <div className="mx-auto px-8 py-8 min-h-screen text-left">
+      <div className="mb-6">
+        <a
+          onClick={() => navigate(`/user/modules/${unitDetails.moduleId}`)}
+          className="inline-flex items-center text-gray-500 hover:text-black px-3 py-1 rounded-lg hover:bg-gray-100 hover:border hover:border-gray-300 active:bg-gray-200 transition-all cursor-pointer"
+        >
+          <span className="mr-2 text-xl">←</span>
+          Back to Module
+        </a>
+      </div>
+
       <div className="flex flex-col gap-4 py-8 mb-6">
         <h1 className="text-2xl md:text-3xl font-extrabold text-gray-800 tracking-tight mb-0 md:mb-0">
           {loading ? 'Loading...' : unitDetails.title}

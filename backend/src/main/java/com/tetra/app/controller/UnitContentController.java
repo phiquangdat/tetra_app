@@ -7,6 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +20,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/unit_content")
 public class UnitContentController {
+
+    private static final Logger logger = LoggerFactory.getLogger(UnitContentController.class);
 
     private final UnitContentRepository unitContentRepository;
 
@@ -121,6 +126,18 @@ public class UnitContentController {
         result.put("title", content.getTitle());
         result.put("content", content.getContentData());
         result.put("url", content.getUrl());
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/article/{id}")
+    public ResponseEntity<?> getArticleContent(@PathVariable UUID id) {
+        UnitContent content = unitContentRepository.findByIdAndContentTypeIgnoreCase(id, "article")
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Content block does not exist or is not of type article"));
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", content.getId());
+        result.put("title", content.getTitle());
+        result.put("content", content.getContentData());
         return ResponseEntity.ok(result);
     }
 }

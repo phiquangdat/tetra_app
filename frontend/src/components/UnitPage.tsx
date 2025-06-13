@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { GetUnitDetailsById } from '../api/http';
+import { GetUnitDetailsById } from '../services/unit/unitApi';
 
 interface UnitPageProps {
   id: string;

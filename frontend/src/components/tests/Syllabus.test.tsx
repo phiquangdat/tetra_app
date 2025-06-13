@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Syllabus from '../Syllabus/Syllabus';
-import { GetUnitTitleByModuleId } from '../../api/http';
+import { GetUnitTitleByModuleId } from '../../services/unit/unitApi';
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { fetchUnitContentById } from '../../api/unitsApi';
 import userEvent from '@testing-library/user-event';
@@ -17,7 +17,7 @@ const mockUnitContent = [
   { content_type: 'quiz', title: 'Quiz Yourself' },
 ];
 
-vi.mock('../../api/http', () => ({
+vi.mock('../../services/unit/unitApi', () => ({
   GetUnitTitleByModuleId: vi.fn(),
 }));
 

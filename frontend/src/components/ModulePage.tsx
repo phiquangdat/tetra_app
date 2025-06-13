@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { fetchModuleById, type Module } from '../api/modules';
+import { fetchModuleById, type Module } from '../services/module/moduleApi';
 import Syllabus from './Syllabus/Syllabus';
 import { useNavigate } from 'react-router-dom';
 interface ModulePageProps {

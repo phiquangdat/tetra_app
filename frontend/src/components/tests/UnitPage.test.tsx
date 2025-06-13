@@ -9,9 +9,9 @@ import {
   useParams,
 } from 'react-router-dom';
 import UnitPage from '../UnitPage';
-import { GetUnitDetailsById } from '../../api/http';
+import { GetUnitDetailsById } from '../../services/unit/unitApi';
 
-vi.mock('../../api/http', () => ({
+vi.mock('../../services/unit/unitApi', () => ({
   GetUnitDetailsById: vi.fn(),
 }));
 

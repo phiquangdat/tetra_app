@@ -1,11 +1,11 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import ModuleCards from '../ModuleCards';
 import { afterEach, beforeEach, vi } from 'vitest';
-import { GetModules } from '../../api/http';
+import { GetModules } from '../../services/module/moduleApi';
 import { BrowserRouter } from 'react-router-dom';
 
 // Mock the successful API call (GetModules) to return mock data
-vi.mock('../../api/http', () => ({
+vi.mock('../../services/module/moduleApi', () => ({
   GetModules: vi.fn().mockResolvedValue([
     {
       id: 1,

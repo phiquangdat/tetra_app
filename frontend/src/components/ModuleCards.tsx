@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ModuleCard from './ModuleCard';
-import { GetModules } from '../api/http';
+import { GetModules } from '../services/module/moduleApi';
 
 interface Module {
   id: React.Key | null | undefined;

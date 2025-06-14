@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GetUnitDetailsById } from '../api/http';
+import { GetUnitDetailsById } from '../services/unit/unitApi';
 
 interface UnitPageProps {
   id: string;

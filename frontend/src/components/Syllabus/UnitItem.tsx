@@ -39,6 +39,17 @@ const icons = {
       <path d="M5 15l7-7 7 7" />
     </svg>
   ),
+  arrowRight: (
+    <svg
+      className="w-4 h-4 text-blue-600"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      viewBox="0 0 24 24"
+    >
+      <path d="M9 5l7 8-8 7" />
+    </svg>
+  ),
 };
 
 const UnitItem: React.FC<UnitItemProps> = ({
@@ -66,10 +77,10 @@ const UnitItem: React.FC<UnitItemProps> = ({
             e.stopPropagation();
             handleTitleClick(unit.id);
           }}
+          className="font-semibold text-xl text-blue-600 hover:underline flex items-center cursor-pointer"
         >
-          <div className="font-bold">
-            Unit {index + 1}: {unit.title}
-          </div>
+          Unit {index + 1}: {unit.title}
+          <span className="ml-2">{icons.arrowRight} </span>
         </div>
         {isOpen ? icons.chevronUp : icons.chevronDown}
       </div>

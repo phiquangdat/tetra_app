@@ -82,10 +82,17 @@ describe('Syllabus Component', () => {
 
     renderSyllabus();
 
-    const unitContainer = await screen.findByText(
-      'Unit 1: Cybersecurity Essentials',
+    await waitFor(() =>
+      expect(
+        screen.getByText('Unit 1: Cybersecurity Essentials'),
+      ).toBeInTheDocument(),
     );
-    await userEvent.click(unitContainer.closest('.flex')!); // ← click the toggler, not the title
+
+    const outerContainer = screen
+      .getByText('Unit 1: Cybersecurity Essentials')
+      .closest('div')?.parentElement;
+
+    await userEvent.click(outerContainer!);
 
     await waitFor(() => {
       expect(screen.getByText(/Intro Video/i)).toBeInTheDocument();

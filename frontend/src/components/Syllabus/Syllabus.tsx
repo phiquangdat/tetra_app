@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { GetUnitTitleByModuleId } from '../../services/unit/unitApi';
 import { fetchUnitContentById } from '../../api/unitsApi.ts';
 import UnitItem from './UnitItem';
+import { fetchUnitTitleByModuleId } from '../../services/unit/unitApi';
 
 interface SyllabusProps {
   moduleID: string | null;
@@ -27,7 +27,7 @@ const fetchUnitContentByUnitId = async (unitId: string) => {
 
 const fetchUnitsByModuleId = async (id: string): Promise<Unit[]> => {
   try {
-    return await GetUnitTitleByModuleId(id);
+    return await fetchUnitTitleByModuleId(id);
   } catch (error) {
     console.error('Error fetching units:', error);
     return [{ id, title: 'Error fetching unit', content: [] }];

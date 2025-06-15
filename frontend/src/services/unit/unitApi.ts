@@ -6,7 +6,7 @@ export interface UnitContent {
   content_type: string;
 }
 
-export async function GetUnitTitleByModuleId(moduleId: string): Promise<any> {
+export async function fetchUnitTitleByModuleId(moduleId: string): Promise<any> {
   try {
     const response = await fetch(
       `${BASE_URL}/api/units?moduleId=${encodeURIComponent(moduleId)}`,
@@ -27,7 +27,7 @@ export async function GetUnitTitleByModuleId(moduleId: string): Promise<any> {
   }
 }
 
-export async function GetUnitDetailsById(unitId: string): Promise<any> {
+export async function fetchUnitById(unitId: string): Promise<any> {
   try {
     const response = await fetch(
       `${BASE_URL}/api/units/${encodeURIComponent(unitId)}`,

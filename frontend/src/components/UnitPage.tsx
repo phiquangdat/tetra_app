@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GetUnitDetailsById } from '../services/unit/unitApi';
+import { fetchUnitById } from '../services/unit/unitApi';
 
 interface UnitPageProps {
   id: string;
@@ -104,7 +104,7 @@ const contentList = [
 
 async function fetchUnitDetails(id: string) {
   try {
-    const response = await GetUnitDetailsById(id);
+    const response = await fetchUnitById(id);
     return response;
   } catch (error) {
     console.error('Error fetching unit details:', error);

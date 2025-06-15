@@ -9,10 +9,10 @@ import {
   useParams,
 } from 'react-router-dom';
 import UnitPage from '../UnitPage';
-import { GetUnitDetailsById } from '../../services/unit/unitApi';
+import { fetchUnitById } from '../../services/unit/unitApi';
 
 vi.mock('../../services/unit/unitApi', () => ({
-  GetUnitDetailsById: vi.fn(),
+  fetchUnitById: vi.fn(),
 }));
 
 const MOCK_UNIT_ID = 'aaeacc19-4619-4f0a-8249-88ce37cf2a50';
@@ -46,8 +46,7 @@ const renderUnitPageWithRoute = (unitId: string) =>
     </MemoryRouter>,
   );
 
-const getMockedGetUnitDetailsById = () =>
-  GetUnitDetailsById as ReturnType<typeof vi.fn>;
+const getMockedFetchUnitById = () => fetchUnitById as ReturnType<typeof vi.fn>;
 
 describe('UnitPage Component', () => {
   beforeEach(() => {
@@ -60,16 +59,16 @@ describe('UnitPage Component', () => {
 
   describe('when rendered with props', () => {
     it('should call API with the provided unit ID', () => {
-      getMockedGetUnitDetailsById().mockResolvedValueOnce(MOCK_UNIT_DETAILS);
+      getMockedFetchUnitById().mockResolvedValueOnce(MOCK_UNIT_DETAILS);
 
       renderUnitPageWithProps();
 
-      expect(GetUnitDetailsById).toHaveBeenCalledWith(MOCK_UNIT_ID);
-      expect(GetUnitDetailsById).toHaveBeenCalledTimes(1);
+      expect(fetchUnitById).toHaveBeenCalledWith(MOCK_UNIT_ID);
+      expect(fetchUnitById).toHaveBeenCalledTimes(1);
     });
 
     it('should fetch and display unit details successfully', async () => {
-      getMockedGetUnitDetailsById().mockResolvedValueOnce(MOCK_UNIT_DETAILS);
+      getMockedFetchUnitById().mockResolvedValueOnce(MOCK_UNIT_DETAILS);
 
       renderUnitPageWithProps();
 
@@ -83,9 +82,7 @@ describe('UnitPage Component', () => {
     });
 
     it('should display error message when API call fails', async () => {
-      getMockedGetUnitDetailsById().mockRejectedValueOnce(
-        new Error('API error'),
-      );
+      getMockedFetchUnitById().mockRejectedValueOnce(new Error('API error'));
 
       renderUnitPageWithProps();
 
@@ -103,25 +100,25 @@ describe('UnitPage Component', () => {
         expect(screen.getByText('Unit ID is required')).toBeInTheDocument();
       });
 
-      expect(GetUnitDetailsById).not.toHaveBeenCalled();
+      expect(fetchUnitById).not.toHaveBeenCalled();
     });
   });
 
   describe('when rendered with URL routing', () => {
     it('should extract unit ID from URL parameter and call API', async () => {
-      getMockedGetUnitDetailsById().mockResolvedValueOnce(MOCK_UNIT_DETAILS);
+      getMockedFetchUnitById().mockResolvedValueOnce(MOCK_UNIT_DETAILS);
 
       renderUnitPageWithRoute(URL_UNIT_ID);
 
       await waitFor(() => {
-        expect(GetUnitDetailsById).toHaveBeenCalledWith(URL_UNIT_ID);
+        expect(fetchUnitById).toHaveBeenCalledWith(URL_UNIT_ID);
       });
 
-      expect(GetUnitDetailsById).toHaveBeenCalledTimes(1);
+      expect(fetchUnitById).toHaveBeenCalledTimes(1);
     });
 
     it('should display unit details after extracting ID from URL', async () => {
-      getMockedGetUnitDetailsById().mockResolvedValueOnce(MOCK_UNIT_DETAILS);
+      getMockedFetchUnitById().mockResolvedValueOnce(MOCK_UNIT_DETAILS);
 
       renderUnitPageWithRoute(URL_UNIT_ID);
 
@@ -135,7 +132,7 @@ describe('UnitPage Component', () => {
     });
 
     it('should handle API errors when using URL routing', async () => {
-      getMockedGetUnitDetailsById().mockRejectedValueOnce(
+      getMockedFetchUnitById().mockRejectedValueOnce(
         new Error('Network error'),
       );
 
@@ -151,9 +148,7 @@ describe('UnitPage Component', () => {
 
   describe('loading states', () => {
     it('should show loading state initially', () => {
-      getMockedGetUnitDetailsById().mockImplementation(
-        () => new Promise(() => {}),
-      ); // Never resolves
+      getMockedFetchUnitById().mockImplementation(() => new Promise(() => {})); // Never resolves
 
       renderUnitPageWithProps();
 

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach } from 'vitest';
-import CreateModuleForm from '../admin/CreateModule/CreateModuleForm';
+import CreateModuleForm from '../admin/createModule/CreateModuleForm';
 
 describe('CreateModuleForm', () => {
   beforeEach(() => {

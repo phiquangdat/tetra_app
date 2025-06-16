@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchUnitContentById } from '../../api/unitsApi.ts';
+import { fetchUnitContentById } from '../../services/unit/unitsApi';
 import UnitItem from './UnitItem';
 import { fetchUnitTitleByModuleId } from '../../services/unit/unitApi';
 

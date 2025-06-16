@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchUnitById } from '../services/unit/unitApi';
-import { fetchUnitContentById, type UnitContent } from '../api/unitsApi';
+import {
+  fetchUnitContentById,
+  type UnitContent,
+} from '../services/unit/unitsApi';
 interface UnitPageProps {
   id: string;
 }

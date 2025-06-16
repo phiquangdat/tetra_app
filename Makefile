@@ -50,20 +50,20 @@ db/recreate-remote:
 		--network=host \
 		-e PGPASSWORD=$(DB_PASSWORD) \
 		postgres:16 \
-		psql -h $(REMOTE_DB_HOST) -p 5432 -U $(DB_USER) -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='quizedb';" || true
+		psql -h $(REMOTE_DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='quizedb';" || true
 	docker run --rm \
 		--network=host \
 		-e PGPASSWORD=$(DB_PASSWORD) \
 		postgres:16 \
-		psql -h $(REMOTE_DB_HOST) -p 5432 -U $(DB_USER) -d postgres -c "DROP DATABASE IF EXISTS quizedb;" || true
+		psql -h $(REMOTE_DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d postgres -c "DROP DATABASE IF EXISTS quizedb;" || true
 	docker run --rm \
 		--network=host \
 		-e PGPASSWORD=$(DB_PASSWORD) \
 		postgres:16 \
-		psql -h $(REMOTE_DB_HOST) -p 5432 -U $(DB_USER) -d postgres -c "CREATE DATABASE quizedb;" || true
+		psql -h $(REMOTE_DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d postgres -c "CREATE DATABASE quizedb;" || true
 	docker run --rm \
 		--network=host \
 		-e PGPASSWORD=$(DB_PASSWORD) \
 		-v "$(CURRENT_DIR)":/backups \
 		postgres:16 \
-		pg_restore --no-owner --no-privileges -h $(REMOTE_DB_HOST) -p 5432 -U $(DB_USER) -d quizedb -v /backups/db_snapshot.dump || true
+		pg_restore --no-owner --no-privileges -h $(REMOTE_DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d quizedb -v /backups/db_snapshot.dump || true

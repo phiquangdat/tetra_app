@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GetUnitDetailsById } from '../services/unit/unitApi';
+import { fetchUnitContentById, type UnitContent } from '../api/unitsApi';
 
 interface UnitPageProps {
   id: string;
@@ -43,7 +44,7 @@ const icons = {
       className="w-6 h-6 text-gray-700 flex-shrink-0"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth={2}
       viewBox="0 0 24 24"
     >
       <path
@@ -58,7 +59,7 @@ const icons = {
       className="w-6 h-6"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth={2}
       viewBox="0 0 24 24"
     >
       <path
@@ -82,24 +83,10 @@ const icons = {
 };
 
 const stats = [
-  { icon: icons.video, label: 'Videos', value: 1 },
-  { icon: icons.article, label: 'Articles', value: 1 },
-  { icon: icons.quiz, label: 'Quizzes', value: 1 },
-  { icon: icons.points, label: 'Points', value: 50 },
-];
-
-const contentList = [
-  {
-    type: 'video',
-    label: 'Video',
-    title: 'Strategies for data protection and encryption',
-  },
-  {
-    type: 'article',
-    label: 'Article',
-    title: 'Case studies on data breaches and prevention',
-  },
-  { type: 'quiz', label: 'Quiz', title: 'Key concepts of data protection' },
+  { icon: icons.video, label: 'Videos', type: 'video' },
+  { icon: icons.article, label: 'Articles', type: 'article' },
+  { icon: icons.quiz, label: 'Quizzes', type: 'quiz' },
+  { icon: icons.points, label: 'Points', type: 'points' },
 ];
 
 async function fetchUnitDetails(id: string) {
@@ -122,6 +109,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
     description: '',
     moduleId: '',
   });
+  const [unitContent, setUnitContent] = useState<UnitContent[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -135,6 +123,9 @@ const UnitPage = ({ id }: UnitPageProps) => {
       try {
         const details = await fetchUnitDetails(id);
         setUnitDetails(details);
+
+        const content = await fetchUnitContentById(id);
+        setUnitContent(content);
       } catch (error) {
         console.error('Failed to load unit details:', error);
         setError('Failed to load unit details');
@@ -175,38 +166,59 @@ const UnitPage = ({ id }: UnitPageProps) => {
           {error && <p className="text-red-500">{error}</p>}
         </div>
         <div className="border rounded-3xl p-6 flex flex-row gap-8 min-w-[340px] bg-white hover:shadow-lg transition items-center">
-          {stats.map((stat) => (
-            <div key={stat.label} className="flex flex-row items-center gap-4">
-              {stat.icon}
-              <div className="flex flex-col items-start">
-                <span className="text-gray-700">{stat.label}</span>
-                <span className="text-xl font-bold">{stat.value}</span>
+          {loading ? (
+            <div className="text-center w-full">Loading stats...</div>
+          ) : (
+            stats.map((stat) => (
+              <div
+                key={stat.label}
+                className="flex flex-row items-center gap-4"
+              >
+                {stat.icon}
+                <div className="flex flex-col items-start">
+                  <span className="text-gray-700">{stat.label}</span>
+                  <span className="text-xl font-bold">
+                    {
+                      unitContent.filter(
+                        (item) => item.content_type === stat.type,
+                      ).length
+                    }
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 
       <div className="bg-gray-100 rounded-2xl p-6 shadow-lg w-full md:w-full mx-auto border border-gray-200">
-        {contentList.map((item, index) => (
-          <div
-            key={index}
-            className={`grid grid-cols-[24px_80px_1fr_32px] gap-4 hover:bg-gray-200 items-center p-4 rounded-xl cursor-pointer transition-colors
-              ${checkedIndex === index ? 'bg-gray-300' : ''}`}
-            onClick={() => handleRowClick(index)}
-          >
-            <div className="w-6 h-6 flex items-center justify-center">
-              {icons[item.type as keyof typeof icons]}
+        {loading ? (
+          <div className="text-center py-4">Loading content...</div>
+        ) : unitContent.length > 0 ? (
+          unitContent.map((content, index) => (
+            <div
+              key={content.id}
+              className={`grid grid-cols-[24px_80px_1fr_32px] gap-4 hover:bg-gray-200 items-center p-4 rounded-xl cursor-pointer transition-colors
+                ${checkedIndex === index ? 'bg-gray-300' : ''}`}
+              onClick={() => handleRowClick(index)}
+            >
+              <div className="w-6 h-6 flex items-center justify-center">
+                {icons[content.content_type as keyof typeof icons]}
+              </div>
+              <div className="capitalize font-medium text-sm text-gray-700">
+                {content.content_type}
+              </div>
+              <div className="text-gray-900">{content.title}</div>
+              <div className="flex justify-end items-center">
+                {checkedIndex === index ? icons.check : ''}
+              </div>
             </div>
-            <div className="capitalize font-medium text-sm text-gray-700">
-              {item.label}
-            </div>
-            <div className="text-gray-900">{item.title}</div>
-            <div className="flex justify-end items-center">
-              {checkedIndex === index ? icons.check : ''}
-            </div>
+          ))
+        ) : (
+          <div className="text-center py-4 text-gray-500">
+            No content available for this unit.
           </div>
-        ))}
+        )}
       </div>
     </div>
   );

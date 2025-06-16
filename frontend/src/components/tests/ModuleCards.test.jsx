@@ -1,12 +1,12 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import ModuleCards from '../ModuleCards';
 import { afterEach, beforeEach, vi } from 'vitest';
-import { GetModules } from '../../services/module/moduleApi';
+import { fetchModules } from '../../services/module/moduleApi';
 import { BrowserRouter } from 'react-router-dom';
 
-// Mock the successful API call (GetModules) to return mock data
+// Mock the successful API call (fetchModules) to return mock data
 vi.mock('../../services/module/moduleApi', () => ({
-  GetModules: vi.fn().mockResolvedValue([
+  fetchModules: vi.fn().mockResolvedValue([
     {
       id: 1,
       title: 'Intro to Python',
@@ -93,8 +93,8 @@ describe('ModuleCards', () => {
   });
 
   it('displays an error message if the API call fails', async () => {
-    // Mock GetModules to return an error
-    GetModules.mockRejectedValue(new Error('Failed to fetch modules'));
+    // Mock fetchModules to return an error
+    fetchModules.mockRejectedValue(new Error('Failed to fetch modules'));
 
     renderWithRouter(<ModuleCards />);
 

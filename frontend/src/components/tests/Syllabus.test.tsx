@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Syllabus from '../Syllabus/Syllabus';
-import { GetUnitTitleByModuleId } from '../../services/unit/unitApi';
+import { fetchUnitTitleByModuleId } from '../../services/unit/unitApi';
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { fetchUnitContentById } from '../../api/unitsApi';
 import userEvent from '@testing-library/user-event';
@@ -18,7 +18,7 @@ const mockUnitContent = [
 ];
 
 vi.mock('../../services/unit/unitApi', () => ({
-  GetUnitTitleByModuleId: vi.fn(),
+  fetchUnitTitleByModuleId: vi.fn(),
 }));
 
 vi.mock('../../api/unitsApi', () => ({
@@ -39,7 +39,7 @@ describe('Syllabus Component', () => {
   const renderSyllabus = () => render(<Syllabus moduleID={mockModuleId} />);
 
   it('renders unit titles after successful data fetch', async () => {
-    (GetUnitTitleByModuleId as Mock).mockResolvedValueOnce(mockUnitTitles);
+    (fetchUnitTitleByModuleId as Mock).mockResolvedValueOnce(mockUnitTitles);
 
     renderSyllabus();
 
@@ -61,7 +61,7 @@ describe('Syllabus Component', () => {
   });
 
   it('navigates to the correct unit URL when a unit title is clicked', async () => {
-    (GetUnitTitleByModuleId as Mock).mockResolvedValueOnce(mockUnitTitles);
+    (fetchUnitTitleByModuleId as Mock).mockResolvedValueOnce(mockUnitTitles);
 
     renderSyllabus();
 
@@ -77,7 +77,7 @@ describe('Syllabus Component', () => {
   });
 
   it('fetches and renders unit content when unit is toggled', async () => {
-    (GetUnitTitleByModuleId as Mock).mockResolvedValueOnce(mockUnitTitles);
+    (fetchUnitTitleByModuleId as Mock).mockResolvedValueOnce(mockUnitTitles);
     (fetchUnitContentById as Mock).mockResolvedValueOnce(mockUnitContent);
 
     renderSyllabus();

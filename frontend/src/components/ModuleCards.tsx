@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ModuleCard from './ModuleCard';
-import { GetModules } from '../services/module/moduleApi';
+import { fetchModules } from '../services/module/moduleApi';
 
 interface Module {
   id: React.Key | null | undefined;
@@ -17,7 +17,7 @@ function ModuleCards() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const resData = await GetModules();
+        const resData = await fetchModules();
         if (resData && resData.length > 0) {
           setModules(resData);
           setError(null); // Reset error if data is fetched successfully

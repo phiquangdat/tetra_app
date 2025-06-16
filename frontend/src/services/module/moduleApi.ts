@@ -18,7 +18,7 @@ export async function fetchModuleById(id: string): Promise<Module> {
   return data;
 }
 
-export async function GetModules(): Promise<any> {
+export async function fetchModules(): Promise<any> {
   try {
     const response = await fetch(`${BASE_URL}/api/modules`);
     const modulesData = await response.json();

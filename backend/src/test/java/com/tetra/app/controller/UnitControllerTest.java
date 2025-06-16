@@ -79,8 +79,19 @@ public class UnitControllerTest {
 
     @Test
     void testGetUnitsByModuleId_MissingModuleId() {
+        Unit unit1 = new Unit();
+        unit1.setId(UUID.randomUUID());
+        unit1.setTitle("Unit 1");
+        Unit unit2 = new Unit();
+        unit2.setId(UUID.randomUUID());
+        unit2.setTitle("Unit 2");
+
+        when(unitRepository.findAll()).thenReturn(List.of(unit1, unit2));
+
         ResponseEntity<?> response = unitController.getUnitsByModuleId(null);
-        assertEquals(400, response.getStatusCode().value());
-        assertEquals("moduleId query parameter is required", response.getBody());
+
+        assertEquals(200, response.getStatusCode().value());
+        List<?> body = (List<?>) response.getBody();
+        assertEquals(2, body.size());
     }
 }

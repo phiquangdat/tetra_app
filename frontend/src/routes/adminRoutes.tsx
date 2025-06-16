@@ -5,6 +5,5 @@ import AdminLayout from '../layouts/AdminLayout';
 export const adminRoutes: RouteObject = {
   path: '/admin',
   element: <AdminLayout />,
-  children: [
-  ]
+  children: [],
 };

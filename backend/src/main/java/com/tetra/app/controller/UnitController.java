@@ -25,7 +25,8 @@ public class UnitController {
     @GetMapping
     public ResponseEntity<?> getUnitsByModuleId(@RequestParam(required = false) UUID moduleId) {
         if (moduleId == null) {
-            return ResponseEntity.badRequest().body("moduleId query parameter is required");
+            List<Unit> units = unitRepository.findAll();
+            return ResponseEntity.ok(units);
         }
         List<Unit> units = unitRepository.findByModule_Id(moduleId);
         List<Map<String, Object>> result = units.stream()

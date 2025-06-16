@@ -38,7 +38,16 @@ function ModuleCards() {
 
   return (
     <div className="flex flex-col gap-6 px-0 py-8 w-full mx-auto">
-      <h1 className="text-3xl font-bold text-center mb-8">Learning Modules</h1>
+      {/* Title + Button Row */}
+      <div className="flex justify-center gap-20 items-center mb-4">
+        <h1 className="text-3xl font-bold">Training modules</h1>
+        <div>
+          <button className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+            Create new module
+          </button>
+        </div>
+      </div>
+
       <ul className="flex flex-wrap justify-center items-center gap-8 p-0">
         {error && <p className="text-red-500">Failed to load data</p>}
         {modules.map((module: Module) => (

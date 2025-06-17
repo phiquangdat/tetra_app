@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import ModuleCard from './ModuleCard';
-import { fetchModules } from '../services/module/moduleApi';
+import ModuleCard from '../../ui/ModuleCard';
+import { fetchModules } from '../../../services/module/moduleApi.ts';
 
 interface Module {
   id: React.Key | null | undefined;
   title: string;
   topic: string;
   points: number;
+  status: string;
   coverUrl: string;
 }
 
@@ -40,14 +41,19 @@ function ModuleCards() {
       <h1 className="text-3xl font-bold text-center mb-8">Learning Modules</h1>
       <ul className="flex flex-wrap justify-center items-center gap-8 p-0">
         {error && <p className="text-red-500">Failed to load data</p>}
-        {modules.map((module: Module) => (
+       {modules.map((module: Module) => (
           <li key={module.id}>
             <ModuleCard
               id={module.id}
               title={module.title}
-              topic={module.topic}
-              points={module.points}
               coverUrl={module.coverUrl}
+              details={[
+                { label: 'Topic', value: module.topic },
+                { label: 'Points', value: module.points },
+                { label: 'Status', value: module.status },
+              ]}
+              buttonLabel="Open"
+              linkBasePath="/user/modules"
             />
           </li>
         ))}

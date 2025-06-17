@@ -50,7 +50,6 @@ function ModuleCards() {
               details={[
                 { label: 'Topic', value: module.topic },
                 { label: 'Points', value: module.points },
-                { label: 'Status', value: module.status },
               ]}
               buttonLabel="Open"
               linkBasePath="/user/modules"

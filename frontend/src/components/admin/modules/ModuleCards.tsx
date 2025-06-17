@@ -1,4 +1,6 @@
 import ModuleCard from '../../ui/ModuleCard';
+import React, { useEffect, useState } from 'react';
+import { fetchModules } from '../../../services/module/moduleApi.ts';
 
 interface Module {
   id: React.Key | null | undefined;
@@ -9,40 +11,45 @@ interface Module {
   coverUrl: string;
 }
 
-const modules: Module[] = [
-  {
-    id: '23jhru2y3',
-    title: 'AI Fundamentals',
-    topic: 'AI',
-    points: 240,
-    status: 'Published',
-    coverUrl:
-      'https://www.thestrategyinstitute.org/images/key-areas-where-ai-is-transforming-business-strategies.jpg',
-  },
-  {
-    id: 'a9s8d7f6g5',
-    title: 'Cybersecurity Essentials',
-    topic: 'Cybersecurity',
-    points: 180,
-    status: 'Draft',
-    coverUrl:
-      'https://media.wiley.com/product_data/coverImage300/93/11193623/1119362393.jpg',
-  },
-  {
-    id: 'zxcvbn1234',
-    title: 'Workplace Safety',
-    topic: 'Safety',
-    points: 200,
-    status: 'Published',
-    coverUrl: '',
-  },
-];
-
 function ModuleCards() {
+  const [modules, setModules] = useState<Module[]>([]); // Proper typing for modules
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadModules = async () => {
+      try {
+        const resData = await fetchModules();
+        if (resData && resData.length > 0) {
+          setModules(resData);
+          setError(null);
+          console.log('Response data:', resData);
+        } else {
+          setError('No modules found in the response');
+          console.error('No modules found in the response');
+        }
+      } catch (err: any) {
+        setError('Failed to fetch database');
+        console.error('Error fetching data:', err);
+      }
+    };
+
+    loadModules();
+  }, []);
+
   return (
     <div className="flex flex-col gap-6 px-0 py-8 w-full mx-auto">
-      <h1 className="text-3xl font-bold text-center mb-8">Learning Modules</h1>
+      {/* Title + Button Row */}
+      <div className="flex justify-center gap-20 items-center mb-4">
+        <h1 className="text-3xl font-bold">Training modules</h1>
+        <div>
+          <button className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+            Create new module
+          </button>
+        </div>
+      </div>
+
       <ul className="flex flex-wrap justify-center items-center gap-8 p-0">
+        {error && <p className="text-red-500">Failed to load data</p>}
         {modules.map((module: Module) => (
           <li key={module.id}>
             <ModuleCard

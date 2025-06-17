@@ -26,7 +26,7 @@ class UnitContentRepositoryTest {
         Unit unit = new Unit();
         unitRepository.save(unit);
 
-        UnitContent unitContent = new UnitContent(unit, 1, "text", "Sample Title", "Sample Content", "https://example.com");
+        UnitContent unitContent = new UnitContent(unit, 1, "text", "Sample Title", "Sample Content", "https://example.com", 5, 10);
         UnitContent savedUnitContent = unitContentRepository.save(unitContent);
 
         assertNotNull(savedUnitContent.getId());
@@ -38,6 +38,8 @@ class UnitContentRepositoryTest {
         assertEquals("https://example.com", retrievedContent.getUrl());
         assertEquals(1, retrievedContent.getSortOrder());
         assertEquals(unit.getId(), retrievedContent.getUnitId());
+        assertEquals(5, retrievedContent.getPoints());
+        assertEquals(10, retrievedContent.getQuestionsNumber());
     }
 
     @Test
@@ -45,7 +47,7 @@ class UnitContentRepositoryTest {
         Unit unit = new Unit();
         unitRepository.save(unit);
 
-        UnitContent unitContent = new UnitContent(unit, 2, "video", "Video Title", "Video Content", "https://video.com");
+        UnitContent unitContent = new UnitContent(unit, 2, "video", "Video Title", "Video Content", "https://video.com", 5, 10);
         UnitContent savedUnitContent = unitContentRepository.save(unitContent);
 
         unitContentRepository.delete(savedUnitContent);

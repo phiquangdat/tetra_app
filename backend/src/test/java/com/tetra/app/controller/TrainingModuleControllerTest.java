@@ -1,5 +1,6 @@
 package com.tetra.app.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tetra.app.config.SecurityConfig;
 import com.tetra.app.model.TrainingModule;
 import com.tetra.app.repository.TrainingModuleRepository;
@@ -9,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -16,8 +18,9 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(TrainingModuleController.class)
@@ -30,6 +33,9 @@ class TrainingModuleControllerTest {
     @MockBean
     private TrainingModuleRepository trainingModuleRepository;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Test
     @WithMockUser
     void testGetAllModules() throws Exception {
@@ -40,12 +46,14 @@ class TrainingModuleControllerTest {
         module.setPoints(10);
         module.setTopic("Topic");
         module.setCoverurl("cover.jpg");
+        module.setStatus("active");
 
         when(trainingModuleRepository.findAll()).thenReturn(Arrays.asList(module));
 
         mockMvc.perform(get("/api/modules"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("Test"));
+                .andExpect(jsonPath("$[0].title").value("Test"))
+                .andExpect(jsonPath("$[0].status").value("active"));
     }
 
     @Test
@@ -58,12 +66,14 @@ class TrainingModuleControllerTest {
         module.setPoints(10);
         module.setTopic("Topic");
         module.setCoverurl("cover.jpg");
+        module.setStatus("active");
 
         when(trainingModuleRepository.findById(UUID.fromString("00000000-0000-0000-0000-000000000001"))).thenReturn(Optional.of(module));
 
         mockMvc.perform(get("/api/modules/00000000-0000-0000-0000-000000000001"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Test"));
+                .andExpect(jsonPath("$.title").value("Test"))
+                .andExpect(jsonPath("$.status").value("active"));
     }
 
     @Test

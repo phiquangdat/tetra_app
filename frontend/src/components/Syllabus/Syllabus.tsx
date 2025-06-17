@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { fetchUnitContentById } from '../../services/unit/unitsApi';
+import {
+  fetchUnitContentById,
+  fetchUnitTitleByModuleId,
+} from '../../services/unit/unitApi';
 import UnitItem from './UnitItem';
-import { fetchUnitTitleByModuleId } from '../../services/unit/unitApi';
 
 interface SyllabusProps {
   moduleID: string | null;

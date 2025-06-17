@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   fetchArticleContentById,
   type Article,
-} from '../services/unit/unitsApi';
+} from '../services/unit/unitApi';
 
 interface ArticlePageProps {
   id: string;

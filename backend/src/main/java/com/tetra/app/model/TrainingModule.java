@@ -28,6 +28,9 @@ public class TrainingModule {
     @JsonProperty("coverUrl")
     private String coverurl;
 
+    @Column(name = "status")
+    private String status;
+
     public UUID getId() {
         return id;
     }
@@ -74,5 +77,13 @@ public class TrainingModule {
 
     public void setCoverurl(String coverurl) {
         this.coverurl = coverurl;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

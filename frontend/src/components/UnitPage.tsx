@@ -141,6 +141,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
 
   const handleRowClick = (idx: number) => {
     setCheckedIndex((current) => (current === idx ? null : idx));
+    navigate(`/user/${unitContent[idx].content_type}/${unitContent[idx].id}`);
   };
 
   return (

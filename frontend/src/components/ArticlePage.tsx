@@ -1,6 +1,20 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import {
+  fetchArticleContentById,
+  type Article,
+} from '../services/unit/unitsApi';
 
-const ArticlePage: React.FC = () => {
+interface ArticlePageProps {
+  id: string;
+}
+
+const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
+  const [article, setArticle] = useState<Article | null>(null);
+
+  useEffect(() => {
+    fetchArticleContentById(id).then((data) => setArticle(data));
+  }, [id]);
+
   return (
     <div className="mx-auto px-8 py-8 min-h-screen text-left">
       <div className="mb-6">
@@ -14,11 +28,12 @@ const ArticlePage: React.FC = () => {
       </div>
 
       <h1 className="text-3xl font-bold mb-6 text-gray-800 text-center">
+        {article?.title}
       </h1>
       <div className="bg-gray-100 rounded-2xl p-12 shadow-md w-full md:w-full mx-auto">
         <div
           className="prose prose-lg max-w-none"
-          dangerouslySetInnerHTML={{ __html: '' }}
+          dangerouslySetInnerHTML={{ __html: article?.content || '' }}
         />
       </div>
 

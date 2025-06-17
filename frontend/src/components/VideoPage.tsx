@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { validateVideoUrl } from '../utils/videoHelpers';
+import { fetchVideoContentById, type Video } from '../services/unit/unitsApi';
 
 const FallbackVideo = () => (
   <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100 rounded-2xl">
@@ -19,10 +20,22 @@ const FallbackVideo = () => (
   </div>
 );
 
-const VideoPage: React.FC = () => {
-  const { isValid, isYouTube, embedUrl } = validateVideoUrl();
+interface VideoPageProps {
+  id: string;
+}
 
-  if () {
+const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
+  const [video, setVideo] = useState<Video | null>(null);
+
+  useEffect(() => {
+    if (id) {
+      fetchVideoContentById(id).then((data) => setVideo(data));
+    }
+  }, [id]);
+
+  const { isValid, isYouTube, embedUrl } = validateVideoUrl(video?.url);
+
+  if (!video?.url) {
     console.warn('No Video URL provided');
   }
 
@@ -38,14 +51,16 @@ const VideoPage: React.FC = () => {
         </a>
       </div>
 
-      <h1 className="text-3xl font-semibold mb-6 text-center"></h1>
+      <h1 className="text-3xl font-semibold mb-6 text-center">
+        {video?.title}
+      </h1>
       <div className="w-full max-w-4xl aspect-video rounded-2xl overflow-hidden shadow-lg">
         {isValid ? (
           isYouTube ? (
             <iframe
               className="w-full h-full"
               src={embedUrl}
-              title="video"
+              title={video?.title}
               style={{ border: 'none' }}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
@@ -67,6 +82,7 @@ const VideoPage: React.FC = () => {
       <div className="w-full max-w-4xl text-left mt-5">
         <h2 className="text-xl font-bold ml-4 mb-4">About</h2>
         <div className="bg-gray-200 rounded-3xl p-6 text-gray-700 text-base shadow-sm">
+          {video?.content}
         </div>
       </div>
 

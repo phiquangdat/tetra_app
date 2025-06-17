@@ -41,7 +41,7 @@ function ModuleCards() {
       <h1 className="text-3xl font-bold text-center mb-8">Learning Modules</h1>
       <ul className="flex flex-wrap justify-center items-center gap-8 p-0">
         {error && <p className="text-red-500">Failed to load data</p>}
-        {modules.map((module: Module) => (
+       {modules.map((module: Module) => (
           <li key={module.id}>
             <ModuleCard
               id={module.id}
@@ -50,6 +50,7 @@ function ModuleCards() {
               details={[
                 { label: 'Topic', value: module.topic },
                 { label: 'Points', value: module.points },
+                { label: 'Status', value: module.status },
               ]}
               buttonLabel="Open"
               linkBasePath="/user/modules"

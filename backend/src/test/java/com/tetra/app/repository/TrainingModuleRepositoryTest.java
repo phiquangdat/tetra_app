@@ -23,6 +23,7 @@ class TrainingModuleRepositoryTest {
         module.setPoints(10);
         module.setTopic("Topic");
         module.setCoverurl("cover.jpg");
+        module.setStatus("active");
 
         TrainingModule saved = repository.save(module);
         assertThat(saved.getId()).isNotNull();
@@ -30,5 +31,6 @@ class TrainingModuleRepositoryTest {
         TrainingModule found = repository.findById(saved.getId()).orElse(null);
         assertThat(found).isNotNull();
         assertThat(found.getTitle()).isEqualTo("Test");
+        assertThat(found.getStatus()).isEqualTo("active");
     }
 }

@@ -43,7 +43,7 @@ function UnitForm() {
       <h2 className="text-2xl font-semibold text-gray-700 mb-6">Units</h2>
       <form action="submit">
         <div
-          className={`flex items-center justify-between py-2 mb-4 ${isOpen ? '' : 'bg-gray-100'} rounded-lg cursor-pointer transition-colors duration-200`}
+          className={`flex items-center justify-between px-3 py-4 mb-4 ${isOpen ? '' : 'bg-gray-100'} rounded-lg cursor-pointer transition-colors duration-200`}
           onClick={() => setIsOpen(!isOpen)}
         >
           <h3 className="text-xl font-semibold text-gray-700">

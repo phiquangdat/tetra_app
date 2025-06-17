@@ -6,6 +6,8 @@ import ModuleCards from '../components/user/modules/ModuleCards';
 import ModulePage from '../components/ModulePage';
 import UnitPage from '../components/UnitPage';
 import Dashboard from '../user/dashboard';
+import VideoPage from '../components/VideoPage';
+import ArticlePage from '../components/ArticlePage';
 
 function ModulePageWrapper() {
   const { id } = useParams();
@@ -17,6 +19,18 @@ function UnitPageWrapper() {
   const { id } = useParams();
   if (!id) return <div>Unit ID not found</div>;
   return <UnitPage id={id} />;
+}
+
+function VideoPageWrapper() {
+  const { id } = useParams();
+  if (!id) return <div>Video ID not found</div>;
+  return <VideoPage id={id} />;
+}
+
+function ArticlePageWrapper() {
+  const { id } = useParams();
+  if (!id) return <div>Article ID not found</div>;
+  return <ArticlePage id={id} />;
 }
 
 export const userRoutes: RouteObject = {
@@ -38,6 +52,14 @@ export const userRoutes: RouteObject = {
     {
       path: 'unit/:id',
       element: <UnitPageWrapper />,
+    },
+    {
+      path: 'video/:id',
+      element: <VideoPageWrapper />,
+    },
+    {
+      path: 'article/:id',
+      element: <ArticlePageWrapper />,
     },
     {
       path: 'dashboard',

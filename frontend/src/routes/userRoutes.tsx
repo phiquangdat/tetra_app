@@ -5,6 +5,7 @@ import UserLayout from '../layouts/UserLayout';
 import ModuleCards from '../components/ModuleCards';
 import ModulePage from '../components/ModulePage';
 import UnitPage from '../components/UnitPage';
+import Dashboard from '../user/dashboard';
 
 function ModulePageWrapper() {
   const { id } = useParams();
@@ -37,6 +38,10 @@ export const userRoutes: RouteObject = {
     {
       path: 'unit/:id',
       element: <UnitPageWrapper />,
+    },
+    {
+      path: 'dashboard',
+      element: <Dashboard />,
     },
   ],
 };

@@ -1,9 +1,11 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Syllabus from '../Syllabus/Syllabus';
-import { fetchUnitTitleByModuleId } from '../../services/unit/unitApi';
+import {
+  fetchUnitTitleByModuleId,
+  fetchUnitContentById,
+} from '../../services/unit/unitApi';
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import { fetchUnitContentById } from '../../services/unit/unitsApi';
 import userEvent from '@testing-library/user-event';
 
 const mockModuleId = 'aaeacc19-4619-4f0a-8249-88ce37cf2a50';
@@ -19,9 +21,6 @@ const mockUnitContent = [
 
 vi.mock('../../services/unit/unitApi', () => ({
   fetchUnitTitleByModuleId: vi.fn(),
-}));
-
-vi.mock('../../services/unit/unitsApi', () => ({
   fetchUnitContentById: vi.fn(),
 }));
 

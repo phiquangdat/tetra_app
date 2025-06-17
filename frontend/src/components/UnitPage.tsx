@@ -140,6 +140,11 @@ const UnitPage = ({ id }: UnitPageProps) => {
   }, [id]);
 
   const handleRowClick = (idx: number) => {
+    // Skip redirecting on click if it's quiz
+    if (unitContent[idx].content_type == 'quiz') {
+      return;
+    }
+
     setCheckedIndex((current) => (current === idx ? null : idx));
     navigate(`/user/${unitContent[idx].content_type}/${unitContent[idx].id}`);
   };
@@ -213,6 +218,17 @@ const UnitPage = ({ id }: UnitPageProps) => {
               </div>
               <div className="text-gray-900">{content.title}</div>
               <div className="flex justify-end items-center">
+                {content.content_type === 'quiz' && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/user/quiz/${content.id}`);
+                    }}
+                    className="px-4 py-2 bg-blue-200 hover:bg-blue-400 text-black font-semibold rounded-full transition-colors duration-200 text-sm whitespace-nowrap"
+                  >
+                    Start challenge
+                  </button>
+                )}
                 {checkedIndex === index ? icons.check : ''}
               </div>
             </div>

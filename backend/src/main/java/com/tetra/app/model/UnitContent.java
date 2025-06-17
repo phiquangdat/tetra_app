@@ -34,17 +34,34 @@ public class UnitContent {
 
     @Column(name = "url")
     private String url;
+    @Column(name = "points")
+    private Integer points;
+
+    @Column(name = "questions_number")
+    private Integer questionsNumber;
+    @JsonProperty("content")
+    public String getContent() {
+        return contentData;
+    }
+
+    @JsonProperty("content")
+    public void setContent(String contentData) {
+        this.contentData = contentData;
+    }
+
 
     public UnitContent() {
     }
 
-    public UnitContent(Unit unit, Integer sortOrder, String contentType, String title, String contentData, String url) {
+    public UnitContent(Unit unit, Integer sortOrder, String contentType, String title, String contentData, String url, Integer points, Integer questionsNumber) {
         this.unit = unit;
         this.sortOrder = sortOrder;
         this.contentType = contentType;
         this.title = title;
         this.contentData = contentData;
         this.url = url;
+        this.points = points;
+        this.questionsNumber = questionsNumber;
     }
 
     public UUID getId() {
@@ -106,5 +123,20 @@ public class UnitContent {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+    public Integer getPoints() {
+        return points;
+    }
+
+    public void setPoints(Integer points) {
+        this.points = points;
+    }
+
+    public Integer getQuestionsNumber() {
+        return questionsNumber;
+    }
+
+    public void setQuestionsNumber(Integer questionsNumber) {
+        this.questionsNumber = questionsNumber;
     }
 }

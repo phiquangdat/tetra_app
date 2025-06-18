@@ -147,7 +147,9 @@ const UnitPage = ({ id }: UnitPageProps) => {
     }
 
     setCheckedIndex((current) => (current === idx ? null : idx));
-    navigate(`/user/${unitContent[idx].content_type}/${unitContent[idx].id}`);
+    navigate(`/user/${unitContent[idx].content_type}/${unitContent[idx].id}`, {
+      state: { unitId: unitDetails.id },
+    });
   };
 
   return (

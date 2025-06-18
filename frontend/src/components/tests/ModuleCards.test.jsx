@@ -14,7 +14,7 @@ vi.mock('../../services/module/moduleApi', () => ({
       description: 'A beginner-friendly course covering Python fundamentals.',
       points: 50,
       topic: 'Programming',
-      status: "published",
+      status: 'published',
       coverUrl:
         'https://www.pngall.com/wp-content/uploads/2016/05/Python-Logo-Free-PNG-Image.png',
     },
@@ -24,7 +24,7 @@ vi.mock('../../services/module/moduleApi', () => ({
       description: 'Learn essential cybersecurity practices and threats.',
       points: 40,
       topic: 'Security',
-      status: "draft",
+      status: 'draft',
       coverUrl:
         'https://www.theforage.com/blog/wp-content/uploads/2022/12/what-is-cybersecurity.jpg',
     },

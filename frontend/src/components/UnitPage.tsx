@@ -5,6 +5,7 @@ import {
   fetchUnitContentById,
   type UnitContent,
 } from '../services/unit/unitApi';
+import { useQuizModal } from '../context/QuizModalContext';
 
 interface UnitPageProps {
   id: string;
@@ -114,6 +115,8 @@ const UnitPage = ({ id }: UnitPageProps) => {
   });
   const [unitContent, setUnitContent] = useState<UnitContent[]>([]);
   const navigate = useNavigate();
+
+  const { openModal } = useQuizModal();
 
   useEffect(() => {
     if (!id) {
@@ -225,7 +228,8 @@ const UnitPage = ({ id }: UnitPageProps) => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/user/quiz/${content.id}`);
+                      console.log('id is ', content.id);
+                      openModal(content.id);
                     }}
                     className="px-4 py-2 bg-blue-200 hover:bg-blue-400 text-black font-semibold rounded-full transition-colors duration-200 text-sm whitespace-nowrap"
                   >

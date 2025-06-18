@@ -10,6 +10,7 @@ import {
 } from 'react-router-dom';
 import UnitPage from '../UnitPage';
 import { fetchUnitById } from '../../services/unit/unitApi';
+import { QuizModalProvider } from '../../context/QuizModalContext';
 
 vi.mock('../../services/unit/unitApi', () => ({
   fetchUnitById: vi.fn(),
@@ -32,18 +33,22 @@ const UnitPageWrapper = () => {
 
 const renderUnitPageWithProps = (id: string = MOCK_UNIT_ID) =>
   render(
-    <BrowserRouter>
-      <UnitPage id={id} />
-    </BrowserRouter>,
+    <QuizModalProvider>
+      <BrowserRouter>
+        <UnitPage id={id} />
+      </BrowserRouter>
+    </QuizModalProvider>,
   );
 
 const renderUnitPageWithRoute = (unitId: string) =>
   render(
-    <MemoryRouter initialEntries={[`/unit/${unitId}`]}>
-      <Routes>
-        <Route path="/unit/:id" element={<UnitPageWrapper />} />
-      </Routes>
-    </MemoryRouter>,
+    <QuizModalProvider>
+      <MemoryRouter initialEntries={[`/unit/${unitId}`]}>
+        <Routes>
+          <Route path="/unit/:id" element={<UnitPageWrapper />} />
+        </Routes>
+      </MemoryRouter>
+    </QuizModalProvider>,
   );
 
 const getMockedFetchUnitById = () => fetchUnitById as ReturnType<typeof vi.fn>;

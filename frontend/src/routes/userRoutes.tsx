@@ -2,7 +2,7 @@ import type { RouteObject } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 
 import UserLayout from '../layouts/UserLayout';
-import ModuleCards from '../components/ModuleCards';
+import ModuleCards from '../components/user/modules/ModuleCards';
 import ModulePage from '../components/ModulePage';
 import UnitPage from '../components/UnitPage';
 import Dashboard from '../user/dashboard';

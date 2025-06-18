@@ -1,8 +1,9 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
-import ModuleCards from '../ModuleCards';
 import { afterEach, beforeEach, vi } from 'vitest';
-import { fetchModules } from '../../services/module/moduleApi';
 import { BrowserRouter } from 'react-router-dom';
+
+import ModuleCards from '../user/modules/ModuleCards';
+import { fetchModules } from '../../services/module/moduleApi';
 
 // Mock the successful API call (fetchModules) to return mock data
 vi.mock('../../services/module/moduleApi', () => ({
@@ -65,8 +66,12 @@ describe('ModuleCards', () => {
     await waitFor(() => screen.getByText(/Intro to Python/i));
 
     // Check for correct points
-    const pythonPoints = screen.getByText(/50 points/i);
-    const cybersecurityPoints = screen.getByText(/40 points/i);
+    const pythonPoints = screen.getByText((content, element) => {
+      return element?.textContent === 'Points: 50';
+    });
+    const cybersecurityPoints = screen.getByText((content, element) => {
+      return element?.textContent === 'Points: 40';
+    });
 
     expect(pythonPoints).toBeInTheDocument();
     expect(cybersecurityPoints).toBeInTheDocument();

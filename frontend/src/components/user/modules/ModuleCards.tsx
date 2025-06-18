@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import ModuleCard from './ModuleCard';
-import { fetchModules } from '../services/module/moduleApi';
+import ModuleCard from '../../ui/ModuleCard';
+import { fetchModules } from '../../../services/module/moduleApi.ts';
 
 interface Module {
   id: React.Key | null | undefined;
   title: string;
   topic: string;
   points: number;
+  status: string;
   coverUrl: string;
 }
 
@@ -45,9 +46,13 @@ function ModuleCards() {
             <ModuleCard
               id={module.id}
               title={module.title}
-              topic={module.topic}
-              points={module.points}
               coverUrl={module.coverUrl}
+              details={[
+                { label: 'Topic', value: module.topic },
+                { label: 'Points', value: module.points },
+              ]}
+              buttonLabel="Open"
+              linkBasePath="/user/modules"
             />
           </li>
         ))}

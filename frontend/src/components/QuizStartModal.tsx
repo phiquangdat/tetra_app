@@ -1,4 +1,6 @@
 import { useQuizModal } from '../context/QuizModalContext';
+import {useEffect, useState} from "react";
+import { type Quiz, fetchQuizById } from "../services/quiz/quizApi.ts";
 
 const icons = {
   article: (
@@ -40,8 +42,39 @@ const icons = {
 
 const QuizStartModal = () => {
   const { isOpen, quizId, closeModal } = useQuizModal();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [quizDetails, setQuizDetails] = useState<Quiz>({
+    id: '',
+    title: '',
+    content: '',
+    points: 0,
+    questions_number: 0,
+  });
 
-  if (!isOpen || !quizId) return null;
+
+  useEffect(() => {
+    if (!isOpen || !quizId) return;
+
+
+    setLoading(true);
+    const loadQuizDetails = async () => {
+      try {
+        const quiz = await fetchQuizById(quizId);
+        setQuizDetails(quiz);
+        setError(null);
+      } catch (err) {
+        console.error("Failed to load quiz details:", err);
+        setError("Failed to load quiz details");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadQuizDetails();
+  }, [quizId, isOpen]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-white/30">
@@ -54,32 +87,37 @@ const QuizStartModal = () => {
           ×
         </button>
 
-        {/*Title*/}
-        <h2 className="text-4xl font-extrabold mb-6 text-center text-black">
-          Key concepts of data protection
-        </h2>
+        {error && <p className="text-red-500">{error}</p>}
 
-        {/* Info row */}
-        <div className="flex flex-row gap-10 mb-6 items-center justify-center">
-          <div className="flex items-center gap-2 text-lg text-gray-700">
+        {!error && (
+            <>
+              {/*Title*/}
+              <h2 className="text-4xl font-extrabold mb-6 text-center text-black">
+                {loading ? "Loading title..." : quizDetails?.title}
+              </h2>
+
+              {/* Info row */}
+              <div className="flex flex-row gap-10 mb-6 items-center justify-center">
+                <div className="flex items-center gap-2 text-lg text-gray-700">
             <span className="inline-flex items-center justify-center">
               {icons.article}
             </span>
-            5 questions
-          </div>
-          <div className="flex items-center gap-2 text-lg text-gray-700">
+                  {loading ? "Loading questions data..." : `${quizDetails?.questions_number} questions`}
+                </div>
+                <div className="flex items-center gap-2 text-lg text-gray-700">
             <span className="inline-flex items-center justify-center">
               {icons.quiz}
             </span>
-            20 points
-          </div>
-        </div>
+                  {loading ? "Loading points data..." : `${quizDetails?.points} points`}
+                </div>
+              </div>
 
-        {/* Description */}
-        <p className="text-center text-gray-700 mb-10 max-w-xl">
-          Test your knowledge of core data protection principles, privacy
-          rights, and legal responsibilities.
-        </p>
+              {/* Description */}
+              <p className="text-center text-gray-700 mb-10 max-w-xl">
+                {loading ? "Loading description..." : quizDetails?.content}
+              </p>
+            </>
+        )}
 
         {/* Action buttons row */}
         <div className="flex justify-center gap-4 mt-6">

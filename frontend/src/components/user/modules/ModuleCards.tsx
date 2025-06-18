@@ -41,21 +41,23 @@ function ModuleCards() {
       <h1 className="text-3xl font-bold text-center mb-8">Learning Modules</h1>
       <ul className="flex flex-wrap justify-center items-center gap-8 p-0">
         {error && <p className="text-red-500">Failed to load data</p>}
-        {modules.map((module: Module) => (
-          <li key={module.id}>
-            <ModuleCard
-              id={module.id}
-              title={module.title}
-              coverUrl={module.coverUrl}
-              details={[
-                { label: 'Topic', value: module.topic },
-                { label: 'Points', value: module.points },
-              ]}
-              buttonLabel="Open"
-              linkBasePath="/user/modules"
-            />
-          </li>
-        ))}
+        {modules
+          .filter((module: Module) => module.status === 'published')
+          .map(({ id, title, coverUrl, topic, points }: Module) => (
+            <li key={id}>
+              <ModuleCard
+                id={id}
+                title={title}
+                coverUrl={coverUrl}
+                details={[
+                  { label: 'Topic', value: topic },
+                  { label: 'Points', value: points },
+                ]}
+                buttonLabel="Open"
+                linkBasePath="/user/modules"
+              />
+            </li>
+          ))}
       </ul>
     </div>
   );

@@ -1,9 +1,14 @@
 import { Outlet } from 'react-router-dom';
+import { QuizModalProvider } from '../context/QuizModalContext.tsx';
+import QuizStartModal from '../components/QuizStartModal.tsx';
 
 export default function UserLayout() {
   return (
-    <div>
-      <Outlet />
-    </div>
+    <QuizModalProvider>
+      <main>
+        <Outlet />
+        <QuizStartModal />
+      </main>
+    </QuizModalProvider>
   );
 }

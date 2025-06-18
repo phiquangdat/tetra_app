@@ -1,3 +1,5 @@
+import { useQuizModal } from '../context/QuizModalContext';
+
 const icons = {
   article: (
     <svg
@@ -37,41 +39,57 @@ const icons = {
 };
 
 const QuizStartModal = () => {
+  const { isOpen, quizId, closeModal } = useQuizModal();
+
+  if (!isOpen || !quizId) return null;
+
   return (
-    <div className="mx-auto px-8 py-8 min-h-screen text-left">
-      <div className="mb-6">
-        <a
-          href="/unit"
-          className="inline-flex items-center text-gray-500 hover:text-black px-3 py-1 rounded-lg hover:bg-gray-100 hover:border hover:border-gray-300 active:bg-gray-200 transition-all"
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-white/30">
+      <div className="relative bg-white rounded-2xl p-12 shadow-lg w-full max-w-2xl flex flex-col items-center">
+        {/* Close button */}
+        <button
+          onClick={closeModal}
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-xl font-bold"
         >
-          <span className="mr-2 text-xl">←</span>
-          Back to Unit
-        </a>
-      </div>
-      <div className="flex flex-1 items-center justify-center">
-        <div className="bg-gray-100 rounded-2xl p-12 shadow-md w-full max-w-2xl flex flex-col items-center">
-          <h2 className="text-4xl font-extrabold mb-6 text-center text-black">
-            Key concepts of data protection
-          </h2>
-          <div className="flex flex-row gap-10 mb-6 items-center justify-center">
-            <div className="flex items-center gap-2 text-lg text-gray-700">
-              <span className="inline-flex items-center justify-center">
-                {icons.article}
-              </span>
-              5 questions
-            </div>
-            <div className="flex items-center gap-2 text-lg text-gray-700">
-              <span className="inline-flex items-center justify-center">
-                {icons.quiz}
-              </span>
-              20 points
-            </div>
+          ×
+        </button>
+
+        {/*Title*/}
+        <h2 className="text-4xl font-extrabold mb-6 text-center text-black">
+          Key concepts of data protection
+        </h2>
+
+        {/* Info row */}
+        <div className="flex flex-row gap-10 mb-6 items-center justify-center">
+          <div className="flex items-center gap-2 text-lg text-gray-700">
+            <span className="inline-flex items-center justify-center">
+              {icons.article}
+            </span>
+            5 questions
           </div>
-          <p className="text-center text-gray-700 mb-10 max-w-xl">
-            Test your knowledge of core data protection principles, privacy
-            rights, and legal responsibilities.
-          </p>
-          <button className="bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-3 px-10 rounded-full text-lg transition-all">
+          <div className="flex items-center gap-2 text-lg text-gray-700">
+            <span className="inline-flex items-center justify-center">
+              {icons.quiz}
+            </span>
+            20 points
+          </div>
+        </div>
+
+        {/* Description */}
+        <p className="text-center text-gray-700 mb-10 max-w-xl">
+          Test your knowledge of core data protection principles, privacy
+          rights, and legal responsibilities.
+        </p>
+
+        {/* Action buttons row */}
+        <div className="flex justify-center gap-4 mt-6">
+          <button
+            onClick={closeModal}
+            className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-full text-base transition-all"
+          >
+            ← Back
+          </button>
+          <button className="bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold px-6 py-2 rounded-full text-base transition-all">
             Let's go
           </button>
         </div>

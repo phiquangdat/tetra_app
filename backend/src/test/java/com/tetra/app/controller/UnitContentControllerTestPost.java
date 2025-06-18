@@ -2,16 +2,20 @@ package com.tetra.app.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tetra.app.model.Unit;
+import com.tetra.app.model.UnitContent;
 import com.tetra.app.repository.UnitContentRepository;
 import com.tetra.app.repository.UnitRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import com.jayway.jsonpath.JsonPath;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -20,6 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UnitContentController.class)
+@org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc(addFilters = false)
 public class UnitContentControllerTestPost {
 
     @Autowired
@@ -48,27 +53,47 @@ public class UnitContentControllerTestPost {
         Unit unit = new Unit();
         unit.setId(unitId);
         Mockito.when(unitRepository.findById(unitId)).thenReturn(Optional.of(unit));
+
+        // Mock saving UnitContent to avoid NullPointerException in controller
+        Mockito.when(unitContentRepository.saveAndFlush(ArgumentMatchers.any(UnitContent.class)))
+                .thenAnswer(invocation -> {
+                    UnitContent uc = invocation.getArgument(0);
+                    uc.setId(UUID.randomUUID());
+                    return uc;
+                });
     }
 
     @Test
+    @WithMockUser
     void createQuizContent_success() throws Exception {
         String json = """
         {
             "unit_id": "%s",
             "content_type": "quiz",
-            "title": "Test Quiz",
-            "content": "Test description",
+            "title": "Workplace Safety Quiz 22",
+            "content": "Test your knowledge on workplace safety protocols and hazard prevention strategies.",
             "sort_order": 1,
-            "points": 5,
-            "questions_number": 1,
+            "points": 15,
+            "questions_number": 2,
             "questions": [
               {
-                "title": "2 + 2 = ?",
+                "title": "Which of the following should be done in the event of a fire?",
                 "type": "single",
                 "sort_order": 1,
                 "answers": [
-                  { "title": "3", "is_correct": false, "sort_order": 1 },
-                  { "title": "4", "is_correct": true, "sort_order": 2 }
+                  { "title": "Evacuate immediately", "is_correct": true, "sort_order": 1 },
+                  { "title": "Wait for the fire to extinguish", "is_correct": false, "sort_order": 2 },
+                  { "title": "Call a colleague", "is_correct": false, "sort_order": 3 }
+                ]
+              },
+              {
+                "title": "What is the purpose of PPE (Personal Protective Equipment)?",
+                "type": "single",
+                "sort_order": 2,
+                "answers": [
+                  { "title": "To protect against workplace hazards", "is_correct": true, "sort_order": 1 },
+                  { "title": "To look professional", "is_correct": false, "sort_order": 2 },
+                  { "title": "For decoration", "is_correct": false, "sort_order": 3 }
                 ]
               }
             ]
@@ -80,11 +105,15 @@ public class UnitContentControllerTestPost {
                 .content(json))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.title").value("Test Quiz"))
-                .andExpect(jsonPath("$.content_type").value("quiz"));
+                .andExpect(jsonPath("$.title").value("Workplace Safety Quiz 22"))
+                .andExpect(jsonPath("$.content_type").value("quiz"))
+                .andExpect(jsonPath("$.content").value("Test your knowledge on workplace safety protocols and hazard prevention strategies."))
+                .andExpect(jsonPath("$.points").value(15))
+                .andExpect(jsonPath("$.questions_number").value(2));
     }
 
     @Test
+    @WithMockUser
     void createQuizContent_unitNotFound() throws Exception {
         String json = """
         {
@@ -104,10 +133,14 @@ public class UnitContentControllerTestPost {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("Unit not found")));
+                .andExpect(result -> {
+                    String msg = result.getResponse().getContentAsString();
+                    if (!msg.contains("Unit not found")) throw new AssertionError("Unexpected error: " + msg);
+                });
     }
 
     @Test
+    @WithMockUser
     void createQuizContent_missingTitle() throws Exception {
         String json = """
         {
@@ -124,10 +157,14 @@ public class UnitContentControllerTestPost {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("title is required")));
+                .andExpect(result -> {
+                    String msg = result.getResponse().getContentAsString();
+                    if (!msg.contains("title is required")) throw new AssertionError("Unexpected error: " + msg);
+                });
     }
 
     @Test
+    @WithMockUser
     void createQuizContent_wrongContentType() throws Exception {
         String json = """
         {
@@ -145,6 +182,9 @@ public class UnitContentControllerTestPost {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("content_type must be 'quiz'")));
+                .andExpect(result -> {
+                    String msg = result.getResponse().getContentAsString();
+                    if (!msg.contains("content_type must be 'quiz'")) throw new AssertionError("Unexpected error: " + msg);
+                });
     }
 }

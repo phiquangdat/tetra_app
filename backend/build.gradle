@@ -50,6 +50,7 @@ dependencies {
 	testImplementation 'org.testcontainers:postgresql'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testImplementation 'com.h2database:h2' // Add H2 for testing
+	testImplementation 'com.jayway.jsonpath:json-path:2.9.0'
 }
 
 tasks.named('test') {

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { validateVideoUrl } from '../utils/videoHelpers';
 import { fetchVideoContentById, type Video } from '../services/unit/unitApi';
 
@@ -26,6 +27,9 @@ interface VideoPageProps {
 
 const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   const [video, setVideo] = useState<Video | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const unitIdFromState = (location.state as { unitId?: string })?.unitId;
 
   useEffect(() => {
     if (id) {
@@ -43,7 +47,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <div className="w-full max-w-4xl mb-6 text-left">
         <a
-          href="/unit"
+          onClick={() => navigate(`/user/unit/${unitIdFromState}`)}
           className="inline-flex items-center text-gray-500 hover:text-black px-3 py-1 rounded-lg hover:bg-gray-100 hover:border hover:border-gray-300 active:bg-gray-200 transition-all"
         >
           <span className="mr-2 text-xl">←</span>

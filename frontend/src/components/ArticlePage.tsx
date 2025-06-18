@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   fetchArticleContentById,
   type Article,
@@ -10,7 +11,9 @@ interface ArticlePageProps {
 
 const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
   const [article, setArticle] = useState<Article | null>(null);
-
+  const navigate = useNavigate();
+  const location = useLocation();
+  const unitIdFromState = (location.state as { unitId?: string })?.unitId;
   useEffect(() => {
     fetchArticleContentById(id).then((data) => setArticle(data));
   }, [id]);
@@ -19,7 +22,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
     <div className="mx-auto px-8 py-8 min-h-screen text-left">
       <div className="mb-6">
         <a
-          href="/unit"
+          onClick={() => navigate(`/user/unit/${unitIdFromState}`)}
           className="inline-flex items-center text-gray-500 hover:text-black px-3 py-1 rounded-lg hover:bg-gray-100 hover:border hover:border-gray-300 active:bg-gray-200 transition-all"
         >
           <span className="mr-2 text-xl">←</span>

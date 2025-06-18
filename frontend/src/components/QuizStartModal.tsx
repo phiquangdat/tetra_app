@@ -1,6 +1,6 @@
 import { useQuizModal } from '../context/QuizModalContext';
-import {useEffect, useState} from "react";
-import { type Quiz, fetchQuizById } from "../services/quiz/quizApi.ts";
+import { useEffect, useState } from 'react';
+import { type Quiz, fetchQuizById } from '../services/quiz/quizApi.ts';
 
 const icons = {
   article: (
@@ -52,10 +52,8 @@ const QuizStartModal = () => {
     questions_number: 0,
   });
 
-
   useEffect(() => {
     if (!isOpen || !quizId) return;
-
 
     setLoading(true);
     const loadQuizDetails = async () => {
@@ -64,8 +62,8 @@ const QuizStartModal = () => {
         setQuizDetails(quiz);
         setError(null);
       } catch (err) {
-        console.error("Failed to load quiz details:", err);
-        setError("Failed to load quiz details");
+        console.error('Failed to load quiz details:', err);
+        setError('Failed to load quiz details');
       } finally {
         setLoading(false);
       }
@@ -90,33 +88,37 @@ const QuizStartModal = () => {
         {error && <p className="text-red-500">{error}</p>}
 
         {!error && (
-            <>
-              {/*Title*/}
-              <h2 className="text-4xl font-extrabold mb-6 text-center text-black">
-                {loading ? "Loading title..." : quizDetails?.title}
-              </h2>
+          <>
+            {/*Title*/}
+            <h2 className="text-4xl font-extrabold mb-6 text-center text-black">
+              {loading ? 'Loading title...' : quizDetails?.title}
+            </h2>
 
-              {/* Info row */}
-              <div className="flex flex-row gap-10 mb-6 items-center justify-center">
-                <div className="flex items-center gap-2 text-lg text-gray-700">
-            <span className="inline-flex items-center justify-center">
-              {icons.article}
-            </span>
-                  {loading ? "Loading questions data..." : `${quizDetails?.questions_number} questions`}
-                </div>
-                <div className="flex items-center gap-2 text-lg text-gray-700">
-            <span className="inline-flex items-center justify-center">
-              {icons.quiz}
-            </span>
-                  {loading ? "Loading points data..." : `${quizDetails?.points} points`}
-                </div>
+            {/* Info row */}
+            <div className="flex flex-row gap-10 mb-6 items-center justify-center">
+              <div className="flex items-center gap-2 text-lg text-gray-700">
+                <span className="inline-flex items-center justify-center">
+                  {icons.article}
+                </span>
+                {loading
+                  ? 'Loading questions data...'
+                  : `${quizDetails?.questions_number} questions`}
               </div>
+              <div className="flex items-center gap-2 text-lg text-gray-700">
+                <span className="inline-flex items-center justify-center">
+                  {icons.quiz}
+                </span>
+                {loading
+                  ? 'Loading points data...'
+                  : `${quizDetails?.points} points`}
+              </div>
+            </div>
 
-              {/* Description */}
-              <p className="text-center text-gray-700 mb-10 max-w-xl">
-                {loading ? "Loading description..." : quizDetails?.content}
-              </p>
-            </>
+            {/* Description */}
+            <p className="text-center text-gray-700 mb-10 max-w-xl">
+              {loading ? 'Loading description...' : quizDetails?.content}
+            </p>
+          </>
         )}
 
         {/* Action buttons row */}

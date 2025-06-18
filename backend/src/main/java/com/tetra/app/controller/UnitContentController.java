@@ -90,24 +90,35 @@ public class UnitContentController {
 
         Map<String, Object> result = new HashMap<>();
         result.put("id", content.getId());
+        result.put("unit_id", content.getUnitId());
+        result.put("content_type", content.getContentType());
         result.put("title", content.getTitle());
-        result.put("content", content.getContentData());
+        result.put("content", content.getContent()); // plain text description
+        result.put("sort_order", content.getSortOrder());
+        result.put("points", content.getPoints());
+        result.put("questions_number", content.getQuestionsNumber());
 
-        Integer points = null;
-        Integer questionsNumber = null;
-        try {
-            com.fasterxml.jackson.databind.JsonNode node = new com.fasterxml.jackson.databind.ObjectMapper()
-                    .readTree(content.getContentData());
-            if (node.has("points")) {
-                points = node.get("points").asInt();
-            }
-            if (node.has("questions_number")) {
-                questionsNumber = node.get("questions_number").asInt();
-            }
-        } catch (Exception e) {
-        }
-        result.put("points", points);
-        result.put("questions_number", questionsNumber);
+        // Get questions and answers
+        List<Question> questions = questionRepository.findByUnitContent_Id(content.getId());
+        List<Map<String, Object>> questionsList = questions.stream().map(q -> {
+            Map<String, Object> qMap = new HashMap<>();
+            qMap.put("id", q.getId());
+            qMap.put("title", q.getTitle());
+            qMap.put("type", q.getType());
+            qMap.put("sort_order", q.getSortOrder());
+            List<Answer> answers = answerRepository.findByQuestion_Id(q.getId());
+            List<Map<String, Object>> answersList = answers.stream().map(a -> {
+                Map<String, Object> aMap = new HashMap<>();
+                aMap.put("id", a.getId());
+                aMap.put("title", a.getTitle());
+                aMap.put("is_correct", a.getIsCorrect());
+                aMap.put("sort_order", a.getSortOrder());
+                return aMap;
+            }).collect(Collectors.toList());
+            qMap.put("answers", answersList);
+            return qMap;
+        }).collect(Collectors.toList());
+        result.put("questions", questionsList);
 
         return ResponseEntity.ok(result);
     }
@@ -162,7 +173,6 @@ public class UnitContentController {
     @Transactional
     public ResponseEntity<?> createQuizContent(@RequestBody Map<String, Object> body) {
         try {
-            
             String unitIdStr = (String) body.get("unit_id");
             if (unitIdStr == null || unitIdStr.isEmpty()) {
                 return ResponseEntity.badRequest().body("unit_id is required");
@@ -179,41 +189,35 @@ public class UnitContentController {
                 return ResponseEntity.badRequest().body("title is required");
             }
 
+            // Use content as plain text description
             String content = (String) body.get("content");
-            if (content == null) {
-                content = "";
-            }
+
+            Integer points = body.get("points") instanceof Integer
+                    ? (Integer) body.get("points")
+                    : Integer.parseInt(body.get("points").toString());
+            Integer questionsNumber = body.get("questions_number") instanceof Integer
+                    ? (Integer) body.get("questions_number")
+                    : Integer.parseInt(body.get("questions_number").toString());
 
             Integer sortOrder = body.get("sort_order") instanceof Integer
                     ? (Integer) body.get("sort_order")
                     : Integer.parseInt(body.get("sort_order").toString());
 
-            Integer points = body.get("points") instanceof Integer
-                    ? (Integer) body.get("points")
-                    : Integer.parseInt(body.get("points").toString());
-
-            Integer questionsNumber = body.get("questions_number") instanceof Integer
-                    ? (Integer) body.get("questions_number")
-                    : Integer.parseInt(body.get("questions_number").toString());
-
-           
             Unit unit = unitRepository.findById(unitId).orElse(null);
             if (unit == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Unit not found");
             }
 
-            
             UnitContent unitContent = new UnitContent();
             unitContent.setUnit(unit);
             unitContent.setContentType(contentType);
             unitContent.setTitle(title);
-            unitContent.setContent(content);
+            unitContent.setContent(content); // <-- store plain text
             unitContent.setSortOrder(sortOrder);
             unitContent.setPoints(points);
             unitContent.setQuestionsNumber(questionsNumber);
             unitContent = unitContentRepository.saveAndFlush(unitContent);
 
-            
             List<Map<String, Object>> questionsData = (List<Map<String, Object>>) body.get("questions");
             if (questionsData != null) {
                 for (Map<String, Object> questionData : questionsData) {
@@ -253,13 +257,12 @@ public class UnitContentController {
                 }
             }
 
-            
             Map<String, Object> response = new HashMap<>();
             response.put("id", unitContent.getId());
             response.put("unit_id", unitContent.getUnitId());
             response.put("content_type", unitContent.getContentType());
             response.put("title", unitContent.getTitle());
-            response.put("content", unitContent.getContentData());
+            response.put("content", unitContent.getContent()); // <-- return plain text
             response.put("sort_order", unitContent.getSortOrder());
             response.put("points", unitContent.getPoints());
             response.put("questions_number", unitContent.getQuestionsNumber());

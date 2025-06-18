@@ -10,7 +10,7 @@ function AddArticleModal({ isOpen, onClose, onSave }: AddArticleModalProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
 
-  const handleSubmit = () => {
+  const handleSave = () => {
     if (title.trim() && content.trim()) {
       onSave({ title, content });
       setTitle('');
@@ -117,7 +117,8 @@ function AddArticleModal({ isOpen, onClose, onSave }: AddArticleModalProps) {
           <div className="flex justify-end p-6">
             <button
               type="button"
-              onClick={handleSubmit}
+              aria-label="Save Article"
+              onClick={handleSave}
               className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-200 mr-4 w-24 h-10"
             >
               Save

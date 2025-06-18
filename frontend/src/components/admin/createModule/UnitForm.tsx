@@ -14,7 +14,7 @@ function UnitForm() {
     incrementUnitNumber();
   };
 
-  const handleContentBlockChange = (e: { target: { value: string; }; }) => {
+  const handleContentBlockChange = (e: { target: { value: string } }) => {
     const value = e.target.value;
 
     if (value === 'addArticle') {

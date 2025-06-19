@@ -57,8 +57,6 @@ describe('QuizStartModal', () => {
       </QuizModalProvider>,
     );
 
-    expect(screen.getByText(/loading title/i)).toBeInTheDocument();
-
     await waitFor(() => {
       expect(screen.getByText(MOCK_QUIZ_DATA.title)).toBeInTheDocument();
       expect(

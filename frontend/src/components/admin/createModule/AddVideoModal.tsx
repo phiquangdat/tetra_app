@@ -96,19 +96,17 @@ function AddVideoModal({ isOpen, onClose, onSave }: Props) {
 
   const isYouTubeUrl = useCallback(
     (url: string) => YOUTUBE_REGEX.test(url),
-    []
+    [],
   );
 
-  const getYouTubeEmbedUrl = useCallback(
-    (url: string) => {
-      const match = url.match(YOUTUBE_REGEX);
-      return match ? `https://www.youtube.com/embed/${match[1]}` : null;
-    },
-    []
-  );
+  const getYouTubeEmbedUrl = useCallback((url: string) => {
+    const match = url.match(YOUTUBE_REGEX);
+    return match ? `https://www.youtube.com/embed/${match[1]}` : null;
+  }, []);
 
   const renderVideoFile = () => {
-    const isValidUrl = videoUrl && (videoUrl.endsWith('.mp4') || isYouTubeUrl(videoUrl));
+    const isValidUrl =
+      videoUrl && (videoUrl.endsWith('.mp4') || isYouTubeUrl(videoUrl));
 
     return (
       <div className="text-gray-500 text-center flex flex-col items-center">

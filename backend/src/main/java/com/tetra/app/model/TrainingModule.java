@@ -1,5 +1,6 @@
 package com.tetra.app.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.util.UUID;
@@ -26,6 +27,7 @@ public class TrainingModule {
 
     @Column(name = "coverurl", nullable = false)
     @JsonProperty("coverUrl")
+    @JsonAlias("coverurl")
     private String coverurl;
 
     @Column(name = "status")

@@ -11,6 +11,7 @@ import {
 import UnitPage from '../UnitPage';
 import { fetchUnitById } from '../../services/unit/unitApi';
 import { QuizModalProvider } from '../../context/QuizModalContext';
+import {UnitContentProvider} from "../../context/UnitContentContext.tsx";
 
 vi.mock('../../services/unit/unitApi', () => ({
   fetchUnitById: vi.fn(),
@@ -34,20 +35,24 @@ const UnitPageWrapper = () => {
 const renderUnitPageWithProps = (id: string = MOCK_UNIT_ID) =>
   render(
     <QuizModalProvider>
-      <BrowserRouter>
-        <UnitPage id={id} />
-      </BrowserRouter>
+      <UnitContentProvider>
+        <BrowserRouter>
+          <UnitPage id={id} />
+        </BrowserRouter>
+      </UnitContentProvider>
     </QuizModalProvider>,
   );
 
 const renderUnitPageWithRoute = (unitId: string) =>
   render(
     <QuizModalProvider>
-      <MemoryRouter initialEntries={[`/unit/${unitId}`]}>
-        <Routes>
-          <Route path="/unit/:id" element={<UnitPageWrapper />} />
-        </Routes>
-      </MemoryRouter>
+      <UnitContentProvider>
+        <MemoryRouter initialEntries={[`/unit/${unitId}`]}>
+          <Routes>
+            <Route path="/unit/:id" element={<UnitPageWrapper />} />
+          </Routes>
+        </MemoryRouter>
+      </UnitContentProvider>
     </QuizModalProvider>,
   );
 

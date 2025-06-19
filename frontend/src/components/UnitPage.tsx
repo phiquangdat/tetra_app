@@ -6,6 +6,7 @@ import {
   type UnitContent,
 } from '../services/unit/unitApi';
 import { useQuizModal } from '../context/QuizModalContext';
+import { useUnitContent } from '../context/UnitContentContext';
 
 interface UnitPageProps {
   id: string;
@@ -113,8 +114,9 @@ const UnitPage = ({ id }: UnitPageProps) => {
     description: '',
     moduleId: '',
   });
-  const [unitContent, setUnitContent] = useState<UnitContent[]>([]);
+  const [unitContentList, setUnitContentList] = useState<UnitContent[]>([]);
   const navigate = useNavigate();
+  const { setUnitContent } = useUnitContent();
 
   const { openModal } = useQuizModal();
 
@@ -131,7 +133,8 @@ const UnitPage = ({ id }: UnitPageProps) => {
         setUnitDetails(details);
 
         const content = await fetchUnitContentById(id);
-        setUnitContent(content);
+        setUnitContent(details.id, content);
+        setUnitContentList(content);
       } catch (error) {
         console.error('Failed to load unit details:', error);
         setError('Failed to load unit details');
@@ -145,14 +148,17 @@ const UnitPage = ({ id }: UnitPageProps) => {
 
   const handleRowClick = (idx: number) => {
     // Skip redirecting on click if it's quiz
-    if (unitContent[idx].content_type == 'quiz') {
+    if (unitContentList[idx].content_type == 'quiz') {
       return;
     }
 
     setCheckedIndex((current) => (current === idx ? null : idx));
-    navigate(`/user/${unitContent[idx].content_type}/${unitContent[idx].id}`, {
-      state: { unitId: unitDetails.id },
-    });
+    navigate(
+      `/user/${unitContentList[idx].content_type}/${unitContentList[idx].id}`,
+      {
+        state: { unitId: unitDetails.id },
+      },
+    );
   };
 
   return (
@@ -193,7 +199,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
                   <span className="text-gray-700">{stat.label}</span>
                   <span className="text-xl font-bold">
                     {
-                      unitContent.filter(
+                      unitContentList.filter(
                         (item) => item.content_type === stat.type,
                       ).length
                     }
@@ -208,8 +214,8 @@ const UnitPage = ({ id }: UnitPageProps) => {
       <div className="bg-gray-100 rounded-2xl p-6 shadow-lg w-full md:w-full mx-auto border border-gray-200">
         {loading ? (
           <div className="text-center py-4">Loading content...</div>
-        ) : unitContent.length > 0 ? (
-          unitContent.map((content, index) => (
+        ) : unitContentList.length > 0 ? (
+          unitContentList.map((content, index) => (
             <div
               key={content.id}
               className={`grid grid-cols-[24px_80px_1fr_32px] gap-4 hover:bg-gray-200 items-center p-4 rounded-xl cursor-pointer transition-colors

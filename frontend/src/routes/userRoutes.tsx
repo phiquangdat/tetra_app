@@ -5,7 +5,7 @@ import UserLayout from '../layouts/UserLayout';
 import ModuleCards from '../components/user/modules/ModuleCards';
 import ModulePage from '../components/ModulePage';
 import UnitPage from '../components/UnitPage';
-import Dashboard from '../user/dashboard';
+import Dashboard from '../components/user/dashboard';
 import VideoPage from '../components/VideoPage';
 import ArticlePage from '../components/ArticlePage';
 

@@ -187,4 +187,104 @@ public class UnitContentControllerTestPost {
                     if (!msg.contains("content_type must be 'quiz'")) throw new AssertionError("Unexpected error: " + msg);
                 });
     }
+
+    @Test
+    @WithMockUser
+    void createArticleContent_success() throws Exception {
+        String json = """
+        {
+            "unit_id": "%s",
+            "content_type": "article",
+            "title": "Article Title",
+            "content": "Article body text.",
+            "sort_order": 3
+        }
+        """.formatted(unitId);
+
+        // Mock duplicate sort_order check
+        Mockito.when(unitContentRepository.findByUnit_Id(unitId)).thenReturn(java.util.Collections.emptyList());
+
+        mockMvc.perform(post("/api/unit_content/article")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.title").value("Article Title"))
+                .andExpect(jsonPath("$.content_type").value("article"))
+                .andExpect(jsonPath("$.content").value("Article body text."))
+                .andExpect(jsonPath("$.sort_order").value(3));
+    }
+
+    @Test
+    @WithMockUser
+    void createArticleContent_missingTitle() throws Exception {
+        String json = """
+        {
+            "unit_id": "%s",
+            "content_type": "article",
+            "content": "Article body text.",
+            "sort_order": 1
+        }
+        """.formatted(unitId);
+
+        mockMvc.perform(post("/api/unit_content/article")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String msg = result.getResponse().getContentAsString();
+                    if (!msg.contains("title is required")) throw new AssertionError("Unexpected error: " + msg);
+                });
+    }
+
+    @Test
+    @WithMockUser
+    void createArticleContent_wrongContentType() throws Exception {
+        String json = """
+        {
+            "unit_id": "%s",
+            "content_type": "quiz",
+            "title": "Article Title",
+            "content": "Article body text.",
+            "sort_order": 1
+        }
+        """.formatted(unitId);
+
+        mockMvc.perform(post("/api/unit_content/article")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String msg = result.getResponse().getContentAsString();
+                    if (!msg.contains("content_type must be 'article'")) throw new AssertionError("Unexpected error: " + msg);
+                });
+    }
+
+    @Test
+    @WithMockUser
+    void createArticleContent_duplicateSortOrder() throws Exception {
+        // Simulate existing content with sort_order = 5
+        UnitContent existing = new UnitContent();
+        existing.setSortOrder(5);
+        Mockito.when(unitContentRepository.findByUnit_Id(unitId)).thenReturn(java.util.List.of(existing));
+
+        String json = """
+        {
+            "unit_id": "%s",
+            "content_type": "article",
+            "title": "Article Title",
+            "content": "Article body text.",
+            "sort_order": 5
+        }
+        """.formatted(unitId);
+
+        mockMvc.perform(post("/api/unit_content/article")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String msg = result.getResponse().getContentAsString();
+                    if (!msg.contains("sort_order already exists")) throw new AssertionError("Unexpected error: " + msg);
+                });
+    }
 }

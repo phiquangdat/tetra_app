@@ -4,6 +4,7 @@ import {
   fetchArticleContentById,
   type Article,
 } from '../services/unit/unitApi';
+import { useUnitContent } from '../context/UnitContentContext';
 
 interface ArticlePageProps {
   id: string;
@@ -17,6 +18,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
   useEffect(() => {
     fetchArticleContentById(id).then((data) => setArticle(data));
   }, [id]);
+  const { goToNextContent } = useUnitContent();
 
   return (
     <div className="mx-auto px-8 py-8 min-h-screen text-left">
@@ -44,6 +46,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
         <button
           className="bg-blue-200 font-semibold px-16 py-3 rounded-full text-lg shadow-md hover:bg-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition w-fit"
           type="button"
+          onClick={() => goToNextContent(id)}
         >
           Up next
         </button>

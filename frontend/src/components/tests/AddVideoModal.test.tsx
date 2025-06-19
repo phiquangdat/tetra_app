@@ -31,9 +31,7 @@ describe('AddVideoModal', () => {
 
   it('calls handleSave when Save button is clicked', async () => {
     const onSave = vi.fn();
-    render(
-      <AddVideoModal isOpen={true} onSave={onSave} onClose={() => {}} />,
-    );
+    render(<AddVideoModal isOpen={true} onSave={onSave} onClose={() => {}} />);
 
     const saveButtons = screen.getAllByRole('button', {
       name: /save video/i,

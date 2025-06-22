@@ -53,9 +53,8 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
           {module.title}
         </h1>
         <button
-          className="bg-blue-200 font-semibold px-16 py-3 rounded-full text-lg shadow-md hover:bg-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition w-fit"
+          className="bg-blue-200 font-semibold px-16 py-3 rounded-full text-lg shadow-md hover:bg-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition w-fit cursor-pointer"
           type="button"
-          disabled
         >
           Start
         </button>
@@ -63,8 +62,6 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
       <h2 className="text-xl font-bold ml-4 mb-4">About this module</h2>
       <div className="flex flex-col md:flex-row gap-10 items-stretch mb-8">
         <div className="flex-1 flex flex-col bg-gray-200 rounded-3xl p-6 text-gray-700 text-base text-left shadow-sm justify-center">
-          {module.description}
-          {module.description}
           {module.description}
         </div>
 

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import UnitItem from '../user/modules/Syllabus/UnitItem';
+import UnitItem from '../user/modules/syllabus/UnitItem';
 import { BrowserRouter } from 'react-router-dom';
 
 const mockNavigate = vi.fn();

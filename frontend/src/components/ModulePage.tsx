@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { fetchModuleById, type Module } from '../services/module/moduleApi';
+import {
+  fetchUnitContentById,
+  fetchUnitTitleByModuleId,
+} from '../services/unit/unitApi';
 import Syllabus from './Syllabus/Syllabus';
 import { useNavigate } from 'react-router-dom';
 interface ModulePageProps {
@@ -32,6 +36,32 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
     getModule();
   }, [id]);
 
+  const handleStart = async () => {
+    try {
+      const units = await fetchUnitTitleByModuleId(id);
+
+      if (units && units.length > 0) {
+        const firstUnitId = units[0].id;
+        const firstUnitContent = await fetchUnitContentById(firstUnitId);
+
+        if (firstUnitContent && firstUnitContent.length > 0) {
+          const firstContent = firstUnitContent[0];
+          navigate(`/user/${firstContent.content_type}/${firstContent.id}`);
+        } else {
+          setError('This module has no content to start.');
+        }
+      } else {
+        setError('This module has no units.');
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Cannot start module.');
+      }
+    }
+  };
+
   if (loading) return <div>Loading module...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!module) return <div>No module found.</div>;
@@ -55,6 +85,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
         <button
           className="bg-blue-200 font-semibold px-16 py-3 rounded-full text-lg shadow-md hover:bg-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition w-fit cursor-pointer"
           type="button"
+          onClick={handleStart}
         >
           Start
         </button>

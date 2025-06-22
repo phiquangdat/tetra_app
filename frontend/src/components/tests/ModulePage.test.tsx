@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import ModulePage from '../ModulePage';
+import ModulePage from '../user/modules/ModulePage';
 import * as api from '../../services/module/moduleApi';
 
 vi.mock('react-router-dom', () => ({

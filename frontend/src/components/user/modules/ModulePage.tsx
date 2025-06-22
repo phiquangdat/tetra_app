@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { fetchModuleById, type Module } from '../services/module/moduleApi';
+import {
+  fetchModuleById,
+  type Module,
+} from '../../../services/module/moduleApi';
 import {
   fetchUnitContentById,
   fetchUnitTitleByModuleId,
-} from '../services/unit/unitApi';
-import Syllabus from './Syllabus/Syllabus';
+} from '../../../services/unit/unitApi';
+import Syllabus from './syllabus/Syllabus';
 import { useNavigate } from 'react-router-dom';
 interface ModulePageProps {
   id: string;

@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import Syllabus from '../user/modules/Syllabus/Syllabus';
+import Syllabus from '../user/modules/syllabus/Syllabus';
 import {
   fetchUnitTitleByModuleId,
   fetchUnitContentById,

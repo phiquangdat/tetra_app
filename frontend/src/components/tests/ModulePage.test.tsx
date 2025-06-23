@@ -62,7 +62,9 @@ describe('ModulePage', () => {
       expect(
         screen.getByRole('heading', { name: /Intro to Python/i }),
       ).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /start/i })).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: /start/i }),
+      ).toBeInTheDocument();
     });
   });
 

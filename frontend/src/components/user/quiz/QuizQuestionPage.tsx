@@ -1,29 +1,56 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useQuiz } from '../../../context/QuizContext';
 
-const options = [
-  'A message from your bank asking you to verify your password by clicking a link',
-  'A software update notification from your operating system',
-  'An email from a colleague with a work document attached',
-  'A request to connect on a professional networking site',
-];
+// const options = [
+//   'A message from your bank asking you to verify your password by clicking a link',
+//   'A software update notification from your operating system',
+//   'An email from a colleague with a work document attached',
+//   'A request to connect on a professional networking site',
+// ];
 
 const QuizQuestionPage = () => {
+  const { index, quizId } = useParams();
+  const { questions } = useQuiz();
+  const navigate = useNavigate();
+  const currentIndex = parseInt(index || '1', 10) - 1;
+  const currentQuestion = questions[currentIndex];
+
   const [selected, setSelected] = useState<number | null>(0);
+
+  useEffect(() => {
+    if (!questions.length) {
+      // Optional: navigate back or show error
+      console.warn('No questions loaded');
+    }
+  }, [questions]);
+
+  const handleNext = () => {
+    if (currentIndex + 1 < questions.length) {
+      navigate(`/user/quiz/${quizId}/question/${currentIndex + 2}`);
+    } else {
+      // Optionally: navigate to summary or show completion
+      console.log('Quiz completed!');
+    }
+  };
+
+  if (!currentQuestion)
+    return <div className="text-center">Loading question...</div>;
 
   return (
     <div className="mx-auto px-4 py-12 flex flex-col items-center justify-center bg-gray-50">
       <div className="w-full max-w-3xl">
         <div className="mb-8 text-gray-500 text-xl tracking-wide">
-          Question 1 of 5
+          Question {currentIndex + 1} of {questions.length}
         </div>
         <div className="bg-white rounded-2xl shadow-md p-8 w-full">
           <div className="text-lg font-semibold mb-6 text-gray-800">
-            Which of the following is an example of phishing?
+            {currentQuestion.title}
           </div>
           <form className="flex flex-col gap-4">
-            {options.map((option, idx) => (
+            {currentQuestion.answers.map((answer, idx) => (
               <label
-                key={idx}
+                key={answer.id}
                 className={`flex items-center rounded-lg border transition-colors px-4 py-3 cursor-pointer text-gray-700 ${
                   selected === idx
                     ? 'bg-blue-50 border-blue-400'
@@ -37,24 +64,26 @@ const QuizQuestionPage = () => {
                   onChange={() => setSelected(idx)}
                   className="form-radio h-5 w-5 text-blue-600 mr-4 focus:ring-blue-400"
                 />
-                <span className="text-base leading-snug">{option}</span>
+                <span className="text-base leading-snug">{answer.title}</span>
               </label>
             ))}
           </form>
         </div>
         <div className="flex justify-between mt-8">
           <button
-            className="bg-gray-200 text-gray-400 font-semibold px-8 py-2 rounded-lg text-base shadow-sm cursor-not-allowed"
+            onClick={() => navigate(-1)}
+            className="bg-gray-200 text-gray-700 font-semibold px-8 py-2 rounded-lg text-base shadow-sm"
             type="button"
-            disabled
+            disabled={currentIndex === 0}
           >
             Previous
           </button>
           <button
-            className="bg-blue-500 text-white font-semibold px-8 py-2 rounded-lg text-base shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+            onClick={handleNext}
+            className="bg-blue-500 text-white font-semibold px-8 py-2 rounded-lg text-base shadow-md hover:bg-blue-600"
             type="button"
           >
-            Next
+            {currentIndex + 1 === questions.length ? 'Finish' : 'Next'}
           </button>
         </div>
       </div>

@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import AddArticleModal from './AddArticleModal';
+import AddVideoModal from './AddVideoModal';
 
 function UnitForm() {
   const [isOpen, setIsOpen] = useState(true);
   const [unitNumber, setUnitNumber] = useState(1);
   const [isArticleModalOpen, setIsArticleModalOpen] = useState(false);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   const incrementUnitNumber = () => {
     setUnitNumber((prev) => prev + 1);
@@ -19,11 +21,19 @@ function UnitForm() {
 
     if (value === 'addArticle') {
       setIsArticleModalOpen(true);
-      e.target.value = '';
+    }
+    if (value === 'addVideo') {
+      setIsVideoModalOpen(true);
     }
   };
 
-  const handleArticleSave = () => {};
+  const handleArticleSave = () => {
+    setIsArticleModalOpen(false);
+  };
+
+  const handleVideoSave = () => {
+    setIsVideoModalOpen(false);
+  };
 
   const icons = {
     chevronDown: (
@@ -156,6 +166,11 @@ function UnitForm() {
         isOpen={isArticleModalOpen}
         onClose={() => setIsArticleModalOpen(false)}
         onSave={handleArticleSave}
+      />
+      <AddVideoModal
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+        onSave={handleVideoSave}
       />
     </div>
   );

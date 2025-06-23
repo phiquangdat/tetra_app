@@ -40,6 +40,20 @@ const icons = {
   ),
 };
 
+const isQuizValid = (quiz: Quiz): boolean => {
+  return (
+    quiz &&
+    typeof quiz.title === 'string' &&
+    quiz.title.trim() !== '' &&
+    typeof quiz.content === 'string' &&
+    quiz.content.trim() !== '' &&
+    typeof quiz.points === 'number' &&
+    quiz.points > 0 &&
+    typeof quiz.questions_number === 'number' &&
+    quiz.questions_number > 0
+  );
+};
+
 const QuizStartModal = () => {
   const { isOpen, quizId, closeModal } = useQuizModal();
   const [error, setError] = useState<string | null>(null);
@@ -59,6 +73,9 @@ const QuizStartModal = () => {
     const loadQuizDetails = async () => {
       try {
         const quiz = await fetchQuizById(quizId);
+        if (!isQuizValid(quiz)) {
+          throw new Error('Incomplete quiz data');
+        }
         setQuizDetails(quiz);
         setError(null);
       } catch (err) {
@@ -87,7 +104,7 @@ const QuizStartModal = () => {
 
         {error && <p className="text-red-500">{error}</p>}
 
-        {!error && (
+        {!error && isQuizValid(quizDetails) && (
           <>
             {/*Title*/}
             <h2 className="text-4xl font-extrabold mb-6 text-center text-black">

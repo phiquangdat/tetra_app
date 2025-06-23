@@ -6,10 +6,12 @@ import { UnitContentProvider } from '../context/UnitContentContext';
 export default function UserLayout() {
   return (
     <QuizModalProvider>
-      <main>
-        <Outlet />
-        <QuizStartModal />
-      </main>
+      <UnitContentProvider>
+        <main>
+          <Outlet />
+          <QuizStartModal />
+        </main>
+      </UnitContentProvider>
     </QuizModalProvider>
   );
 }

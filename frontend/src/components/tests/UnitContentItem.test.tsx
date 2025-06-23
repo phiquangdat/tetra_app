@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { describe, it, expect } from 'vitest';
-import UnitContentItem from '../user/modules/syllabus/UnitContentItem';
+import UnitContentItem from '../user/module/syllabus/UnitContentItem';
 
 const renderUnitContentItem = (
   type: 'video' | 'article' | 'quiz',

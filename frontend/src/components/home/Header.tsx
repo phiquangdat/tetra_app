@@ -1,8 +1,8 @@
-import React from "react";
+import React from 'react';
 const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
-  { label: "Features", href: "/features" },
+  { label: 'Home', href: '/' },
+  { label: 'About', href: '/about' },
+  { label: 'Features', href: '/features' },
 ];
 
 const Header: React.FC = () => (
@@ -15,8 +15,22 @@ const Header: React.FC = () => (
         fill="none"
         className="mr-3"
       >
-        <rect x="3" y="5" width="30" height="26" rx="8" stroke="#3B82F6" strokeWidth="2" />
-        <path d="M12 18l5 5 7-9" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <rect
+          x="3"
+          y="5"
+          width="30"
+          height="26"
+          rx="8"
+          stroke="#3B82F6"
+          strokeWidth="2"
+        />
+        <path
+          d="M12 18l5 5 7-9"
+          stroke="#3B82F6"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
       <span className="font-bold text-2xl text-blue-900 tracking-wide">
         Gamify learning
@@ -24,9 +38,12 @@ const Header: React.FC = () => (
     </div>
     <nav className="flex flex-1 justify-center">
       <ul className="flex gap-9 list-none m-0 p-0">
-        {navLinks.map(link => (
+        {navLinks.map((link) => (
           <li key={link.label}>
-            <a href={link.href} className="no-underline text-blue-900 font-medium text-xl">
+            <a
+              href={link.href}
+              className="no-underline text-blue-900 font-medium text-xl"
+            >
               {link.label}
             </a>
           </li>

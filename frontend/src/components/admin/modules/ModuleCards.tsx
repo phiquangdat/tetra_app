@@ -1,5 +1,6 @@
 import ModuleCard from '../../ui/ModuleCard';
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { fetchModules } from '../../../services/module/moduleApi.ts';
 
 interface Module {
@@ -14,6 +15,7 @@ interface Module {
 function ModuleCards() {
   const [modules, setModules] = useState<Module[]>([]); // Proper typing for modules
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadModules = async () => {
@@ -36,13 +38,24 @@ function ModuleCards() {
     loadModules();
   }, []);
 
+  const handleCreateModule = () => {
+    if (!modules) {
+      console.error('Modules data is not available');
+      return;
+    }
+    navigate('/admin/modules/create');
+  };
+
   return (
     <div className="flex flex-col gap-6 px-0 py-8 w-full mx-auto">
       {/* Title + Button Row */}
       <div className="flex justify-center gap-20 items-center mb-4">
         <h1 className="text-3xl font-bold">Training modules</h1>
         <div>
-          <button className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+          <button
+            onClick={handleCreateModule}
+            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
+          >
             Create new module
           </button>
         </div>

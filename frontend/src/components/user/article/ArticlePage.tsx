@@ -3,8 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   fetchArticleContentById,
   type Article,
-} from '../services/unit/unitApi';
-import { useUnitContent } from '../context/UnitContentContext';
+} from '../../../services/unit/unitApi';
+import { useUnitContent } from '../../../context/UnitContentContext';
 
 interface ArticlePageProps {
   id: string;

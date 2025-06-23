@@ -352,4 +352,86 @@ public class UnitContentController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
+
+    @PostMapping("/video")
+    @Transactional
+    public ResponseEntity<?> createVideoContent(@RequestBody Map<String, Object> body) {
+        try {
+            String unitIdStr = (String) body.get("unit_id");
+            if (unitIdStr == null || unitIdStr.isEmpty()) {
+                return ResponseEntity.badRequest().body("unit_id is required");
+            }
+            UUID unitId = UUID.fromString(unitIdStr);
+
+            String contentType = (String) body.get("content_type");
+            if (contentType == null || !contentType.equalsIgnoreCase("video")) {
+                return ResponseEntity.badRequest().body("content_type must be 'video'");
+            }
+
+            String title = (String) body.get("title");
+            if (title == null || title.isEmpty()) {
+                return ResponseEntity.badRequest().body("title is required");
+            }
+
+            String content = (String) body.get("content");
+            String url = (String) body.get("url");
+            if (url == null || url.isEmpty()) {
+                return ResponseEntity.badRequest().body("url is required");
+            }
+
+            Object sortOrderObj = body.get("sort_order");
+            if (sortOrderObj == null) {
+                return ResponseEntity.badRequest().body("sort_order is required");
+            }
+            int sortOrder;
+            try {
+                sortOrder = (sortOrderObj instanceof Integer)
+                        ? (Integer) sortOrderObj
+                        : Integer.parseInt(sortOrderObj.toString());
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("sort_order must be a non-negative integer");
+            }
+            if (sortOrder < 0) {
+                return ResponseEntity.badRequest().body("sort_order must be a non-negative integer");
+            }
+
+            // Validate unit exists
+            Unit unit = unitRepository.findById(unitId).orElse(null);
+            if (unit == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Unit not found");
+            }
+
+            // Check for duplicate sort_order in the same unit
+            boolean sortOrderExists = unitContentRepository.findByUnit_Id(unitId)
+                .stream()
+                .anyMatch(uc -> uc.getSortOrder() != null && uc.getSortOrder().equals(sortOrder));
+            if (sortOrderExists) {
+                return ResponseEntity.badRequest().body("sort_order already exists for this unit");
+            }
+
+            UnitContent unitContent = new UnitContent();
+            unitContent.setUnit(unit);
+            unitContent.setContentType("video");
+            unitContent.setTitle(title);
+            unitContent.setContent(content);
+            unitContent.setUrl(url);
+            unitContent.setSortOrder(sortOrder);
+
+            unitContent = unitContentRepository.saveAndFlush(unitContent);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", unitContent.getId());
+            response.put("unit_id", unitContent.getUnitId());
+            response.put("content_type", unitContent.getContentType());
+            response.put("title", unitContent.getTitle());
+            response.put("content", unitContent.getContent());
+            response.put("url", unitContent.getUrl());
+            response.put("sort_order", unitContent.getSortOrder());
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            logger.error("Error creating video content", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
 }

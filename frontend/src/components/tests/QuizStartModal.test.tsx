@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { describe, it, vi, beforeEach, afterEach } from 'vitest';
 import { QuizModalProvider } from '../../context/QuizModalContext';
-import QuizStartModal from '../QuizStartModal';
+import QuizStartModal from '../user/quiz/QuizStartModal';
 import { fetchQuizById } from '../../services/quiz/quizApi';
 import { useQuizModal } from '../../context/QuizModalContext';
 

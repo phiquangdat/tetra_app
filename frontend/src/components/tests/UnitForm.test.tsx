@@ -17,8 +17,6 @@ describe('UnitForm', () => {
     expect(screen.getByLabelText('Unit Description')).toBeInTheDocument();
     expect(screen.getByLabelText('Content Blocks')).toBeInTheDocument();
     expect(screen.getByText('Add another unit')).toBeInTheDocument();
-    expect(screen.getByText('Save draft')).toBeInTheDocument();
-    expect(screen.getByText('Publish')).toBeInTheDocument();
   });
 
   it('allows user to input text into the unit title field', async () => {

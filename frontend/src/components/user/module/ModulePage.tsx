@@ -49,12 +49,9 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
 
         if (firstUnitContent && firstUnitContent.length > 0) {
           const firstContent = firstUnitContent[0];
-          navigate(
-            `/user/${firstContent.content_type}/${firstContent.id}`,
-            {
-              state: { unitId: firstUnitId },
-            },
-          );
+          navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
+            state: { unitId: firstUnitId },
+          });
         } else {
           setError('This module has no content to start.');
         }

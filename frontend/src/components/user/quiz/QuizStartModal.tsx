@@ -1,6 +1,9 @@
 import { useQuizModal } from '../../../context/QuizModalContext';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { type Quiz, fetchQuizById } from '../../../services/quiz/quizApi.ts';
+import { useQuiz } from '../../../context/QuizContext';
+import { fetchQuizQuestionsByQuizId } from '../../../services/quiz/quizApi';
 
 const icons = {
   article: (
@@ -65,6 +68,20 @@ const QuizStartModal = () => {
     points: 0,
     questions_number: 0,
   });
+  const navigate = useNavigate();
+  const { setQuestions } = useQuiz();
+
+  const handleStartQuiz = async () => {
+    if (!quizId) return;
+    try {
+      const questions = await fetchQuizQuestionsByQuizId(quizId);
+      setQuestions(questions);
+      closeModal();
+      navigate(`/user/quiz/${quizId}/question/1`);
+    } catch (err) {
+      console.error('Failed to fetch quiz questions:', err);
+    }
+  };
 
   useEffect(() => {
     if (!isOpen || !quizId) return;
@@ -146,7 +163,10 @@ const QuizStartModal = () => {
           >
             ← Back
           </button>
-          <button className="bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold px-6 py-2 rounded-full text-base transition-all">
+          <button
+            className="bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold px-6 py-2 rounded-full text-base transition-all"
+            onClick={handleStartQuiz}
+          >
             Let's go
           </button>
         </div>

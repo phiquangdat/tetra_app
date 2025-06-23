@@ -2,8 +2,10 @@ import React from 'react';
 
 const Hero: React.FC = () => {
   return (
-    <section className="relative flex flex-col lg:flex-row items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8 overflow-hidden rounded-lg
-                        bg-gradient-to-br from-sky-100 via-rose-50 to-indigo-100">
+    <section
+      className="relative flex flex-col lg:flex-row items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8 overflow-hidden rounded-lg
+                        bg-gradient-to-br from-sky-100 via-rose-50 to-indigo-100"
+    >
       <div className="absolute top-10 left-10 w-16 h-16 bg-purple-200 rounded-full opacity-30 blur-xl animate-float"></div>
       <div className="absolute bottom-20 right-10 w-24 h-24 bg-yellow-100 rounded-full opacity-30 blur-xl animate-float-delay"></div>
       <div className="absolute top-1/4 right-1/4 w-8 h-8 bg-blue-100 rounded-full opacity-30 blur-xl animate-float"></div>
@@ -17,11 +19,10 @@ const Hero: React.FC = () => {
             GAMIFY LEARNING PLATFORM
           </h1>
           <p className="text-base sm:text-lg text-gray-600 mb-8 max-w-md rounded-md">
-            Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed do eiusmod tempor.
+            Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed do
+            eiusmod tempor.
           </p>
-          <button
-            className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 rounded-md"
-          >
+          <button className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 rounded-md">
             Get Started
           </button>
         </div>
@@ -32,7 +33,8 @@ const Hero: React.FC = () => {
             alt="Illustration of a person learning on a gamified platform"
             className="max-w-full h-auto rounded-lg shadow-xl"
             onError={(e) => {
-              e.currentTarget.src = "https://placehold.co/700x500/E0BBE4/FFFFFF?text=Image+Not+Found";
+              e.currentTarget.src =
+                'https://placehold.co/700x500/E0BBE4/FFFFFF?text=Image+Not+Found';
             }}
           />
         </div>

@@ -61,10 +61,7 @@ function UnitForm() {
   };
   return (
     <div>
-      <div
-        className="max-w-5xl px-16 py-9 my-6 rounded-3xl"
-        style={{ backgroundColor: '#F2EAEA' }}
-      >
+      <div>
         <h2 className="text-2xl font-semibold text-gray-700 mb-6">Units</h2>
         <form action="submit">
           <div
@@ -135,28 +132,15 @@ function UnitForm() {
           )}
 
           <div className="mx-auto my-6 flex justify-center">
-            <button className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-2  rounded-lg cursor-pointer w-44 h-10 hover:bg-gray-100 transition-colors duration-200 flex items-center gap-2">
-              <span className="text-xl pb-1">+</span>
-              Add another unit
-            </button>
-          </div>
-
-          <div className="mx-auto my-6 flex justify-center gap-2">
             <button
-              type="submit"
-              className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors duration-200 mr-4 w-32 h-10"
               onClick={(e) => {
                 e.preventDefault();
                 handleAddUnit();
               }}
+              className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-2  rounded-lg cursor-pointer w-44 h-10 hover:bg-gray-100 transition-colors duration-200 flex items-center gap-2"
             >
-              Save draft
-            </button>
-            <button
-              type="submit"
-              className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors duration-200 mr-4 w-32 h-10"
-            >
-              Publish
+              <span className="text-xl pb-1">+</span>
+              Add another unit
             </button>
           </div>
         </form>

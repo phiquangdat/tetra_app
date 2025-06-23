@@ -1,6 +1,6 @@
-import { useQuizModal } from '../context/QuizModalContext';
+import { useQuizModal } from '../../../context/QuizModalContext';
 import { useEffect, useState } from 'react';
-import { type Quiz, fetchQuizById } from '../services/quiz/quizApi.ts';
+import { type Quiz, fetchQuizById } from '../../../services/quiz/quizApi.ts';
 
 const icons = {
   article: (

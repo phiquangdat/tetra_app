@@ -287,4 +287,157 @@ public class UnitContentControllerTestPost {
                     if (!msg.contains("sort_order already exists")) throw new AssertionError("Unexpected error: " + msg);
                 });
     }
+
+    @Test
+    @WithMockUser
+    void createVideoContent_success() throws Exception {
+        String json = """
+        {
+            "unit_id": "%s",
+            "content_type": "video",
+            "title": "AI in Business Strategies",
+            "content": "AI in Business Strategies",
+            "url": "https://www.youtube.com/watch?v=I0wpbbYFm5s",
+            "sort_order": 11
+        }
+        """.formatted(unitId);
+
+        Mockito.when(unitContentRepository.findByUnit_Id(unitId)).thenReturn(java.util.Collections.emptyList());
+
+        mockMvc.perform(post("/api/unit_content/video")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.title").value("AI in Business Strategies"))
+                .andExpect(jsonPath("$.content_type").value("video"))
+                .andExpect(jsonPath("$.content").value("AI in Business Strategies"))
+                .andExpect(jsonPath("$.url").value("https://www.youtube.com/watch?v=I0wpbbYFm5s"))
+                .andExpect(jsonPath("$.sort_order").value(11));
+    }
+
+    @Test
+    @WithMockUser
+    void createVideoContent_missingTitle() throws Exception {
+        String json = """
+        {
+            "unit_id": "%s",
+            "content_type": "video",
+            "content": "AI in Business Strategies",
+            "url": "https://www.youtube.com/watch?v=I0wpbbYFm5s",
+            "sort_order": 11
+        }
+        """.formatted(unitId);
+
+        mockMvc.perform(post("/api/unit_content/video")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String msg = result.getResponse().getContentAsString();
+                    if (!msg.contains("title is required")) throw new AssertionError("Unexpected error: " + msg);
+                });
+    }
+
+    @Test
+    @WithMockUser
+    void createVideoContent_missingUrl() throws Exception {
+        String json = """
+        {
+            "unit_id": "%s",
+            "content_type": "video",
+            "title": "AI in Business Strategies",
+            "content": "AI in Business Strategies",
+            "sort_order": 11
+        }
+        """.formatted(unitId);
+
+        mockMvc.perform(post("/api/unit_content/video")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String msg = result.getResponse().getContentAsString();
+                    if (!msg.contains("url is required")) throw new AssertionError("Unexpected error: " + msg);
+                });
+    }
+
+    @Test
+    @WithMockUser
+    void createVideoContent_wrongContentType() throws Exception {
+        String json = """
+        {
+            "unit_id": "%s",
+            "content_type": "article",
+            "title": "AI in Business Strategies",
+            "content": "AI in Business Strategies",
+            "url": "https://www.youtube.com/watch?v=I0wpbbYFm5s",
+            "sort_order": 11
+        }
+        """.formatted(unitId);
+
+        mockMvc.perform(post("/api/unit_content/video")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String msg = result.getResponse().getContentAsString();
+                    if (!msg.contains("content_type must be 'video'")) throw new AssertionError("Unexpected error: " + msg);
+                });
+    }
+
+    @Test
+    @WithMockUser
+    void createVideoContent_duplicateSortOrder() throws Exception {
+        UnitContent existing = new UnitContent();
+        existing.setSortOrder(11);
+        Mockito.when(unitContentRepository.findByUnit_Id(unitId)).thenReturn(java.util.List.of(existing));
+
+        String json = """
+        {
+            "unit_id": "%s",
+            "content_type": "video",
+            "title": "AI in Business Strategies",
+            "content": "AI in Business Strategies",
+            "url": "https://www.youtube.com/watch?v=I0wpbbYFm5s",
+            "sort_order": 11
+        }
+        """.formatted(unitId);
+
+        mockMvc.perform(post("/api/unit_content/video")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String msg = result.getResponse().getContentAsString();
+                    if (!msg.contains("sort_order already exists")) throw new AssertionError("Unexpected error: " + msg);
+                });
+    }
+
+    @Test
+    @WithMockUser
+    void createVideoContent_unitNotFound() throws Exception {
+        UUID fakeUnitId = UUID.randomUUID();
+        Mockito.when(unitRepository.findById(fakeUnitId)).thenReturn(Optional.empty());
+
+        String json = """
+        {
+            "unit_id": "%s",
+            "content_type": "video",
+            "title": "AI in Business Strategies",
+            "content": "AI in Business Strategies",
+            "url": "https://www.youtube.com/watch?v=I0wpbbYFm5s",
+            "sort_order": 11
+        }
+        """.formatted(fakeUnitId);
+
+        mockMvc.perform(post("/api/unit_content/video")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> {
+                    String msg = result.getResponse().getContentAsString();
+                    if (!msg.contains("Unit not found")) throw new AssertionError("Unexpected error: " + msg);
+                });
+    }
 }

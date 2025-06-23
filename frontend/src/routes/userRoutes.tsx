@@ -7,7 +7,7 @@ import ModulePage from '../components/ModulePage';
 import UnitPage from '../components/UnitPage';
 import Dashboard from '../components/user/dashboard';
 import VideoPage from '../components/VideoPage';
-import ArticlePage from '../components/ArticlePage';
+import ArticlePage from '../components/user/article/ArticlePage';
 
 function ModulePageWrapper() {
   const { id } = useParams();

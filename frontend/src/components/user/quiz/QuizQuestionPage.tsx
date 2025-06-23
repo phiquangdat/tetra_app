@@ -2,13 +2,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuiz } from '../../../context/QuizContext';
 
-// const options = [
-//   'A message from your bank asking you to verify your password by clicking a link',
-//   'A software update notification from your operating system',
-//   'An email from a colleague with a work document attached',
-//   'A request to connect on a professional networking site',
-// ];
-
 const QuizQuestionPage = () => {
   const { index, quizId } = useParams();
   const { questions } = useQuiz();
@@ -29,7 +22,6 @@ const QuizQuestionPage = () => {
     if (currentIndex + 1 < questions.length) {
       navigate(`/user/quiz/${quizId}/question/${currentIndex + 2}`);
     } else {
-      // Optionally: navigate to summary or show completion
       console.log('Quiz completed!');
     }
   };

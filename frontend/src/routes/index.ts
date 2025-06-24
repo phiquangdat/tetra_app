@@ -1,5 +1,5 @@
 import React from 'react';
-import Home from '../components//user/home/Home';
+import Home from '../components/home/Home';
 import { userRoutes } from './userRoutes';
 import { adminRoutes } from './adminRoutes';
 

@@ -37,4 +37,9 @@ describe('CreateModulePage', () => {
     publishButton.click();
     expect(handlePublishModule).toHaveBeenCalled();
   });
+
+  it('renders the UnitForm component', () => {
+    render(<CreateModulePage />);
+    expect(screen.getByText('Add another unit')).toBeInTheDocument();
+  });
 });

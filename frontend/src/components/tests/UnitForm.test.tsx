@@ -4,19 +4,22 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach } from 'vitest';
 import UnitForm from '../admin/createModule/UnitForm';
 
+const mockUnit = {
+  unitNumber: 1,
+  title: '',
+  description: '',
+  content: null,
+};
+
 describe('UnitForm', () => {
   beforeEach(() => {
-    render(<UnitForm />);
+    render(<UnitForm unitNumber={mockUnit.unitNumber} onChange={() => {}} />);
   });
 
   it('renders the form elements correctly', () => {
-    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(
-      'Units',
-    );
     expect(screen.getByLabelText('Unit Title')).toBeInTheDocument();
     expect(screen.getByLabelText('Unit Description')).toBeInTheDocument();
     expect(screen.getByLabelText('Content Blocks')).toBeInTheDocument();
-    expect(screen.getByText('Add another unit')).toBeInTheDocument();
   });
 
   it('allows user to input text into the unit title field', async () => {

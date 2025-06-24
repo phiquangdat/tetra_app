@@ -85,6 +85,10 @@ describe('QuizQuestionPage', () => {
   it('navigates to next question on "Next"', () => {
     renderWithRouter();
 
+    // Simulate selecting the first answer
+    const firstRadio = screen.getByLabelText('Fake login prompt');
+    fireEvent.click(firstRadio);
+
     const nextButton = screen.getByRole('button', { name: /next/i });
     fireEvent.click(nextButton);
 

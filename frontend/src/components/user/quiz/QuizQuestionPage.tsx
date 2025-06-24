@@ -72,8 +72,13 @@ const QuizQuestionPage = () => {
           </button>
           <button
             onClick={handleNext}
-            className="bg-blue-500 text-white font-semibold px-8 py-2 rounded-lg text-base shadow-md hover:bg-blue-600"
+            className={`bg-blue-500 text-white font-semibold px-8 py-2 rounded-lg text-base shadow-md ${
+              selected !== null
+                ? 'bg-blue-500 text-white hover:bg-blue-600'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
             type="button"
+            disabled={selected === null}
           >
             {currentIndex + 1 === questions.length ? 'Finish' : 'Next'}
           </button>

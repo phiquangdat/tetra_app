@@ -18,6 +18,10 @@ const QuizQuestionPage = () => {
     }
   }, [questions]);
 
+  useEffect(() => {
+    setSelected(null);
+  }, [currentIndex]);
+
   const handleNext = () => {
     if (currentIndex + 1 < questions.length) {
       navigate(`/user/quiz/${quizId}/question/${currentIndex + 2}`);

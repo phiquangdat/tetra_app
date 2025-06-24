@@ -9,7 +9,7 @@ const QuizQuestionPage = () => {
   const currentIndex = parseInt(index || '1', 10) - 1;
   const currentQuestion = questions[currentIndex];
 
-  const [selected, setSelected] = useState<number | null>(0);
+  const [selected, setSelected] = useState<number | null>(null);
 
   useEffect(() => {
     if (!questions.length) {

@@ -62,14 +62,18 @@ const QuizQuestionPage = () => {
           </form>
         </div>
         <div className="flex justify-between mt-8">
-          <button
-            onClick={() => navigate(-1)}
-            className="bg-gray-200 text-gray-700 font-semibold px-8 py-2 rounded-lg text-base shadow-sm"
-            type="button"
-            disabled={currentIndex === 0}
-          >
-            Previous
-          </button>
+          {currentIndex > 0 ? (
+            <button
+              onClick={() => navigate(-1)}
+              className="bg-gray-200 text-gray-700 font-semibold px-8 py-2 rounded-lg text-base shadow-sm"
+              type="button"
+            >
+              Previous
+            </button>
+          ) : (
+            // Invisible placeholder to keep layout
+            <div className="px-8 py-2 invisible">Previous</div>
+          )}
           <button
             onClick={handleNext}
             className={`bg-blue-500 text-white font-semibold px-8 py-2 rounded-lg text-base shadow-md ${

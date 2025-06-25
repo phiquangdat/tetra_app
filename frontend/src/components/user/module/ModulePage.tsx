@@ -13,18 +13,33 @@ interface ModulePageProps {
   id: string;
 }
 
+export type Unit = {
+  id: string;
+  title: string;
+  content?: {
+    type: 'video' | 'article' | 'quiz';
+    title: string;
+  }[];
+};
+
 const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   const [module, setModule] = useState<Module | null>(null);
+  const [units, setUnits] = useState<Unit[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    const getModule = async () => {
+    const getModuleAndUnits = async () => {
       try {
-        const data = await fetchModuleById(id);
+        const [data, units] = await Promise.all([
+          fetchModuleById(id),
+          fetchUnitTitleByModuleId(id),
+        ]);
         console.log('Fetched module:', data); // Temporary log
+        console.log('Fetched units:', units);
         setModule(data);
+        setUnits(units);
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);
@@ -36,7 +51,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
       }
     };
 
-    getModule();
+    getModuleAndUnits();
   }, [id]);
 
   const handleStart = async () => {
@@ -125,7 +140,9 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
             </svg>
             <div className="flex flex-col items-start">
               <span className="text-gray-700">Total content</span>
-              <span className="text-xl font-bold">Placeholder</span>
+              <span className="text-xl font-bold">
+                {units.length} {units.length > 1 ? 'Units' : 'Unit'}
+              </span>
             </div>
           </div>
           <div className="flex flex-row items-center gap-4">
@@ -169,7 +186,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
         </div>
       </div>
 
-      <Syllabus moduleID={module.id} />
+      <Syllabus units={units} />
     </div>
   );
 };

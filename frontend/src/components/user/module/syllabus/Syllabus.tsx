@@ -1,22 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  fetchUnitContentById,
-  fetchUnitTitleByModuleId,
-} from '../../../../services/unit/unitApi';
+import { fetchUnitContentById } from '../../../../services/unit/unitApi';
 import UnitItem from './UnitItem';
+import { type Unit } from '../ModulePage';
 
 interface SyllabusProps {
-  moduleID: string | null;
+  units: Unit[];
 }
-
-type Unit = {
-  id: string;
-  title: string;
-  content?: {
-    type: 'video' | 'article' | 'quiz';
-    title: string;
-  }[];
-};
 
 const fetchUnitContentByUnitId = async (unitId: string) => {
   try {
@@ -27,43 +16,22 @@ const fetchUnitContentByUnitId = async (unitId: string) => {
   }
 };
 
-const fetchUnitsByModuleId = async (id: string): Promise<Unit[]> => {
-  try {
-    return await fetchUnitTitleByModuleId(id);
-  } catch (error) {
-    console.error('Error fetching units:', error);
-    return [{ id, title: 'Error fetching unit', content: [] }];
-  }
-};
-
-const Syllabus: React.FC<SyllabusProps> = ({ moduleID }) => {
+const Syllabus: React.FC<SyllabusProps> = ({ units }) => {
   const [openUnit, setOpenUnit] = useState<number | null>(null);
-  const [units, setUnits] = useState<Unit[]>([]);
+  const [unitsWithContent, setUnitsWithContent] = useState<Unit[]>(units);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!moduleID) {
-      setErrorMessage('failed to fetch units: units is not found');
-      return;
+    setUnitsWithContent(units);
+    if (!units || units.length === 0) {
+      setErrorMessage('No units found');
+    } else {
+      setErrorMessage(null);
     }
-
-    const fetchUnits = async () => {
-      try {
-        const unitsData = await fetchUnitsByModuleId(moduleID);
-        setUnits(unitsData);
-      } catch (error) {
-        setErrorMessage(
-          error instanceof Error ? error.message : 'An unknown error occurred',
-        );
-      }
-    };
-
-    fetchUnits();
-  }, [moduleID]);
+  }, [units]);
 
   const toggleUnit = async (index: number) => {
-    const selectedUnit = units[index];
-
+    const selectedUnit = unitsWithContent[index];
     // Toggle open/close
     setOpenUnit(openUnit === index ? null : index);
 
@@ -79,7 +47,7 @@ const Syllabus: React.FC<SyllabusProps> = ({ moduleID }) => {
       }));
 
       // Update only the content of the selected unit
-      setUnits((prevUnits) => {
+      setUnitsWithContent((prevUnits) => {
         const updatedUnits = [...prevUnits];
         updatedUnits[index] = {
           ...updatedUnits[index],
@@ -96,7 +64,7 @@ const Syllabus: React.FC<SyllabusProps> = ({ moduleID }) => {
     <div className="bg-gray-100 rounded-2xl p-6 shadow-md w-full mx-auto">
       <h2 className="text-xl font-semibold mb-4">Syllabus</h2>
       {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-      {units.map((unit, index) => (
+      {unitsWithContent.map((unit, index) => (
         <UnitItem
           key={unit.id}
           unit={unit}

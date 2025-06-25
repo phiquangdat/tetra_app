@@ -1,7 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import ModulePage from '../user/module/ModulePage';
-import * as api from '../../services/module/moduleApi';
+import * as moduleApi from '../../services/module/moduleApi';
+import * as unitApi from '../../services/unit/unitApi';
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => vi.fn(),
@@ -18,8 +19,16 @@ describe('ModulePage', () => {
       'https://www.pngall.com/wp-content/uploads/2016/05/Python-Logo-Free-PNG-Image.png',
   };
 
+  const mockUnits = [
+    { id: 'unit1', title: 'Unit 1: Basics', content: [] },
+    { id: 'unit2', title: 'Unit 2: Advanced', content: [] },
+  ];
+
   it('renders without crashing and shows loading state', () => {
-    vi.spyOn(api, 'fetchModuleById').mockImplementation(
+    vi.spyOn(moduleApi, 'fetchModuleById').mockImplementation(
+      () => new Promise(() => {}),
+    );
+    vi.spyOn(unitApi, 'fetchUnitTitleByModuleId').mockImplementation(
       () => new Promise(() => {}),
     );
     render(<ModulePage id="123" />);
@@ -27,7 +36,7 @@ describe('ModulePage', () => {
   });
 
   it('displays error message if fetch fails', async () => {
-    vi.spyOn(api, 'fetchModuleById').mockRejectedValue(
+    vi.spyOn(moduleApi, 'fetchModuleById').mockRejectedValue(
       new Error('Network error'),
     );
     render(<ModulePage id="123" />);
@@ -37,26 +46,33 @@ describe('ModulePage', () => {
 
   it('logs fetched data to console', async () => {
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    vi.spyOn(api, 'fetchModuleById').mockResolvedValue(mockModule);
+    vi.spyOn(moduleApi, 'fetchModuleById').mockResolvedValue(mockModule);
+    vi.spyOn(unitApi, 'fetchUnitTitleByModuleId').mockResolvedValue(mockUnits);
     render(<ModulePage id="123" />);
     await waitFor(() => {
       expect(consoleSpy).toHaveBeenCalledWith('Fetched module:', mockModule);
+      expect(consoleSpy).toHaveBeenCalledWith('Fetched units:', mockUnits);
     });
     consoleSpy.mockRestore();
   });
 
-  it('calls fetchModuleById with the correct id', async () => {
-    const fetchSpy = vi
-      .spyOn(api, 'fetchModuleById')
+  it('calls moduleApi and unitApi with the correct id', async () => {
+    const moduleSpy = vi
+      .spyOn(moduleApi, 'fetchModuleById')
       .mockResolvedValue(mockModule);
+    const unitsSpy = vi
+      .spyOn(unitApi, 'fetchUnitTitleByModuleId')
+      .mockResolvedValue(mockUnits);
     render(<ModulePage id="123" />);
     await waitFor(() => {
-      expect(fetchSpy).toHaveBeenCalledWith('123');
+      expect(moduleSpy).toHaveBeenCalledWith('123');
+      expect(unitsSpy).toHaveBeenCalledWith('123');
     });
   });
 
   it('renders the module title and Start button', async () => {
-    vi.spyOn(api, 'fetchModuleById').mockResolvedValue(mockModule);
+    vi.spyOn(moduleApi, 'fetchModuleById').mockResolvedValue(mockModule);
+    vi.spyOn(unitApi, 'fetchUnitTitleByModuleId').mockResolvedValue(mockUnits);
     render(<ModulePage id="123" />);
     await waitFor(() => {
       expect(
@@ -69,7 +85,8 @@ describe('ModulePage', () => {
   });
 
   it('renders the About section with description and points', async () => {
-    vi.spyOn(api, 'fetchModuleById').mockResolvedValue(mockModule);
+    vi.spyOn(moduleApi, 'fetchModuleById').mockResolvedValue(mockModule);
+    vi.spyOn(unitApi, 'fetchUnitTitleByModuleId').mockResolvedValue(mockUnits);
     render(<ModulePage id="123" />);
     expect(await screen.findByText(/about this module/i)).toBeInTheDocument();
     expect(
@@ -81,7 +98,8 @@ describe('ModulePage', () => {
   });
 
   it('renders the Syllabus component with heading', async () => {
-    vi.spyOn(api, 'fetchModuleById').mockResolvedValue(mockModule);
+    vi.spyOn(moduleApi, 'fetchModuleById').mockResolvedValue(mockModule);
+    vi.spyOn(unitApi, 'fetchUnitTitleByModuleId').mockResolvedValue(mockUnits);
     render(<ModulePage id="123" />);
     expect(
       await screen.findByRole('heading', { name: /syllabus/i }),

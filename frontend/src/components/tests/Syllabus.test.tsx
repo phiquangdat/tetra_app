@@ -35,7 +35,7 @@ describe('Syllabus Component', () => {
     vi.resetAllMocks();
   });
 
-  const renderSyllabus = () => render(<Syllabus moduleID={mockModuleId} />);
+  const renderSyllabus = () => render(<Syllabus units={mockUnitTitles} />);
 
   it('renders unit titles after successful data fetch', async () => {
     (fetchUnitTitleByModuleId as Mock).mockResolvedValueOnce(mockUnitTitles);
@@ -49,13 +49,11 @@ describe('Syllabus Component', () => {
     );
   });
 
-  it('displays error message when moduleID is not valid', async () => {
-    render(<Syllabus moduleID={null} />);
+  it('displays error message when units is empty', async () => {
+    render(<Syllabus units={[]} />);
 
     await waitFor(() =>
-      expect(
-        screen.getByText('failed to fetch units: units is not found'),
-      ).toBeInTheDocument(),
+      expect(screen.getByText('No units found')).toBeInTheDocument(),
     );
   });
 

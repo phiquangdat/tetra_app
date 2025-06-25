@@ -48,4 +48,10 @@ describe('UnitForm', () => {
     await userEvent.click(unitHeader);
     expect(screen.getByLabelText('Unit Title')).toBeInTheDocument();
   });
+
+  it('allows user to click the Save button', async () => {
+    const saveButton = screen.getByRole('button', { name: /Save/i });
+    await userEvent.click(saveButton);
+    expect(saveButton).toBeInTheDocument();
+  });
 });

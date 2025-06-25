@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import AddArticleModal from './AddArticleModal';
 import AddVideoModal from './AddVideoModal';
+import AddQuizModal from './AddQuizModal';
 
 type contentBlock = {
   type: 'video' | 'article' | 'quiz';
@@ -23,6 +24,7 @@ function UnitForm({ unitNumber = 1, onChange }: UnitFormProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [isArticleModalOpen, setIsArticleModalOpen] = useState(false);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [content, setContent] = useState<contentBlock[]>([]);
@@ -45,6 +47,10 @@ function UnitForm({ unitNumber = 1, onChange }: UnitFormProps) {
     if (value === 'addVideo') {
       setIsVideoModalOpen(true);
     }
+    if (value === 'addQuiz') {
+      setIsQuizModalOpen(true);
+    }
+    e.target.value = '';
   };
 
   const handleArticleSave = () => {
@@ -60,6 +66,15 @@ function UnitForm({ unitNumber = 1, onChange }: UnitFormProps) {
     setIsVideoModalOpen(false);
     const newContentBlock: contentBlock = {
       type: 'video',
+      data: {},
+    };
+    setContent((prevContent) => [...prevContent, newContentBlock]);
+  };
+
+  const handleQuizSave = () => {
+    setIsQuizModalOpen(false);
+    const newContentBlock: contentBlock = {
+      type: 'quiz',
       data: {},
     };
     setContent((prevContent) => [...prevContent, newContentBlock]);
@@ -173,6 +188,12 @@ function UnitForm({ unitNumber = 1, onChange }: UnitFormProps) {
         isOpen={isVideoModalOpen}
         onClose={() => setIsVideoModalOpen(false)}
         onSave={handleVideoSave}
+      />
+
+      <AddQuizModal
+        isOpen={isQuizModalOpen}
+        onClose={() => setIsQuizModalOpen(false)}
+        onSave={handleQuizSave}
       />
     </div>
   );

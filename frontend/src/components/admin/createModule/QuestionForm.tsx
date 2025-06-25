@@ -63,7 +63,7 @@ function QuestionForm({ questionNumber = 1, questionType, onClose }: Props) {
       updatedOptions.pop();
       return updatedOptions;
     });
-    setAnswerLabel((prev) => {
+    setAnswerLabel(() => {
       const newLabel = String.fromCharCode(65 + questionOptions.length - 1);
       return newLabel;
     });

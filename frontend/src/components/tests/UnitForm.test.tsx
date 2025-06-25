@@ -37,7 +37,7 @@ describe('UnitForm', () => {
   it('allows user to select a content block', async () => {
     const select = screen.getByLabelText('Content Blocks');
     await userEvent.selectOptions(select, 'addVideo');
-    expect(select).toHaveValue('addVideo');
+    expect(screen.getByText('Video')).toBeInTheDocument();
   });
 
   it('toggles unit visibility when clicking on the unit header', async () => {

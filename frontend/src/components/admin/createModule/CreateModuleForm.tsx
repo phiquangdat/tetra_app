@@ -7,6 +7,8 @@ const CreateModuleForm: React.FC<Props> = () => {
     null,
   );
 
+  const handleSaveModule = () => {};
+
   const handleCoverPictureChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) setModuleCoverPicture(file);
@@ -152,6 +154,14 @@ const CreateModuleForm: React.FC<Props> = () => {
             />
           </div>
         </div>
+        <button
+          type="button"
+          aria-label="Save Video"
+          onClick={handleSaveModule}
+          className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-200 mr-4 mt-8 w-28 h-10"
+        >
+          Save
+        </button>
       </form>
     </div>
   );

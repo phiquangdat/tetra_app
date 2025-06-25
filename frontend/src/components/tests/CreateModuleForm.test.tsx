@@ -28,4 +28,10 @@ describe('CreateModuleForm', () => {
     await userEvent.selectOptions(topicSelect, 'cybersecurity');
     expect(topicSelect).toHaveValue('cybersecurity');
   });
+
+  it('allows user to click the Save button', async () => {
+    const saveButton = screen.getByRole('button', { name: /Save/i });
+    await userEvent.click(saveButton);
+    expect(saveButton).toBeInTheDocument();
+  });
 });

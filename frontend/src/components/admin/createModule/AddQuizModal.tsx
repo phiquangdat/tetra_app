@@ -144,7 +144,7 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
               required
             />
 
-            <div className="w-40 mt-6 mb-11 p-2">
+            <div className="w-48 mt-6 mb-11 p-2">
               <select
                 value={selectedOption}
                 onChange={(e) => {

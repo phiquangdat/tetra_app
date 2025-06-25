@@ -65,6 +65,8 @@ function UnitForm({ unitNumber = 1, onChange }: UnitFormProps) {
     setContent((prevContent) => [...prevContent, newContentBlock]);
   };
 
+  const handleSaveUnitForm = () => {};
+
   const icons = {
     chevronDown: (
       <svg
@@ -140,6 +142,15 @@ function UnitForm({ unitNumber = 1, onChange }: UnitFormProps) {
                 rows={4}
               />
             </div>
+
+            <button
+              type="button"
+              aria-label="Save Video"
+              onClick={handleSaveUnitForm}
+              className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-200 mr-4 mb-20 w-28 h-10"
+            >
+              Save
+            </button>
 
             <div className="w-48 mb-11">
               <label htmlFor="contentBlocks" className="text-xl font-semibold">

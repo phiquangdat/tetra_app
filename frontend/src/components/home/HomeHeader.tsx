@@ -1,7 +1,6 @@
-import React from 'react';
-import Header from '../ui/Header';
+import Header, { type NavLink } from '../ui/Header';
 
-const navLinks = [
+const navLinks: NavLink[] = [
   { label: 'Home', href: '/' },
   { label: 'About', href: '/about' },
   { label: 'Features', href: '/features' },
@@ -9,9 +8,12 @@ const navLinks = [
 ];
 
 const HomeHeader = () => {
-    return (
-        <Header></Header>
-    )
-}
+  return (
+    <Header
+      navLinks={navLinks}
+      ctaButton={{ label: 'Login', href: '/login' }}
+    />
+  );
+};
 
 export default HomeHeader;

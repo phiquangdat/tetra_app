@@ -1,4 +1,4 @@
-import Header from './Header';
+import HomeHeader from './HomeHeader';
 import Hero from './Hero';
 import Footer from './Footer';
 import About from './About';
@@ -6,7 +6,7 @@ import About from './About';
 const Home = () => {
   return (
     <main>
-      <Header />
+      <HomeHeader />
       <Hero />
       <About />
       <Footer />

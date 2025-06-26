@@ -1,3 +1,4 @@
+import { ModuleContextProvider } from '../../../context/admin/ModuleContext';
 import { useState } from 'react';
 import CreateModuleForm from './CreateModuleForm';
 import UnitForm from './UnitForm';
@@ -23,7 +24,7 @@ const mockUnitsList: Unit[] = [
   },
 ];
 
-function CreateModulePage() {
+function CreateModulePageContent() {
   const [unitsList, setUnitsList] = useState<Unit[]>(mockUnitsList);
 
   const handleAddUnit = () => {
@@ -90,6 +91,14 @@ function CreateModulePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function CreateModulePage() {
+  return (
+    <ModuleContextProvider>
+      <CreateModulePageContent />
+    </ModuleContextProvider>
   );
 }
 

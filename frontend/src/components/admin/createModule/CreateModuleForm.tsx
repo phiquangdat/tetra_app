@@ -1,29 +1,61 @@
-import React, { useState, type ChangeEvent } from 'react';
+import React, { type ChangeEvent } from 'react';
+import { useModuleContext } from '../../../context/admin/ModuleContext';
 
 type Props = {};
 
 const CreateModuleForm: React.FC<Props> = () => {
-  const [moduleCoverPicture, setModuleCoverPicture] = useState<File | null>(
-    null,
-  );
+  const {
+    title,
+    description,
+    topic,
+    pointsAwarded,
+    coverPicture,
+    updateModuleField,
+    markModuleAsDirty,
+  } = useModuleContext();
 
   const handleSaveModule = () => {};
 
   const handleCoverPictureChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) setModuleCoverPicture(file);
+    if (file) {
+      updateModuleField('coverPicture', file);
+      markModuleAsDirty();
+    } else {
+      updateModuleField('coverPicture', null);
+    }
+  };
+
+  const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    updateModuleField('title', e.target.value);
+    markModuleAsDirty();
+  };
+
+  const handleDescriptionChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    updateModuleField('description', e.target.value);
+    markModuleAsDirty();
+  };
+
+  const handleTopicChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    updateModuleField('topic', e.target.value);
+    markModuleAsDirty();
+  };
+
+  const handlePointsChange = (e: ChangeEvent<HTMLInputElement>) => {
+    updateModuleField('pointsAwarded', parseInt(e.target.value) || 0);
+    markModuleAsDirty();
   };
 
   const renderCoverPicture = () => {
-    if (moduleCoverPicture) {
+    if (coverPicture) {
       return (
         <input
           type="image"
           id="moduleCoverPicture"
           name="moduleCoverPicture"
           alt="Uploaded Cover Picture"
-          className="max-h-full rounded-md"
-          src={URL.createObjectURL(moduleCoverPicture)}
+          className="max-w-full h-auto rounded-md"
+          src={URL.createObjectURL(coverPicture)}
         />
       );
     }
@@ -90,6 +122,8 @@ const CreateModuleForm: React.FC<Props> = () => {
               type="text"
               id="moduleTitle"
               name="moduleTitle"
+              value={title}
+              onChange={handleTitleChange}
               required
               className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
             />
@@ -105,11 +139,13 @@ const CreateModuleForm: React.FC<Props> = () => {
             <textarea
               id="moduleDescription"
               name="moduleDescription"
+              value={description}
+              onChange={handleDescriptionChange}
               rows={4}
               required
               className="bg-white border-gray-400 border-2 w-full h-60 rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
               style={{ resize: 'none' }}
-            ></textarea>
+            />
           </div>
 
           <div className="max-w-90 mb-11">
@@ -122,10 +158,12 @@ const CreateModuleForm: React.FC<Props> = () => {
             <select
               id="moduleTopic"
               name="moduleTopic"
+              value={topic}
+              onChange={handleTopicChange}
               required
               className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
             >
-              <option value="" disabled selected>
+              <option value="" disabled>
                 Select topic
               </option>
               <option value="cybersecurity">Cybersecurity</option>
@@ -148,6 +186,8 @@ const CreateModuleForm: React.FC<Props> = () => {
               type="number"
               id="pointsAwarded"
               name="pointsAwarded"
+              value={pointsAwarded}
+              onChange={handlePointsChange}
               min={0}
               required
               className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"

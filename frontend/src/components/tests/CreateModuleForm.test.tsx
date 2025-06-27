@@ -3,10 +3,19 @@ import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach } from 'vitest';
 import CreateModuleForm from '../admin/createModule/CreateModuleForm';
+import { ModuleContextProvider } from '../../context/admin/ModuleContext'; // adjust the path if needed
+
+const renderWithProvider = () => {
+  render(
+    <ModuleContextProvider>
+      <CreateModuleForm />
+    </ModuleContextProvider>,
+  );
+};
 
 describe('CreateModuleForm', () => {
   beforeEach(() => {
-    render(<CreateModuleForm />);
+    renderWithProvider();
   });
 
   it('renders the form elements correctly', () => {
@@ -19,6 +28,7 @@ describe('CreateModuleForm', () => {
 
   it('allows user to input text into the title field', async () => {
     const titleInput = screen.getByLabelText(/Module Title/i);
+    await userEvent.clear(titleInput);
     await userEvent.type(titleInput, 'React Basics');
     expect(titleInput).toHaveValue('React Basics');
   });

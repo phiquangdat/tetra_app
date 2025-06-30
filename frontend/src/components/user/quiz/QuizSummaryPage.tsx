@@ -92,11 +92,11 @@ const QuizSummaryPage: React.FC = () => {
         {/* Stats */}
         <div className="flex flex-col items-center text-[#231942]">
           <div className="flex items-center text-lg mb-2">
-            <div className="flex items-center gap-2 pr-8 border-r border-[#D4C2FC] text-[#14248A]">
+            <div className="flex items-center gap-2 pr-8 border-r border-[#D4C2FC] text-green-700">
               <CheckCircleIcon className="w-5 h-5" />
               <strong>{correctAnswers}</strong> correct
             </div>
-            <div className="flex items-center gap-2 pl-8 text-[#7E6BBE]">
+            <div className="flex items-center gap-2 pl-8 text-red-700">
               <XCircleIcon className="w-5 h-5" />
               <strong>{incorrectAnswers}</strong> incorrect
             </div>

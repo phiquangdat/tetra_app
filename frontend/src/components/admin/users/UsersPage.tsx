@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import AddUserForm from './AddUserForm';
+
 const data = [
   { name: 'John Doe', email: 'john.doe@example.com', role: 'Admin' },
   { name: 'Jane Smith', email: 'jane.smith@example.com', role: 'User' },
@@ -8,6 +11,8 @@ const data = [
 const headers = ['Id', 'Name', 'Email', 'Role'];
 
 const UserPage = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Users List</h1>
@@ -17,7 +22,12 @@ const UserPage = () => {
           Total Users: {data.length}
         </p>
 
-        <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 cursor-pointer">
+        <button
+          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 cursor-pointer"
+          onClick={() => {
+            setIsOpen(true);
+          }}
+        >
           Create New User
         </button>
       </div>
@@ -45,6 +55,8 @@ const UserPage = () => {
           </tbody>
         </table>
       </div>
+
+      <AddUserForm isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </div>
   );
 };

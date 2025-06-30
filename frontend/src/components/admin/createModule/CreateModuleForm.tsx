@@ -1,4 +1,4 @@
-import React, { type ChangeEvent } from 'react';
+import React, { useEffect, useMemo, type ChangeEvent } from 'react';
 import { useModuleContext } from '../../../context/admin/ModuleContext';
 
 type Props = {};
@@ -13,6 +13,21 @@ const CreateModuleForm: React.FC<Props> = () => {
     updateModuleField,
     markModuleAsDirty,
   } = useModuleContext();
+
+  const coverPreviewUrl = useMemo(() => {
+    if (coverPicture) {
+      return URL.createObjectURL(coverPicture);
+    }
+    return null;
+  }, [coverPicture]);
+
+  useEffect(() => {
+    return () => {
+      if (coverPreviewUrl) {
+        URL.revokeObjectURL(coverPreviewUrl);
+      }
+    };
+  }, [coverPreviewUrl]);
 
   const handleSaveModule = () => {};
 
@@ -46,21 +61,13 @@ const CreateModuleForm: React.FC<Props> = () => {
     markModuleAsDirty();
   };
 
-  const renderCoverPicture = () => {
-    if (coverPicture) {
-      return (
-        <input
-          type="image"
-          id="moduleCoverPicture"
-          name="moduleCoverPicture"
-          alt="Uploaded Cover Picture"
-          className="max-w-full h-auto rounded-md"
-          src={URL.createObjectURL(coverPicture)}
-        />
-      );
-    }
+  const handleRemoveCoverPicture = () => {
+    updateModuleField('coverPicture', null);
+    markModuleAsDirty();
+  };
 
-    return (
+  const icons = {
+    upload: (
       <svg
         className="w-24 h-24 text-gray-500"
         viewBox="0 0 1024 1024"
@@ -72,6 +79,48 @@ const CreateModuleForm: React.FC<Props> = () => {
           fill="#565D64"
         />
       </svg>
+    ),
+  };
+
+  const renderCoverPicture = () => {
+    if (coverPicture && coverPreviewUrl) {
+      return (
+        <div>
+          <img
+            id="moduleCoverPicture"
+            className="max-w-full h-auto max-h-60 rounded-md"
+            src={coverPreviewUrl}
+            alt="Module Cover Picture"
+          />
+          <button
+            type="button"
+            onClick={handleRemoveCoverPicture}
+            className="mt-2 bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-200"
+          >
+            <span className="text-sm">Change Cover Picture</span>
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <div>
+        <label
+          htmlFor="moduleCoverPicture"
+          className="bg-white border-gray-400 border-2 rounded-lg cursor-pointer w-full h-60 flex items-center justify-center focus:border-transparent"
+        >
+          {icons.upload}
+        </label>
+
+        <input
+          type="file"
+          id="moduleCoverPicture"
+          name="moduleCoverPicture"
+          accept="image/*"
+          className="hidden"
+          onChange={handleCoverPictureChange}
+        />
+      </div>
     );
   };
 
@@ -93,22 +142,7 @@ const CreateModuleForm: React.FC<Props> = () => {
             >
               Module Cover Picture
             </label>
-
-            <label
-              htmlFor="moduleCoverPicture"
-              className="bg-white border-gray-400 border-2 rounded-lg cursor-pointer w-full h-60 flex items-center justify-center focus:border-transparent"
-            >
-              {renderCoverPicture()}
-            </label>
-
-            <input
-              type="file"
-              id="moduleCoverPicture"
-              name="moduleCoverPicture"
-              accept="image/*"
-              className="hidden"
-              onChange={handleCoverPictureChange}
-            />
+            {renderCoverPicture()}
           </div>
 
           <div className="max-w-90 mb-11">

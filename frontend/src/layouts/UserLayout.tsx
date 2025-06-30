@@ -12,6 +12,7 @@ const topItems: SidebarItem[] = [
 ];
 const bottomItems: SidebarItem[] = [
   { label: 'Log out', path: '/logout', icon: null },
+  { label: 'Settings', path: '/admin/settings', icon: null },
 ];
 
 export default function UserLayout() {

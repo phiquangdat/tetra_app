@@ -9,7 +9,7 @@ import Dashboard from '../components/user/dashboard';
 import VideoPage from '../components/VideoPage';
 import ArticlePage from '../components/user/article/ArticlePage';
 import QuizQuestionPage from '../components/user/quiz/QuizQuestionPage.tsx';
-import QuizSummaryPage from "../components/user/quiz/QuizSummaryPage.tsx";
+import QuizSummaryPage from '../components/user/quiz/QuizSummaryPage.tsx';
 
 function ModulePageWrapper() {
   const { id } = useParams();
@@ -74,6 +74,6 @@ export const userRoutes: RouteObject = {
     {
       path: 'quiz/summary',
       element: <QuizSummaryPage />,
-    }
+    },
   ],
 };

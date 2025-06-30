@@ -7,6 +7,7 @@ const topItems: SidebarItem[] = [
   { label: 'Modules', path: '/admin/modules', icon: null },
   { label: 'Users', path: '/admin/users', icon: null },
   { label: 'Create Module', path: '/admin/modules/create', icon: null },
+  { label: 'Settings', path: '/admin/settings', icon: null },
 ];
 const bottomItems: SidebarItem[] = [
   { label: 'Log out', path: '/logout', icon: null },

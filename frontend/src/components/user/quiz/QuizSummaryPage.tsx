@@ -19,7 +19,7 @@ const mockedQuestions = [
     },
 ];
 
-const QuizSummaryPage = () => {
+const QuizSummaryPage: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const unitIdFromState = (location.state as { unitId?: string })?.unitId;

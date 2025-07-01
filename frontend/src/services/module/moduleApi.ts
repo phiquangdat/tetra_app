@@ -37,7 +37,7 @@ export async function fetchModules(): Promise<any> {
 }
 
 export async function createModule(module: Module): Promise<Module> {
-  const response = await fetch(`${BASE_URL}/apis/modules`, {
+  const response = await fetch(`${BASE_URL}/api/modules`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -26,7 +26,11 @@ const QuizQuestionPage = () => {
     if (currentIndex + 1 < questions.length) {
       navigate(`/user/quiz/${quizId}/question/${currentIndex + 2}`);
     } else {
-      console.log('Quiz completed!');
+      navigate(`/user/quiz/${quizId}/summary`, {
+        state: {
+          quizId,
+        },
+      });
     }
   };
 

@@ -7,11 +7,19 @@ import Features from './Features';
 const Home = () => {
   return (
     <main>
-      <HomeHeader />
-      <Hero />
-      <About />
-      <Features />
-      <Footer />
+      <div id="home">
+        <HomeHeader />
+        <Hero />
+      </div>
+      <div id="about">
+        <About />
+      </div>
+      <div id="features">
+        <Features />
+      </div>
+      <div id="contact">
+        <Footer />
+      </div>
     </main>
   );
 };

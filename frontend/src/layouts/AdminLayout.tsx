@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import SharedHeader from '../components/common/SharedHeader.tsx';
 import AdminSidebar from '../components/admin/layout/AdminSidebar';
+import Footer from '../components/ui/Footer.tsx';
 
 const AdminLayout = () => {
   return (

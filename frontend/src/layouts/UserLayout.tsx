@@ -5,6 +5,7 @@ import { UnitContentProvider } from '../context/UnitContentContext';
 import { QuizProvider } from '../context/QuizContext.tsx';
 import SharedHeader from '../components/common/SharedHeader.tsx';
 import Sidebar, { type SidebarItem } from '../components/ui/Sidebar';
+import Footer from '../components/ui/Footer';
 
 const topItems: SidebarItem[] = [
   { label: 'Dashboard', path: '/user/dashboard', icon: null },
@@ -31,6 +32,7 @@ export default function UserLayout() {
                 <QuizStartModal />
               </main>
             </div>
+            <Footer />
           </div>
         </QuizProvider>
       </UnitContentProvider>

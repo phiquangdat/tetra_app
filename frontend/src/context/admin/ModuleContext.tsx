@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createModule } from '../../services/module/moduleApi';
 
 interface ModuleContextProps {
   id: string | null;
@@ -16,6 +17,7 @@ interface ModuleContextValue extends ModuleContextProps {
   updateModuleField: (key: string, value: any) => void;
   markModuleAsDirty: () => void;
   setModuleState: (newState: Partial<ModuleContextProps>) => void;
+  saveModule: () => Promise<void>;
 }
 
 const initialModuleState: ModuleContextProps = {
@@ -50,24 +52,51 @@ export const ModuleContextProvider = ({
   const [module, setModule] = useState<ModuleContextProps>(initialModuleState);
 
   const markModuleAsDirty = () => {
-    setModule((prev) => ({
-      ...prev,
-      isDirty: true,
-    }));
+    setModule((prev) => ({ ...prev, isDirty: true }));
   };
 
   const updateModuleField = (key: string, value: any) => {
     setModule((prev) => ({
       ...prev,
       [key]: value,
+      isDirty: true,
     }));
   };
 
   const setModuleState = (newState: Partial<ModuleContextProps>) => {
-    setModule((prev) => ({
-      ...prev,
-      ...newState,
-    }));
+    setModule((prev) => ({ ...prev, ...newState }));
+  };
+
+  const saveModule = async () => {
+    if (!module.isDirty || module.isSaving) return;
+
+    setModule((prev) => ({ ...prev, isSaving: true, error: null }));
+
+    const tempCoverUrl = module.coverPicture
+      ? URL.createObjectURL(module.coverPicture)
+      : '';
+
+    try {
+      await createModule({
+        ...module,
+        points: module.pointsAwarded,
+        coverUrl: tempCoverUrl,
+        id: module.id ?? '',
+      });
+
+      setModule(initialModuleState);
+    } catch (err) {
+      setModule((prev) => ({
+        ...prev,
+        error:
+          err instanceof Error
+            ? err.message
+            : 'Unknown error occurred while saving module',
+      }));
+    } finally {
+      setModule((prev) => ({ ...prev, isSaving: false }));
+      if (tempCoverUrl) URL.revokeObjectURL(tempCoverUrl);
+    }
   };
 
   return (
@@ -77,6 +106,7 @@ export const ModuleContextProvider = ({
         updateModuleField,
         markModuleAsDirty,
         setModuleState,
+        saveModule,
       }}
     >
       {children}

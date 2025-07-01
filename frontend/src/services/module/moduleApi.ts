@@ -35,3 +35,20 @@ export async function fetchModules(): Promise<any> {
     return [];
   }
 }
+
+export async function createModule(module: Module): Promise<Module> {
+  const response = await fetch(`${BASE_URL}/api/modules`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(module),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to create module');
+  }
+
+  const data: Module = await response.json();
+  return data;
+}

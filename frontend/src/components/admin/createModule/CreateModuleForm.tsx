@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, type ChangeEvent } from 'react';
+import React, { useEffect, useState, useMemo, type ChangeEvent } from 'react';
 import { useModuleContext } from '../../../context/admin/ModuleContext';
 
 type Props = {};
@@ -10,10 +10,30 @@ const CreateModuleForm: React.FC<Props> = () => {
     topic,
     pointsAwarded,
     coverPicture,
+    isSaving,
+    error,
     updateModuleField,
     markModuleAsDirty,
+    saveModule,
   } = useModuleContext();
 
+  const [successSaved, setSuccessSaved] = useState(false);
+
+  const handleSaveModule = async () => {
+    if (isSaving) return;
+    window.scrollTo(0, 0);
+    setSuccessSaved(false);
+
+    try {
+      await saveModule();
+      setSuccessSaved(true);
+      setTimeout(() => {
+        setSuccessSaved(false);
+      }, 3000);
+    } catch (err) {
+      console.error('Error saving module:', err);
+    }
+  };
   const coverPreviewUrl = useMemo(() => {
     if (coverPicture) {
       return URL.createObjectURL(coverPicture);
@@ -28,8 +48,6 @@ const CreateModuleForm: React.FC<Props> = () => {
       }
     };
   }, [coverPreviewUrl]);
-
-  const handleSaveModule = () => {};
 
   const handleCoverPictureChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -132,6 +150,15 @@ const CreateModuleForm: React.FC<Props> = () => {
       <h2 className="text-2xl font-semibold text-gray-800 mb-6">
         Module Details
       </h2>
+      {error ? (
+        <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-6">
+          <p className="text-sm">{error}</p>
+        </div>
+      ) : successSaved ? (
+        <div className="bg-green-100 text-green-700 p-4 rounded-lg mb-6">
+          <p className="text-sm">Module saved successfully!</p>
+        </div>
+      ) : null}
 
       <form className="space-y-6 max-w-110 mx-0 mb-11">
         <div>
@@ -230,11 +257,12 @@ const CreateModuleForm: React.FC<Props> = () => {
         </div>
         <button
           type="button"
-          aria-label="Save Video"
+          aria-label="Save Module"
+          disabled={isSaving}
           onClick={handleSaveModule}
           className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-200 mr-4 mt-8 w-28 h-10"
         >
-          Save
+          {isSaving ? 'Saving...' : 'Save'}
         </button>
       </form>
     </div>

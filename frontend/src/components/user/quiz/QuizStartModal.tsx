@@ -1,8 +1,8 @@
-import { useQuizModal } from '../../../context/QuizModalContext';
+import { useQuizModal } from '../../../context/user/QuizModalContext.tsx';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { type Quiz, fetchQuizById } from '../../../services/quiz/quizApi.ts';
-import { useQuiz } from '../../../context/QuizContext';
+import { useQuiz } from '../../../context/user/QuizContext.tsx';
 import { fetchQuizQuestionsByQuizId } from '../../../services/quiz/quizApi';
 
 const icons = {

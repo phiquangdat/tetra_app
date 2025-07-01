@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { UnitContent } from '../services/unit/unitApi';
-import { useQuizModal } from './QuizModalContext.tsx';
+import { useQuizModal } from './user/QuizModalContext.tsx';
 
 interface UnitContentContextProps {
   unitId: string;

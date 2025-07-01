@@ -1,8 +1,8 @@
 import HomeHeader from './HomeHeader';
 import Hero from './Hero';
-import Footer from './Footer';
 import About from './About';
 import Features from './Features';
+import Footer from '../ui/Footer'; // updated import
 
 const Home = () => {
   return (

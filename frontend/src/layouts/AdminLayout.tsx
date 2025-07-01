@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import SharedHeader from '../components/common/SharedHeader.tsx';
 import Sidebar, { type SidebarItem } from '../components/ui/Sidebar';
+import Footer from '../components/ui/Footer';
 
 const topItems: SidebarItem[] = [
   { label: 'Dashboard', path: '/admin/dashboard', icon: null },
@@ -25,6 +26,7 @@ function AdminLayout() {
           <Outlet />
         </main>
       </div>
+      <Footer />
     </div>
   );
 }

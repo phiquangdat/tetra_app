@@ -1,45 +1,37 @@
+import { useEffect } from 'react';
 import { ModuleContextProvider } from '../../../context/admin/ModuleContext';
-import { useState } from 'react';
+import {
+  UnitContextProvider,
+  useUnitContext,
+} from '../../../context/admin/UnitContext';
 import CreateModuleForm from './CreateModuleForm';
 import UnitForm from './UnitForm';
 
-type contentBlock = {
-  type: 'video' | 'article' | 'quiz';
-  data: any; // Placeholder for content data
-};
-
-type Unit = {
-  unitNumber: number;
-  title?: string;
-  description?: string;
-  content: contentBlock[];
-};
-
-const mockUnitsList: Unit[] = [
-  {
-    unitNumber: 1,
-    title: '',
-    description: '',
-    content: [],
-  },
-];
-
 function CreateModulePageContent() {
-  const [unitsList, setUnitsList] = useState<Unit[]>(mockUnitsList);
+  const { unitStates, setUnitState, getNextUnitNumber } = useUnitContext();
+
+  const unitNumbers = Object.keys(unitStates)
+    .map(Number)
+    .sort((a, b) => a - b);
 
   const handleAddUnit = () => {
-    const newUnitNumber = unitsList.length + 1;
-    setUnitsList([
-      ...unitsList,
-      { unitNumber: newUnitNumber, title: '', description: '', content: [] },
-    ]);
+    const nextUnitNumber = getNextUnitNumber();
+    setUnitState(nextUnitNumber, {
+      id: null,
+      title: '',
+      description: '',
+      content: [],
+      isDirty: false,
+      isSaving: false,
+      error: null,
+    });
   };
 
-  const handleUnitChange = (index: number, updatedUnit: Unit) => {
-    const updatedUnits = [...unitsList];
-    updatedUnits[index] = updatedUnit;
-    setUnitsList(updatedUnits);
-  };
+  useEffect(() => {
+    if (unitNumbers.length === 0) {
+      handleAddUnit();
+    }
+  }, []);
 
   const handleSaveDraftModule = () => {};
 
@@ -55,12 +47,8 @@ function CreateModulePageContent() {
       >
         <h2 className="text-2xl font-semibold text-gray-700 mb-6">Units</h2>
 
-        {unitsList.map((unit, index) => (
-          <UnitForm
-            key={index}
-            unitNumber={unit.unitNumber}
-            onChange={(updatedUnit) => handleUnitChange(index, updatedUnit)}
-          />
+        {unitNumbers.map((unitNumber) => (
+          <UnitForm key={unitNumber} unitNumber={unitNumber} />
         ))}
 
         <div className="mx-auto my-6 flex justify-center">
@@ -75,14 +63,14 @@ function CreateModulePageContent() {
 
         <div className="mx-auto my-6 flex justify-center gap-2">
           <button
-            type="submit"
+            type="button"
             onClick={handleSaveDraftModule}
             className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors duration-200 mr-4 w-32 h-10"
           >
             Save draft
           </button>
           <button
-            type="submit"
+            type="button"
             onClick={handlePublishModule}
             className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors duration-200 mr-4 w-32 h-10"
           >
@@ -97,7 +85,9 @@ function CreateModulePageContent() {
 function CreateModulePage() {
   return (
     <ModuleContextProvider>
-      <CreateModulePageContent />
+      <UnitContextProvider>
+        <CreateModulePageContent />
+      </UnitContextProvider>
     </ModuleContextProvider>
   );
 }

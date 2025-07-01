@@ -4,7 +4,7 @@ import QuestionForm from './QuestionForm';
 interface AddQuizModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: () => void;
+  onSave: (data: any) => void;
 }
 
 type QuestionOption = {
@@ -40,7 +40,10 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
 
   const handleSave = () => {
     if (quizzTitle.trim()) {
-      onSave();
+      onSave({
+        title: quizzTitle,
+        questions: questions,
+      });
       setQuizTitle('');
       setQuestionNumber(1);
       setQuestions([]);

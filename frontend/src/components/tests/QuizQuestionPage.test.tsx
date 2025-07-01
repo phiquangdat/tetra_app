@@ -2,9 +2,9 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { describe, it, vi, beforeEach } from 'vitest';
 import QuizQuestionPage from '../user/quiz/QuizQuestionPage';
-import { QuizProvider } from '../../context/QuizContext';
+import { QuizProvider } from '../../context/user/QuizContext';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { QuizContext } from '../../context/QuizContext';
+import { QuizContext } from '../../context/user/QuizContext';
 
 const mockNavigate = vi.fn();
 

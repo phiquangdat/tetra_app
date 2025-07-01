@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
-import { type Question } from '../services/quiz/quizApi';
+import { type Question } from '../../services/quiz/quizApi.ts';
 
 interface QuizContextType {
   questions: Question[];

@@ -5,7 +5,7 @@ import {
   fetchUnitContentById,
   type UnitContent,
 } from '../services/unit/unitApi';
-import { useQuizModal } from '../context/QuizModalContext';
+import { useQuizModal } from '../context/user/QuizModalContext.tsx';
 import { useUnitContent } from '../context/UnitContentContext';
 
 interface UnitPageProps {

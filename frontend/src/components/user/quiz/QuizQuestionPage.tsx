@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuiz } from '../../../context/QuizContext';
+import { useQuiz } from '../../../context/user/QuizContext.tsx';
 
 const QuizQuestionPage = () => {
   const { index, quizId } = useParams();

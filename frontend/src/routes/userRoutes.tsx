@@ -72,7 +72,7 @@ export const userRoutes: RouteObject = {
       element: <QuizQuestionPage />,
     },
     {
-      path: 'quiz/summary',
+      path: 'quiz/:quizId/summary',
       element: <QuizSummaryPage />,
     },
   ],

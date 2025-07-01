@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 
 const mockedQuestions = [
@@ -25,9 +25,12 @@ const mockedQuestions = [
 ];
 
 const QuizSummaryPage: React.FC = () => {
+  const { quizId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
+
+  console.log('Quiz ID is ', quizId);
 
   const correctAnswers = mockedQuestions.filter(
     (q) => q.userAnswer === q.correctAnswer,

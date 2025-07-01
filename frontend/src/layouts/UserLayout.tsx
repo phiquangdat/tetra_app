@@ -5,6 +5,7 @@ import { UnitContentProvider } from '../context/UnitContentContext';
 import { QuizProvider } from '../context/QuizContext.tsx';
 import SharedHeader from '../components/common/SharedHeader.tsx';
 import UserSidebar from '../components/user/layout/UserSidebar';
+import Footer from '../components/ui/Footer.tsx';
 
 export default function UserLayout() {
   return (

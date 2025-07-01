@@ -46,7 +46,11 @@ const Header: React.FC<HeaderProps> = ({
     if (location.pathname === '/') {
       // Already on homepage: smooth scroll
       scrollToSection(section);
-      window.history.replaceState(null, '', section === 'home' ? '/' : `/#${section}`);
+      window.history.replaceState(
+        null,
+        '',
+        section === 'home' ? '/' : `/#${section}`,
+      );
     } else {
       // Navigate to homepage with hash, then scroll after navigation
       navigate(section === 'home' ? '/' : `/#${section}`);

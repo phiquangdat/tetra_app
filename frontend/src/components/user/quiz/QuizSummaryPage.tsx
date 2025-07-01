@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
+import { useUnitContent } from '../../../context/UnitContentContext.tsx';
 
 const mockedQuestions = [
   {
@@ -26,6 +27,7 @@ const mockedQuestions = [
 
 const QuizSummaryPage: React.FC = () => {
   const { quizId } = useParams();
+  const { goToNextContent } = useUnitContent();
   const navigate = useNavigate();
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
@@ -173,7 +175,7 @@ const QuizSummaryPage: React.FC = () => {
 
       <div className="flex justify-end">
         <button
-          onClick={() => navigate(`/user/unit/${unitIdFromState}`)}
+          onClick={() => goToNextContent(quizId ?? '')}
           className="bg-[#14248A] hover:bg-blue-800 text-white font-semibold px-6 py-3 rounded-full shadow-md transition-all"
         >
           Continue Learning

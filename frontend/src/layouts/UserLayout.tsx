@@ -22,6 +22,7 @@ export default function UserLayout() {
                 <QuizStartModal />
               </main>
             </div>
+            <Footer />
           </div>
         </QuizProvider>
       </UnitContentProvider>

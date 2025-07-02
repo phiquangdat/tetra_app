@@ -3,6 +3,7 @@ import React from 'react';
 const Hero: React.FC = () => {
   return (
     <section
+      id="home"
       className="relative flex flex-col lg:flex-row items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8 overflow-hidden rounded-lg
                         bg-gradient-to-br from-sky-100 via-rose-50 to-indigo-100"
     >

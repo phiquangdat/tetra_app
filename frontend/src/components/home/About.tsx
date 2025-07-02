@@ -1,7 +1,7 @@
 import React from 'react';
 
 const About: React.FC = () => (
-  <section className="w-full my-12 px-6">
+  <section id="about" className="w-full my-12 px-6">
     <h2 className="text-3xl font-bold mb-6 text-left">About</h2>
     <div className="text-gray-800 text-lg leading-loose w-full text-justify">
       Unlock the power of knowledge — one level at a time. Our gamified learning

@@ -1,6 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
+import ChangePasswordModal from './ChangePasswordModal';
 
 const SettingsPage: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleOpenModal = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
+
   return (
     <div className="min-h-screen bg-[#FFFFFF] p-6">
       <h1 className="text-[#231942] text-3xl font-semibold mb-6">Settings</h1>
@@ -40,10 +46,16 @@ const SettingsPage: React.FC = () => {
         <h2 className="text-[#14248A] text-lg font-semibold mb-4">
           Password and Authentication
         </h2>
-        <button className="bg-[#14248A] hover:bg-[#101e72] text-white text-sm font-medium px-5 py-2 rounded-lg transition">
+        <button
+          className="bg-[#14248A] hover:bg-[#101e72] text-white text-sm font-medium px-5 py-2 rounded-lg transition"
+          onClick={handleOpenModal}
+        >
           Change password
         </button>
       </div>
+
+      {/* Modal */}
+      {isModalOpen && <ChangePasswordModal onClose={handleCloseModal} />}
     </div>
   );
 };

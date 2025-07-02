@@ -9,14 +9,14 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
 
-  // Focus the email input when modal opens
+ 
   useEffect(() => {
     if (isOpen && emailInputRef.current) {
       emailInputRef.current.focus();
     }
   }, [isOpen]);
 
-  // Close modal on outside click
+
   useEffect(() => {
     if (!isOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
@@ -31,7 +31,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, onClose]);
 
-  // Close modal on Escape key
+
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -66,10 +66,12 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
         >
           ×
         </button>
-        <h2 className="text-3xl font-bold text-center mb-8 text-black">Login</h2>
+        <h2 className="text-3xl font-bold text-center mb-8 text-black">
+          Login
+        </h2>
         <form
           className="flex flex-col gap-6"
-          onSubmit={e => e.preventDefault()}
+          onSubmit={(e) => e.preventDefault()}
           autoComplete="off"
         >
           <div>

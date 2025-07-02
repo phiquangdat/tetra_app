@@ -7,7 +7,7 @@ const topItems = [
 
 const bottomItems = [
   { label: 'Log out', path: '/logout', icon: null },
-  { label: 'Settings', path: '/admin/settings', icon: null },
+  { label: 'Settings', path: '/user/settings', icon: null },
 ];
 
 const UserSidebar = () => (

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useUnitContext } from '../../../context/admin/UnitContext';
+import { useModuleContext } from '../../../context/admin/ModuleContext';
 import AddArticleModal from './AddArticleModal';
 import AddVideoModal from './AddVideoModal';
 import AddQuizModal from './AddQuizModal';
@@ -12,13 +13,16 @@ type ContentBlock = {
 type UnitFormProps = {
   unitNumber: number;
 };
+
 function UnitForm({ unitNumber }: UnitFormProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [isArticleModalOpen, setIsArticleModalOpen] = useState(false);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+  const [successSaved, setSuccessSaved] = useState(false);
 
-  const { updateUnitField, getUnitState, setUnitState } = useUnitContext();
+  const { updateUnitField, getUnitState, saveUnit } = useUnitContext();
+  const { id: moduleId } = useModuleContext();
 
   const unitState = getUnitState(unitNumber);
   if (!unitState) return null;
@@ -49,19 +53,31 @@ function UnitForm({ unitNumber }: UnitFormProps) {
   };
 
   const handleSaveUnitForm = async () => {
-    setUnitState(unitNumber, {
-      ...unitState,
-      isSaving: true,
-      isDirty: false,
-    });
+    if (!moduleId) {
+      updateUnitField(
+        unitNumber,
+        'error',
+        'Module must be saved before saving units',
+      );
+      return;
+    }
+    if (unitState.isSaving) return;
+    setSuccessSaved(false);
 
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // API call simulation
-
-    setUnitState(unitNumber, {
-      ...unitState,
-      isSaving: false,
-      error: null,
-    });
+    try {
+      await saveUnit(unitNumber, moduleId);
+      setSuccessSaved(true);
+      setTimeout(() => {
+        setSuccessSaved(false);
+      }, 3000);
+    } catch (err) {
+      console.error('Error saving unit:', err);
+      updateUnitField(
+        unitNumber,
+        'error',
+        err instanceof Error ? err.message : 'Failed to save unit',
+      );
+    }
   };
 
   const icons = {
@@ -105,6 +121,16 @@ function UnitForm({ unitNumber }: UnitFormProps) {
 
         {isOpen && (
           <div className="space-y-6 max-w-110 mx-0 mb-11">
+            {unitState.error ? (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <p className="text-sm">{unitState.error}</p>
+              </div>
+            ) : successSaved ? (
+              <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                <p className="text-sm">Unit saved successfully!</p>
+              </div>
+            ) : null}
+
             <div className="max-w-90 mb-11">
               <label
                 htmlFor="unitTitle"
@@ -141,11 +167,18 @@ function UnitForm({ unitNumber }: UnitFormProps) {
 
             <button
               type="button"
-              aria-label="Save "
+              aria-label="Save unit"
               onClick={handleSaveUnitForm}
-              className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-200 mr-4 mb-20 w-28 h-10"
+              disabled={unitState.isSaving}
+              className={`border-2 text-sm px-4 py-1 rounded-lg transition-colors duration-200 mr-4 mb-20 w-28 h-10 ${
+                unitState.isSaving
+                  ? 'bg-gray-300 border-gray-300 text-gray-500 cursor-not-allowed'
+                  : unitState.isDirty
+                    ? 'bg-blue-500 border-blue-500 text-white hover:bg-blue-600 cursor-pointer'
+                    : 'bg-white border-gray-400 text-gray-700 hover:bg-gray-100 cursor-pointer'
+              }`}
             >
-              Save
+              {unitState.isSaving ? 'Saving...' : 'Save'}
             </button>
 
             <div className="w-48 mb-11">

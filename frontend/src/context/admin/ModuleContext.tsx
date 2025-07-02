@@ -77,14 +77,20 @@ export const ModuleContextProvider = ({
       : '';
 
     try {
-      await createModule({
+      const responseModule = await createModule({
         ...module,
         points: module.pointsAwarded,
         coverUrl: tempCoverUrl,
         id: module.id ?? '',
       });
 
-      setModule(initialModuleState);
+      setModule((prev) => ({
+        ...prev,
+        id: responseModule.id,
+        isDirty: false,
+        isSaving: false,
+        error: null,
+      }));
     } catch (err) {
       setModule((prev) => ({
         ...prev,

@@ -6,6 +6,11 @@ import {
   type ReactNode,
 } from 'react';
 
+import {
+  createUnit,
+  type CreateUnitRequest,
+} from '../../services/unit/unitApi';
+
 export type ContentBlock = {
   type: 'video' | 'article' | 'quiz';
   data: any;
@@ -35,6 +40,7 @@ type UnitContextType = {
   ) => void;
   getUnitState: (unitNumber: number) => UnitContextEntry | undefined;
   getNextUnitNumber: () => number;
+  saveUnit: (unitNumber: number, moduleId: string) => Promise<void>;
 };
 
 const createDefaultUnitState = (): UnitContextEntry => ({
@@ -115,6 +121,39 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     return unitNumbers.length > 0 ? Math.max(...unitNumbers) + 1 : 1;
   }, [unitStates]);
 
+  const saveUnit = useCallback(
+    async (unitNumber: number, moduleId: string) => {
+      const currentUnit = unitStates[unitNumber];
+
+      if (!currentUnit || !currentUnit.isDirty || currentUnit.isSaving) return;
+
+      setUnitState(unitNumber, { isSaving: true, error: null });
+
+      try {
+        const unitData: CreateUnitRequest = {
+          module_id: moduleId,
+          title: currentUnit.title,
+          description: currentUnit.description,
+        };
+
+        const response = await createUnit(unitData);
+
+        setUnitState(unitNumber, {
+          id: response.id,
+          isDirty: false,
+          error: null,
+        });
+      } catch (err) {
+        setUnitState(unitNumber, {
+          error: err instanceof Error ? err.message : 'Failed to save unit',
+        });
+      } finally {
+        setUnitState(unitNumber, { isSaving: false });
+      }
+    },
+    [unitStates, setUnitState],
+  );
+
   const contextValue: UnitContextType = {
     unitStates,
     updateUnitField,
@@ -122,6 +161,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     setUnitState,
     getUnitState,
     getNextUnitNumber,
+    saveUnit,
   };
 
   return (

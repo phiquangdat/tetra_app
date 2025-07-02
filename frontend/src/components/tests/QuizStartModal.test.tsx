@@ -1,14 +1,14 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { describe, it, vi, beforeEach, afterEach } from 'vitest';
-import { QuizModalProvider } from '../../context/QuizModalContext';
-import { QuizProvider } from '../../context/QuizContext';
+import { QuizModalProvider } from '../../context/user/QuizModalContext';
+import { QuizProvider } from '../../context/user/QuizContext';
 import QuizStartModal from '../user/quiz/QuizStartModal';
 import {
   fetchQuizById,
   fetchQuizQuestionsByQuizId,
 } from '../../services/quiz/quizApi';
-import { useQuizModal } from '../../context/QuizModalContext';
+import { useQuizModal } from '../../context/user/QuizModalContext';
 import { BrowserRouter } from 'react-router-dom';
 
 // Mocks
@@ -17,8 +17,8 @@ vi.mock('../../services/quiz/quizApi', () => ({
   fetchQuizQuestionsByQuizId: vi.fn(),
 }));
 
-vi.mock('../../context/QuizModalContext', async () => {
-  const actual = await vi.importActual('../../context/QuizModalContext');
+vi.mock('../../context/user/QuizModalContext', async () => {
+  const actual = await vi.importActual('../../context/user/QuizModalContext');
   return {
     ...actual,
     useQuizModal: vi.fn(),

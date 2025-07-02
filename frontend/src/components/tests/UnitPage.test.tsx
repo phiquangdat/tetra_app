@@ -10,7 +10,7 @@ import {
 } from 'react-router-dom';
 import UnitPage from '../UnitPage';
 import { fetchUnitById } from '../../services/unit/unitApi';
-import { QuizModalProvider } from '../../context/QuizModalContext';
+import { QuizModalProvider } from '../../context/user/QuizModalContext';
 import { UnitContentProvider } from '../../context/UnitContentContext.tsx';
 
 vi.mock('../../services/unit/unitApi', () => ({

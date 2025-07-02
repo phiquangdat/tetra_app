@@ -9,13 +9,11 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
 
- 
   useEffect(() => {
     if (isOpen && emailInputRef.current) {
       emailInputRef.current.focus();
     }
   }, [isOpen]);
-
 
   useEffect(() => {
     if (!isOpen) return;
@@ -30,7 +28,6 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, onClose]);
-
 
   useEffect(() => {
     if (!isOpen) return;

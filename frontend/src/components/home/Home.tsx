@@ -4,7 +4,7 @@ import Hero from './Hero';
 import About from './About';
 import Features from './Features';
 import Footer from '../ui/Footer';
-import LoginModal from './LoginModal'; 
+import LoginModal from './LoginModal';
 
 const Home = () => {
   const [isLoginOpen, setLoginOpen] = useState(false);

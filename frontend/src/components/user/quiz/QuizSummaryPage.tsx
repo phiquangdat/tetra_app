@@ -1,6 +1,7 @@
 import React from 'react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
+import { useUnitContent } from '../../../context/UnitContentContext.tsx';
 
 const mockedQuestions = [
   {
@@ -26,9 +27,8 @@ const mockedQuestions = [
 
 const QuizSummaryPage: React.FC = () => {
   const { quizId } = useParams();
+  const { unitId, goToNextContent } = useUnitContent();
   const navigate = useNavigate();
-  const location = useLocation();
-  const unitIdFromState = (location.state as { unitId?: string })?.unitId;
 
   console.log('Quiz ID is ', quizId);
 
@@ -44,7 +44,7 @@ const QuizSummaryPage: React.FC = () => {
     <div className="bg-white min-h-screen py-8 px-6">
       <div className="mb-4">
         <a
-          onClick={() => navigate(`/user/unit/${unitIdFromState}`)}
+          onClick={() => navigate(`/user/unit/${unitId}`)}
           className="inline-flex items-center text-gray-500 hover:text-black px-3 py-1 rounded-lg hover:bg-gray-100 hover:border hover:border-gray-300 active:bg-gray-200 transition-all cursor-pointer"
         >
           <span className="mr-2 text-xl">←</span>
@@ -173,7 +173,7 @@ const QuizSummaryPage: React.FC = () => {
 
       <div className="flex justify-end">
         <button
-          onClick={() => navigate(`/user/unit/${unitIdFromState}`)}
+          onClick={() => goToNextContent(quizId ?? '')}
           className="bg-[#14248A] hover:bg-blue-800 text-white font-semibold px-6 py-3 rounded-full shadow-md transition-all"
         >
           Continue Learning

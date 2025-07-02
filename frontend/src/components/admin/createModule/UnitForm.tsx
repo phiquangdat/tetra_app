@@ -1,86 +1,68 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useUnitContext } from '../../../context/admin/UnitContext';
 import AddArticleModal from './AddArticleModal';
 import AddVideoModal from './AddVideoModal';
 import AddQuizModal from './AddQuizModal';
 
-type contentBlock = {
+type ContentBlock = {
   type: 'video' | 'article' | 'quiz';
   data: any;
 };
 
-type Unit = {
-  unitNumber: number;
-  title?: string;
-  description?: string;
-  content: contentBlock[];
-};
-
 type UnitFormProps = {
   unitNumber: number;
-  onChange: (updatedUnit: Unit) => void;
 };
-
-function UnitForm({ unitNumber = 1, onChange }: UnitFormProps) {
+function UnitForm({ unitNumber }: UnitFormProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [isArticleModalOpen, setIsArticleModalOpen] = useState(false);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [content, setContent] = useState<contentBlock[]>([]);
 
-  useEffect(() => {
-    onChange({
-      unitNumber,
-      title,
-      description,
-      content,
-    });
-  }, [unitNumber, title, description, content]);
+  const { updateUnitField, getUnitState, setUnitState } = useUnitContext();
 
-  const handleContentBlockChange = (e: { target: { value: string } }) => {
+  const unitState = getUnitState(unitNumber);
+  if (!unitState) return null;
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    updateUnitField(unitNumber, 'title', e.target.value);
+  };
+
+  const handleDescriptionChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>,
+  ) => {
+    updateUnitField(unitNumber, 'description', e.target.value);
+  };
+
+  const handleContentBlockChange = (
+    e: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
     const value = e.target.value;
-
-    if (value === 'addArticle') {
-      setIsArticleModalOpen(true);
-    }
-    if (value === 'addVideo') {
-      setIsVideoModalOpen(true);
-    }
-    if (value === 'addQuiz') {
-      setIsQuizModalOpen(true);
-    }
+    if (value === 'addArticle') setIsArticleModalOpen(true);
+    if (value === 'addVideo') setIsVideoModalOpen(true);
+    if (value === 'addQuiz') setIsQuizModalOpen(true);
     e.target.value = '';
   };
 
-  const handleArticleSave = () => {
-    setIsArticleModalOpen(false);
-    const newContentBlock: contentBlock = {
-      type: 'article',
-      data: {},
-    };
-    setContent((prevContent) => [...prevContent, newContentBlock]);
+  const handleContentSave = (type: ContentBlock['type'], data: any) => {
+    const newBlock = { type, data };
+    updateUnitField(unitNumber, 'content', [...unitState.content, newBlock]);
   };
 
-  const handleVideoSave = () => {
-    setIsVideoModalOpen(false);
-    const newContentBlock: contentBlock = {
-      type: 'video',
-      data: {},
-    };
-    setContent((prevContent) => [...prevContent, newContentBlock]);
-  };
+  const handleSaveUnitForm = async () => {
+    setUnitState(unitNumber, {
+      ...unitState,
+      isSaving: true,
+      isDirty: false,
+    });
 
-  const handleQuizSave = () => {
-    setIsQuizModalOpen(false);
-    const newContentBlock: contentBlock = {
-      type: 'quiz',
-      data: {},
-    };
-    setContent((prevContent) => [...prevContent, newContentBlock]);
-  };
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // API call simulation
 
-  const handleSaveUnitForm = () => {};
+    setUnitState(unitNumber, {
+      ...unitState,
+      isSaving: false,
+      error: null,
+    });
+  };
 
   const icons = {
     chevronDown: (
@@ -113,6 +95,7 @@ function UnitForm({ unitNumber = 1, onChange }: UnitFormProps) {
         <div
           className={`flex items-center justify-between px-3 py-4 mb-4 ${isOpen ? '' : 'bg-gray-100'} rounded-lg cursor-pointer transition-colors duration-200`}
           onClick={() => setIsOpen(!isOpen)}
+          aria-expanded={isOpen}
         >
           <h3 className="text-xl font-semibold text-gray-700">
             Unit {unitNumber}
@@ -133,14 +116,13 @@ function UnitForm({ unitNumber = 1, onChange }: UnitFormProps) {
                 type="text"
                 id="unitTitle"
                 name="unitTitle"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
+                value={unitState.title}
+                onChange={handleTitleChange}
                 className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
               />
             </div>
 
-            <div className="w-full mb-11">
+            <div className="mb-11">
               <label
                 htmlFor="unitDescription"
                 className="block mb-2 font-medium text-gray-700"
@@ -150,17 +132,16 @@ function UnitForm({ unitNumber = 1, onChange }: UnitFormProps) {
               <textarea
                 id="unitDescription"
                 name="unitDescription"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                value={unitState.description}
+                onChange={handleDescriptionChange}
                 className="bg-white border-gray-400 border-2 w-full h-60 rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
                 style={{ resize: 'none' }}
-                rows={4}
               />
             </div>
 
             <button
               type="button"
-              aria-label="Save Video"
+              aria-label="Save "
               onClick={handleSaveUnitForm}
               className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-200 mr-4 mb-20 w-28 h-10"
             >
@@ -193,18 +174,28 @@ function UnitForm({ unitNumber = 1, onChange }: UnitFormProps) {
       <AddArticleModal
         isOpen={isArticleModalOpen}
         onClose={() => setIsArticleModalOpen(false)}
-        onSave={handleArticleSave}
+        onSave={(data) => {
+          handleContentSave('article', data);
+          setIsArticleModalOpen(false);
+        }}
       />
+
       <AddVideoModal
         isOpen={isVideoModalOpen}
         onClose={() => setIsVideoModalOpen(false)}
-        onSave={handleVideoSave}
+        onSave={(data) => {
+          handleContentSave('video', data);
+          setIsVideoModalOpen(false);
+        }}
       />
 
       <AddQuizModal
         isOpen={isQuizModalOpen}
         onClose={() => setIsQuizModalOpen(false)}
-        onSave={handleQuizSave}
+        onSave={(data) => {
+          handleContentSave('quiz', data);
+          setIsQuizModalOpen(false);
+        }}
       />
     </div>
   );

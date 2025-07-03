@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo, type ChangeEvent } from 'react';
 import { useModuleContext } from '../../../context/admin/ModuleContext';
-import { UploadIcon } from '../../common/Icons';
 
 type Props = {};
 
@@ -35,12 +34,7 @@ const CreateModuleForm: React.FC<Props> = () => {
       console.error('Error saving module:', err);
     }
   };
-  const coverPreviewUrl = useMemo(() => {
-    if (coverPicture) {
-      return URL.createObjectURL(coverPicture);
-    }
-    return null;
-  }, [coverPicture]);
+  const coverPreviewUrl = coverPicture || null;
 
   useEffect(() => {
     return () => {
@@ -49,16 +43,6 @@ const CreateModuleForm: React.FC<Props> = () => {
       }
     };
   }, [coverPreviewUrl]);
-
-  const handleCoverPictureChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      updateModuleField('coverPicture', file);
-      markModuleAsDirty();
-    } else {
-      updateModuleField('coverPicture', null);
-    }
-  };
 
   const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
     updateModuleField('title', e.target.value);
@@ -80,48 +64,34 @@ const CreateModuleForm: React.FC<Props> = () => {
     markModuleAsDirty();
   };
 
-  const handleRemoveCoverPicture = () => {
-    updateModuleField('coverPicture', null);
-    markModuleAsDirty();
-  };
-
   const renderCoverPicture = () => {
-    if (coverPicture && coverPreviewUrl) {
-      return (
-        <div>
-          <img
-            id="moduleCoverPicture"
-            className="max-w-full h-auto max-h-60 rounded-md"
-            src={coverPreviewUrl}
-            alt="Module Cover Picture"
-          />
-          <button
-            type="button"
-            onClick={handleRemoveCoverPicture}
-            className="mt-2 bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-200"
-          >
-            <span className="text-sm">Change Cover Picture</span>
-          </button>
-        </div>
-      );
-    }
-
     return (
-      <div>
-        <label
-          htmlFor="moduleCoverPicture"
-          className="bg-white border-gray-400 border-2 rounded-lg cursor-pointer w-full h-60 flex items-center justify-center focus:border-transparent"
-        >
-          <UploadIcon />
-        </label>
+      <div className="space-y-3">
+        {coverPreviewUrl && (
+          <div>
+            <img
+              id="moduleCoverPicture"
+              className="max-w-full h-auto max-h-60 rounded-md"
+              src={coverPreviewUrl}
+              alt="Module Cover"
+            />
+          </div>
+        )}
 
+        <label
+          htmlFor="coverPictureUrl"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Cover Picture URL
+        </label>
         <input
-          type="file"
-          id="moduleCoverPicture"
-          name="moduleCoverPicture"
-          accept="image/*"
-          className="hidden"
-          onChange={handleCoverPictureChange}
+          type="text"
+          id="coverPictureUrl"
+          name="coverPictureUrl"
+          value={coverPicture || ''}
+          placeholder="https://example.com/image.jpg"
+          onChange={(e) => updateModuleField('coverPicture', e.target.value)}
+          className="text-xs bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
         />
       </div>
     );

@@ -19,6 +19,17 @@ export interface Article {
   content: string;
 }
 
+export interface CreateUnitRequest {
+  module_id: string;
+  title: string;
+  description: string;
+}
+
+export interface CreateUnitResponse {
+  id: string;
+  title: string;
+}
+
 export async function fetchUnitTitleByModuleId(moduleId: string): Promise<any> {
   try {
     const response = await fetch(
@@ -92,4 +103,32 @@ export async function fetchArticleContentById(id: string): Promise<Article> {
   const data: Article = await response.json();
   console.log('fetched article data is', data);
   return data;
+}
+
+export async function createUnit(
+  unitData: CreateUnitRequest,
+): Promise<CreateUnitResponse> {
+  try {
+    const response = await fetch(`${BASE_URL}/api/units`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(unitData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to create unit: ${response.statusText}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error(
+      'Error creating unit:',
+      error instanceof Error ? error.message : 'Unknown error',
+    );
+    throw error instanceof Error
+      ? error
+      : new Error('Unknown error occurred while creating unit');
+  }
 }

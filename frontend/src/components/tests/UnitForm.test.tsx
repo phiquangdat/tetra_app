@@ -7,14 +7,18 @@ import {
   UnitContextProvider,
   useUnitContext,
 } from '../../context/admin/UnitContext';
+import { ModuleContextProvider } from '../../context/admin/ModuleContext';
+
 import { useEffect } from 'react';
 
-const UnitFormWithProvider = ({ unitNumber }: { unitNumber: number }) => {
+const UnitFormWithProviders = ({ unitNumber }: { unitNumber: number }) => {
   return (
-    <UnitContextProvider>
-      <InitUnitState unitNumber={unitNumber} />
-      <UnitForm unitNumber={unitNumber} />
-    </UnitContextProvider>
+    <ModuleContextProvider>
+      <UnitContextProvider>
+        <InitUnitState unitNumber={unitNumber} />
+        <UnitForm unitNumber={unitNumber} />
+      </UnitContextProvider>
+    </ModuleContextProvider>
   );
 };
 
@@ -38,7 +42,7 @@ const InitUnitState = ({ unitNumber }: { unitNumber: number }) => {
 
 describe('UnitForm', () => {
   beforeEach(() => {
-    render(<UnitFormWithProvider unitNumber={1} />);
+    render(<UnitFormWithProviders unitNumber={1} />);
   });
 
   it('renders the form elements correctly', () => {

@@ -88,7 +88,6 @@ export const ModuleContextProvider = ({
         throw new Error('Invalid image URL format for cover picture.');
       }
 
-      await createModule({
       const responseModule = await createModule({
         ...module,
         points: module.pointsAwarded,

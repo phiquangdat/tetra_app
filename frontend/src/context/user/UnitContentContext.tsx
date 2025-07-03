@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
-import type { UnitContent } from '../services/unit/unitApi';
+import type { UnitContent } from '../../services/unit/unitApi';
 
 interface UnitContentContextProps {
   unitId: string;

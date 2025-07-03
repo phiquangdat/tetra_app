@@ -5,7 +5,7 @@ import * as moduleApi from '../../services/module/moduleApi';
 import * as unitApi from '../../services/unit/unitApi';
 import { QuizModalProvider } from '../../context/user/QuizModalContext.tsx';
 import { ModuleProgressProvider } from '../../context/user/ModuleContext';
-import { UnitContentProvider } from '../../context/UnitContentContext';
+import { UnitContentProvider } from '../../context/user/UnitContentContext';
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => vi.fn(),

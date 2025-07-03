@@ -13,7 +13,7 @@ interface ModulePageProps {
   id: string;
 }
 import { useModuleProgress } from '../../../context/user/ModuleContext';
-import { useUnitContent } from '../../../context/UnitContentContext.tsx';
+import { useUnitContent } from '../../../context/user/UnitContentContext.tsx';
 
 export type Unit = {
   id: string;

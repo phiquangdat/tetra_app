@@ -4,10 +4,9 @@ import {
   fetchUnitById,
   fetchUnitContentById,
   type UnitContent,
-} from '../services/unit/unitApi';
-import { useQuizModal } from '../context/user/QuizModalContext.tsx';
+} from '../../../services/unit/unitApi';
 import { useUnitContent } from '../../../context/user/UnitContentContext';
-import { useModuleProgress } from '../context/user/ModuleContext';
+import { useModuleProgress } from '../../../context/user/ModuleContext';
 import { useQuizModal } from '../../../context/user/QuizModalContext.tsx';
 
 interface UnitPageProps {

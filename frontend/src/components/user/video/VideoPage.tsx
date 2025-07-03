@@ -5,7 +5,7 @@ import {
   fetchVideoContentById,
   type Video,
 } from '../../../services/unit/unitApi';
-import { useModuleProgress } from '../../context/user/ModuleContext.tsx';
+import { useModuleProgress } from '../../../context/user/ModuleContext.tsx';
 
 const FallbackVideo = () => (
   <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100 rounded-2xl">

@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import { useUnitContent } from '../../../context/UnitContentContext.tsx';
+import { useModuleProgress } from '../../../context/user/ModuleContext';
 
 const mockedQuestions = [
   {
@@ -26,8 +27,9 @@ const mockedQuestions = [
 ];
 
 const QuizSummaryPage: React.FC = () => {
+  const { goToNextContent } = useModuleProgress();
   const { quizId } = useParams();
-  const { unitId, goToNextContent } = useUnitContent();
+  const { unitId } = useUnitContent();
   const navigate = useNavigate();
 
   console.log('Quiz ID is ', quizId);

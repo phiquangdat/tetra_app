@@ -3,10 +3,24 @@ import { describe, it, expect, vi } from 'vitest';
 import ModulePage from '../user/module/ModulePage';
 import * as moduleApi from '../../services/module/moduleApi';
 import * as unitApi from '../../services/unit/unitApi';
+import { QuizModalProvider } from '../../context/user/QuizModalContext.tsx';
+import { ModuleProgressProvider } from '../../context/user/ModuleContext';
+import { UnitContentProvider } from '../../context/UnitContentContext';
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => vi.fn(),
 }));
+
+const renderWithProvider = (id: string = '123') =>
+  render(
+    <QuizModalProvider>
+      <UnitContentProvider>
+        <ModuleProgressProvider>
+          <ModulePage id={id} />
+        </ModuleProgressProvider>
+      </UnitContentProvider>
+    </QuizModalProvider>,
+  );
 
 describe('ModulePage', () => {
   const mockModule = {
@@ -31,7 +45,7 @@ describe('ModulePage', () => {
     vi.spyOn(unitApi, 'fetchUnitTitleByModuleId').mockImplementation(
       () => new Promise(() => {}),
     );
-    render(<ModulePage id="123" />);
+    renderWithProvider('123');
     expect(screen.getByText(/loading module/i)).toBeInTheDocument();
   });
 
@@ -39,7 +53,7 @@ describe('ModulePage', () => {
     vi.spyOn(moduleApi, 'fetchModuleById').mockRejectedValue(
       new Error('Network error'),
     );
-    render(<ModulePage id="123" />);
+    renderWithProvider('123');
     await waitFor(() => expect(screen.getByText(/error/i)).toBeInTheDocument());
     expect(screen.getByText(/network error/i)).toBeInTheDocument();
   });
@@ -48,7 +62,7 @@ describe('ModulePage', () => {
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(moduleApi, 'fetchModuleById').mockResolvedValue(mockModule);
     vi.spyOn(unitApi, 'fetchUnitTitleByModuleId').mockResolvedValue(mockUnits);
-    render(<ModulePage id="123" />);
+    renderWithProvider('123');
     await waitFor(() => {
       expect(consoleSpy).toHaveBeenCalledWith('Fetched module:', mockModule);
       expect(consoleSpy).toHaveBeenCalledWith('Fetched units:', mockUnits);
@@ -63,7 +77,7 @@ describe('ModulePage', () => {
     const unitsSpy = vi
       .spyOn(unitApi, 'fetchUnitTitleByModuleId')
       .mockResolvedValue(mockUnits);
-    render(<ModulePage id="123" />);
+    renderWithProvider('123');
     await waitFor(() => {
       expect(moduleSpy).toHaveBeenCalledWith('123');
       expect(unitsSpy).toHaveBeenCalledWith('123');
@@ -73,7 +87,7 @@ describe('ModulePage', () => {
   it('renders the module title and Start button', async () => {
     vi.spyOn(moduleApi, 'fetchModuleById').mockResolvedValue(mockModule);
     vi.spyOn(unitApi, 'fetchUnitTitleByModuleId').mockResolvedValue(mockUnits);
-    render(<ModulePage id="123" />);
+    renderWithProvider('123');
     await waitFor(() => {
       expect(
         screen.getByRole('heading', { name: /Intro to Python/i }),
@@ -87,7 +101,7 @@ describe('ModulePage', () => {
   it('renders the About section with description and points', async () => {
     vi.spyOn(moduleApi, 'fetchModuleById').mockResolvedValue(mockModule);
     vi.spyOn(unitApi, 'fetchUnitTitleByModuleId').mockResolvedValue(mockUnits);
-    render(<ModulePage id="123" />);
+    renderWithProvider('123');
     expect(await screen.findByText(/about this module/i)).toBeInTheDocument();
     expect(
       screen.getByText(
@@ -100,7 +114,7 @@ describe('ModulePage', () => {
   it('renders the Syllabus component with heading', async () => {
     vi.spyOn(moduleApi, 'fetchModuleById').mockResolvedValue(mockModule);
     vi.spyOn(unitApi, 'fetchUnitTitleByModuleId').mockResolvedValue(mockUnits);
-    render(<ModulePage id="123" />);
+    renderWithProvider('123');
     expect(
       await screen.findByRole('heading', { name: /syllabus/i }),
     ).toBeInTheDocument();

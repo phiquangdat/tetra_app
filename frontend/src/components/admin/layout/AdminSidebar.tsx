@@ -1,7 +1,7 @@
 import Sidebar from '../../ui/Sidebar';
 
 const topItems = [
-  { label: 'Dashboard', path: '/admin/dashboard', icon: null },
+  { label: 'Dashboard', path: '/admin', icon: null },
   { label: 'Modules', path: '/admin/modules', icon: null },
   { label: 'Users', path: '/admin/users', icon: null },
   { label: 'Create Module', path: '/admin/modules/create', icon: null },

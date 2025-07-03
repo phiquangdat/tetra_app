@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import UserLayout from '../layouts/UserLayout';
 import ModuleCards from '../components/user/modules/ModuleCards';
 import ModulePage from '../components/user/module/ModulePage';
-import UnitPage from '../components/UnitPage';
+import UnitPage from '../components/user/unit/UnitPage';
 import Dashboard from '../components/user/dashboard';
 import VideoPage from '../components/VideoPage';
 import ArticlePage from '../components/user/article/ArticlePage';

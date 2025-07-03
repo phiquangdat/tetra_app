@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, type ChangeEvent } from 'react';
+import React, { useEffect, useState, type ChangeEvent } from 'react';
 import { useModuleContext } from '../../../context/admin/ModuleContext';
 
 type Props = {};

@@ -6,8 +6,9 @@ import {
   type UnitContent,
 } from '../services/unit/unitApi';
 import { useQuizModal } from '../context/user/QuizModalContext.tsx';
-import { useUnitContent } from '../context/UnitContentContext';
+import { useUnitContent } from '../../../context/user/UnitContentContext';
 import { useModuleProgress } from '../context/user/ModuleContext';
+import { useQuizModal } from '../../../context/user/QuizModalContext.tsx';
 
 interface UnitPageProps {
   id: string;

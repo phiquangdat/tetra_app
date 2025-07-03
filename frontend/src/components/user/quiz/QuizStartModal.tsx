@@ -95,7 +95,7 @@ const QuizStartModal = () => {
             <div className="flex flex-row gap-10 mb-6 items-center justify-center">
               <div className="flex items-center gap-2 text-lg text-gray-700">
                 <span className="inline-flex items-center justify-center">
-                  {QuestionIcon}
+                  <QuestionIcon />
                 </span>
                 {loading
                   ? 'Loading questions data...'
@@ -103,7 +103,7 @@ const QuizStartModal = () => {
               </div>
               <div className="flex items-center gap-2 text-lg text-gray-700">
                 <span className="inline-flex items-center justify-center">
-                  {StarIcon}
+                  <StarIcon />
                 </span>
                 {loading
                   ? 'Loading points data...'

@@ -49,9 +49,11 @@ const UnitItem: React.FC<UnitItemProps> = ({
           className="font-semibold text-xl text-blue-600 hover:underline flex items-center cursor-pointer"
         >
           Unit {index + 1}: {unit.title}
-          <span className="ml-2">{ChevronRightIcon} </span>
+          <span className="ml-2">
+            <ChevronRightIcon />
+          </span>
         </div>
-        {isOpen ? ChevronUpIcon : ChevronDownIcon}
+        {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
       </div>
 
       {isOpen && unit.content && (

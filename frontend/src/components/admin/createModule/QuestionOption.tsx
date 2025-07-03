@@ -49,7 +49,9 @@ function QuestionOption({ answerLabel = 'A', onSetQuestionOption }: Props) {
   return (
     <div className="flex now-wrap items-center justify-between ">
       <div className="w-6 flex flex-col items-center justify-center">
-        <button>{ReOrderIcon}</button>
+        <button>
+          <ReOrderIcon />
+        </button>
       </div>
       <div className="w-12 text-left pl-2">
         <p>{answerLabel}.</p>
@@ -69,7 +71,7 @@ function QuestionOption({ answerLabel = 'A', onSetQuestionOption }: Props) {
               handleSetQuestionOption();
             }}
           >
-            {CorrectAnswerIcon}
+            <CorrectAnswerIcon />
           </button>
           <button
             className="px-1 h-8 text-gray-700"
@@ -78,7 +80,7 @@ function QuestionOption({ answerLabel = 'A', onSetQuestionOption }: Props) {
               handleSetQuestionOption();
             }}
           >
-            {IncorrectAnswerIcon}
+            <IncorrectAnswerIcon />
           </button>
         </div>
       </div>

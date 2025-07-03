@@ -31,7 +31,9 @@ const ActiveModulesList = () => {
             className="flex flex-col justify-between bg-yellow-50 rounded-xl p-4"
           >
             <div className="flex self-start items-center gap-4">
-              <span className="text-3xl">{StarIcon}</span>
+              <span className="text-3xl">
+                <StarIcon />
+              </span>
               <div>
                 <div className="font-semibold text-lg text-gray-800">
                   {item.title}

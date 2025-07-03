@@ -112,7 +112,7 @@ const CreateModuleForm: React.FC<Props> = () => {
           htmlFor="moduleCoverPicture"
           className="bg-white border-gray-400 border-2 rounded-lg cursor-pointer w-full h-60 flex items-center justify-center focus:border-transparent"
         >
-          {UploadIcon}
+          <UploadIcon />
         </label>
 
         <input

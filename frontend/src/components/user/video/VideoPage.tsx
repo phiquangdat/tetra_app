@@ -10,7 +10,7 @@ import { UploadAltIcon } from '../../common/Icons';
 
 const FallbackVideo = () => (
   <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100 rounded-2xl">
-    {UploadAltIcon}
+    <UploadAltIcon />
 
     <span className="text-gray-500 text-lg font-medium">
       No video available

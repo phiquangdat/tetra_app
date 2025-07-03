@@ -3,19 +3,19 @@ import { ContentIcon, GamifiedIcon, ProgressIcon } from '../common/Icons';
 
 const features = [
   {
-    icon: ProgressIcon,
+    icon: <ProgressIcon />,
     title: 'Progress tracking',
     description:
       'Tailored modules for each employee based on their role and skill level.',
   },
   {
-    icon: ContentIcon,
+    icon: <ContentIcon />,
     title: 'Interactive content',
     description:
       'Engaging videos, quizzes, and articles make learning effective and enjoyable.',
   },
   {
-    icon: GamifiedIcon,
+    icon: <GamifiedIcon />,
     title: 'Gamified rewards',
     description:
       'Earn points and achievements for completing modules and challenges.',

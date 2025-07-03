@@ -1,5 +1,7 @@
-export const HamburgerIcon = (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+export const HamburgerIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
+  props,
+) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" {...props}>
     <path
       d="M3 6h18M3 12h18M3 18h18"
       stroke="#3B82F6"
@@ -9,8 +11,15 @@ export const HamburgerIcon = (
   </svg>
 );
 
-export const LogoIcon = (
-  <svg width="36" height="36" viewBox="0 0 36 36" fill="none" className="mr-3">
+export const LogoIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg
+    width="36"
+    height="36"
+    viewBox="0 0 36 36"
+    fill="none"
+    className="mr-3"
+    {...props}
+  >
     <rect
       x="3"
       y="5"
@@ -30,48 +39,58 @@ export const LogoIcon = (
   </svg>
 );
 
-export const ChevronDownIcon = (
+export const ChevronDownIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
+  props,
+) => (
   <svg
     className="w-5 h-5"
     fill="none"
     stroke="currentColor"
     strokeWidth={2}
     viewBox="0 0 24 24"
+    {...props}
   >
     <path d="M19 9l-7 7-7-7" />
   </svg>
 );
 
-export const ChevronUpIcon = (
+export const ChevronUpIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
+  props,
+) => (
   <svg
     className="w-5 h-5"
     fill="none"
     stroke="currentColor"
     strokeWidth={2}
     viewBox="0 0 24 24"
+    {...props}
   >
     <path d="M5 15l7-7 7 7" />
   </svg>
 );
 
-export const ChevronRightIcon = (
+export const ChevronRightIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
+  props,
+) => (
   <svg
     className="w-5 h-5"
     fill="none"
     stroke="currentColor"
     strokeWidth={2}
     viewBox="0 0 24 24"
+    {...props}
   >
     <path d="M9 5l7 7-7 7" />
   </svg>
 );
 
-export const CloseIcon = (
+export const CloseIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
     className="w-6 h-6"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
+    {...props}
   >
     <path
       strokeLinecap="round"
@@ -82,25 +101,27 @@ export const CloseIcon = (
   </svg>
 );
 
-export const VideoIcon = (
+export const VideoIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
     className="w-6 h-6 text-gray-700 flex-shrink-0"
     fill="none"
     stroke="currentColor"
     strokeWidth={2}
     viewBox="0 0 24 24"
+    {...props}
   >
     <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 6h11a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z" />
   </svg>
 );
 
-export const BookIcon = (
+export const BookIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
     className="w-6 h-6 text-gray-700 flex-shrink-0"
     fill="none"
     stroke="currentColor"
     strokeWidth={2}
     viewBox="0 0 24 24"
+    {...props}
   >
     <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
     <path d="M17 21V13H7v8" />
@@ -108,13 +129,14 @@ export const BookIcon = (
   </svg>
 );
 
-export const StarIcon = (
+export const StarIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
     className="w-6 h-6 text-gray-700 flex-shrink-0"
     fill="none"
     stroke="currentColor"
     strokeWidth={2}
     viewBox="0 0 24 24"
+    {...props}
   >
     <path
       strokeLinecap="round"
@@ -124,19 +146,20 @@ export const StarIcon = (
   </svg>
 );
 
-export const CheckIcon = (
+export const CheckIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
     className="w-6 h-6"
     fill="none"
     stroke="currentColor"
     strokeWidth={2}
     viewBox="0 0 24 24"
+    {...props}
   >
     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
   </svg>
 );
 
-export const EditIcon = (
+export const EditIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
     className="svg-icon"
     style={{
@@ -149,17 +172,19 @@ export const EditIcon = (
     viewBox="0 0 1024 1024"
     version="1.1"
     xmlns="http://www.w3.org/2000/svg"
+    {...props}
   >
     <path d="M358.277408 561.800219c-0.596588 0.759293-1.193175 1.559519-1.461281 2.52245l-46.050826 168.836313c-2.685155 9.829879 0.065492 20.422122 7.342222 27.889187 5.442966 5.317099 12.614296 8.239662 20.252253 8.239662 2.52245 0 5.050016-0.301875 7.537673-0.962931l167.638021-45.722344c0.26913 0 0.399089 0.23536 0.601704 0.23536 1.925862 0 3.817955-0.700965 5.246491-2.161223l448.270537-448.205045c13.31526-13.332656 20.61655-31.494295 20.61655-51.254338 0-22.38994-9.496282-44.770669-26.126031-61.356416L919.809521 117.458155c-16.604166-16.629749-39.016619-26.143427-61.396325-26.143427-19.754926 0-37.915541 7.303336-51.264571 20.602224L358.944604 560.241724C358.478999 560.669466 358.609982 561.302893 358.277408 561.800219M923.791206 228.575906l-44.526099 44.49233-72.180949-73.327052 43.894719-43.895743c6.935969-6.973832 20.384259-5.956665 28.353768 2.041496l42.363853 42.402739c4.420683 4.41352 6.941086 10.289344 6.941086 16.099676C928.610978 221.151819 926.914336 225.473241 923.791206 228.575906M437.999101 568.842613l323.465043-323.483462 72.216765 73.376171-322.863339 322.847989L437.999101 568.842613 437.999101 568.842613zM379.065873 699.990558l23.375383-85.799108 62.352093 62.358233L379.065873 699.990558 379.065873 699.990558zM927.623487 406.192186c-16.968463 0-31.904641 13.796214-31.970132 30.994921l0 419.411255c0 21.913079-17.796318 38.907125-39.744189 38.907125L166.418752 895.505487c-21.914102 0-38.247092-16.991999-38.247092-38.907125L128.17166 166.360935c0-21.930475 16.331967-38.441521 38.247092-38.441521l473.184973 0c17.063631 0 30.908964-15.163351 30.908964-32.232099 0-17.034978-13.846356-31.68156-30.908964-31.68156L161.703357 64.005756c-53.42477 0-97.827049 44.216038-97.827049 97.67253l0 699.637518c0 53.458539 44.403303 98.422613 97.827049 98.422613l698.884364 0c53.463656 0 98.967012-44.964074 98.967012-98.422613l0-424.324148C959.489242 419.9884 944.587857 406.192186 927.623487 406.192186" />
   </svg>
 );
 
-export const UploadIcon = (
+export const UploadIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
     className="w-24 h-24 text-gray-500"
     viewBox="0 0 1024 1024"
     version="1.1"
     xmlns="http://www.w3.org/2000/svg"
+    {...props}
   >
     <path
       d="M504 434.944L301.664 647.552l57.92 55.152L464 593.024V848h80V593.008l104.4 109.696 57.936-55.152L504 434.944z m265.68-82.112C733.6 220.896 614.88 128 476.96 128c-90.112 0-170.576 33.28-226.592 93.712-50.16 54.096-77.264 127.328-77.84 208.752C85.04 464.384 32 540.128 32 634.528 32 752.24 127.296 848 244.416 848H352v-80h-107.584C171.408 768 112 708.128 112 634.528c0-67.76 41.632-118.752 111.36-136.432l32.608-8.256-2.56-33.536c-5.52-72.688 13.712-135.008 55.632-180.208C349.728 232.16 409.36 208 476.96 208c108.928 0 201.648 79.04 220.448 187.92l5.312 30.704 31.04 2.384C838.72 437.056 912 506.768 912 598.544 912 691.984 836.656 768 744.032 768H656v80h88.032C880.768 848 992 736.096 992 598.544c0-126.128-89.984-223.728-222.32-245.712z"
@@ -168,38 +193,45 @@ export const UploadIcon = (
   </svg>
 );
 
-export const UploadAltIcon = (
+export const UploadAltIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
+  props,
+) => (
   <svg
     className="w-24 h-24 text-gray-400 mb-4"
     viewBox="0 0 1024 1024"
     xmlns="http://www.w3.org/2000/svg"
     fill="currentColor"
     strokeWidth={1}
+    {...props}
   >
     <path d="M918.613333 305.066667a42.666667 42.666667 0 0 0-42.666666 0L725.333333 379.306667A128 128 0 0 0 597.333333 256H213.333333a128 128 0 0 0-128 128v256a128 128 0 0 0 128 128h384a128 128 0 0 0 128-123.306667l151.893334 75.946667A42.666667 42.666667 0 0 0 896 725.333333a42.666667 42.666667 0 0 0 22.613333-6.4A42.666667 42.666667 0 0 0 938.666667 682.666667V341.333333a42.666667 42.666667 0 0 0-20.053334-36.266666zM640 640a42.666667 42.666667 0 0 1-42.666667 42.666667H213.333333a42.666667 42.666667 0 0 1-42.666666-42.666667V384a42.666667 42.666667 0 0 1 42.666666-42.666667h384a42.666667 42.666667 0 0 1 42.666667 42.666667z m213.333333-26.453333l-128-64v-75.093334l128-64z" />
   </svg>
 );
 
-export const ProgressIcon = (
+export const ProgressIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
+  props,
+) => (
   <svg
     className="h-12 w-12 mb-2 text-gray-700"
     fill="none"
     viewBox="0 0 48 48"
     stroke="currentColor"
-    strokeWidth="2.5"
+    strokeWidth={2.5}
+    {...props}
   >
     <circle cx="24" cy="24" r="20" />
     <path d="M24 14v10l7 7" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
-export const ContentIcon = (
+export const ContentIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
     className="h-12 w-12 mb-2 text-gray-700"
     fill="none"
     viewBox="0 0 48 48"
     stroke="currentColor"
-    strokeWidth="2.5"
+    strokeWidth={2.5}
+    {...props}
   >
     <path
       d="M6 12a4 4 0 0 1 4-4h14v32H10a4 4 0 0 1-4-4V12z"
@@ -212,13 +244,16 @@ export const ContentIcon = (
   </svg>
 );
 
-export const GamifiedIcon = (
+export const GamifiedIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
+  props,
+) => (
   <svg
     className="h-12 w-12 mb-2 text-gray-700"
     fill="none"
     viewBox="0 0 48 48"
     stroke="currentColor"
-    strokeWidth="2.5"
+    strokeWidth={2.5}
+    {...props}
   >
     <polygon
       points="24,6 29.4,18.3 42,18.3 32,27.1 36,39.7 24,32 12,39.7 16,27.1 6,18.3 18.6,18.3"
@@ -227,7 +262,7 @@ export const GamifiedIcon = (
   </svg>
 );
 
-export const QuizIcon = (
+export const QuizIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
     className="svg-icon"
     style={{
@@ -240,20 +275,24 @@ export const QuizIcon = (
     viewBox="0 0 1024 1024"
     version="1.1"
     xmlns="http://www.w3.org/2000/svg"
+    {...props}
   >
     <path d="M842.472727 51.2h-665.6c-69.818182 0-130.327273 60.509091-130.327272 130.327273v665.6c0 69.818182 60.509091 130.327273 130.327272 130.327272h665.6c74.472727 0 130.327273-55.854545 130.327273-130.327272V181.527273c0-74.472727-55.854545-130.327273-130.327273-130.327273z m60.509091 791.272727c0 32.581818-23.272727 55.854545-55.854545 55.854546h-665.6c-32.581818 0-55.854545-23.272727-55.854546-55.854546V181.527273c0-32.581818 23.272727-55.854545 55.854546-55.854546h665.6c32.581818 0 55.854545 23.272727 55.854545 55.854546v660.945454z" />
     <path d="M344.436364 260.654545l-60.509091 60.509091-27.927273-27.927272c-13.963636-13.963636-37.236364-13.963636-51.2 0-18.618182 13.963636-18.618182 37.236364 0 51.2l51.2 55.854545c9.309091 9.309091 18.618182 9.309091 27.927273 9.309091 9.309091 0 18.618182-4.654545 27.927272-9.309091l83.781819-88.436364c13.963636-13.963636 13.963636-37.236364 0-51.2-13.963636-13.963636-37.236364-13.963636-51.2 0zM344.436364 446.836364l-60.509091 65.163636-32.581818-32.581818c-13.963636-13.963636-37.236364-13.963636-51.2 0s-13.963636 37.236364 0 51.2l55.854545 55.854545c9.309091 9.309091 18.618182 9.309091 27.927273 9.309091 9.309091 0 18.618182-4.654545 23.272727-9.309091l88.436364-88.436363c13.963636-13.963636 13.963636-37.236364 0-51.2-13.963636-13.963636-37.236364-13.963636-51.2 0zM344.436364 633.018182l-60.509091 65.163636-32.581818-32.581818c-13.963636-13.963636-37.236364-13.963636-51.2 0s-13.963636 37.236364 0 51.2l55.854545 55.854545c9.309091 9.309091 18.618182 9.309091 27.927273 9.309091 9.309091 0 18.618182-4.654545 23.272727-9.309091l88.436364-88.436363c13.963636-13.963636 13.963636-37.236364 0-51.2-13.963636-13.963636-37.236364-13.963636-51.2 0zM772.654545 293.236364h-297.890909c-18.618182 0-37.236364 18.618182-37.236363 37.236363s18.618182 37.236364 37.236363 37.236364h297.890909c23.272727 0 37.236364-18.618182 37.236364-37.236364s-18.618182-37.236364-37.236364-37.236363zM772.654545 479.418182h-297.890909c-18.618182 0-37.236364 18.618182-37.236363 37.236363s18.618182 37.236364 37.236363 37.236364h297.890909c23.272727 0 37.236364-18.618182 37.236364-37.236364s-18.618182-37.236364-37.236364-37.236363zM772.654545 665.6h-297.890909c-18.618182 0-37.236364 18.618182-37.236363 37.236364s18.618182 37.236364 37.236363 37.236364h297.890909c23.272727 0 37.236364-18.618182 37.236364-37.236363s-18.618182-37.236364-37.236364-37.236364z" />
   </svg>
 );
 
-export const OpenBooksIcon = (
+export const OpenBooksIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
+  props,
+) => (
   <svg
     className="w-6 h-6 text-gray-700 flex-shrink-0"
     fill="none"
     stroke="currentColor"
-    strokeWidth="2"
+    strokeWidth={2}
     viewBox="0 0 24 24"
     xmlns="http://www.w3.org/2000/svg"
+    {...props}
   >
     <path
       strokeLinecap="round"
@@ -269,13 +308,14 @@ export const OpenBooksIcon = (
   </svg>
 );
 
-export const PuzzleIcon = (
+export const PuzzleIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
     className="w-6 h-6 text-gray-700 flex-shrink-0"
     fill="none"
     stroke="currentColor"
-    strokeWidth="2"
+    strokeWidth={2}
     viewBox="0 0 24 24"
+    {...props}
   >
     <path
       strokeLinecap="round"
@@ -285,13 +325,16 @@ export const PuzzleIcon = (
   </svg>
 );
 
-export const QuestionIcon = (
+export const QuestionIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
+  props,
+) => (
   <svg
     className="w-6 h-6"
     viewBox="0 0 73.9 73.9"
     xmlns="http://www.w3.org/2000/svg"
     stroke="currentColor"
     strokeWidth={2}
+    {...props}
   >
     <path
       d="m52.4 13.1h5.6v11.1h-5.6z"
@@ -305,13 +348,15 @@ export const QuestionIcon = (
     </g>
   </svg>
 );
-
-export const CheckAltIcon = (
+export const CheckAltIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
+  props,
+) => (
   <svg
     className="w-6 h-6"
     version="1.1"
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 256 256"
+    {...props}
   >
     <g>
       <path
@@ -326,12 +371,10 @@ export const CheckAltIcon = (
   </svg>
 );
 
-export const CircularProgressIcon = ({
-  percentage = 0,
-}: {
-  percentage?: number;
-}) => (
-  <svg className="w-full h-full" viewBox="0 0 128 128">
+export const CircularProgressIcon: React.FC<
+  { percentage?: number } & React.SVGProps<SVGSVGElement>
+> = ({ percentage = 0, ...props }) => (
+  <svg className="w-full h-full" viewBox="0 0 128 128" {...props}>
     <circle
       cx="64"
       cy="64"
@@ -355,7 +398,9 @@ export const CircularProgressIcon = ({
   </svg>
 );
 
-export const VideoHeaderIcon = (
+export const VideoHeaderIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
+  props,
+) => (
   <svg
     className="svg-icon"
     style={{
@@ -367,12 +412,15 @@ export const VideoHeaderIcon = (
     }}
     viewBox="0 0 1024 1024"
     xmlns="http://www.w3.org/2000/svg"
+    {...props}
   >
     <path d="M39.384615 1024V0h945.23077v1024H39.384615zM196.923077 78.769231H118.153846v78.769231h78.769231V78.769231z m0 157.538461H118.153846v78.769231h78.769231V236.307692z m0 157.538462H118.153846v78.769231h78.769231v-78.769231z m0 157.538461H118.153846v78.769231h78.769231v-78.769231z m0 157.538462H118.153846v78.769231h78.769231v-78.769231z m0 157.538461H118.153846v78.769231h78.769231v-78.769231zM748.307692 78.769231H275.692308v393.846154h472.615384V78.769231z m0 472.615384H275.692308v393.846154h472.615384V551.384615z m157.538462-472.615384h-78.769231v78.769231h78.769231V78.769231z m0 157.538461h-78.769231v78.769231h78.769231V236.307692z m0 157.538462h-78.769231v78.769231h78.769231v-78.769231z m0 157.538461h-78.769231v78.769231h78.769231v-78.769231z m0 157.538462h-78.769231v78.769231h78.769231v-78.769231z m0 157.538461h-78.769231v78.769231h78.769231v-78.769231z" />
   </svg>
 );
 
-export const VideoUploadIcon = (
+export const VideoUploadIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
+  props,
+) => (
   <svg
     className="svg-icon"
     style={{
@@ -384,6 +432,7 @@ export const VideoUploadIcon = (
     viewBox="0 0 1024 1024"
     xmlns="http://www.w3.org/2000/svg"
     fill="currentColor"
+    {...props}
   >
     <path
       d="M960 192h-28.384c-16.8 0-32.928 6.624-44.928 18.432L800 295.936V256a96 96 0 0 0-96-96H96C43.072 160 0 203.04 0 256v512a96 96 0 0 0 96 96h608c52.992 0 96-43.008 96-96v-39.072l86.688 85.504c12 11.808 28.128 18.432 44.928 18.432H960a64 64 0 0 0 64-64V256a64 64 0 0 0-64-64zM96 800c-17.664 0-32-14.368-32-32V256a32 32 0 0 1 32-32h608c17.632 0 32 14.336 32 32v512c0 17.632-14.368 32-32 32H96z m864-31.136h-32l-128-128V640l-32-32v-192l160-160h32v512.864z"
@@ -393,7 +442,9 @@ export const VideoUploadIcon = (
   </svg>
 );
 
-export const CorrectAnswerIcon = (
+export const CorrectAnswerIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
+  props,
+) => (
   <svg
     className="svg-icon"
     style={{
@@ -406,12 +457,15 @@ export const CorrectAnswerIcon = (
     viewBox="0 0 1024 1024"
     version="1.1"
     xmlns="http://www.w3.org/2000/svg"
+    {...props}
   >
     <path d="M427.2128 661.1456l364.2368-380.5184a38.4 38.4 0 0 1 55.5008 53.1456l-392.0896 409.6a38.4 38.4 0 0 1-55.6032-0.1536l-222.3104-233.984a38.4 38.4 0 1 1 55.7056-52.9408l194.56 204.8512z" />
   </svg>
 );
 
-export const IncorrectAnswerIcon = (
+export const IncorrectAnswerIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
+  props,
+) => (
   <svg
     className="svg-icon"
     style={{
@@ -424,12 +478,13 @@ export const IncorrectAnswerIcon = (
     viewBox="0 0 1024 1024"
     version="1.1"
     xmlns="http://www.w3.org/2000/svg"
+    {...props}
   >
     <path d="M801.62816 222.37184a30.72 30.72 0 0 1 0 43.43808L555.43808 512l246.19008 246.21056a30.72 30.72 0 1 1-43.43808 43.43808L512 555.43808 265.8304 801.62816a30.72 30.72 0 1 1-43.45856-43.43808L468.54144 512l-246.1696-246.1696a30.72 30.72 0 1 1 43.43808-43.45856L512 468.54144l246.21056-246.1696a30.72 30.72 0 0 1 43.43808 0z" />
   </svg>
 );
 
-export const ReOrderIcon = (
+export const ReOrderIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
     className="svg-icon"
     style={{
@@ -442,6 +497,7 @@ export const ReOrderIcon = (
     viewBox="0 0 1024 1024"
     version="1.1"
     xmlns="http://www.w3.org/2000/svg"
+    {...props}
   >
     <path
       d="M128 640h768v-85.333333H128v85.333333m0 170.666667h768v-85.333334H128v85.333334m0-341.333334h768V384H128v85.333333m0-256v85.333334h768V213.333333H128z"

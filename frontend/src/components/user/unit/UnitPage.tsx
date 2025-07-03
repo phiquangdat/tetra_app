@@ -27,10 +27,10 @@ interface Unit {
 }
 
 const stats = [
-  { icon: VideoIcon, label: 'Videos', type: 'video' },
-  { icon: BookIcon, label: 'Articles', type: 'article' },
-  { icon: PuzzleIcon, label: 'Quizzes', type: 'quiz' },
-  { icon: StarIcon, label: 'Points', type: 'points' },
+  { icon: <VideoIcon />, label: 'Videos', type: 'video' },
+  { icon: <BookIcon />, label: 'Articles', type: 'article' },
+  { icon: <PuzzleIcon />, label: 'Quizzes', type: 'quiz' },
+  { icon: <StarIcon />, label: 'Points', type: 'points' },
 ];
 
 async function fetchUnitDetails(id: string) {
@@ -162,9 +162,9 @@ const UnitPage = ({ id }: UnitPageProps) => {
               onClick={() => handleRowClick(index)}
             >
               <div className="w-6 h-6 flex items-center justify-center">
-                {content.content_type === 'video' && VideoIcon}
-                {content.content_type === 'article' && BookIcon}
-                {content.content_type === 'quiz' && PuzzleIcon}
+                {content.content_type === 'video' && <VideoIcon />}
+                {content.content_type === 'article' && <BookIcon />}
+                {content.content_type === 'quiz' && <PuzzleIcon />}
               </div>
               <div className="capitalize font-medium text-sm text-gray-700">
                 {content.content_type}
@@ -183,7 +183,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
                     Start challenge
                   </button>
                 )}
-                {checkedIndex === index ? CheckIcon : ''}
+                {checkedIndex === index ? <CheckIcon /> : ''}
               </div>
             </div>
           ))

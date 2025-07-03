@@ -71,11 +71,11 @@ const Header: React.FC<HeaderProps> = ({
             aria-label="Toggle menu"
           >
             {/* Hamburger icon */}
-            {HamburgerIcon}
+            <HamburgerIcon />
           </button>
         )}
 
-        {LogoIcon}
+        <LogoIcon />
         <span className="font-bold text-2xl text-blue-900 tracking-wide">
           Gamify learning
         </span>

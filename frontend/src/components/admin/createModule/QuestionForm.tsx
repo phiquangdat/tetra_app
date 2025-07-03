@@ -84,7 +84,7 @@ function QuestionForm({ questionNumber = 1, questionType, onClose }: Props) {
           onClick={handleClose}
           className="text-gray-400 hover:text-gray-600 transition-colors p-1"
         >
-          {CloseIcon}
+          <CloseIcon />
         </button>
       </div>
 

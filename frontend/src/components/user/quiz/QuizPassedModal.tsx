@@ -30,20 +30,22 @@ const QuizPassedModal = ({ onNext }: { onNext: () => void }) => {
           <div className="flex flex-row gap-10 mb-6 items-center justify-center">
             <div className="flex items-center gap-2 text-lg text-gray-700">
               <span className="inline-flex items-center justify-center">
-                {QuestionIcon}
+                <QuestionIcon />
               </span>
               {quiz.questions} questions
             </div>
             <div className="flex items-center gap-2 text-lg text-gray-700">
               <span className="inline-flex items-center justify-center">
-                {StarIcon}
+                <StarIcon />
               </span>
               {quiz.points} points
             </div>
           </div>
           <div className="rounded-xl p-6 mb-8 w-full max-w-md flex flex-col justify-center">
             <div className="flex items-center mb-2">
-              <span className="mr-2">{CheckAltIcon}</span>
+              <span className="mr-2">
+                <CheckAltIcon />
+              </span>
               <span className="text-lg">
                 You completed this quiz on {quiz.completedDate}
               </span>

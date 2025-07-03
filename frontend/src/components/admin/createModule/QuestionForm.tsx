@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import QuestionOption from './QuestionOption';
+import { CloseIcon } from '../../common/Icons';
 
 type Props = {
   questionNumber: number;
@@ -73,24 +74,6 @@ function QuestionForm({ questionNumber = 1, questionType, onClose }: Props) {
     return null;
   }
 
-  const icons = {
-    close: (
-      <svg
-        className="w-6 h-6"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.5}
-          d="M6 18L18 6M6 6l12 12"
-        />
-      </svg>
-    ),
-  };
-
   return (
     <div
       className="max-w-5xl px-4 pt-2 pb-6 my-6 rounded-lg border-1 border-gray-400 shadow-lg"
@@ -101,7 +84,7 @@ function QuestionForm({ questionNumber = 1, questionType, onClose }: Props) {
           onClick={handleClose}
           className="text-gray-400 hover:text-gray-600 transition-colors p-1"
         >
-          {icons.close}
+          <CloseIcon />
         </button>
       </div>
 

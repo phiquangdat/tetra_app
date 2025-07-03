@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { HamburgerIcon, LogoIcon } from '../common/Icons';
 
 export type NavLink = { label: string; href: string };
 type CTAButton = { label: string; href: string };
@@ -70,41 +71,11 @@ const Header: React.FC<HeaderProps> = ({
             aria-label="Toggle menu"
           >
             {/* Hamburger icon */}
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M3 6h18M3 12h18M3 18h18"
-                stroke="#3B82F6"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
+            {HamburgerIcon}
           </button>
         )}
 
-        <svg
-          width="36"
-          height="36"
-          viewBox="0 0 36 36"
-          fill="none"
-          className="mr-3"
-        >
-          <rect
-            x="3"
-            y="5"
-            width="30"
-            height="26"
-            rx="8"
-            stroke="#3B82F6"
-            strokeWidth="2"
-          />
-          <path
-            d="M12 18l5 5 7-9"
-            stroke="#3B82F6"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        {LogoIcon}
         <span className="font-bold text-2xl text-blue-900 tracking-wide">
           Gamify learning
         </span>

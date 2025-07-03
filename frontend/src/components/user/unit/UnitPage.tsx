@@ -7,6 +7,13 @@ import {
 } from '../../../services/unit/unitApi';
 import { useQuizModal } from '../../../context/user/QuizModalContext.tsx';
 import { useUnitContent } from '../../../context/user/UnitContentContext';
+import {
+  BookIcon,
+  PuzzleIcon,
+  StarIcon,
+  VideoIcon,
+  CheckIcon,
+} from '../../common/Icons.tsx';
 
 interface UnitPageProps {
   id: string;
@@ -19,79 +26,11 @@ interface Unit {
   moduleId: string;
 }
 
-const icons = {
-  video: (
-    <svg
-      className="w-6 h-6 text-gray-700 flex-shrink-0"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      viewBox="0 0 24 24"
-    >
-      <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 6h11a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z" />
-    </svg>
-  ),
-  article: (
-    <svg
-      className="w-6 h-6 text-gray-700 flex-shrink-0"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      viewBox="0 0 24 24"
-    >
-      <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
-      <path d="M17 21V13H7v8" />
-      <path d="M7 3v5h8" />
-    </svg>
-  ),
-  quiz: (
-    <svg
-      className="w-6 h-6 text-gray-700 flex-shrink-0"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M21 13v-2a2 2 0 00-2-2h-2V7a2 2 0 00-2-2h-2V3a2 2 0 00-2-2H7a2 2 0 00-2 2v2H3a2 2 0 00-2 2v2h2a2 2 0 012 2v2h2a2 2 0 012 2v2h2a2 2 0 012 2v2h2a2 2 0 002-2v-2h2a2 2 0 002-2z"
-      />
-    </svg>
-  ),
-  points: (
-    <svg
-      className="w-6 h-6"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M12 17.75l-6.172 3.245 1.179-6.873L2 9.755l6.908-1.004L12 2.5l3.092 6.251L22 9.755l-5.007 4.367 1.179 6.873z"
-      />
-    </svg>
-  ),
-  check: (
-    <svg
-      className="w-6 h-6"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      viewBox="0 0 24 24"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-    </svg>
-  ),
-};
-
 const stats = [
-  { icon: icons.video, label: 'Videos', type: 'video' },
-  { icon: icons.article, label: 'Articles', type: 'article' },
-  { icon: icons.quiz, label: 'Quizzes', type: 'quiz' },
-  { icon: icons.points, label: 'Points', type: 'points' },
+  { icon: VideoIcon, label: 'Videos', type: 'video' },
+  { icon: BookIcon, label: 'Articles', type: 'article' },
+  { icon: PuzzleIcon, label: 'Quizzes', type: 'quiz' },
+  { icon: StarIcon, label: 'Points', type: 'points' },
 ];
 
 async function fetchUnitDetails(id: string) {
@@ -223,7 +162,9 @@ const UnitPage = ({ id }: UnitPageProps) => {
               onClick={() => handleRowClick(index)}
             >
               <div className="w-6 h-6 flex items-center justify-center">
-                {icons[content.content_type as keyof typeof icons]}
+                {content.content_type === 'video' && VideoIcon}
+                {content.content_type === 'article' && BookIcon}
+                {content.content_type === 'quiz' && PuzzleIcon}
               </div>
               <div className="capitalize font-medium text-sm text-gray-700">
                 {content.content_type}
@@ -242,7 +183,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
                     Start challenge
                   </button>
                 )}
-                {checkedIndex === index ? icons.check : ''}
+                {checkedIndex === index ? CheckIcon : ''}
               </div>
             </div>
           ))

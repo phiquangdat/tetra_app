@@ -13,6 +13,8 @@ import { OpenBooksIcon, PuzzleIcon, StarIcon } from '../../common/Icons';
 interface ModulePageProps {
   id: string;
 }
+import { useModuleProgress } from '../../../context/user/ModuleContext';
+import { useUnitContent } from '../../../context/user/UnitContentContext.tsx';
 
 export type Unit = {
   id: string;
@@ -24,6 +26,8 @@ export type Unit = {
 };
 
 const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
+  const { setUnitId, setUnits: setModuleUnits } = useModuleProgress();
+  const { setUnitContent } = useUnitContent();
   const [module, setModule] = useState<Module | null>(null);
   const [units, setUnits] = useState<Unit[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -41,6 +45,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
         console.log('Fetched units:', units);
         setModule(data);
         setUnits(units);
+        setModuleUnits(units);
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);
@@ -65,6 +70,13 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
 
         if (firstUnitContent && firstUnitContent.length > 0) {
           const firstContent = firstUnitContent[0];
+
+          setModuleUnits(units);
+
+          setUnitId(firstUnitId);
+
+          setUnitContent(firstUnitId, firstUnitContent);
+
           navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
             state: { unitId: firstUnitId },
           });

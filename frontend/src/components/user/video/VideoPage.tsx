@@ -5,7 +5,7 @@ import {
   fetchVideoContentById,
   type Video,
 } from '../../../services/unit/unitApi';
-import { useUnitContent } from '../../../context/user/UnitContentContext';
+import { useModuleProgress } from '../../../context/user/ModuleContext.tsx';
 import { UploadAltIcon } from '../../common/Icons';
 
 const FallbackVideo = () => (
@@ -27,7 +27,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
-  const { goToNextContent } = useUnitContent();
+  const { goToNextContent } = useModuleProgress();
 
   useEffect(() => {
     if (id) {

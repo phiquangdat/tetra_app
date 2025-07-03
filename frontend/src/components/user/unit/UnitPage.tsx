@@ -5,8 +5,9 @@ import {
   fetchUnitContentById,
   type UnitContent,
 } from '../../../services/unit/unitApi';
-import { useQuizModal } from '../../../context/user/QuizModalContext.tsx';
 import { useUnitContent } from '../../../context/user/UnitContentContext';
+import { useModuleProgress } from '../../../context/user/ModuleContext';
+import { useQuizModal } from '../../../context/user/QuizModalContext.tsx';
 import {
   BookIcon,
   PuzzleIcon,
@@ -44,6 +45,7 @@ async function fetchUnitDetails(id: string) {
 }
 
 const UnitPage = ({ id }: UnitPageProps) => {
+  const { setUnitId } = useModuleProgress();
   const [checkedIndex, setCheckedIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -70,6 +72,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
       try {
         const details = await fetchUnitDetails(id);
         setUnitDetails(details);
+        setUnitId(id);
 
         const content = await fetchUnitContentById(id);
         setUnitContent(details.id, content);

@@ -4,7 +4,7 @@ import {
   fetchArticleContentById,
   type Article,
 } from '../../../services/unit/unitApi';
-import { useUnitContent } from '../../../context/user/UnitContentContext';
+import { useModuleProgress } from '../../../context/user/ModuleContext';
 
 interface ArticlePageProps {
   id: string;
@@ -18,7 +18,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
   useEffect(() => {
     fetchArticleContentById(id).then((data) => setArticle(data));
   }, [id]);
-  const { goToNextContent } = useUnitContent();
+  const { goToNextContent } = useModuleProgress();
 
   return (
     <div className="mx-auto px-8 py-8 min-h-screen text-left">

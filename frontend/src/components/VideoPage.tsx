@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { validateVideoUrl } from '../utils/videoHelpers';
 import { fetchVideoContentById, type Video } from '../services/unit/unitApi';
-import { useUnitContent } from '../context/UnitContentContext';
+import { useUnitContent } from '../context/user/UnitContentContext';
 
 const FallbackVideo = () => (
   <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100 rounded-2xl">

@@ -11,7 +11,7 @@ import {
 import UnitPage from '../UnitPage';
 import { fetchUnitById } from '../../services/unit/unitApi';
 import { QuizModalProvider } from '../../context/user/QuizModalContext';
-import { UnitContentProvider } from '../../context/UnitContentContext.tsx';
+import { UnitContentProvider } from '../../context/user/UnitContentContext';
 
 vi.mock('../../services/unit/unitApi', () => ({
   fetchUnitById: vi.fn(),

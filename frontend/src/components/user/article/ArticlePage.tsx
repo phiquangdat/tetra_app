@@ -4,7 +4,7 @@ import {
   fetchArticleContentById,
   type Article,
 } from '../../../services/unit/unitApi';
-import { useUnitContent } from '../../../context/UnitContentContext';
+import { useUnitContent } from '../../../context/user/UnitContentContext';
 
 interface ArticlePageProps {
   id: string;

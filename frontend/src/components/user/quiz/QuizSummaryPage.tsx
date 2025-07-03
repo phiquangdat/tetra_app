@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import { useUnitContent } from '../../../context/user/UnitContentContext.tsx';
 import { useModuleProgress } from '../../../context/user/ModuleContext';
+import { CircularProgressIcon } from '../../common/Icons';
 
 const mockedQuestions = [
   {
@@ -67,28 +68,7 @@ const QuizSummaryPage: React.FC = () => {
       <div className="flex flex-col md:flex-row items-center justify-center gap-12 mb-12">
         {/* Circular progress bar */}
         <div className="relative w-32 h-32">
-          <svg className="w-full h-full" viewBox="0 0 128 128">
-            <circle
-              cx="64"
-              cy="64"
-              r="45"
-              stroke="#D4C2FC"
-              strokeWidth="10"
-              fill="none"
-            />
-            <circle
-              cx="64"
-              cy="64"
-              r="45"
-              stroke="#FFA726"
-              strokeWidth="10"
-              fill="none"
-              strokeDasharray={2 * Math.PI * 45}
-              strokeDashoffset={(1 - percentage / 100) * 2 * Math.PI * 45}
-              strokeLinecap="round"
-              transform="rotate(-90 64 64)"
-            />
-          </svg>
+          <CircularProgressIcon percentage={percentage} />
           <div className="absolute inset-0 flex items-center justify-center text-xl font-bold text-[#14248A]">
             {percentage}%
           </div>

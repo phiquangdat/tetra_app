@@ -1,13 +1,13 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { createModule } from '../../services/module/moduleApi';
-
+import { isValidImageUrl } from '../../utils/validators';
 interface ModuleContextProps {
   id: string | null;
   title: string;
   description: string;
   topic: string;
   pointsAwarded: number;
-  coverPicture: File | null;
+  coverPicture: string | null;
   isDirty: boolean;
   isSaving: boolean;
   error: string | null;
@@ -60,7 +60,18 @@ export const ModuleContextProvider = ({
       ...prev,
       [key]: value,
       isDirty: true,
+      error: null,
     }));
+
+    if (key === 'coverPicture' && typeof value === 'string') {
+      if (!isValidImageUrl(value)) {
+        setModule((prev) => ({
+          ...prev,
+          error: 'Invalid image URL format.',
+        }));
+        console.error('Invalid image URL format:', value);
+      }
+    }
   };
 
   const setModuleState = (newState: Partial<ModuleContextProps>) => {
@@ -72,15 +83,15 @@ export const ModuleContextProvider = ({
 
     setModule((prev) => ({ ...prev, isSaving: true, error: null }));
 
-    const tempCoverUrl = module.coverPicture
-      ? URL.createObjectURL(module.coverPicture)
-      : '';
-
     try {
+      if (module.coverPicture && !isValidImageUrl(module.coverPicture)) {
+        throw new Error('Invalid image URL format for cover picture.');
+      }
+
       await createModule({
         ...module,
         points: module.pointsAwarded,
-        coverUrl: tempCoverUrl,
+        coverUrl: module.coverPicture ?? '',
         id: module.id ?? '',
       });
 
@@ -95,7 +106,6 @@ export const ModuleContextProvider = ({
       }));
     } finally {
       setModule((prev) => ({ ...prev, isSaving: false }));
-      if (tempCoverUrl) URL.revokeObjectURL(tempCoverUrl);
     }
   };
 

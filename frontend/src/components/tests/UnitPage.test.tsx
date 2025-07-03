@@ -8,7 +8,7 @@ import {
   Route,
   useParams,
 } from 'react-router-dom';
-import UnitPage from '../UnitPage';
+import UnitPage from '../user/unit/UnitPage';
 import { fetchUnitById } from '../../services/unit/unitApi';
 import { QuizModalProvider } from '../../context/user/QuizModalContext';
 import { UnitContentProvider } from '../../context/user/UnitContentContext';

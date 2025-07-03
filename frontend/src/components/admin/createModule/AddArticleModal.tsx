@@ -27,8 +27,6 @@ function AddArticleModal({ isOpen, onClose, onSave }: AddArticleModalProps) {
     onClose();
   };
 
-
-
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
       handleClose();

@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { HamburgerIcon, LogoIcon } from '../common/Icons';
 
 export type NavLink = { label: string; href: string };
-type CTAButton = { label: string; href: string };
+type CTAButton = { label: string; href: string; onClick?: () => void };
 
 interface HeaderProps {
   navLinks: NavLink[];
@@ -99,6 +99,12 @@ const Header: React.FC<HeaderProps> = ({
         <a
           href={ctaButton.href}
           className="bg-indigo-100 text-blue-900 font-bold text-lg px-7 py-2 rounded-lg no-underline shadow-sm border-0 transition-colors duration-200 hover:bg-indigo-200"
+          onClick={(e) => {
+            if (ctaButton.onClick) {
+              e.preventDefault();
+              ctaButton.onClick();
+            }
+          }}
         >
           {ctaButton.label}
         </a>

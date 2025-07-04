@@ -7,11 +7,11 @@ const navLinks: NavLink[] = [
   { label: 'Contact', href: '/contact' },
 ];
 
-const HomeHeader = () => {
+const HomeHeader = ({ onLoginClick }: { onLoginClick?: () => void }) => {
   return (
     <Header
       navLinks={navLinks}
-      ctaButton={{ label: 'Login', href: '/login' }}
+      ctaButton={{ label: 'Login', href: '/login', onClick: onLoginClick }}
     />
   );
 };

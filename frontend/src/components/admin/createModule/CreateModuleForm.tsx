@@ -1,6 +1,6 @@
 import React, { useEffect, useState, type ChangeEvent } from 'react';
 import { useModuleContext } from '../../../context/admin/ModuleContext';
-import { UploadIcon } from '../../common/Icons';
+import { isValidImageUrl } from '../../../utils/validators'; // Import if needed here too
 
 type Props = {};
 
@@ -35,7 +35,9 @@ const CreateModuleForm: React.FC<Props> = () => {
       console.error('Error saving module:', err);
     }
   };
-  const coverPreviewUrl = coverPicture || null;
+
+  const coverPreviewUrl =
+    coverPicture && isValidImageUrl(coverPicture) ? coverPicture : null;
 
   useEffect(() => {
     return () => {
@@ -65,6 +67,11 @@ const CreateModuleForm: React.FC<Props> = () => {
     markModuleAsDirty();
   };
 
+  const handleCoverPictureChange = (e: ChangeEvent<HTMLInputElement>) => {
+    updateModuleField('coverPicture', e.target.value);
+    markModuleAsDirty();
+  };
+
   const renderCoverPicture = () => {
     return (
       <div className="space-y-3">
@@ -83,7 +90,6 @@ const CreateModuleForm: React.FC<Props> = () => {
           htmlFor="coverPictureUrl"
           className="block text-sm font-medium text-gray-700"
         >
-          <UploadIcon />
           Cover Picture URL
         </label>
         <input
@@ -92,7 +98,7 @@ const CreateModuleForm: React.FC<Props> = () => {
           name="coverPictureUrl"
           value={coverPicture || ''}
           placeholder="https://example.com/image.jpg"
-          onChange={(e) => updateModuleField('coverPicture', e.target.value)}
+          onChange={handleCoverPictureChange}
           className="text-xs bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
         />
       </div>

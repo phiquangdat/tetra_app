@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || '';
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || '/api';
 
 export interface Module {
   id: string;
@@ -10,7 +10,7 @@ export interface Module {
 }
 
 export async function fetchModuleById(id: string): Promise<Module> {
-  const response = await fetch(`${BASE_URL}/api/modules/${id}`);
+  const response = await fetch(`${BASE_URL}/modules/${id}`);
   if (!response.ok) {
     throw new Error('Failed to fetch module');
   }
@@ -20,7 +20,7 @@ export async function fetchModuleById(id: string): Promise<Module> {
 
 export async function fetchModules(): Promise<any> {
   try {
-    const response = await fetch(`${BASE_URL}/api/modules`);
+    const response = await fetch(`${BASE_URL}/modules`);
     const modulesData = await response.json();
 
     if (!response.ok) throw new Error('Failed to fetch modules');
@@ -37,7 +37,7 @@ export async function fetchModules(): Promise<any> {
 }
 
 export async function createModule(module: Module): Promise<Module> {
-  const response = await fetch(`${BASE_URL}/api/modules`, {
+  const response = await fetch(`${BASE_URL}/modules`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

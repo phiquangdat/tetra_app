@@ -1,6 +1,9 @@
-import React, { useEffect, useState, type ChangeEvent } from 'react';
+import React, { useEffect, useState, useRef, type ChangeEvent } from 'react';
 import { useModuleContext } from '../../../context/admin/ModuleContext';
-import { isValidImageUrl } from '../../../utils/validators'; // Import if needed here too
+import {
+  isValidImageUrl,
+  isImageUrlRenderable,
+} from '../../../utils/validators';
 
 type Props = {};
 
@@ -19,6 +22,33 @@ const CreateModuleForm: React.FC<Props> = () => {
   } = useModuleContext();
 
   const [successSaved, setSuccessSaved] = useState(false);
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const validateCoverPicture = async () => {
+      if (coverPicture && isValidImageUrl(coverPicture)) {
+        const exists = await isImageUrlRenderable(coverPicture);
+        if (!cancelled) {
+          if (exists) {
+            setCoverPreviewUrl(coverPicture);
+          } else {
+            setCoverPreviewUrl(null);
+          }
+        }
+      } else {
+        setCoverPreviewUrl(null);
+      }
+    };
+
+    validateCoverPicture();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [coverPicture]);
 
   const handleSaveModule = async () => {
     if (isSaving) return;
@@ -28,25 +58,11 @@ const CreateModuleForm: React.FC<Props> = () => {
     try {
       await saveModule();
       setSuccessSaved(true);
-      setTimeout(() => {
-        setSuccessSaved(false);
-      }, 3000);
+      setTimeout(() => setSuccessSaved(false), 3000);
     } catch (err) {
       console.error('Error saving module:', err);
     }
   };
-
-  const coverPreviewUrl =
-    coverPicture && isValidImageUrl(coverPicture) ? coverPicture : null;
-
-  useEffect(() => {
-    return () => {
-      if (coverPreviewUrl) {
-        URL.revokeObjectURL(coverPreviewUrl);
-      }
-    };
-  }, [coverPreviewUrl]);
-
   const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
     updateModuleField('title', e.target.value);
     markModuleAsDirty();
@@ -67,8 +83,12 @@ const CreateModuleForm: React.FC<Props> = () => {
     markModuleAsDirty();
   };
 
-  const handleCoverPictureChange = (e: ChangeEvent<HTMLInputElement>) => {
-    updateModuleField('coverPicture', e.target.value);
+  const handleCoverPictureChange = async () => {
+    if (!coverInputRef.current) return;
+
+    const value = coverInputRef.current.value;
+
+    await updateModuleField('coverPicture', value);
     markModuleAsDirty();
   };
 
@@ -93,12 +113,13 @@ const CreateModuleForm: React.FC<Props> = () => {
           Cover Picture URL
         </label>
         <input
+          ref={coverInputRef}
           type="text"
           id="coverPictureUrl"
           name="coverPictureUrl"
-          value={coverPicture || ''}
           placeholder="https://example.com/image.jpg"
           onChange={handleCoverPictureChange}
+          defaultValue={coverPicture ?? ''}
           className="text-xs bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
         />
       </div>

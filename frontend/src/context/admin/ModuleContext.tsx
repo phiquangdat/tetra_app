@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { createModule } from '../../services/module/moduleApi';
-import { isValidImageUrl } from '../../utils/validators';
+import { isValidImageUrl, isImageUrlRenderable } from '../../utils/validators';
+
 interface ModuleContextProps {
   id: string | null;
   title: string;
@@ -14,7 +15,7 @@ interface ModuleContextProps {
 }
 
 interface ModuleContextValue extends ModuleContextProps {
-  updateModuleField: (key: string, value: any) => void;
+  updateModuleField: (key: string, value: any) => Promise<void>;
   markModuleAsDirty: () => void;
   setModuleState: (newState: Partial<ModuleContextProps>) => void;
   saveModule: () => Promise<void>;
@@ -55,28 +56,35 @@ export const ModuleContextProvider = ({
     setModule((prev) => ({ ...prev, isDirty: true }));
   };
 
-  const updateModuleField = (key: string, value: any) => {
-    setModule((prev) => {
-      let error = null;
+  const updateModuleField = async (key: string, value: any): Promise<void> => {
+    let error: string | null = null;
 
-      if (
-        key === 'coverPicture' &&
-        typeof value === 'string' &&
-        value.trim() !== ''
-      ) {
+    if (
+      key === 'coverPicture' &&
+      typeof value === 'string' &&
+      value.trim() !== ''
+    ) {
+      try {
         if (!isValidImageUrl(value)) {
           error = 'Invalid image URL format.';
-          console.error('Invalid image URL format:', value);
+        } else {
+          const isRenderable = await isImageUrlRenderable(value);
+          if (!isRenderable) {
+            error =
+              'Image URL is not accessible or does not point to an actual image.';
+          }
         }
+      } catch (e) {
+        error = 'Failed to validate cover picture.';
       }
+    }
 
-      return {
-        ...prev,
-        [key]: value,
-        isDirty: true,
-        error,
-      };
-    });
+    setModule((prev) => ({
+      ...prev,
+      [key]: value,
+      isDirty: true,
+      error,
+    }));
   };
 
   const setModuleState = (newState: Partial<ModuleContextProps>) => {

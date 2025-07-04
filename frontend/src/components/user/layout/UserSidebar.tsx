@@ -11,7 +11,11 @@ const bottomItems = [
 ];
 
 const UserSidebar = () => (
-  <Sidebar topItems={topItems} bottomItems={bottomItems} />
+  <Sidebar
+    topItems={topItems}
+    bottomItems={bottomItems}
+    className={'w-64 border-r border-gray-200 bg-white'}
+  />
 );
 
 export default UserSidebar;

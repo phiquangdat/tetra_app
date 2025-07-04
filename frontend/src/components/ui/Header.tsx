@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { HamburgerIcon, LogoIcon } from '../common/Icons';
+import { HamburgerIcon, LogoIcon, CloseIcon } from '../common/Icons';
 
 export type NavLink = { label: string; href: string };
 type CTAButton = { label: string; href: string };
@@ -10,6 +10,7 @@ interface HeaderProps {
   ctaButton?: CTAButton;
   showHamburger?: boolean;
   onHamburgerClick?: () => void;
+  isSidebarOpen?: boolean;
 }
 
 const sectionMap: Record<string, string> = {
@@ -35,6 +36,7 @@ const Header: React.FC<HeaderProps> = ({
   ctaButton,
   showHamburger = false,
   onHamburgerClick,
+  isSidebarOpen,
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -70,8 +72,11 @@ const Header: React.FC<HeaderProps> = ({
             className="mr-4 focus:outline-none"
             aria-label="Toggle menu"
           >
-            {/* Hamburger icon */}
-            <HamburgerIcon />
+            {isSidebarOpen ? (
+              <CloseIcon className="w-6 h-6 text-blue-900" />
+            ) : (
+              <HamburgerIcon className="w-6 h-6 text-blue-900" />
+            )}
           </button>
         )}
 

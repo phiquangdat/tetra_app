@@ -47,9 +47,7 @@ export async function fetchQuizQuestionsByQuizId(
   quizId: string,
 ): Promise<Question[]> {
   try {
-    const response = await fetch(
-      `${BASE_URL}/questions?contentId=${quizId}`,
-    );
+    const response = await fetch(`${BASE_URL}/questions?contentId=${quizId}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch QUIZ questions for ${quizId}`);
     }

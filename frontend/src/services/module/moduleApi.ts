@@ -17,6 +17,7 @@ export interface Module {
   description: string;
   points: number;
   coverUrl: string;
+  status: string; // Add this line to match the expected type in components
 }
 
 export async function fetchModuleById(id: string): Promise<Module> {

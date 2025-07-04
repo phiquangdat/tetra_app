@@ -11,6 +11,7 @@ interface ModuleContextProps {
   isDirty: boolean;
   isSaving: boolean;
   error: string | null;
+  status: string; // <-- Add this line with a default value where the object is created, e.g., status: 'draft'
 }
 
 interface ModuleContextValue extends ModuleContextProps {
@@ -30,6 +31,7 @@ const initialModuleState: ModuleContextProps = {
   isDirty: false,
   isSaving: false,
   error: null,
+  status: 'draft', // <-- Provide a default value here
 };
 
 const ModuleContext = createContext<ModuleContextValue | undefined>(undefined);
@@ -82,6 +84,7 @@ export const ModuleContextProvider = ({
         points: module.pointsAwarded,
         coverUrl: tempCoverUrl,
         id: module.id ?? '',
+        status: module.status, // <-- Ensure status is included here
       });
 
       setModule((prev) => ({

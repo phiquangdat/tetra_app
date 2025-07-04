@@ -56,22 +56,27 @@ export const ModuleContextProvider = ({
   };
 
   const updateModuleField = (key: string, value: any) => {
-    setModule((prev) => ({
-      ...prev,
-      [key]: value,
-      isDirty: true,
-      error: null,
-    }));
+    setModule((prev) => {
+      let error = null;
 
-    if (key === 'coverPicture' && typeof value === 'string') {
-      if (!isValidImageUrl(value)) {
-        setModule((prev) => ({
-          ...prev,
-          error: 'Invalid image URL format.',
-        }));
-        console.error('Invalid image URL format:', value);
+      if (
+        key === 'coverPicture' &&
+        typeof value === 'string' &&
+        value.trim() !== ''
+      ) {
+        if (!isValidImageUrl(value)) {
+          error = 'Invalid image URL format.';
+          console.error('Invalid image URL format:', value);
+        }
       }
-    }
+
+      return {
+        ...prev,
+        [key]: value,
+        isDirty: true,
+        error,
+      };
+    });
   };
 
   const setModuleState = (newState: Partial<ModuleContextProps>) => {

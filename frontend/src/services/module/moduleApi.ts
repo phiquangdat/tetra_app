@@ -1,8 +1,5 @@
 const envBaseUrl = import.meta.env.VITE_BACKEND_URL;
-let BASE_URL = envBaseUrl && envBaseUrl.trim() !== '' ? envBaseUrl : '/api';
-if (BASE_URL !== '/api' && !BASE_URL.endsWith('/api')) {
-  BASE_URL = BASE_URL.replace(/\/+$/, '') + '/api';
-}
+const BASE_URL = envBaseUrl && envBaseUrl.trim() !== '' ? envBaseUrl : '/api';
 
 console.log(
   '[moduleApi] Computed BASE_URL:',
@@ -23,7 +20,7 @@ export interface Module {
 }
 
 export async function fetchModuleById(id: string): Promise<Module> {
-  const url = `${BASE_URL}/api/modules/${id}`;
+  const url = `${BASE_URL}/modules/${id}`;
   console.log(`[fetchModuleById] Fetching: ${url}`);
   try {
     const response = await fetch(url);
@@ -46,8 +43,8 @@ export async function fetchModuleById(id: string): Promise<Module> {
   }
 }
 
-export async function fetchModules(): Promise<any> {
-  const url = `${BASE_URL}/api/modules`;
+export async function fetchModules(): Promise<Module[]> {
+  const url = `${BASE_URL}/modules`;
   console.log('[fetchModules] BASE_URL:', BASE_URL);
   console.log('[fetchModules] Fetching:', url);
   try {
@@ -68,7 +65,7 @@ export async function fetchModules(): Promise<any> {
     const contentType = response.headers.get('Content-Type') || '';
     console.log('[fetchModules] Content-Type:', contentType);
     if (contentType.includes('application/json')) {
-      const modulesData = await response.json();
+      const modulesData: Module[] = await response.json();
       console.log('[fetchModules] Success. Data:', modulesData);
       return modulesData;
     } else {
@@ -83,7 +80,7 @@ export async function fetchModules(): Promise<any> {
 }
 
 export async function createModule(module: Module): Promise<Module> {
-  const url = `${BASE_URL}/api/modules`;
+  const url = `${BASE_URL}/modules`;
   console.log('[createModule] POST:', url, 'Payload:', module);
   try {
     const response = await fetch(url, {

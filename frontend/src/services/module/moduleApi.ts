@@ -1,6 +1,8 @@
 const envBaseUrl = import.meta.env.VITE_BACKEND_URL;
 const BASE_URL = envBaseUrl && envBaseUrl.trim() !== '' ? envBaseUrl : '/api';
 
+export { BASE_URL }; // Export for debugging if needed
+
 export interface Module {
   id: string;
   title: string;
@@ -21,23 +23,29 @@ export async function fetchModuleById(id: string): Promise<Module> {
 
 export async function fetchModules(): Promise<any> {
   try {
-    const response = await fetch(`${BASE_URL}/modules`);
+    console.log('[fetchModules] BASE_URL:', BASE_URL);
+    const url = `${BASE_URL}/modules`;
+    console.log('[fetchModules] Fetching:', url);
+    const response = await fetch(url);
     const contentType = response.headers.get('Content-Type') || '';
-    if (!response.ok) throw new Error('Failed to fetch modules');
+    if (!response.ok) {
+      console.error(`[fetchModules] Bad response status: ${response.status}`);
+      throw new Error('Failed to fetch modules');
+    }
 
     if (contentType.includes('application/json')) {
       const modulesData = await response.json();
       return modulesData;
     } else {
       const text = await response.text();
-      console.error('Expected JSON but received:', text);
+      console.error('[fetchModules] Expected JSON but received:', text);
       return [];
     }
   } catch (error) {
     if (error instanceof Error) {
-      console.error('Error fetching modules:', error.message);
+      console.error('[fetchModules] Error:', error.message);
     } else {
-      console.error('Unknown error fetching modules', error);
+      console.error('[fetchModules] Unknown error:', error);
     }
     return [];
   }

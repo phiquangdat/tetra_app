@@ -4,6 +4,7 @@ import {
   isValidImageUrl,
   isImageUrlRenderable,
 } from '../../../utils/validators';
+import { isValidImageUrl } from '../../../utils/validators'; // Import if needed here too
 
 type Props = {};
 
@@ -63,6 +64,18 @@ const CreateModuleForm: React.FC<Props> = () => {
       console.error('Error saving module:', err);
     }
   };
+
+  const coverPreviewUrl =
+    coverPicture && isValidImageUrl(coverPicture) ? coverPicture : null;
+
+  useEffect(() => {
+    return () => {
+      if (coverPreviewUrl) {
+        URL.revokeObjectURL(coverPreviewUrl);
+      }
+    };
+  }, [coverPreviewUrl]);
+
   const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
     updateModuleField('title', e.target.value);
     markModuleAsDirty();
@@ -89,6 +102,8 @@ const CreateModuleForm: React.FC<Props> = () => {
     const value = coverInputRef.current.value;
 
     await updateModuleField('coverPicture', value);
+  const handleCoverPictureChange = (e: ChangeEvent<HTMLInputElement>) => {
+    updateModuleField('coverPicture', e.target.value);
     markModuleAsDirty();
   };
 
@@ -118,8 +133,14 @@ const CreateModuleForm: React.FC<Props> = () => {
           id="coverPictureUrl"
           name="coverPictureUrl"
           placeholder="https://example.com/image.jpg"
+          type="text"
+          id="coverPictureUrl"
+          name="coverPictureUrl"
+          value={coverPicture || ''}
+          placeholder="https://example.com/image.jpg"
           onChange={handleCoverPictureChange}
           defaultValue={coverPicture ?? ''}
+          className="text-xs bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
           className="text-xs bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
         />
       </div>

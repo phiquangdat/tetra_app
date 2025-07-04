@@ -55,7 +55,29 @@ describe('CreateModuleForm', () => {
     await userEvent.type(coverInput, imageUrl);
     expect(coverInput).toHaveValue(imageUrl);
   });
+  it('allows user upload cover picture via URL', async () => {
+    const imageUrl = 'https://example.com/image.jpg';
 
+  it('shows error message when invalid image URL is provided', async () => {
+    const coverInput = screen.getByLabelText(/cover picture url/i);
+    await userEvent.clear(coverInput);
+    await userEvent.type(coverInput, 'invalid-url');
+    const coverInput = screen.getByLabelText(/cover picture url/i);
+
+    expect(screen.getByText(/Invalid image URL format./i)).toBeInTheDocument();
+  });
+    await userEvent.clear(coverInput);
+    await userEvent.type(coverInput, imageUrl);
+
+  it('shows success message after saving module', async () => {
+    const saveButton = screen.getByRole('button', { name: /Save/i });
+    await userEvent.click(saveButton);
+    const image = await screen.findByAltText(/module cover/i);
+    expect(image).toBeInTheDocument();
+    expect(image).toHaveAttribute('src', imageUrl);
+  });
+
+    expect(screen.getByText(/Module saved successfully!/i)).toBeInTheDocument();
   it('shows error message when invalid image URL is provided', async () => {
     const coverInput = screen.getByLabelText(/cover picture url/i);
     await userEvent.clear(coverInput);

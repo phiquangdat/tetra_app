@@ -22,11 +22,17 @@ export async function fetchModuleById(id: string): Promise<Module> {
 export async function fetchModules(): Promise<any> {
   try {
     const response = await fetch(`${BASE_URL}/modules`);
-    const modulesData = await response.json();
-
+    const contentType = response.headers.get('Content-Type') || '';
     if (!response.ok) throw new Error('Failed to fetch modules');
 
-    return modulesData;
+    if (contentType.includes('application/json')) {
+      const modulesData = await response.json();
+      return modulesData;
+    } else {
+      const text = await response.text();
+      console.error('Expected JSON but received:', text);
+      return [];
+    }
   } catch (error) {
     if (error instanceof Error) {
       console.error('Error fetching modules:', error.message);

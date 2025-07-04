@@ -93,6 +93,7 @@ export const ModuleContextProvider = ({
         isDirty: false,
         isSaving: false,
         error: null,
+        status: responseModule.status, // Ensure status is preserved after save
       }));
     } catch (err) {
       setModule((prev) => ({

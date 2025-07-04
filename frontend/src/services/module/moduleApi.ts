@@ -4,7 +4,12 @@ if (BASE_URL !== '/api' && !BASE_URL.endsWith('/api')) {
   BASE_URL = BASE_URL.replace(/\/+$/, '') + '/api';
 }
 
-console.log('[moduleApi] Computed BASE_URL:', BASE_URL, '| VITE_BACKEND_URL:', envBaseUrl);
+console.log(
+  '[moduleApi] Computed BASE_URL:',
+  BASE_URL,
+  '| VITE_BACKEND_URL:',
+  envBaseUrl,
+);
 
 export { BASE_URL }; // Export for debugging if needed
 
@@ -23,7 +28,10 @@ export async function fetchModuleById(id: string): Promise<Module> {
   try {
     const response = await fetch(url);
     console.log(`[fetchModuleById] Response status: ${response.status}`);
-    console.log(`[fetchModuleById] Response headers:`, Object.fromEntries(response.headers.entries()));
+    console.log(
+      `[fetchModuleById] Response headers:`,
+      Object.fromEntries(response.headers.entries()),
+    );
     if (!response.ok) {
       const text = await response.text();
       console.error(`[fetchModuleById] Error response body:`, text);
@@ -45,10 +53,16 @@ export async function fetchModules(): Promise<any> {
   try {
     const response = await fetch(url);
     console.log(`[fetchModules] Response status: ${response.status}`);
-    console.log(`[fetchModules] Response headers:`, Object.fromEntries(response.headers.entries()));
+    console.log(
+      `[fetchModules] Response headers:`,
+      Object.fromEntries(response.headers.entries()),
+    );
     if (!response.ok) {
       const text = await response.text();
-      console.error(`[fetchModules] Bad response status: ${response.status}, body:`, text);
+      console.error(
+        `[fetchModules] Bad response status: ${response.status}, body:`,
+        text,
+      );
       throw new Error('Failed to fetch modules');
     }
     const contentType = response.headers.get('Content-Type') || '';
@@ -80,7 +94,10 @@ export async function createModule(module: Module): Promise<Module> {
       body: JSON.stringify(module),
     });
     console.log(`[createModule] Response status: ${response.status}`);
-    console.log(`[createModule] Response headers:`, Object.fromEntries(response.headers.entries()));
+    console.log(
+      `[createModule] Response headers:`,
+      Object.fromEntries(response.headers.entries()),
+    );
     if (!response.ok) {
       const text = await response.text();
       console.error(`[createModule] Error response body:`, text);

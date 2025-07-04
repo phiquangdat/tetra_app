@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { ModuleProgressProvider } from '../context/user/ModuleContext.tsx';
 import { QuizModalProvider } from '../context/user/QuizModalContext.tsx';
@@ -9,17 +10,26 @@ import UserSidebar from '../components/user/layout/UserSidebar';
 import Footer from '../components/ui/Footer.tsx';
 
 export default function UserLayout() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => setSidebarOpen((prev) => !prev);
+
   return (
     <QuizModalProvider>
       <UnitContentProvider>
         <ModuleProgressProvider>
           <QuizProvider>
             <div className="min-h-screen flex flex-col">
-              <SharedHeader />
+              <SharedHeader
+                onHamburgerClick={toggleSidebar}
+                isSidebarOpen={sidebarOpen}
+              />
               <div className="flex flex-1">
-                <div className="w-64 border-r border-gray-200 bg-white">
-                  <UserSidebar />
-                </div>
+                {sidebarOpen && (
+                  <div className="w-64 border-r border-gray-200 bg-white">
+                    <UserSidebar />
+                  </div>
+                )}
                 <main className="flex-1">
                   <Outlet />
                   <QuizStartModal />

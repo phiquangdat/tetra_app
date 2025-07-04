@@ -13,7 +13,7 @@ export interface Module {
 }
 
 export async function fetchModuleById(id: string): Promise<Module> {
-  const response = await fetch(`${BASE_URL}/modules/${id}`);
+  const response = await fetch(`${BASE_URL}/api/modules/${id}`);
   if (!response.ok) {
     throw new Error('Failed to fetch module');
   }
@@ -24,7 +24,7 @@ export async function fetchModuleById(id: string): Promise<Module> {
 export async function fetchModules(): Promise<any> {
   try {
     console.log('[fetchModules] BASE_URL:', BASE_URL);
-    const url = `${BASE_URL}/modules`;
+    const url = `${BASE_URL}/api/modules`;
     console.log('[fetchModules] Fetching:', url);
     const response = await fetch(url);
     const contentType = response.headers.get('Content-Type') || '';
@@ -52,7 +52,7 @@ export async function fetchModules(): Promise<any> {
 }
 
 export async function createModule(module: Module): Promise<Module> {
-  const response = await fetch(`${BASE_URL}/modules`, {
+  const response = await fetch(`${BASE_URL}/api/modules`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -1,5 +1,8 @@
 const envBaseUrl = import.meta.env.VITE_BACKEND_URL;
-const BASE_URL = envBaseUrl && envBaseUrl.trim() !== '' ? envBaseUrl : '/api';
+let BASE_URL = envBaseUrl && envBaseUrl.trim() !== '' ? envBaseUrl : '/api';
+if (BASE_URL !== '/api' && !BASE_URL.endsWith('/api')) {
+  BASE_URL = BASE_URL.replace(/\/+$/, '') + '/api';
+}
 
 export { BASE_URL }; // Export for debugging if needed
 

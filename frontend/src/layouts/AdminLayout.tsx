@@ -16,11 +16,7 @@ const AdminLayout = () => {
         isSidebarOpen={sidebarOpen}
       />
       <div className="flex flex-1">
-        {sidebarOpen && (
-          <div className="w-64 border-r border-gray-200 bg-gradient-to-b from-[#28262C] to-[#14248A]">
-            <AdminSidebar />
-          </div>
-        )}
+        {sidebarOpen && <AdminSidebar />}
         <main className="flex-1">
           <Outlet />
         </main>

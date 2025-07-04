@@ -25,11 +25,7 @@ export default function UserLayout() {
                 isSidebarOpen={sidebarOpen}
               />
               <div className="flex flex-1">
-                {sidebarOpen && (
-                  <div className="w-64 border-r border-gray-200 bg-white">
-                    <UserSidebar />
-                  </div>
-                )}
+                {sidebarOpen && <UserSidebar />}
                 <main className="flex-1">
                   <Outlet />
                   <QuizStartModal />

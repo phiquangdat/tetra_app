@@ -11,7 +11,6 @@ const CreateModulePage = lazy(
 );
 const UserPage = lazy(() => import('../components/admin/users/UsersPage'));
 const SettingsPage = lazy(() => import('../components/common/SettingsPage'));
-const ModulePage = lazy(() => import('../components/admin/modules/ModulePage'));
 
 export const adminRoutes: RouteObject = {
   path: '/admin',
@@ -38,14 +37,6 @@ export const adminRoutes: RouteObject = {
       element: (
         <Suspense fallback={<div>Loading Create Module...</div>}>
           <CreateModulePage />
-        </Suspense>
-      ),
-    },
-    {
-      path: 'modules/:moduleId',
-      element: (
-        <Suspense fallback={<div>Loading Module...</div>}>
-          <ModulePage />
         </Suspense>
       ),
     },

@@ -53,8 +53,7 @@ describe('CreateModuleForm', () => {
     const coverInput = screen.getByLabelText(/cover picture url/i);
     await userEvent.clear(coverInput);
     await userEvent.type(coverInput, imageUrl);
-    expect(coverInput).toHaveValue(imageUrl);  
-    
+    expect(coverInput).toHaveValue(imageUrl);
   });
 
   it('shows error message when invalid image URL is provided', async () => {

@@ -1,3 +1,5 @@
+import { StarIcon } from '../../common/Icons';
+
 const data = [
   {
     title: 'Internet Privacy',
@@ -12,24 +14,6 @@ const data = [
     topic: 'AI tools - Beginner',
   },
 ];
-
-const icons = {
-  quiz: (
-    <svg
-      className="w-6 h-6"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M12 17.75l-6.172 3.245 1.179-6.873L2 9.755l6.908-1.004L12 2.5l3.092 6.251L22 9.755l-5.007 4.367 1.179 6.873z"
-      />
-    </svg>
-  ),
-};
 
 const ActiveModulesList = () => {
   return (
@@ -47,7 +31,9 @@ const ActiveModulesList = () => {
             className="flex flex-col justify-between bg-yellow-50 rounded-xl p-4"
           >
             <div className="flex self-start items-center gap-4">
-              <span className="text-3xl">{icons.quiz}</span>
+              <span className="text-3xl">
+                <StarIcon />
+              </span>
               <div>
                 <div className="font-semibold text-lg text-gray-800">
                   {item.title}

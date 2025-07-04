@@ -4,6 +4,7 @@ import { useModuleContext } from '../../../context/admin/ModuleContext';
 import AddArticleModal from './AddArticleModal';
 import AddVideoModal from './AddVideoModal';
 import AddQuizModal from './AddQuizModal';
+import { ChevronDownIcon, ChevronUpIcon } from '../../common/Icons';
 
 type ContentBlock = {
   type: 'video' | 'article' | 'quiz';
@@ -80,31 +81,6 @@ function UnitForm({ unitNumber }: UnitFormProps) {
     }
   };
 
-  const icons = {
-    chevronDown: (
-      <svg
-        className="w-5 h-5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={2}
-        viewBox="0 0 24 24"
-      >
-        <path d="M19 9l-7 7-7-7" />
-      </svg>
-    ),
-    chevronUp: (
-      <svg
-        className="w-5 h-5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={2}
-        viewBox="0 0 24 24"
-      >
-        <path d="M5 15l7-7 7 7" />
-      </svg>
-    ),
-  };
-
   return (
     <div>
       <form onSubmit={(e) => e.preventDefault()}>
@@ -116,7 +92,7 @@ function UnitForm({ unitNumber }: UnitFormProps) {
           <h3 className="text-xl font-semibold text-gray-700">
             Unit {unitNumber}
           </h3>
-          {isOpen ? icons.chevronUp : icons.chevronDown}
+          {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
         </div>
 
         {isOpen && (

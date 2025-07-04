@@ -1,5 +1,6 @@
 import React, { useEffect, useState, type ChangeEvent } from 'react';
 import { useModuleContext } from '../../../context/admin/ModuleContext';
+import { UploadIcon } from '../../common/Icons';
 
 type Props = {};
 
@@ -64,6 +65,11 @@ const CreateModuleForm: React.FC<Props> = () => {
     markModuleAsDirty();
   };
 
+  const handleRemoveCoverPicture = () => {
+    updateModuleField('coverPicture', null);
+    markModuleAsDirty();
+  };
+
   const renderCoverPicture = () => {
     return (
       <div className="space-y-3">
@@ -82,6 +88,7 @@ const CreateModuleForm: React.FC<Props> = () => {
           htmlFor="coverPictureUrl"
           className="block text-sm font-medium text-gray-700"
         >
+          <UploadIcon />
           Cover Picture URL
         </label>
         <input

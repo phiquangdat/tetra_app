@@ -1,11 +1,16 @@
 import type { RouteObject } from 'react-router-dom';
-
+import { lazy, Suspense } from 'react';
 import AdminLayout from '../layouts/AdminLayout';
-import AdminDashboard from '../components/admin/dashboard';
-import ModuleCards from '../components/admin/modules/ModuleCards.tsx';
-import CreateModulePage from '../components/admin/createModule/CreateModulePage.tsx';
-import UserPage from '../components/admin/users/UsersPage.tsx';
-import SettingsPage from '../components/common/SettingsPage.tsx';
+
+const AdminDashboard = lazy(() => import('../components/admin/dashboard'));
+const ModuleCards = lazy(
+  () => import('../components/admin/modules/ModuleCards'),
+);
+const CreateModulePage = lazy(
+  () => import('../components/admin/createModule/CreateModulePage'),
+);
+const UserPage = lazy(() => import('../components/admin/users/UsersPage'));
+const SettingsPage = lazy(() => import('../components/common/SettingsPage'));
 
 export const adminRoutes: RouteObject = {
   path: '/admin',
@@ -13,23 +18,43 @@ export const adminRoutes: RouteObject = {
   children: [
     {
       index: true,
-      element: <AdminDashboard />,
+      element: (
+        <Suspense fallback={<div>Loading Dashboard...</div>}>
+          <AdminDashboard />
+        </Suspense>
+      ),
     },
     {
       path: 'modules',
-      element: <ModuleCards />,
+      element: (
+        <Suspense fallback={<div>Loading Modules...</div>}>
+          <ModuleCards />
+        </Suspense>
+      ),
     },
     {
       path: 'modules/create',
-      element: <CreateModulePage />,
+      element: (
+        <Suspense fallback={<div>Loading Create Module...</div>}>
+          <CreateModulePage />
+        </Suspense>
+      ),
     },
     {
       path: 'users',
-      element: <UserPage />,
+      element: (
+        <Suspense fallback={<div>Loading Users...</div>}>
+          <UserPage />
+        </Suspense>
+      ),
     },
     {
       path: 'settings',
-      element: <SettingsPage />,
+      element: (
+        <Suspense fallback={<div>Loading Settings...</div>}>
+          <SettingsPage />
+        </Suspense>
+      ),
     },
   ],
 };

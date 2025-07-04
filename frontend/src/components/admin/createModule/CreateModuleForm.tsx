@@ -65,11 +65,6 @@ const CreateModuleForm: React.FC<Props> = () => {
     markModuleAsDirty();
   };
 
-  const handleRemoveCoverPicture = () => {
-    updateModuleField('coverPicture', null);
-    markModuleAsDirty();
-  };
-
   const renderCoverPicture = () => {
     return (
       <div className="space-y-3">

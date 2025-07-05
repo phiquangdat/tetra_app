@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || '/api';
 
 export interface UnitContent {
   id: string;
@@ -33,7 +33,7 @@ export interface CreateUnitResponse {
 export async function fetchUnitTitleByModuleId(moduleId: string): Promise<any> {
   try {
     const response = await fetch(
-      `${BASE_URL}/api/units?moduleId=${encodeURIComponent(moduleId)}`,
+      `${BASE_URL}/units?moduleId=${encodeURIComponent(moduleId)}`,
     );
     if (!response.ok) {
       throw new Error(
@@ -54,7 +54,7 @@ export async function fetchUnitTitleByModuleId(moduleId: string): Promise<any> {
 export async function fetchUnitById(unitId: string): Promise<any> {
   try {
     const response = await fetch(
-      `${BASE_URL}/api/units/${encodeURIComponent(unitId)}`,
+      `${BASE_URL}/units/${encodeURIComponent(unitId)}`,
     );
     if (!response.ok) {
       throw new Error(
@@ -73,7 +73,7 @@ export async function fetchUnitById(unitId: string): Promise<any> {
 }
 
 export async function fetchUnitContentById(id: string): Promise<UnitContent[]> {
-  const response = await fetch(`${BASE_URL}/api/unit_content?unitId=${id}`);
+  const response = await fetch(`${BASE_URL}/unit_content?unitId=${id}`);
   if (!response.ok) {
     throw new Error('Failed to fetch unit content');
   }
@@ -84,7 +84,7 @@ export async function fetchUnitContentById(id: string): Promise<UnitContent[]> {
 }
 
 export async function fetchVideoContentById(id: string): Promise<Video> {
-  const response = await fetch(`${BASE_URL}/api/unit_content/video/${id}`);
+  const response = await fetch(`${BASE_URL}/unit_content/video/${id}`);
   if (!response.ok) {
     throw new Error('Failed to fetch video content');
   }
@@ -95,7 +95,7 @@ export async function fetchVideoContentById(id: string): Promise<Video> {
 }
 
 export async function fetchArticleContentById(id: string): Promise<Article> {
-  const response = await fetch(`${BASE_URL}/api/unit_content/article/${id}`);
+  const response = await fetch(`${BASE_URL}/unit_content/article/${id}`);
   if (!response.ok) {
     throw new Error('Failed to fetch article content');
   }
@@ -109,7 +109,7 @@ export async function createUnit(
   unitData: CreateUnitRequest,
 ): Promise<CreateUnitResponse> {
   try {
-    const response = await fetch(`${BASE_URL}/api/units`, {
+    const response = await fetch(`${BASE_URL}/units`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

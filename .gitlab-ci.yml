@@ -4,6 +4,7 @@ variables:
   IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
   BACKEND_IMAGE: $DOCKER_REGISTRY/$PROJECT_PATH/backend:$IMAGE_TAG
   FRONTEND_IMAGE: $DOCKER_REGISTRY/$PROJECT_PATH/frontend:$IMAGE_TAG
+  VITE_BACKEND_URL: "http://65.21.51.239:32000"
 
 stages:
   - test
@@ -69,17 +70,14 @@ build_frontend:
   script:
     - echo "Building frontend"
     - cd frontend
+    - echo "VITE_BACKEND_URL=$VITE_BACKEND_URL" > .env.production
     - npm ci
     - npm run build
-    - echo "Copying frontend dist to backend"
-    - mkdir -p ../backend/src/main/resources/static
-    - rm -rf ../backend/src/main/resources/static/*
-    - cp -r dist/. ../backend/src/main/resources/static/
   artifacts:
     paths:
-      - backend/src/main/resources/static/
+      - frontend/dist/
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "275-fix-problem-with-http-65-21-51-239-32001-admin-modules-fetch-data"'
     - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
 
 build_backend:
@@ -88,7 +86,7 @@ build_backend:
   services:
     - docker:28.2.1-dind
   tags: ["Docker"]
-  needs: [test_backend, build_frontend]
+  needs: [test_backend]
   script:
     - cd backend
     - chmod +x gradlew
@@ -97,7 +95,7 @@ build_backend:
     paths:
       - backend/build/libs/*.jar
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "275-fix-problem-with-http-65-21-51-239-32001-admin-modules-fetch-data"'
     - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
 
 build_and_push_backend:
@@ -110,10 +108,28 @@ build_and_push_backend:
     - job: build_backend
       optional: true
   script:
-    - echo "Building backend Docker image with frontend inside"
+    - echo "Building backend Docker image"
     - echo "$DEPLOY_TOKEN" | docker login -u "$DEPLOY_USER" --password-stdin $DOCKER_REGISTRY
-    - docker build -t $BACKEND_IMAGE ./backend
-    - docker push $BACKEND_IMAGE
+    - docker buildx create --use || true
+    - docker buildx build --platform linux/amd64 -t $BACKEND_IMAGE ./backend --push
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "275-fix-problem-with-http-65-21-51-239-32001-admin-modules-fetch-data"'
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+
+build_and_push_frontend:
+  image: docker:28.2.1
+  stage: push
+  services:
+    - docker:28.2.1-dind
+  tags: ["Docker"]
+  needs:
+    - job: build_frontend
+      optional: true
+  script:
+    - echo "Building frontend Docker image:"
+    - echo "$DEPLOY_TOKEN" | docker login -u "$DEPLOY_USER" --password-stdin $DOCKER_REGISTRY
+    - docker buildx create --use || true
+    - docker buildx build --platform linux/amd64 -t $FRONTEND_IMAGE ./frontend --push
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "275-fix-problem-with-http-65-21-51-239-32001-admin-modules-fetch-data"'
     - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'

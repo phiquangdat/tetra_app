@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || '/api';
 
 export interface Quiz {
   id: string;
@@ -24,7 +24,7 @@ export interface Question {
 
 export async function fetchQuizById(id: string): Promise<Quiz> {
   try {
-    const response = await fetch(`${BASE_URL}/api/unit_content/quiz/${id}`);
+    const response = await fetch(`${BASE_URL}/unit_content/quiz/${id}`);
 
     if (!response.ok) {
       throw new Error(
@@ -47,9 +47,7 @@ export async function fetchQuizQuestionsByQuizId(
   quizId: string,
 ): Promise<Question[]> {
   try {
-    const response = await fetch(
-      `${BASE_URL}/api/questions?contentId=${quizId}`,
-    );
+    const response = await fetch(`${BASE_URL}/questions?contentId=${quizId}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch QUIZ questions for ${quizId}`);
     }

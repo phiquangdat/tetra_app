@@ -52,17 +52,15 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <div>
-      <aside
-        className={`flex flex-col justify-between h-full w-64 border-r border-[#D4C2FC] py-6 bg-[#14248A] ${className || ''}`}
-      >
-        <nav className="flex flex-col gap-2">{topItems.map(renderItem)}</nav>
-        <nav className="flex flex-col gap-2 mt-8">
-          {bottomItems.map(renderItem)}
-        </nav>
-        <SignOutModal open={showModal} onCancel={() => setShowModal(false)} />
-      </aside>
-    </div>
+    <aside
+      className={`flex flex-col justify-between h-full w-64 border-r border-[#D4C2FC] py-6 bg-[#14248A] ${className || ''}`}
+    >
+      <nav className="flex flex-col gap-2">{topItems.map(renderItem)}</nav>
+      <nav className="flex flex-col gap-2 mt-8">
+        {bottomItems.map(renderItem)}
+      </nav>
+      <SignOutModal open={showModal} onCancel={() => setShowModal(false)} />
+    </aside>
   );
 };
 

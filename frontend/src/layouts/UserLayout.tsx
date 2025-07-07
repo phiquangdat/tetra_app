@@ -24,7 +24,7 @@ export default function UserLayout() {
                 onHamburgerClick={toggleSidebar}
                 isSidebarOpen={sidebarOpen}
               />
-              <div className="flex flex-1">
+              <div className="flex flex-1 relative">
                 <div
                   className={`
                   absolute z-50 h-full

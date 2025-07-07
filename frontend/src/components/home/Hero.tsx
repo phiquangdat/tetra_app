@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Hero: React.FC = () => {
+const Hero: React.FC<{ onGetStarted?: () => void }> = ({ onGetStarted }) => {
   return (
     <section
       id="home"
@@ -23,7 +23,10 @@ const Hero: React.FC = () => {
             Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed do
             eiusmod tempor.
           </p>
-          <button className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 rounded-md">
+          <button
+            className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 rounded-md"
+            onClick={onGetStarted}
+          >
             Get Started
           </button>
         </div>

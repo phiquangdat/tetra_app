@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { EditIcon, CloseIcon } from '../../common/Icons';
+import { useState, useRef } from 'react';
 
 interface AddArticleModalProps {
   isOpen: boolean;
@@ -10,6 +10,7 @@ interface AddArticleModalProps {
 function AddArticleModal({ isOpen, onClose, onSave }: AddArticleModalProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const modalRef = useRef<HTMLDivElement>(null);
 
   const handleSave = () => {
     if (title.trim() && content.trim()) {
@@ -26,14 +27,24 @@ function AddArticleModal({ isOpen, onClose, onSave }: AddArticleModalProps) {
     onClose();
   };
 
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+      handleClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
     <div
       className="fixed inset-0 flex items-center justify-center z-10 p-4"
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+      onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+      <div
+        ref={modalRef}
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
+      >
         <div className="flex items-center justify-between p-6 pb-0">
           <div className="flex items-center gap-3">
             <div className="text-gray-600">

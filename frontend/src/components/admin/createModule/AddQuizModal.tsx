@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import QuestionForm from './QuestionForm';
 import { QuizIcon, CloseIcon } from '../../common/Icons';
 
@@ -26,6 +26,7 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
   const [quizzTitle, setQuizTitle] = useState('');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedOption, setSelectedOption] = useState('');
+  const modalRef = useRef<HTMLDivElement>(null);
 
   const handleAddQuestion = (type: 'trueFalse' | 'multipleChoice') => {
     const newQuestion: Question = {
@@ -58,6 +59,12 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
     setQuestions([]);
   };
 
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+      handleClose();
+    }
+  };
+
   const handleCloseQuestion = (index: number) => {
     setQuestions((prev) => prev.filter((_, i) => i !== index));
     if (questions.length === 1) {
@@ -80,8 +87,12 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
     <div
       className="fixed inset-0 flex items-center justify-center z-10 p-4"
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+      onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div
+        ref={modalRef}
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+      >
         <div className="flex items-center justify-between p-6 pb-0">
           <div className="flex items-center gap-3">
             <div className="text-gray-600">

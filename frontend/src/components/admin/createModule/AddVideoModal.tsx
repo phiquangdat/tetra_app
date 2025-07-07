@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import {
   CloseIcon,
   VideoHeaderIcon,
@@ -24,6 +24,7 @@ function AddVideoModal({ isOpen, onClose, onSave }: Props) {
   const [videoTitle, setVideoTitle] = useState('');
   const [videoDescription, setVideoDescription] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
+  const modalRef = useRef<HTMLDivElement>(null);
 
   const resetForm = () => {
     setVideoTitle('');
@@ -43,6 +44,12 @@ function AddVideoModal({ isOpen, onClose, onSave }: Props) {
   const handleClose = () => {
     resetForm();
     onClose();
+  };
+
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+      handleClose();
+    }
   };
 
   const isYouTubeUrl = useCallback(
@@ -122,8 +129,12 @@ function AddVideoModal({ isOpen, onClose, onSave }: Props) {
       <div
         className="fixed inset-0 flex items-center justify-center z-10 p-4 overflow-auto"
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+        onClick={handleBackdropClick}
       >
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div
+          ref={modalRef}
+          className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+        >
           <div className="flex items-center justify-between p-6 pb-0">
             <div className="flex items-center gap-3">
               <div className="text-gray-600">

@@ -68,8 +68,8 @@ export const userRoutes: RouteObject = {
     {
       index: true,
       element: (
-        <Suspense fallback={<div>Loading Module Cards...</div>}>
-          <ModuleCards />
+        <Suspense fallback={<div>Loading Dashboard...</div>}>
+          <Dashboard />
         </Suspense>
       ),
     },
@@ -96,14 +96,6 @@ export const userRoutes: RouteObject = {
     {
       path: 'article/:id',
       element: <ArticlePageWrapper />,
-    },
-    {
-      path: 'dashboard',
-      element: (
-        <Suspense fallback={<div>Loading Dashboard...</div>}>
-          <Dashboard />
-        </Suspense>
-      ),
     },
     {
       path: 'quiz/:quizId/question/:index',

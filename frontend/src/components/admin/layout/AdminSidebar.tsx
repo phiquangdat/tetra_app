@@ -13,13 +13,7 @@ const bottomItems = [
 ];
 
 const AdminSidebar = () => (
-  <Sidebar
-    topItems={topItems}
-    bottomItems={bottomItems}
-    className={
-      'w-64 border-r border-gray-200 bg-gradient-to-b from-[#28262C] to-[#14248A]'
-    }
-  />
+  <Sidebar topItems={topItems} bottomItems={bottomItems} />
 );
 
 export default AdminSidebar;

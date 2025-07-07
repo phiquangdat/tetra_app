@@ -61,9 +61,9 @@ const Syllabus: React.FC<SyllabusProps> = ({ units }) => {
   };
 
   return (
-    <div className="bg-gray-100 rounded-2xl p-6 shadow-md w-full mx-auto">
-      <h2 className="text-xl font-semibold mb-4">Syllabus</h2>
-      {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+    <div className="bg-[#F9F5FF] rounded-2xl p-6 shadow-md w-full mx-auto border border-[#D4C2FC]">
+      <h2 className="text-xl font-semibold text-[#231942] mb-4">Syllabus</h2>
+      {errorMessage && <p className="text-red-600">{errorMessage}</p>}
       {unitsWithContent.map((unit, index) => (
         <UnitItem
           key={unit.id}

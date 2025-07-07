@@ -1,11 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import UnitContentItem from './UnitContentItem';
-import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  ChevronRightIcon,
-} from '../../../common/Icons';
+import { ChevronDownIcon, ChevronUpIcon } from '../../../common/Icons';
 
 type UnitItemProps = {
   unit: {
@@ -37,7 +33,7 @@ const UnitItem: React.FC<UnitItemProps> = ({
     <div key={unit.id} className="mb-4">
       <div
         className={`flex justify-between items-center p-4 rounded-xl cursor-pointer transition-colors ${
-          isOpen ? 'bg-blue-100' : 'bg-white hover:bg-gray-200'
+          isOpen ? 'bg-[#D4C2FC]' : 'bg-white hover:bg-[#F9F5FF]'
         }`}
         onClick={() => onToggle()}
       >
@@ -46,14 +42,15 @@ const UnitItem: React.FC<UnitItemProps> = ({
             e.stopPropagation();
             handleTitleClick(unit.id);
           }}
-          className="font-semibold text-xl text-blue-600 hover:underline flex items-center cursor-pointer"
+          className="font-semibold text-xl text-[#14248A] hover:underline flex items-center cursor-pointer"
         >
           Unit {index + 1}: {unit.title}
-          <span className="ml-2">
-            <ChevronRightIcon />
-          </span>
         </div>
-        {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
+        {isOpen ? (
+          <ChevronUpIcon className="w-6 h-6  text-[#998FC7]" />
+        ) : (
+          <ChevronDownIcon className="w-6 h-6  text-[#998FC7]" />
+        )}
       </div>
 
       {isOpen && unit.content && (

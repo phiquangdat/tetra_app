@@ -26,8 +26,18 @@ const InitUnitState = ({ unitNumber }: { unitNumber: number }) => {
   const { setUnitState } = useUnitContext();
 
   useEffect(() => {
-    setUnitState(unitNumber, {
+    setUnitState(1, {
       id: 'unit-1',
+      title: '',
+      description: '',
+      content: [],
+      isDirty: false,
+      isSaving: false,
+      error: null,
+    });
+
+    setUnitState(2, {
+      id: 'unit-2',
       title: '',
       description: '',
       content: [],
@@ -39,10 +49,9 @@ const InitUnitState = ({ unitNumber }: { unitNumber: number }) => {
 
   return null;
 };
-
 describe('UnitForm', () => {
   beforeEach(() => {
-    render(<UnitFormWithProviders unitNumber={1} />);
+    render(<UnitFormWithProviders unitNumber={2} />);
   });
 
   it('renders the form elements correctly', () => {
@@ -72,7 +81,7 @@ describe('UnitForm', () => {
   });
 
   it('toggles unit visibility when clicking on the unit header', async () => {
-    const unitHeader = screen.getByText(/Unit 1/i);
+    const unitHeader = screen.getByText(/Unit 2/i);
 
     expect(screen.getByLabelText('Unit Title')).toBeInTheDocument();
 
@@ -87,5 +96,39 @@ describe('UnitForm', () => {
     const saveButton = screen.getByRole('button', { name: /Save/i });
     await userEvent.click(saveButton);
     expect(saveButton).toBeInTheDocument();
+  });
+
+  it('allows user to click the Remove button and confirms removal', async () => {
+    const removeButton = screen.getByRole('button', { name: /Remove Unit/i });
+    await userEvent.click(removeButton);
+
+    expect(
+      screen.getByText(/Are you sure you want to remove this unit?/i),
+    ).toBeInTheDocument();
+
+    const confirmButtons = screen.getAllByRole('button', { name: /Remove/i });
+    await userEvent.click(confirmButtons[0]);
+
+    expect(
+      screen.queryByText(
+        /Are you sure you want to remove this unit? This action cannot be undone./i,
+      ),
+    ).not.toBeInTheDocument();
+  });
+
+  it('allows user to cancel the removal', async () => {
+    const removeButton = screen.getByRole('button', { name: /Remove Unit/i });
+    await userEvent.click(removeButton);
+
+    expect(
+      screen.getByText(/Are you sure you want to remove this unit?/i),
+    ).toBeInTheDocument();
+
+    const cancelButton = screen.getByRole('button', { name: /Cancel/i });
+    await userEvent.click(cancelButton);
+
+    expect(
+      screen.queryByText(/Are you sure you want to remove this unit?/i),
+    ).not.toBeInTheDocument();
   });
 });

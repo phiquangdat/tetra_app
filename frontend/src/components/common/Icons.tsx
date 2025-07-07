@@ -4,7 +4,7 @@ export const HamburgerIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" {...props}>
     <path
       d="M3 6h18M3 12h18M3 18h18"
-      stroke="#3B82F6"
+      stroke="#998FC7"
       strokeWidth="2"
       strokeLinecap="round"
     />
@@ -26,12 +26,12 @@ export const LogoIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
       width="30"
       height="26"
       rx="8"
-      stroke="#3B82F6"
+      stroke="#998FC7"
       strokeWidth="2"
     />
     <path
       d="M12 18l5 5 7-9"
-      stroke="#3B82F6"
+      stroke="#998FC7"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"

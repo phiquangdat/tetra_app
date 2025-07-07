@@ -64,7 +64,7 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="flex items-center justify-between px-10 border-b-2 border-blue-500 bg-slate-50 h-16">
+    <header className="flex items-center justify-between px-10 h-16 bg-[#231942]">
       <div className="flex items-center min-w-[220px]">
         {showHamburger && (
           <button
@@ -81,7 +81,7 @@ const Header: React.FC<HeaderProps> = ({
         )}
 
         <LogoIcon />
-        <span className="font-bold text-2xl text-blue-900 tracking-wide">
+        <span className="font-extrabold text-2xl text-white tracking-wide">
           Gamify learning
         </span>
       </div>
@@ -91,8 +91,8 @@ const Header: React.FC<HeaderProps> = ({
             <li key={link.label}>
               <a
                 href={link.href}
-                className="no-underline text-blue-900 font-medium text-xl"
                 onClick={(e) => handleNavClick(e, link.href)}
+                className="no-underline text-white font-medium text-xl hover:text-[#998FC7] transition-colors duration-200"
               >
                 {link.label}
               </a>
@@ -103,7 +103,7 @@ const Header: React.FC<HeaderProps> = ({
       {ctaButton && (
         <a
           href={ctaButton.href}
-          className="bg-indigo-100 text-blue-900 font-bold text-lg px-7 py-2 rounded-lg no-underline shadow-sm border-0 transition-colors duration-200 hover:bg-indigo-200"
+          className="bg-[#FFA726] text-white font-bold text-lg px-7 py-2 rounded-lg no-underline shadow-sm border-0 transition-colors duration-200 hover:bg-[#FFB74D]"
           onClick={(e) => {
             if (ctaButton.onClick) {
               e.preventDefault();

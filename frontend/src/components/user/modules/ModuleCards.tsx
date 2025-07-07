@@ -37,8 +37,10 @@ function ModuleCards() {
   }, []); // Empty dependency array ensures this effect runs only once after initial render
 
   return (
-    <div className="flex flex-col gap-6 px-0 py-8 w-full mx-auto">
-      <h1 className="text-3xl font-bold text-center mb-8">Learning Modules</h1>
+    <div className="flex flex-col gap-6 px-0 py-8 w-full mx-auto bg-[#FFFFFF]">
+      <h1 className="text-3xl font-bold text-center mb-8 text-[#231942]">
+        Learning Modules
+      </h1>
       <ul className="flex flex-wrap justify-center items-center gap-8 p-0">
         {error && <p className="text-red-500">Failed to load data</p>}
         {modules

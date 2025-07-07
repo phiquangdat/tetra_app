@@ -14,6 +14,7 @@ COPY . .
 RUN npm run test
 
 # Build app
+ARG VITE_BACKEND_URL
 RUN npm run build
 
 # 2. Stage: Serve with Nginx

@@ -1,6 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import UnitContentItem from './UnitContentItem';
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ChevronRightIcon,
+} from '../../../common/Icons';
 
 type UnitItemProps = {
   unit: {
@@ -14,42 +19,6 @@ type UnitItemProps = {
   isOpen: boolean;
   onToggle: () => void;
   index: number;
-};
-
-const icons = {
-  chevronDown: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      viewBox="0 0 24 24"
-    >
-      <path d="M19 9l-7 7-7-7" />
-    </svg>
-  ),
-  chevronUp: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      viewBox="0 0 24 24"
-    >
-      <path d="M5 15l7-7 7 7" />
-    </svg>
-  ),
-  arrowRight: (
-    <svg
-      className="w-4 h-4 text-blue-600"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      viewBox="0 0 24 24"
-    >
-      <path d="M9 5l7 8-8 7" />
-    </svg>
-  ),
 };
 
 const UnitItem: React.FC<UnitItemProps> = ({
@@ -80,9 +49,11 @@ const UnitItem: React.FC<UnitItemProps> = ({
           className="font-semibold text-xl text-blue-600 hover:underline flex items-center cursor-pointer"
         >
           Unit {index + 1}: {unit.title}
-          <span className="ml-2">{icons.arrowRight} </span>
+          <span className="ml-2">
+            <ChevronRightIcon />
+          </span>
         </div>
-        {isOpen ? icons.chevronUp : icons.chevronDown}
+        {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
       </div>
 
       {isOpen && unit.content && (

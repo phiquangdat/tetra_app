@@ -1,4 +1,9 @@
 import { useState, useCallback } from 'react';
+import {
+  CloseIcon,
+  VideoHeaderIcon,
+  VideoUploadIcon,
+} from '../../common/Icons';
 
 type Video = {
   title: string;
@@ -14,60 +19,6 @@ type Props = {
 
 const YOUTUBE_REGEX =
   /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^/]+\/.*[?&]v=|v\/|e\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-
-const icons = {
-  videoHeader: (
-    <svg
-      className="svg-icon"
-      style={{
-        width: '1em',
-        height: '1em',
-        verticalAlign: 'middle',
-        fill: 'currentColor',
-        overflow: 'hidden',
-      }}
-      viewBox="0 0 1024 1024"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M39.384615 1024V0h945.23077v1024H39.384615zM196.923077 78.769231H118.153846v78.769231h78.769231V78.769231z m0 157.538461H118.153846v78.769231h78.769231V236.307692z m0 157.538462H118.153846v78.769231h78.769231v-78.769231z m0 157.538461H118.153846v78.769231h78.769231v-78.769231z m0 157.538462H118.153846v78.769231h78.769231v-78.769231z m0 157.538461H118.153846v78.769231h78.769231v-78.769231zM748.307692 78.769231H275.692308v393.846154h472.615384V78.769231z m0 472.615384H275.692308v393.846154h472.615384V551.384615z m157.538462-472.615384h-78.769231v78.769231h78.769231V78.769231z m0 157.538461h-78.769231v78.769231h78.769231V236.307692z m0 157.538462h-78.769231v78.769231h78.769231v-78.769231z m0 157.538461h-78.769231v78.769231h78.769231v-78.769231z m0 157.538462h-78.769231v78.769231h78.769231v-78.769231z m0 157.538461h-78.769231v78.769231h78.769231v-78.769231z" />
-    </svg>
-  ),
-  videoUpload: (
-    <svg
-      className="svg-icon"
-      style={{
-        width: '2em',
-        height: '2em',
-        verticalAlign: 'middle',
-        overflow: 'hidden',
-      }}
-      viewBox="0 0 1024 1024"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="currentColor"
-    >
-      <path
-        d="M960 192h-28.384c-16.8 0-32.928 6.624-44.928 18.432L800 295.936V256a96 96 0 0 0-96-96H96C43.072 160 0 203.04 0 256v512a96 96 0 0 0 96 96h608c52.992 0 96-43.008 96-96v-39.072l86.688 85.504c12 11.808 28.128 18.432 44.928 18.432H960a64 64 0 0 0 64-64V256a64 64 0 0 0-64-64zM96 800c-17.664 0-32-14.368-32-32V256a32 32 0 0 1 32-32h608c17.632 0 32 14.336 32 32v512c0 17.632-14.368 32-32 32H96z m864-31.136h-32l-128-128V640l-32-32v-192l160-160h32v512.864z"
-        className="text-gray-600"
-        fill="currentColor"
-      />
-    </svg>
-  ),
-  close: (
-    <svg
-      className="w-6 h-6"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={1.5}
-        d="M6 18L18 6M6 6l12 12"
-      />
-    </svg>
-  ),
-};
 
 function AddVideoModal({ isOpen, onClose, onSave }: Props) {
   const [videoTitle, setVideoTitle] = useState('');
@@ -133,7 +84,9 @@ function AddVideoModal({ isOpen, onClose, onSave }: Props) {
           )
         ) : (
           <>
-            {icons.videoUpload}
+            <div className="text-gray-600">
+              <VideoUploadIcon />
+            </div>
             <div className="mt-4 text-sm">
               <input
                 type="url"
@@ -173,14 +126,16 @@ function AddVideoModal({ isOpen, onClose, onSave }: Props) {
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between p-6 pb-0">
             <div className="flex items-center gap-3">
-              <div className="text-gray-600">{icons.videoHeader}</div>
+              <div className="text-gray-600">
+                <VideoHeaderIcon />
+              </div>
               <h2 className="text-lg font-medium text-gray-900">Video</h2>
             </div>
             <button
               onClick={handleClose}
               className="text-gray-400 hover:text-gray-600 transition-colors p-1"
             >
-              {icons.close}
+              {<CloseIcon />}
             </button>
           </div>
 

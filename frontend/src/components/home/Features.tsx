@@ -1,61 +1,21 @@
 import React from 'react';
+import { ContentIcon, GamifiedIcon, ProgressIcon } from '../common/Icons';
 
 const features = [
   {
-    icon: (
-      <svg
-        className="h-12 w-12 mb-2 text-gray-700"
-        fill="none"
-        viewBox="0 0 48 48"
-        stroke="currentColor"
-        strokeWidth="2.5"
-      >
-        <circle cx="24" cy="24" r="20" />
-        <path d="M24 14v10l7 7" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
+    icon: <ProgressIcon />,
     title: 'Progress tracking',
     description:
       'Tailored modules for each employee based on their role and skill level.',
   },
   {
-    icon: (
-      <svg
-        className="h-12 w-12 mb-2 text-gray-700"
-        fill="none"
-        viewBox="0 0 48 48"
-        stroke="currentColor"
-        strokeWidth="2.5"
-      >
-        <path
-          d="M6 12a4 4 0 0 1 4-4h14v32H10a4 4 0 0 1-4-4V12z"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M42 12a4 4 0 0 0-4-4H24v32h14a4 4 0 0 0 4-4V12z"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
+    icon: <ContentIcon />,
     title: 'Interactive content',
     description:
       'Engaging videos, quizzes, and articles make learning effective and enjoyable.',
   },
   {
-    icon: (
-      <svg
-        className="h-12 w-12 mb-2 text-gray-700"
-        fill="none"
-        viewBox="0 0 48 48"
-        stroke="currentColor"
-        strokeWidth="2.5"
-      >
-        <polygon
-          points="24,6 29.4,18.3 42,18.3 32,27.1 36,39.7 24,32 12,39.7 16,27.1 6,18.3 18.6,18.3"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
+    icon: <GamifiedIcon />,
     title: 'Gamified rewards',
     description:
       'Earn points and achievements for completing modules and challenges.',

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ModuleCard from '../../ui/ModuleCard';
-import { fetchModules } from '../../../services/module/moduleApi.ts';
+import { fetchModules } from '../../../services/module/moduleApi';
 
 interface Module {
   id: React.Key | null | undefined;

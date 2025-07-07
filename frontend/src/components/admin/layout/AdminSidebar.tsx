@@ -1,7 +1,7 @@
 import Sidebar from '../../ui/Sidebar';
 
 const topItems = [
-  { label: 'Dashboard', path: '/admin/dashboard', icon: null },
+  { label: 'Dashboard', path: '/admin', icon: null },
   { label: 'Modules', path: '/admin/modules', icon: null },
   { label: 'Users', path: '/admin/users', icon: null },
   { label: 'Create Module', path: '/admin/modules/create', icon: null },
@@ -13,7 +13,13 @@ const bottomItems = [
 ];
 
 const AdminSidebar = () => (
-  <Sidebar topItems={topItems} bottomItems={bottomItems} />
+  <Sidebar
+    topItems={topItems}
+    bottomItems={bottomItems}
+    className={
+      'w-64 border-r border-gray-200 bg-gradient-to-b from-[#28262C] to-[#14248A]'
+    }
+  />
 );
 
 export default AdminSidebar;

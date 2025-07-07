@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { HamburgerIcon, LogoIcon, CloseIcon } from '../common/Icons';
 
 export type NavLink = { label: string; href: string };
 type CTAButton = { label: string; href: string };
@@ -9,6 +10,7 @@ interface HeaderProps {
   ctaButton?: CTAButton;
   showHamburger?: boolean;
   onHamburgerClick?: () => void;
+  isSidebarOpen?: boolean;
 }
 
 const sectionMap: Record<string, string> = {
@@ -34,6 +36,7 @@ const Header: React.FC<HeaderProps> = ({
   ctaButton,
   showHamburger = false,
   onHamburgerClick,
+  isSidebarOpen,
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -44,6 +47,7 @@ const Header: React.FC<HeaderProps> = ({
     const section = sectionMap[hash] || hash.replace('/', '');
 
     if (location.pathname === '/') {
+      // Already on homepage: smooth scroll
       scrollToSection(section);
       window.history.replaceState(
         null,
@@ -51,10 +55,11 @@ const Header: React.FC<HeaderProps> = ({
         section === 'home' ? '/' : `/#${section}`,
       );
     } else {
+      // Navigate to homepage with hash, then scroll after navigation
       navigate(section === 'home' ? '/' : `/#${section}`);
       setTimeout(() => {
         scrollToSection(section);
-      }, 100);
+      }, 100); // Delay to allow page render
     }
   };
 
@@ -67,47 +72,19 @@ const Header: React.FC<HeaderProps> = ({
             className="mr-4 focus:outline-none"
             aria-label="Toggle menu"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M3 6h18M3 12h18M3 18h18"
-                stroke="#998FC7"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
+            {isSidebarOpen ? (
+              <CloseIcon className="w-6 h-6 text-blue-900" />
+            ) : (
+              <HamburgerIcon className="w-6 h-6 text-blue-900" />
+            )}
           </button>
         )}
 
-        <svg
-          width="36"
-          height="36"
-          viewBox="0 0 36 36"
-          fill="none"
-          className="mr-3"
-        >
-          <rect
-            x="3"
-            y="5"
-            width="30"
-            height="26"
-            rx="8"
-            stroke="#998FC7"
-            strokeWidth="2"
-          />
-          <path
-            d="M12 18l5 5 7-9"
-            stroke="#998FC7"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-
-        <span className="font-extrabold text-2xl text-white tracking-wide">
+        <LogoIcon />
+        <span className="font-bold text-2xl text-blue-900 tracking-wide">
           Gamify learning
         </span>
       </div>
-
       <nav className="flex flex-1 justify-center">
         <ul className="flex gap-9 list-none m-0 p-0">
           {navLinks.map((link) => (
@@ -123,7 +100,6 @@ const Header: React.FC<HeaderProps> = ({
           ))}
         </ul>
       </nav>
-
       {ctaButton && (
         <a
           href={ctaButton.href}

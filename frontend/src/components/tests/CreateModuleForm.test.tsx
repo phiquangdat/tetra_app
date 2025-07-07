@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, beforeAll } from 'vitest';
 import CreateModuleForm from '../admin/createModule/CreateModuleForm';
 import { ModuleContextProvider } from '../../context/admin/ModuleContext';
 
@@ -13,13 +13,16 @@ const renderWithProvider = () => {
   );
 };
 
+beforeAll(() => {
+  window.URL.revokeObjectURL = vi.fn();
+});
+
 describe('CreateModuleForm', () => {
   beforeEach(() => {
     renderWithProvider();
   });
 
   it('renders the form elements correctly', () => {
-    expect(screen.getByLabelText(/Module Cover Picture/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Module Title/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Module Description/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Module Topic/i)).toBeInTheDocument();
@@ -45,42 +48,26 @@ describe('CreateModuleForm', () => {
     expect(saveButton).toBeInTheDocument();
   });
 
-  it('allows user upload cover picture', async () => {
-    const mockCreateObjectURL = vi.fn(() => 'mock-url://test-image.png');
-    const mockRevokeObjectURL = vi.fn();
+  it('allows user upload cover picture via URL', async () => {
+    const imageUrl = 'https://example.com/image.jpg';
+    const coverInput = screen.getByLabelText(/cover picture url/i);
+    await userEvent.clear(coverInput);
+    await userEvent.type(coverInput, imageUrl);
+    expect(coverInput).toHaveValue(imageUrl);
+  });
 
-    Object.defineProperty(window.URL, 'createObjectURL', {
-      value: mockCreateObjectURL,
-      writable: true,
-    });
-    Object.defineProperty(window.URL, 'revokeObjectURL', {
-      value: mockRevokeObjectURL,
-      writable: true,
-    });
+  it('shows error message when invalid image URL is provided', async () => {
+    const coverInput = screen.getByLabelText(/cover picture url/i);
+    await userEvent.clear(coverInput);
+    await userEvent.type(coverInput, 'invalid-url');
 
-    const file = new File(['dummy content'], 'test-image.png', {
-      type: 'image/png',
-    });
+    expect(screen.getByText(/Invalid image URL format./i)).toBeInTheDocument();
+  });
 
-    const fileInput = document.getElementById(
-      'moduleCoverPicture',
-    ) as HTMLInputElement;
-    expect(fileInput).toBeInTheDocument();
+  it('shows success message after saving module', async () => {
+    const saveButton = screen.getByRole('button', { name: /Save/i });
+    await userEvent.click(saveButton);
 
-    expect(
-      screen.queryByAltText(/Module Cover Picture/i),
-    ).not.toBeInTheDocument();
-    expect(screen.queryByText(/Change Cover Picture/i)).not.toBeInTheDocument();
-
-    await userEvent.upload(fileInput, file);
-
-    expect(mockCreateObjectURL).toHaveBeenCalledWith(file);
-
-    const uploadedImage = await screen.findByAltText(/Module Cover Picture/i);
-    expect(uploadedImage).toBeInTheDocument();
-    expect(uploadedImage).toHaveAttribute('src', 'mock-url://test-image.png');
-    expect(uploadedImage).toHaveAttribute('id', 'moduleCoverPicture');
-
-    expect(screen.getByText(/Change Cover Picture/i)).toBeInTheDocument();
+    expect(screen.getByText(/Module saved successfully!/i)).toBeInTheDocument();
   });
 });

@@ -38,3 +38,4 @@ lerna-debug.log*
 pgdata/
 
 db_snapshot.dump
+.gitlab-ci.yml

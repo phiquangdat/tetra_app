@@ -16,8 +16,21 @@ const AdminLayout = () => {
         isSidebarOpen={sidebarOpen}
       />
       <div className="flex flex-1">
-        {sidebarOpen && <AdminSidebar />}
-        <main className="flex-1">
+        <div
+          className={`
+            absolute z-50 h-full
+            transform transition-transform duration-300 ease-in-out
+            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          `}
+        >
+          <AdminSidebar />
+        </div>
+        <main
+          className={`
+            flex-1 transition-all duration-300 ease-in-out
+            ${sidebarOpen ? 'ml-64' : ''}
+          `}
+        >
           <Outlet />
         </main>
       </div>

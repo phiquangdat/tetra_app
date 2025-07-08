@@ -10,6 +10,7 @@ stages:
   - test
   - build
   - push
+  - deploy
 
 test_backend:
   image: gradle:8.14.1-jdk24
@@ -130,6 +131,44 @@ build_and_push_frontend:
     - echo "$DEPLOY_TOKEN" | docker login -u "$DEPLOY_USER" --password-stdin $DOCKER_REGISTRY
     - docker buildx create --use || true
     - docker buildx build --platform linux/amd64 -t $FRONTEND_IMAGE ./frontend --push
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+
+trigger_rancher_update:
+  stage: deploy
+  image: alpine/k8s:1.28.0
+  tags: ["Docker"]
+  needs:
+    - job: build_and_push_backend
+    - job: build_and_push_frontend
+  script:
+    - |
+      cat <<EOF > kubeconfig.yaml
+      apiVersion: v1
+      kind: Config
+      clusters:
+      - name: "local"
+        cluster:
+          server: "https://65.21.51.239.nip.io/k8s/clusters/local"
+          insecure-skip-tls-verify: true
+      users:
+      - name: "local"
+        user:
+          token: "$KUBECONFIG_TOKEN"
+      contexts:
+      - name: "local"
+        context:
+          user: "local"
+          cluster: "local"
+      current-context: "local"
+      EOF
+    - export KUBECONFIG=$(pwd)/kubeconfig.yaml
+    - kubectl config current-context
+    - kubectl cluster-info
+    - echo "Restarting backend and frontend deployments..."
+    - kubectl rollout restart deployment/backend -n default
+    - kubectl rollout restart deployment/frontend -n default
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
     - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'

@@ -88,9 +88,11 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
   const handleClose = () => {
     setQuizTitle('');
     setQuestionNumber(1);
+    setPoints(0);
     onClose();
     setQuestions([]);
     setErrors([]);
+    setSelectedOption('');
   };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {

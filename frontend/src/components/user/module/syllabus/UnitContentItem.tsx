@@ -17,7 +17,7 @@ function UnitContentItem({ type, title }: UnitContentItemProps) {
           <StarIcon />
         )}
       </div>
-      <div className="capitalize font-medium text-sm text-[#998FC7]">
+      <div className="capitalize font-medium text-sm text-[#231942]">
         {type}
       </div>
       <div>{title}</div>

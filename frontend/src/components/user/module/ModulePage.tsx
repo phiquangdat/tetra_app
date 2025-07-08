@@ -135,7 +135,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
 
         <div className="border border-[#D4C2FC] rounded-3xl p-6 flex flex-row gap-8 min-w-[340px] bg-white hover:shadow-lg transition items-center">
           <div className="flex flex-row items-center gap-4">
-            <OpenBooksIcon className="w-6 h-6 text-[#998FC7]" />
+            <OpenBooksIcon width={30} height={30} />
             <div className="flex flex-col items-start">
               <span className="text-[#231942]">Total content</span>
               <span className="text-xl font-bold text-[#14248A]">
@@ -145,7 +145,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
           </div>
 
           <div className="flex flex-row items-center gap-4">
-            <PuzzleIcon className="w-6 h-6 text-[#998FC7]" />
+            <PuzzleIcon width={30} height={30} />
             <div className="flex flex-col items-start">
               <span className="text-[#231942]">Quizzes</span>
               <span className="text-xl font-bold text-[#14248A]">
@@ -155,7 +155,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
           </div>
 
           <div className="flex flex-row items-center gap-4">
-            <StarIcon className="w-6 h-6 text-[#FFA726]" />
+            <StarIcon width={30} height={30} />
             <div className="flex flex-col items-start">
               <span className="text-[#231942]">Points available</span>
               <span className="text-xl font-bold text-[#14248A]">

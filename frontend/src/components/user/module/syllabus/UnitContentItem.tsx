@@ -10,11 +10,11 @@ function UnitContentItem({ type, title }: UnitContentItemProps) {
     <div className="grid grid-cols-[24px_80px_1fr] gap-2 items-center text-[#231942]">
       <div className="w-6 h-6 flex items-center justify-center">
         {type === 'video' ? (
-          <VideoIcon className="w-6 h-6 text-[#14248A]" />
+          <VideoIcon color="#231942" />
         ) : type === 'article' ? (
-          <BookIcon className="w-6 h-6 text-[#231942]" />
+          <BookIcon color="#231942" />
         ) : (
-          <StarIcon className="w-6 h-6 text-[#FFA726]" />
+          <StarIcon />
         )}
       </div>
       <div className="capitalize font-medium text-sm text-[#998FC7]">

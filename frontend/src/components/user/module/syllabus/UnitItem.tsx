@@ -46,11 +46,7 @@ const UnitItem: React.FC<UnitItemProps> = ({
         >
           Unit {index + 1}: {unit.title}
         </div>
-        {isOpen ? (
-          <ChevronUpIcon className="w-6 h-6  text-[#998FC7]" />
-        ) : (
-          <ChevronDownIcon className="w-6 h-6  text-[#998FC7]" />
-        )}
+        {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
       </div>
 
       {isOpen && unit.content && (

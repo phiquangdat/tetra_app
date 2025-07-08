@@ -90,6 +90,7 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
     setQuestionNumber(1);
     onClose();
     setQuestions([]);
+    setErrors([]);
   };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -182,6 +183,7 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
                 min={0}
                 required
                 className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
+                aria-label="points"
               />
             </div>
 

@@ -1,4 +1,6 @@
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || '/api';
+const envBaseUrl = import.meta.env.VITE_BACKEND_URL;
+const BASE_URL =
+  envBaseUrl && envBaseUrl.trim() !== '' ? `${envBaseUrl}/api` : '/api';
 
 export interface UnitContent {
   id: string;

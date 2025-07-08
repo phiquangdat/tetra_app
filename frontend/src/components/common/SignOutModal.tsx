@@ -1,3 +1,5 @@
+import { createPortal } from 'react-dom';
+
 interface SignOutModalProps {
   open: boolean;
   onCancel: () => void;
@@ -6,8 +8,8 @@ interface SignOutModalProps {
 const SignOutModal = ({ open, onCancel }: SignOutModalProps) => {
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 flex items-center justify-center text-center backdrop-blur">
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center text-center backdrop-blur">
       <div className="bg-white rounded-lg border border-[#282626] p-8 w-full max-w-sm">
         <h2 className="text-xl font-semibold mb-6 text-[#14248A]">Sign Out</h2>
         <p className="mb-8 text-gray-700">Are you sure you want to sign out?</p>
@@ -27,7 +29,8 @@ const SignOutModal = ({ open, onCancel }: SignOutModalProps) => {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.getElementById('modal-root')!,
   );
 };
 

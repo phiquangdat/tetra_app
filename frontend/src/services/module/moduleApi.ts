@@ -1,5 +1,6 @@
 const envBaseUrl = import.meta.env.VITE_BACKEND_URL;
-const BASE_URL = envBaseUrl && envBaseUrl.trim() !== '' ? envBaseUrl : '/api';
+const BASE_URL =
+  envBaseUrl && envBaseUrl.trim() !== '' ? `${envBaseUrl}/api` : '/api';
 
 console.log(
   '[moduleApi] Computed BASE_URL:',

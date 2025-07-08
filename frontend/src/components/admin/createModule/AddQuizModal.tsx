@@ -81,6 +81,7 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
 
     setQuizTitle('');
     setQuestionNumber(1);
+    setPoints(0);
     setQuestions([]);
     setErrors([]);
   };

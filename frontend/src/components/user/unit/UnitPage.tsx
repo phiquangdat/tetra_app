@@ -28,10 +28,26 @@ interface Unit {
 }
 
 const stats = [
-  { icon: <VideoIcon />, label: 'Videos', type: 'video' },
-  { icon: <BookIcon />, label: 'Articles', type: 'article' },
-  { icon: <PuzzleIcon />, label: 'Quizzes', type: 'quiz' },
-  { icon: <StarIcon />, label: 'Points', type: 'points' },
+  {
+    icon: <VideoIcon width={30} height={30} />,
+    label: 'Videos',
+    type: 'video',
+  },
+  {
+    icon: <BookIcon width={30} height={30} />,
+    label: 'Articles',
+    type: 'article',
+  },
+  {
+    icon: <PuzzleIcon width={30} height={30} />,
+    label: 'Quizzes',
+    type: 'quiz',
+  },
+  {
+    icon: <StarIcon width={30} height={30} color="#FFA726" />,
+    label: 'Points',
+    type: 'points',
+  },
 ];
 
 async function fetchUnitDetails(id: string) {
@@ -104,11 +120,11 @@ const UnitPage = ({ id }: UnitPageProps) => {
   };
 
   return (
-    <div className="mx-auto px-8 py-8 min-h-screen text-left">
+    <div className="mx-auto px-8 py-8 min-h-screen bg-[#FFFFFF] text-left">
       <div className="mb-6">
         <a
           onClick={() => navigate(`/user/modules/${unitDetails.moduleId}`)}
-          className="inline-flex items-center text-gray-500 hover:text-black px-3 py-1 rounded-lg hover:bg-gray-100 hover:border hover:border-gray-300 active:bg-gray-200 transition-all cursor-pointer"
+          className="inline-flex items-center text-[#998FC7] hover:text-[#231942] px-3 py-1 rounded-lg hover:bg-[#F9F5FF] hover:border hover:border-[#D4C2FC] active:bg-[#D4C2FC] transition-all cursor-pointer"
         >
           <span className="mr-2 text-xl">←</span>
           Back to Module
@@ -116,18 +132,21 @@ const UnitPage = ({ id }: UnitPageProps) => {
       </div>
 
       <div className="flex flex-col gap-4 py-8 mb-6">
-        <h1 className="text-2xl md:text-3xl font-extrabold text-gray-800 tracking-tight mb-0 md:mb-0">
+        <h1 className="text-2xl md:text-3xl font-extrabold text-[#231942] tracking-tight">
           {loading ? 'Loading...' : unitDetails.title}
         </h1>
       </div>
-      <h2 className="text-xl font-bold ml-4 mb-4">About this unit</h2>
+
+      <h2 className="text-xl font-bold ml-4 mb-4 text-[#231942]">
+        About this unit
+      </h2>
 
       <div className="flex flex-col md:flex-row gap-16 items-stretch mb-8">
-        <div className="flex-1 flex flex-col bg-gray-200 rounded-3xl p-6 text-gray-700 text-base text-left shadow-sm justify-center">
+        <div className="flex-1 flex flex-col bg-[#F9F5FF] rounded-3xl p-6 text-[#231942] text-base shadow-sm justify-center">
           {loading ? 'Loading description...' : unitDetails.description}
           {error && <p className="text-red-500">{error}</p>}
         </div>
-        <div className="border rounded-3xl p-6 flex flex-row gap-8 min-w-[340px] bg-white hover:shadow-lg transition items-center">
+        <div className="border border-[#D4C2FC] rounded-3xl p-6 flex flex-row gap-8 min-w-[340px] bg-white hover:shadow-lg transition items-center">
           {loading ? (
             <div className="text-center w-full">Loading stats...</div>
           ) : (
@@ -138,8 +157,8 @@ const UnitPage = ({ id }: UnitPageProps) => {
               >
                 {stat.icon}
                 <div className="flex flex-col items-start">
-                  <span className="text-gray-700">{stat.label}</span>
-                  <span className="text-xl font-bold">
+                  <span className="text-sm text-[#231942]">{stat.label}</span>
+                  <span className="text-xl font-bold text-[#14248A]">
                     {
                       unitContentList.filter(
                         (item) => item.content_type === stat.type,
@@ -153,35 +172,42 @@ const UnitPage = ({ id }: UnitPageProps) => {
         </div>
       </div>
 
-      <div className="bg-gray-100 rounded-2xl p-6 shadow-lg w-full md:w-full mx-auto border border-gray-200">
+      <div className="bg-[#F9F5FF] rounded-2xl p-6 shadow-lg w-full md:w-full mx-auto border border-[#D4C2FC]">
         {loading ? (
           <div className="text-center py-4">Loading content...</div>
         ) : unitContentList.length > 0 ? (
           unitContentList.map((content, index) => (
             <div
               key={content.id}
-              className={`grid grid-cols-[24px_80px_1fr_32px] gap-4 hover:bg-gray-200 items-center p-4 rounded-xl cursor-pointer transition-colors
-                ${checkedIndex === index ? 'bg-gray-300' : ''}`}
+              className={`grid grid-cols-[24px_80px_1fr_32px] gap-4 items-center p-4 rounded-xl cursor-pointer transition-colors 
+                hover:bg-[#D4C2FC] ${
+                  checkedIndex === index ? 'bg-[#998FC7]/30' : 'bg-white'
+                }`}
               onClick={() => handleRowClick(index)}
             >
               <div className="w-6 h-6 flex items-center justify-center">
-                {content.content_type === 'video' && <VideoIcon />}
-                {content.content_type === 'article' && <BookIcon />}
-                {content.content_type === 'quiz' && <PuzzleIcon />}
+                {content.content_type === 'video' && (
+                  <VideoIcon width={24} height={24} />
+                )}
+                {content.content_type === 'article' && (
+                  <BookIcon width={24} height={24} />
+                )}
+                {content.content_type === 'quiz' && (
+                  <PuzzleIcon width={24} height={24} />
+                )}
               </div>
-              <div className="capitalize font-medium text-sm text-gray-700">
+              <div className="capitalize text-base font-medium text-[#231942]">
                 {content.content_type}
               </div>
-              <div className="text-gray-900">{content.title}</div>
+              <div className="text-[#231942] text-base">{content.title}</div>
               <div className="flex justify-end items-center">
                 {content.content_type === 'quiz' && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      console.log('id is ', content.id);
                       openModal(content.id);
                     }}
-                    className="px-4 py-2 bg-blue-200 hover:bg-blue-400 text-black font-semibold rounded-full transition-colors duration-200 text-sm whitespace-nowrap"
+                    className="px-4 py-2 bg-[#FFA726] hover:bg-[#FFB74D] text-black font-semibold rounded-full transition-colors duration-200 text-sm whitespace-nowrap"
                   >
                     Start challenge
                   </button>
@@ -191,7 +217,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
             </div>
           ))
         ) : (
-          <div className="text-center py-4 text-gray-500">
+          <div className="text-center py-4 text-[#998FC7]">
             No content available for this unit.
           </div>
         )}

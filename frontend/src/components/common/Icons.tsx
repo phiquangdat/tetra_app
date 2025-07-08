@@ -1,3 +1,9 @@
+interface IconProps extends React.SVGProps<SVGSVGElement> {
+  width?: number | string;
+  height?: number | string;
+  color?: string;
+}
+
 export const HamburgerIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
   props,
 ) => (
@@ -39,13 +45,19 @@ export const LogoIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   </svg>
 );
 
-export const ChevronDownIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
-  props,
-) => (
+export const ChevronDownIcon: React.FC<IconProps> = ({
+  width = 24,
+  height = 24,
+  color = '#998FC7',
+  className,
+  ...props
+}) => (
   <svg
-    className="w-5 h-5"
+    width={width}
+    height={height}
+    className={className}
     fill="none"
-    stroke="currentColor"
+    stroke={color}
     strokeWidth={2}
     viewBox="0 0 24 24"
     {...props}
@@ -54,13 +66,19 @@ export const ChevronDownIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
   </svg>
 );
 
-export const ChevronUpIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
-  props,
-) => (
+export const ChevronUpIcon: React.FC<IconProps> = ({
+  width = 24,
+  height = 24,
+  color = '#998FC7',
+  className,
+  ...props
+}) => (
   <svg
-    className="w-5 h-5"
+    width={width}
+    height={height}
+    className={className}
     fill="none"
-    stroke="currentColor"
+    stroke={color}
     strokeWidth={2}
     viewBox="0 0 24 24"
     {...props}
@@ -69,11 +87,12 @@ export const ChevronUpIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
   </svg>
 );
 
-export const ChevronRightIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
-  props,
-) => (
+export const ChevronRightIcon: React.FC<React.SVGProps<SVGSVGElement>> = ({
+  className = 'w-5 h-5 text-[#998FC7]',
+  ...props
+}) => (
   <svg
-    className="w-5 h-5"
+    className={className}
     fill="none"
     stroke="currentColor"
     strokeWidth={2}
@@ -101,11 +120,19 @@ export const CloseIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   </svg>
 );
 
-export const VideoIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+export const VideoIcon: React.FC<IconProps> = ({
+  width = 24,
+  height = 24,
+  color = '#998FC7',
+  className,
+  ...props
+}) => (
   <svg
-    className="w-6 h-6 text-gray-700 flex-shrink-0"
+    width={width}
+    height={height}
+    className={className}
     fill="none"
-    stroke="currentColor"
+    stroke={color}
     strokeWidth={2}
     viewBox="0 0 24 24"
     {...props}
@@ -114,11 +141,19 @@ export const VideoIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   </svg>
 );
 
-export const BookIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+export const BookIcon: React.FC<IconProps> = ({
+  width = 24,
+  height = 24,
+  color = '#998FC7',
+  className,
+  ...props
+}) => (
   <svg
-    className="w-6 h-6 text-gray-700 flex-shrink-0"
+    width={width}
+    height={height}
+    className={className}
     fill="none"
-    stroke="currentColor"
+    stroke={color}
     strokeWidth={2}
     viewBox="0 0 24 24"
     {...props}
@@ -129,11 +164,19 @@ export const BookIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   </svg>
 );
 
-export const StarIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+export const StarIcon: React.FC<IconProps> = ({
+  width = 24,
+  height = 24,
+  color = '#FFA726',
+  className,
+  ...props
+}) => (
   <svg
-    className="w-6 h-6 text-gray-700 flex-shrink-0"
+    width={width}
+    height={height}
+    className={className}
     fill="none"
-    stroke="currentColor"
+    stroke={color}
     strokeWidth={2}
     viewBox="0 0 24 24"
     {...props}
@@ -282,13 +325,19 @@ export const QuizIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   </svg>
 );
 
-export const OpenBooksIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
-  props,
-) => (
+export const OpenBooksIcon: React.FC<IconProps> = ({
+  width = 24,
+  height = 24,
+  color = '#998FC7',
+  className,
+  ...props
+}) => (
   <svg
-    className="w-6 h-6 text-gray-700 flex-shrink-0"
+    width={width}
+    height={height}
+    className={className}
+    stroke={color}
     fill="none"
-    stroke="currentColor"
     strokeWidth={2}
     viewBox="0 0 24 24"
     xmlns="http://www.w3.org/2000/svg"
@@ -308,11 +357,19 @@ export const OpenBooksIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
   </svg>
 );
 
-export const PuzzleIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+export const PuzzleIcon: React.FC<IconProps> = ({
+  width = 24,
+  height = 24,
+  color = '#998FC7',
+  className,
+  ...props
+}) => (
   <svg
-    className="w-6 h-6 text-gray-700 flex-shrink-0"
+    width={width}
+    height={height}
+    className={className}
+    stroke={color}
     fill="none"
-    stroke="currentColor"
     strokeWidth={2}
     viewBox="0 0 24 24"
     {...props}
@@ -348,6 +405,7 @@ export const QuestionIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
     </g>
   </svg>
 );
+
 export const CheckAltIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
   props,
 ) => (

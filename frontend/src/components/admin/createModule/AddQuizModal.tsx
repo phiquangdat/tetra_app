@@ -24,9 +24,30 @@ type Question = {
 function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
   const [questionNumber, setQuestionNumber] = useState(1);
   const [quizzTitle, setQuizTitle] = useState('');
+  const [points, setPoints] = useState(0);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedOption, setSelectedOption] = useState('');
+  const [errors, setErrors] = useState<string[]>([]);
+
   const modalRef = useRef<HTMLDivElement>(null);
+
+  const validateQuiz = () => {
+    const newErrors: string[] = [];
+
+    if (!quizzTitle.trim()) {
+      newErrors.push('Quiz title is required.');
+    }
+
+    if (points <= 0) {
+      newErrors.push('Points must be greater than zero.');
+    }
+
+    if (questions.length === 0) {
+      newErrors.push('At least one question is required.');
+    }
+
+    return newErrors;
+  };
 
   const handleAddQuestion = (type: 'trueFalse' | 'multipleChoice') => {
     const newQuestion: Question = {
@@ -40,16 +61,28 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
     setQuestionNumber((prev) => prev + 1);
   };
 
+  const handleChangepoints = (e: { target: { value: string } }) => {
+    const value = e.target.value ? parseInt(e.target.value, 10) : 0;
+    setPoints(value);
+  };
+
   const handleSave = () => {
-    if (quizzTitle.trim()) {
-      onSave({
-        title: quizzTitle,
-        questions: questions,
-      });
-      setQuizTitle('');
-      setQuestionNumber(1);
-      setQuestions([]);
+    const validationErrors = validateQuiz();
+    if (validationErrors.length > 0) {
+      setErrors(validationErrors);
+      return;
     }
+
+    onSave({
+      title: quizzTitle,
+      points: points,
+      questions: questions,
+    });
+
+    setQuizTitle('');
+    setQuestionNumber(1);
+    setQuestions([]);
+    setErrors([]);
   };
 
   const handleClose = () => {
@@ -108,6 +141,16 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
           </button>
         </div>
 
+        {errors.length > 0 && (
+          <div className="bg-red-100 text-red-800 p-4 mb-4 rounded-lg">
+            <ul className="list-disc pl-6">
+              {errors.map((err, idx) => (
+                <li key={idx}>{err}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="flex flex-col h-full">
           <div className="mb-6 max-w-110 p-6 pb-0 flex-1 overflow-y-auto">
             <label
@@ -124,6 +167,23 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
               className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
               required
             />
+
+            <div className="max-w-28 mt-4">
+              <label
+                htmlFor="pointsAwarded"
+                className="block mb-2 font-sm text-gray-700"
+              >
+                Points
+              </label>
+              <input
+                type="number"
+                value={points}
+                onChange={handleChangepoints}
+                min={0}
+                required
+                className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
+              />
+            </div>
 
             <div className="w-48 mt-6 mb-11 p-2">
               <select

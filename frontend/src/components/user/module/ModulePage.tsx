@@ -100,11 +100,11 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   if (!module) return <div>No module found.</div>;
 
   return (
-    <div className="mx-auto px-8 py-8 min-h-screen text-left">
+    <div className="mx-auto px-8 py-8 min-h-screen bg-[#FFFFFF] text-left">
       <div className="mb-6">
         <a
           onClick={() => navigate('/user/modules')}
-          className="inline-flex items-center text-gray-500 hover:text-black px-3 py-1 rounded-lg hover:bg-gray-100 hover:border hover:border-gray-300 active:bg-gray-200 transition-all cursor-pointer"
+          className="inline-flex items-center text-[#998FC7] hover:text-[#231942] px-3 py-1 rounded-lg hover:bg-[#F9F5FF] hover:border hover:border-[#D4C2FC] active:bg-[#D4C2FC] transition-all cursor-pointer"
         >
           <span className="mr-2 text-xl">←</span>
           Back to Modules
@@ -112,45 +112,55 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
       </div>
 
       <div className="flex flex-col gap-4 py-8 mb-6">
-        <h1 className="text-2xl md:text-3xl font-extrabold text-gray-800 tracking-tight mb-0 md:mb-0">
+        <h1 className="text-2xl md:text-3xl font-extrabold text-[#231942] tracking-tight">
           {module.title}
         </h1>
         <button
-          className="bg-blue-200 font-semibold px-16 py-3 rounded-full text-lg shadow-md hover:bg-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition w-fit cursor-pointer"
+          className="bg-[#14248A] text-white font-semibold px-16 py-3 rounded-full text-lg shadow-md hover:bg-[#1A2F9C] focus:outline-none focus:ring-2 focus:ring-[#998FC7] transition w-fit"
           type="button"
           onClick={handleStart}
         >
           Start
         </button>
       </div>
-      <h2 className="text-xl font-bold ml-4 mb-4">About this module</h2>
+
+      <h2 className="text-xl font-bold ml-4 mb-4 text-[#231942]">
+        About this module
+      </h2>
+
       <div className="flex flex-col md:flex-row gap-10 items-stretch mb-8">
-        <div className="flex-1 flex flex-col bg-gray-200 rounded-3xl p-6 text-gray-700 text-base text-left shadow-sm justify-center">
+        <div className="flex-1 flex flex-col bg-[#F9F5FF] rounded-3xl p-6 text-[#231942] text-base shadow-sm justify-center">
           {module.description}
         </div>
 
-        <div className="border rounded-3xl p-6 flex flex-row gap-8 min-w-[340px] bg-white hover:shadow-lg transition items-center">
+        <div className="border border-[#D4C2FC] rounded-3xl p-6 flex flex-row gap-8 min-w-[340px] bg-white hover:shadow-lg transition items-center">
           <div className="flex flex-row items-center gap-4">
-            <OpenBooksIcon />
+            <OpenBooksIcon width={30} height={30} />
             <div className="flex flex-col items-start">
-              <span className="text-gray-700">Total content</span>
-              <span className="text-xl font-bold">
+              <span className="text-[#231942]">Total content</span>
+              <span className="text-xl font-bold text-[#14248A]">
                 {units.length} {units.length > 1 ? 'Units' : 'Unit'}
               </span>
             </div>
           </div>
+
           <div className="flex flex-row items-center gap-4">
-            <PuzzleIcon />
+            <PuzzleIcon width={30} height={30} />
             <div className="flex flex-col items-start">
-              <span className="text-gray-700">Quizzes</span>
-              <span className="text-xl font-bold">Placeholder</span>
+              <span className="text-[#231942]">Quizzes</span>
+              <span className="text-xl font-bold text-[#14248A]">
+                Placeholder
+              </span>
             </div>
           </div>
+
           <div className="flex flex-row items-center gap-4">
-            <StarIcon />
+            <StarIcon width={30} height={30} />
             <div className="flex flex-col items-start">
-              <span className="text-gray-700">Points available</span>
-              <span className="text-xl font-bold">{module.points}</span>
+              <span className="text-[#231942]">Points available</span>
+              <span className="text-xl font-bold text-[#14248A]">
+                {module.points}
+              </span>
             </div>
           </div>
         </div>

@@ -4,7 +4,7 @@ import { useModuleContext } from '../../../context/admin/ModuleContext';
 import AddArticleModal from './AddArticleModal';
 import AddVideoModal from './AddVideoModal';
 import AddQuizModal from './AddQuizModal';
-import { ChevronDownIcon, ChevronUpIcon } from '../../common/Icons';
+import { ChevronDownIcon, ChevronUpIcon, RemoveIcon } from '../../common/Icons';
 
 type ContentBlock = {
   type: 'video' | 'article' | 'quiz';
@@ -21,12 +21,17 @@ function UnitForm({ unitNumber }: UnitFormProps) {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
   const [successSaved, setSuccessSaved] = useState(false);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
 
-  const { updateUnitField, getUnitState, saveUnit } = useUnitContext();
+  const { updateUnitField, getUnitState, saveUnit, removeUnit, unitStates } =
+    useUnitContext();
   const { id: moduleId } = useModuleContext();
 
   const unitState = getUnitState(unitNumber);
   if (!unitState) return null;
+
+  const totalUnits = Object.keys(unitStates).length;
+  const canRemove = totalUnits > 1;
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateUnitField(unitNumber, 'title', e.target.value);
@@ -81,6 +86,21 @@ function UnitForm({ unitNumber }: UnitFormProps) {
     }
   };
 
+  const handleRemoveUnit = () => {
+    if (canRemove) {
+      setShowRemoveConfirm(true);
+    }
+  };
+
+  const confirmRemoveUnit = () => {
+    removeUnit(unitNumber); // This will remove the unit
+    setShowRemoveConfirm(false);
+  };
+
+  const cancelRemoveUnit = () => {
+    setShowRemoveConfirm(false);
+  };
+
   return (
     <div>
       <form onSubmit={(e) => e.preventDefault()}>
@@ -92,7 +112,23 @@ function UnitForm({ unitNumber }: UnitFormProps) {
           <h3 className="text-xl font-semibold text-gray-700">
             Unit {unitNumber}
           </h3>
-          {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
+          <div className="flex items-center gap-2">
+            {canRemove && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemoveUnit();
+                }}
+                title="Remove Unit"
+                aria-label="Remove Unit"
+                className="w-10 h-8"
+              >
+                <RemoveIcon />
+              </button>
+            )}
+            {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
+          </div>
         </div>
 
         {isOpen && (
@@ -179,6 +215,37 @@ function UnitForm({ unitNumber }: UnitFormProps) {
           </div>
         )}
       </form>
+
+      {showRemoveConfirm && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+        >
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Remove Unit {unitNumber}
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to remove this unit? This action cannot be
+              undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={cancelRemoveUnit}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmRemoveUnit}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors duration-200"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <AddArticleModal
         isOpen={isArticleModalOpen}

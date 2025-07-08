@@ -41,6 +41,7 @@ type UnitContextType = {
   getUnitState: (unitNumber: number) => UnitContextEntry | undefined;
   getNextUnitNumber: () => number;
   saveUnit: (unitNumber: number, moduleId: string) => Promise<void>;
+  removeUnit: (unitNumber: number) => void;
 };
 
 const createDefaultUnitState = (): UnitContextEntry => ({
@@ -154,6 +155,31 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     [unitStates, setUnitState],
   );
 
+  const removeUnit = useCallback(
+    (unitNumber: number) => {
+      if (!unitStates[unitNumber]) return;
+      if (Object.keys(unitStates).length <= 1) return;
+
+      setUnitStates((prev) => {
+        const sortedUnitNumbers = Object.keys(prev)
+          .map(Number)
+          .sort((a, b) => a - b);
+        const newStates: Record<number, UnitContextEntry> = {};
+
+        let newUnitNumber = 1;
+        for (const oldUnitNumber of sortedUnitNumbers) {
+          if (oldUnitNumber !== unitNumber) {
+            newStates[newUnitNumber] = prev[oldUnitNumber];
+            newUnitNumber++;
+          }
+        }
+
+        return newStates;
+      });
+    },
+    [unitStates],
+  );
+
   const contextValue: UnitContextType = {
     unitStates,
     updateUnitField,
@@ -162,6 +188,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     getUnitState,
     getNextUnitNumber,
     saveUnit,
+    removeUnit,
   };
 
   return (

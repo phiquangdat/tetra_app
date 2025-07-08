@@ -32,7 +32,7 @@ services:
     build:
       context: ./frontend
       args:
-        - VITE_BACKEND_URL=http://localhost:8080/api
+        - VITE_BACKEND_URL=${VITE_BACKEND_URL}
     ports:
       - "3000:80" # Maps host port 3000 to container port 80
     environment:

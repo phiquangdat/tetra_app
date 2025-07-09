@@ -55,10 +55,10 @@ const QuizSummaryPage: React.FC = () => {
         </a>
       </div>
 
-      <h1 className="text-2xl font-semibold text-center text-[#231942] mb-1">
+      <h1 className="text-2xl font-semibold text-center text-primary mb-1">
         Quiz Summary
       </h1>
-      <h2 className="text-4xl font-extrabold text-center text-[#14248A] mb-3">
+      <h2 className="text-4xl font-extrabold text-center text-surface mb-3">
         Key concepts of data protection
       </h2>
       <p className="text-center text-gray-700 mb-10">
@@ -69,24 +69,24 @@ const QuizSummaryPage: React.FC = () => {
         {/* Circular progress bar */}
         <div className="relative w-32 h-32">
           <CircularProgressIcon percentage={percentage} />
-          <div className="absolute inset-0 flex items-center justify-center text-xl font-bold text-[#14248A]">
+          <div className="absolute inset-0 flex items-center justify-center text-xl font-bold text-surface">
             {percentage}%
           </div>
         </div>
 
         {/* Stats */}
-        <div className="flex flex-col items-center text-[#231942]">
+        <div className="flex flex-col items-center text-primary">
           <div className="flex items-center text-lg mb-2">
-            <div className="flex items-center gap-2 pr-8 border-r border-[#D4C2FC] text-green-700">
+            <div className="flex items-center gap-2 pr-8 border-r border-highlight text-success">
               <CheckCircleIcon className="w-5 h-5" />
               <strong>{correctAnswers}</strong> correct
             </div>
-            <div className="flex items-center gap-2 pl-8 text-red-700">
+            <div className="flex items-center gap-2 pl-8 text-error">
               <XCircleIcon className="w-5 h-5" />
               <strong>{incorrectAnswers}</strong> incorrect
             </div>
           </div>
-          <div className="bg-[#FFA726] text-white font-bold px-4 py-1 rounded-full text-center">
+          <div className="bg-accent text-white font-bold px-4 py-1 rounded-full text-center">
             +12 px
           </div>
         </div>
@@ -99,7 +99,7 @@ const QuizSummaryPage: React.FC = () => {
             key={q.id}
             className="bg-[#F5F3F7] border border-gray-300 p-6 rounded-2xl shadow-sm"
           >
-            <h3 className="font-semibold text-[#231942] mb-4">
+            <h3 className="font-semibold text-primary mb-4">
               Question {index + 1}: {q.question}
             </h3>
             <ul className="space-y-2">
@@ -112,9 +112,9 @@ const QuizSummaryPage: React.FC = () => {
                 let icon = null;
                 if (isUserAnswer) {
                   icon = isCorrect ? (
-                    <CheckCircleIcon className="w-5 h-5 text-green-600 ml-2" />
+                    <CheckCircleIcon className="w-5 h-5 text-success ml-2" />
                   ) : (
-                    <XCircleIcon className="w-5 h-5 text-red-600 ml-2" />
+                    <XCircleIcon className="w-5 h-5 text-error ml-2" />
                   );
                 }
 
@@ -124,16 +124,16 @@ const QuizSummaryPage: React.FC = () => {
 
                 if (isUserAnswer && isIncorrect) {
                   bgClass = 'bg-red-100';
-                  textClass = 'text-red-800';
+                  textClass = 'text-error';
                   borderClass += ' border-2 border-dashed border-[#7E6BBE]';
                 } else if (isUserAnswer && isCorrect) {
                   bgClass = 'bg-green-100';
-                  textClass = 'text-green-800';
+                  textClass = 'text-success';
                   borderClass += ' border-2 border-dashed border-[#7E6BBE]';
                 } else if (isCorrectAndNotChosen) {
                   bgClass = 'bg-green-100';
-                  textClass = 'text-green-800';
-                  borderClass += ' border border-green-500';
+                  textClass = 'text-success';
+                  borderClass += ' border border-success';
                 } else {
                   borderClass += ' border border-gray-300';
                 }
@@ -156,7 +156,7 @@ const QuizSummaryPage: React.FC = () => {
       <div className="flex justify-end">
         <button
           onClick={() => goToNextContent(quizId ?? '')}
-          className="bg-[#14248A] hover:bg-blue-800 text-white font-semibold px-6 py-3 rounded-full shadow-md transition-all"
+          className="bg-surface hover:bg-blue-800 text-white font-semibold px-6 py-3 rounded-full shadow-md transition-all"
         >
           Continue Learning
         </button>

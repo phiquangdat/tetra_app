@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-
+import { X } from 'lucide-react';
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -44,37 +44,37 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm"
+      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
       aria-modal="true"
       role="dialog"
       tabIndex={-1}
     >
       <div
         ref={modalRef}
-        className="relative bg-[#F3F3F3] rounded-3xl shadow-xl w-full max-w-md mx-4 p-8"
+        className="bg-white rounded-2xl w-full max-w-md p-6 relative shadow-xl"
         role="document"
       >
         {/* Close button */}
         <button
           aria-label="Close login modal"
           onClick={onClose}
-          className="absolute top-4 right-4 text-2xl text-gray-500 hover:text-gray-700 focus:outline-none"
+          className="absolute top-4 right-4 text-[#231942] hover:text-[#7E6BBE] transition"
           tabIndex={0}
         >
-          ×
+          <X size={20} />
         </button>
-        <h2 className="text-3xl font-bold text-center mb-8 text-black">
+        <h2 className="text-[#14248A] text-2xl font-semibold mb-6 text-center">
           Login
         </h2>
         <form
-          className="flex flex-col gap-6"
+          className="space-y-4"
           onSubmit={(e) => e.preventDefault()}
           autoComplete="off"
         >
           <div>
             <label
               htmlFor="login-email"
-              className="block text-lg font-medium text-gray-800 mb-2"
+              className="text-[#231942] text-sm font-medium mb-1 block"
             >
               Email address
             </label>
@@ -84,14 +84,14 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
               name="email"
               type="email"
               autoComplete="username"
-              className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none text-base"
+              className="w-full bg-[#F9F5FF] border border-[#D4C2FC] rounded-lg p-2.5 text-[#231942] focus:outline-none focus:ring-2 focus:ring-[#7E6BBE]"
               required
             />
           </div>
           <div>
             <label
               htmlFor="login-password"
-              className="block text-lg font-medium text-gray-800 mb-2"
+              className="text-[#231942] text-sm font-medium mb-1 block"
             >
               Password
             </label>
@@ -100,7 +100,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
               name="password"
               type="password"
               autoComplete="current-password"
-              className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none text-base"
+              className="w-full bg-[#F9F5FF] border border-[#D4C2FC] rounded-lg p-2.5 text-[#231942] focus:outline-none focus:ring-2 focus:ring-[#7E6BBE]"
               required
             />
           </div>
@@ -108,14 +108,14 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
             <a
               href="#"
               tabIndex={0}
-              className="text-sm text-gray-700 hover:underline focus:underline"
+              className="text-sm text-[#231942] hover:underline focus:underline"
             >
               Forgot your password?
             </a>
           </div>
           <button
             type="submit"
-            className="w-full mt-2 bg-blue-200 hover:bg-blue-300 text-black font-semibold py-3 rounded-full text-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-1/2 bg-[#14248A] hover:bg-[#101e72] text-white px-5 py-3 rounded-lg text-sm font-medium transition block mx-auto"
           >
             Log in
           </button>

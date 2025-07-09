@@ -27,7 +27,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
-  const { goToNextContent } = useModuleProgress();
+  const { goToNextContent, isNextContent } = useModuleProgress();
 
   useEffect(() => {
     if (id) {
@@ -94,7 +94,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
           type="button"
           onClick={() => goToNextContent(id)}
         >
-          Up next
+          {isNextContent(id ?? '') ? 'Up next' : 'Finish'}
         </button>
       </div>
     </div>

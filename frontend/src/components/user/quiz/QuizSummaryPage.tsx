@@ -28,7 +28,7 @@ const mockedQuestions = [
 ];
 
 const QuizSummaryPage: React.FC = () => {
-  const { goToNextContent } = useModuleProgress();
+  const { goToNextContent, isNextContent } = useModuleProgress();
   const { quizId } = useParams();
   const { unitId } = useUnitContent();
   const navigate = useNavigate();
@@ -158,7 +158,7 @@ const QuizSummaryPage: React.FC = () => {
           onClick={() => goToNextContent(quizId ?? '')}
           className="bg-[#14248A] hover:bg-blue-800 text-white font-semibold px-6 py-3 rounded-full shadow-md transition-all"
         >
-          Continue Learning
+          {isNextContent(quizId ?? '') ? 'Continue Learning' : 'Finish'}
         </button>
       </div>
     </div>

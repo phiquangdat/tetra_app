@@ -4,10 +4,14 @@ interface IconProps extends React.SVGProps<SVGSVGElement> {
   color?: string;
 }
 
-export const HamburgerIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
-  props,
-) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" {...props}>
+export const HamburgerIcon: React.FC<IconProps> = ({
+  width = 30,
+  height = 30,
+  color = '#998FC7',
+  className,
+  ...props
+}) => (
+  <svg width={width} height={height} viewBox="0 0 24 24" fill="none" {...props}>
     <path
       d="M3 6h18M3 12h18M3 18h18"
       stroke="#998FC7"

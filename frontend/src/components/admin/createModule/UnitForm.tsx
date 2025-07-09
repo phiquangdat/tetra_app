@@ -6,10 +6,7 @@ import AddVideoModal from './AddVideoModal';
 import AddQuizModal from './AddQuizModal';
 import { ChevronDownIcon, ChevronUpIcon, RemoveIcon } from '../../common/Icons';
 
-type ContentBlock = {
-  type: 'video' | 'article' | 'quiz';
-  data: any;
-};
+import type { ContentBlock } from '../../../context/admin/UnitContext';
 
 type UnitFormProps = {
   unitNumber: number;
@@ -54,8 +51,13 @@ function UnitForm({ unitNumber }: UnitFormProps) {
   };
 
   const handleContentSave = (type: ContentBlock['type'], data: any) => {
-    const newBlock = { type, data };
-    updateUnitField(unitNumber, 'content', [...unitState.content, newBlock]);
+    const sortOrder = unitState.content.length + 1;
+
+    const newBlock = { type, data: { ...data }, sortOrder };
+
+    const updatedContent = [...unitState.content, newBlock];
+
+    updateUnitField(unitNumber, 'content', updatedContent);
   };
 
   const handleSaveUnitForm = async () => {
@@ -93,7 +95,7 @@ function UnitForm({ unitNumber }: UnitFormProps) {
   };
 
   const confirmRemoveUnit = () => {
-    removeUnit(unitNumber); // This will remove the unit
+    removeUnit(unitNumber);
     setShowRemoveConfirm(false);
   };
 
@@ -215,6 +217,25 @@ function UnitForm({ unitNumber }: UnitFormProps) {
           </div>
         )}
       </form>
+
+      <div className="mb-8 space-y-4">
+        <h4 className="text-lg font-semibold text-gray-800">Added Content</h4>
+        {unitState.content.length === 0 ? (
+          <p className="text-sm text-gray-500">No content blocks added yet.</p>
+        ) : (
+          unitState.content
+            .sort((a, b) => a.sortOrder - b.sortOrder)
+            .map((block, index) => (
+              <div key={index} className="border p-4 rounded-md bg-gray-50">
+                <p className="text-sm font-medium text-gray-700">
+                  {block.sortOrder}.{' '}
+                  {block.type.charAt(0).toUpperCase() + block.type.slice(1)}
+                </p>
+                <p className="text-sm text-gray-600 mt-1">{block.data.title}</p>
+              </div>
+            ))
+        )}
+      </div>
 
       {showRemoveConfirm && (
         <div

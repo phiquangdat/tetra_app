@@ -11,9 +11,33 @@ import {
   type CreateUnitRequest,
 } from '../../services/unit/unitApi';
 
+type QuizQuestionAnswer = {
+  title: string;
+  is_correct: boolean;
+  sort_order: number;
+};
+
+type QuizQuestion = {
+  title: string;
+  type: 'true/false' | 'multiple';
+  sort_order: number;
+  answers: QuizQuestionAnswer[];
+};
+
 export type ContentBlock = {
-  type: 'video' | 'article' | 'quiz';
-  data: any;
+  type: 'article' | 'video' | 'quiz';
+  data: {
+    title: string;
+    content?: string;
+    url?: string; // for video
+    points?: number; // for quiz
+    questions?: QuizQuestion[]; // for quiz
+  };
+  sortOrder: number;
+  unit_id?: string;
+  isDirty: boolean;
+  isSaving: boolean;
+  error: string | null;
 };
 
 export type UnitContextEntry = {
@@ -131,20 +155,75 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
       setUnitState(unitNumber, { isSaving: true, error: null });
 
       try {
-        const unitData: CreateUnitRequest = {
-          module_id: moduleId,
-          title: currentUnit.title,
-          description: currentUnit.description,
-        };
+        let unit_id: string; //unit_id will be used to save content blocks
 
-        const response = await createUnit(unitData);
+        if (!currentUnit.id) {
+          const unitData: CreateUnitRequest = {
+            module_id: moduleId,
+            title: currentUnit.title,
+            description: currentUnit.description,
+          };
+
+          const response = await createUnit(unitData);
+          unit_id = response.id;
+
+          setUnitState(unitNumber, { id: unit_id });
+        } else {
+          unit_id = currentUnit.id;
+        }
+
+        // Saving content blocks
+        const updatedContent: ContentBlock[] = [];
+
+        for (const contentBlock of currentUnit.content) {
+          try {
+            switch (contentBlock.type) {
+              case 'video':
+                // Placeholder for video content saving logic
+                break;
+
+              case 'article':
+                // Placeholder for article content saving logic
+                break;
+
+              case 'quiz':
+                // Placeholder for quiz content saving logic
+                break;
+
+              default:
+                throw new Error(`Unknown content type: ${contentBlock.type}`);
+            }
+
+            updatedContent.push({
+              ...contentBlock,
+              unit_id,
+              isDirty: false,
+              isSaving: false,
+              error: null,
+            });
+          } catch (contentError) {
+            console.error('Error saving content block:', contentError);
+            updatedContent.push({
+              ...contentBlock,
+              unit_id,
+              isDirty: true,
+              isSaving: false,
+              error:
+                contentError instanceof Error
+                  ? contentError.message
+                  : 'Failed to save content',
+            });
+          }
+        }
 
         setUnitState(unitNumber, {
-          id: response.id,
+          id: unit_id,
+          content: updatedContent,
           isDirty: false,
           error: null,
         });
       } catch (err) {
+        console.error('Error saving unit:', err);
         setUnitState(unitNumber, {
           error: err instanceof Error ? err.message : 'Failed to save unit',
         });

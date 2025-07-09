@@ -39,4 +39,15 @@ describe('AddQuizModal', () => {
 
     expect(onSave).not.toHaveBeenCalled();
   });
+
+  it('allows user input the description', async () => {
+    render(<AddQuizModal isOpen={true} onClose={onClose} onSave={onSave} />);
+
+    const descriptionInput = screen.getByLabelText(/quiz description/i);
+    expect(descriptionInput).toBeInTheDocument();
+
+    await userEvent.type(descriptionInput, 'This is a quiz description');
+
+    expect(descriptionInput).toHaveValue('This is a quiz description');
+  });
 });

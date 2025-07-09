@@ -15,7 +15,7 @@ describe('QuestionForm', () => {
     render(
       <QuestionForm
         questionNumber={1}
-        questionType="multipleChoice"
+        questionType="multiple"
         onClose={function (): void {
           throw new Error('Function not implemented.');
         }}
@@ -59,7 +59,7 @@ describe('QuestionForm', () => {
     render(
       <QuestionForm
         questionNumber={1}
-        questionType="multipleChoice"
+        questionType="multiple"
         onClose={function (): void {
           throw new Error('Function not implemented.');
         }}

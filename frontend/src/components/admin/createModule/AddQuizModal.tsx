@@ -2,30 +2,43 @@ import { useState, useRef } from 'react';
 import QuestionForm from './QuestionForm';
 import { QuizIcon, CloseIcon } from '../../common/Icons';
 
-interface AddQuizModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (data: any) => void;
-}
-
 type QuestionOption = {
   answerLabel: string;
   answerText: string;
   isCorrect: boolean;
 };
 
-type Question = {
+type QuizQuestion = {
   questionNumber: number;
   questionTitle: string;
-  questionType: 'trueFalse' | 'multipleChoice';
+  quizDescription: string;
+  questionType: 'trueFalse' | 'multiple';
   options: QuestionOption[];
 };
 
+type SaveQuizRequest = {
+  unit_id: string;
+  content_type: 'quiz';
+  title: string;
+  content: string;
+  sort_order: number;
+  points: number;
+  questions_number: number;
+  questions: QuizQuestion[];
+};
+
+interface AddQuizModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (data: any) => void;
+}
+
 function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
   const [questionNumber, setQuestionNumber] = useState(1);
-  const [quizzTitle, setQuizTitle] = useState('');
+  const [quizTitle, setQuizTitle] = useState('');
+  const [quizDescription, setQuizDescription] = useState('');
   const [points, setPoints] = useState(0);
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [selectedOption, setSelectedOption] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
 
@@ -34,8 +47,12 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
   const validateQuiz = () => {
     const newErrors: string[] = [];
 
-    if (!quizzTitle.trim()) {
+    if (!quizTitle.trim()) {
       newErrors.push('Quiz title is required.');
+    }
+
+    if (!quizDescription.trim()) {
+      newErrors.push('Quiz description is required.');
     }
 
     if (points <= 0) {
@@ -49,10 +66,11 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
     return newErrors;
   };
 
-  const handleAddQuestion = (type: 'trueFalse' | 'multipleChoice') => {
-    const newQuestion: Question = {
+  const handleAddQuestion = (type: 'trueFalse' | 'multiple') => {
+    const newQuestion: QuizQuestion = {
       questionNumber: questionNumber,
       questionTitle: '',
+      quizDescription: '',
       questionType: type,
       options: [],
     };
@@ -73,13 +91,31 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
       return;
     }
 
-    onSave({
-      title: quizzTitle,
+    const savingData: SaveQuizRequest = {
+      unit_id: '',
+      content_type: 'quiz',
+      title: quizTitle,
+      content: quizDescription,
+      sort_order: 0,
       points: points,
-      questions: questions,
-    });
+      questions_number: questions.length,
+      questions: questions.map((q) => ({
+        questionNumber: q.questionNumber,
+        questionTitle: q.questionTitle,
+        quizDescription: q.quizDescription,
+        questionType: q.questionType,
+        options: q.options.map((opt) => ({
+          answerLabel: opt.answerLabel,
+          answerText: opt.answerText,
+          isCorrect: opt.isCorrect,
+        })),
+      })),
+    };
+
+    onSave(savingData);
 
     setQuizTitle('');
+    setQuizDescription('');
     setQuestionNumber(1);
     setPoints(0);
     setQuestions([]);
@@ -88,6 +124,7 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
 
   const handleClose = () => {
     setQuizTitle('');
+    setQuizDescription('');
     setQuestionNumber(1);
     setPoints(0);
     onClose();
@@ -135,7 +172,7 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
             <div className="text-gray-600">
               <QuizIcon />
             </div>
-            <h2 className="text-lg font-medium text-gray-900">Quizz</h2>
+            <h2 className="text-lg font-medium text-gray-900">Quiz</h2>
           </div>
           <button
             onClick={handleClose}
@@ -158,19 +195,38 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
         <div className="flex flex-col h-full">
           <div className="mb-6 max-w-110 p-6 pb-0 flex-1 overflow-y-auto">
             <label
-              htmlFor="quizzTitle"
+              htmlFor="quizTitle"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
               Title
             </label>
             <input
               type="text"
-              id="quizz-title"
-              value={quizzTitle}
+              id="quiz-title"
+              value={quizTitle}
               onChange={(e) => setQuizTitle(e.target.value)}
               className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
               required
             />
+
+            <div className="max-w-110 mt-4">
+              <label
+                htmlFor="quizDescription"
+                className="block text-sm font-medium text-gray-700 mt-4 mb-2"
+              >
+                Description
+              </label>
+              <textarea
+                id="quizDescription"
+                value={quizDescription}
+                onChange={(e) => setQuizDescription(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none"
+                placeholder="Enter quiz description"
+                aria-label="quiz description"
+                required
+                rows={3}
+              />
+            </div>
 
             <div className="max-w-28 mt-4">
               <label
@@ -196,7 +252,7 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
                 onChange={(e) => {
                   const selectedType = e.target.value as
                     | 'trueFalse'
-                    | 'multipleChoice';
+                    | 'multiple';
                   setSelectedOption('');
                   handleAddQuestion(selectedType);
                 }}
@@ -206,7 +262,7 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
                 <option value="" disabled>
                   + Add Question
                 </option>
-                <option value="multipleChoice">Multiple Choice</option>
+                <option value="multiple">Multiple Choice</option>
                 <option value="trueFalse">True/False</option>
               </select>
             </div>

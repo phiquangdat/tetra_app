@@ -4,7 +4,7 @@ import { CloseIcon } from '../../common/Icons';
 
 type Props = {
   questionNumber: number;
-  questionType: 'trueFalse' | 'multipleChoice';
+  questionType: 'trueFalse' | 'multiple';
   onClose: () => void;
 };
 
@@ -70,7 +70,7 @@ function QuestionForm({ questionNumber = 1, questionType, onClose }: Props) {
     });
   };
 
-  if (questionType !== 'trueFalse' && questionType !== 'multipleChoice') {
+  if (questionType !== 'trueFalse' && questionType !== 'multiple') {
     return null;
   }
 
@@ -111,7 +111,7 @@ function QuestionForm({ questionNumber = 1, questionType, onClose }: Props) {
         </div>
       )}
 
-      {questionType === 'multipleChoice' && (
+      {questionType === 'multiple' && (
         <div>
           <div className="flex justify-around items-center mb-4">
             <button

@@ -8,6 +8,8 @@ import { QuizProvider } from '../context/user/QuizContext.tsx';
 import SharedHeader from '../components/common/SharedHeader.tsx';
 import UserSidebar from '../components/user/layout/UserSidebar';
 import Footer from '../components/ui/Footer.tsx';
+import UnitCompletionModal from '../components/user/unit/UnitCompletionModal.tsx';
+import { UnitCompletionModalProvider } from '../context/user/UnitCompletionModalContext.tsx';
 
 export default function UserLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -16,39 +18,42 @@ export default function UserLayout() {
 
   return (
     <QuizModalProvider>
-      <UnitContentProvider>
-        <ModuleProgressProvider>
-          <QuizProvider>
-            <div className="min-h-screen flex flex-col">
-              <SharedHeader
-                onHamburgerClick={toggleSidebar}
-                isSidebarOpen={sidebarOpen}
-              />
-              <div className="flex flex-1 relative">
-                <div
-                  className={`
-                  absolute z-50 h-full
-                  transform transition-transform duration-300 ease-in-out
-                  ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-                  `}
-                >
-                  <UserSidebar />
+      <UnitCompletionModalProvider>
+        <UnitContentProvider>
+          <ModuleProgressProvider>
+            <QuizProvider>
+              <div className="min-h-screen flex flex-col">
+                <SharedHeader
+                  onHamburgerClick={toggleSidebar}
+                  isSidebarOpen={sidebarOpen}
+                />
+                <div className="flex flex-1 relative">
+                  <div
+                    className={`
+                      absolute z-50 h-full
+                      transform transition-transform duration-300 ease-in-out
+                      ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+                      `}
+                  >
+                    <UserSidebar />
+                  </div>
+                  <main
+                    className={`
+                        flex-1 transition-all duration-300 ease-in-out
+                        ${sidebarOpen ? 'ml-64' : ''}
+                      `}
+                  >
+                    <Outlet />
+                    <UnitCompletionModal />
+                    <QuizStartModal />
+                  </main>
                 </div>
-                <main
-                  className={`
-                    flex-1 transition-all duration-300 ease-in-out
-                    ${sidebarOpen ? 'ml-64' : ''}
-                  `}
-                >
-                  <Outlet />
-                  <QuizStartModal />
-                </main>
+                <Footer />
               </div>
-              <Footer />
-            </div>
-          </QuizProvider>
-        </ModuleProgressProvider>
-      </UnitContentProvider>
+            </QuizProvider>
+          </ModuleProgressProvider>
+        </UnitContentProvider>
+      </UnitCompletionModalProvider>
     </QuizModalProvider>
   );
 }

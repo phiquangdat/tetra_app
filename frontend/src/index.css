@@ -2,10 +2,12 @@
 @theme {
   --color-primary: #231942;
   --color-secondary: #998fc7;
+  --color-secondaryHover: #8677bd;
   --color-accent: #ffa726;
   --color-background: #ffffff;
   --color-cardBackground: #f9f5ff;
   --color-surface: #14248a;
+  --color-surfaceHover: #101e72;
   --color-highlight: #d4c2fc;
 
   --color-success: #15803d;

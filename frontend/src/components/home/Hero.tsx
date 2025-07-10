@@ -1,17 +1,22 @@
 import React from 'react';
 
+import HeroImage1 from '../../../src/assets/images/hero_option1.png';
+import HeroImage2 from '../../../src/assets/images/hero_option2.png';
+import HeroImage3 from '../../../src/assets/images/hero_option3.png';
+import HeroImage4 from '../../../src/assets/images/hero_option4.png';
+
+const heroImages = [HeroImage1, HeroImage2, HeroImage3, HeroImage4];
+
 const Hero: React.FC<{ onGetStarted?: () => void }> = ({ onGetStarted }) => {
+  // Pick random image on each render
+  const randomImage = heroImages[Math.floor(Math.random() * heroImages.length)];
+
   return (
     <section
       id="home"
       className="relative flex flex-col lg:flex-row items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8 overflow-hidden rounded-lg
-           bg-gradient-to-br from-cardBackground via-[#EDE9FE] to-[#F4EEFF]"
+           bg-gradient-to-br from-cardBackground via-[#EDE9FE] to-[#B9A9DF]"
     >
-      <div className="absolute top-10 left-10 w-16 h-16 bg-secondary rounded-full opacity-30 blur-xl animate-float"></div>
-      <div className="absolute bottom-20 right-10 w-24 h-24 bg-accent rounded-full opacity-30 blur-xl animate-float-delay"></div>
-      <div className="absolute top-1/4 right-1/4 w-8 h-8 bg-highlight rounded-full opacity-30 blur-xl animate-float"></div>
-      <div className="absolute bottom-1/3 left-1/4 w-12 h-12 bg-secondaryHover rounded-full opacity-30 blur-xl animate-float-delay"></div>
-
       {/* Main content container */}
       <div className="flex flex-col lg:flex-row items-center justify-between max-w-7xl mx-auto z-10 w-full">
         {/* Left: Text content */}
@@ -33,9 +38,9 @@ const Hero: React.FC<{ onGetStarted?: () => void }> = ({ onGetStarted }) => {
         {/* Right: Visual element */}
         <div className="lg:w-1/2 flex justify-center items-center p-6 lg:p-0">
           <img
-            src="https://placehold.co/700x500/E0BBE4/FFFFFF?text=Gamify+Learning+Platform"
+            src={randomImage}
             alt="Illustration of a person learning on a gamified platform"
-            className="max-w-full h-auto rounded-lg shadow-xl"
+            className="max-w-full h-auto rounded-lg"
             onError={(e) => {
               e.currentTarget.src =
                 'https://placehold.co/700x500/E0BBE4/FFFFFF?text=Image+Not+Found';

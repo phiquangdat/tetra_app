@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { ModuleContextProvider } from '../../../context/admin/ModuleContext';
 import {
   UnitContextProvider,
+  ContentBlockContextProvider,
   useUnitContext,
 } from '../../../context/admin/UnitContext';
 import CreateModuleForm from './CreateModuleForm';
@@ -86,7 +87,9 @@ function CreateModulePage() {
   return (
     <ModuleContextProvider>
       <UnitContextProvider>
-        <CreateModulePageContent />
+        <ContentBlockContextProvider>
+          <CreateModulePageContent />
+        </ContentBlockContextProvider>
       </UnitContextProvider>
     </ModuleContextProvider>
   );

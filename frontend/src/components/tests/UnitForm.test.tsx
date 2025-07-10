@@ -6,6 +6,7 @@ import UnitForm from '../admin/createModule/UnitForm';
 import {
   UnitContextProvider,
   useUnitContext,
+  ContentBlockContextProvider,
 } from '../../context/admin/UnitContext';
 import { ModuleContextProvider } from '../../context/admin/ModuleContext';
 
@@ -15,8 +16,10 @@ const UnitFormWithProviders = ({ unitNumber }: { unitNumber: number }) => {
   return (
     <ModuleContextProvider>
       <UnitContextProvider>
-        <InitUnitState unitNumber={unitNumber} />
-        <UnitForm unitNumber={unitNumber} />
+        <ContentBlockContextProvider>
+          <InitUnitState unitNumber={unitNumber} />
+          <UnitForm unitNumber={unitNumber} />
+        </ContentBlockContextProvider>
       </UnitContextProvider>
     </ModuleContextProvider>
   );

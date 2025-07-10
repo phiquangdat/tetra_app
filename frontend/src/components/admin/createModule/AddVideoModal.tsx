@@ -1,48 +1,69 @@
-import { useState, useCallback, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import {
   CloseIcon,
   VideoHeaderIcon,
   VideoUploadIcon,
 } from '../../common/Icons';
+import { useContentBlockContext } from '../../../context/admin/UnitContext';
 
 type Video = {
   title: string;
-  description: string;
-  videoUrl: string;
+  content: string;
+  url: string;
 };
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (video: Video) => void;
+  onAddContent: (video: Video) => void;
+  unitId: string;
 };
 
 const YOUTUBE_REGEX =
   /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^/]+\/.*[?&]v=|v\/|e\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
 
-function AddVideoModal({ isOpen, onClose, onSave }: Props) {
-  const [videoTitle, setVideoTitle] = useState('');
-  const [videoDescription, setVideoDescription] = useState('');
-  const [videoUrl, setVideoUrl] = useState('');
+function AddVideoModal({ isOpen, onClose, onAddContent, unitId }: Props) {
+  const { data, isSaving, updateContentField, saveContent, clearContent } =
+    useContentBlockContext();
+
   const modalRef = useRef<HTMLDivElement>(null);
 
-  const resetForm = () => {
-    setVideoTitle('');
-    setVideoDescription('');
-    setVideoUrl('');
-  };
+  const isYouTubeUrl = useCallback(
+    (url: string) => YOUTUBE_REGEX.test(url),
+    [],
+  );
+  const getYouTubeEmbedUrl = useCallback((url: string) => {
+    const match = url.match(YOUTUBE_REGEX);
+    return match ? `https://www.youtube.com/embed/${match[1]}` : null;
+  }, []);
 
-  const handleSave = () => {
-    onSave({
-      title: videoTitle,
-      description: videoDescription,
-      videoUrl: videoUrl,
-    });
-    resetForm();
+  const isValidUrl =
+    data.url && (data.url.endsWith('.mp4') || isYouTubeUrl(data.url));
+  const canSave =
+    data.title.trim() !== '' &&
+    (data.content?.trim() ?? '') !== '' &&
+    isValidUrl &&
+    !isSaving;
+
+  const handleSave = async () => {
+    if (!canSave) return;
+    try {
+      await saveContent(unitId, 'video');
+      onAddContent({
+        title: data.title,
+        content: data.content ?? '',
+        url: data.url ?? '',
+      });
+
+      clearContent();
+      onClose();
+    } catch (error) {
+      console.error('Error saving video:', error);
+    }
   };
 
   const handleClose = () => {
-    resetForm();
+    clearContent();
     onClose();
   };
 
@@ -52,75 +73,70 @@ function AddVideoModal({ isOpen, onClose, onSave }: Props) {
     }
   };
 
-  const isYouTubeUrl = useCallback(
-    (url: string) => YOUTUBE_REGEX.test(url),
-    [],
+  const renderVideoInput = () => (
+    <>
+      <div className="text-gray-600">
+        <VideoUploadIcon />
+      </div>
+      <div className="mt-4 text-sm">
+        <input
+          type="url"
+          placeholder="https://example.com/video.mp4 or YouTube URL"
+          value={data.url}
+          onChange={(e) =>
+            updateContentField('data', {
+              ...data,
+              url: e.target.value,
+            })
+          }
+          className="min-w-90 px-4 py-2 text-sm border-2 border-gray-400 rounded-md focus:outline-none focus:border-blue-500"
+        />
+      </div>
+      <div className="mt-2 text-sm text-gray-400">
+        Paste the video URL here (MP4 or YouTube)
+      </div>
+    </>
   );
 
-  const getYouTubeEmbedUrl = useCallback((url: string) => {
-    const match = url.match(YOUTUBE_REGEX);
-    return match ? `https://www.youtube.com/embed/${match[1]}` : null;
-  }, []);
-
-  const renderVideoFile = () => {
-    const isValidUrl =
-      videoUrl && (videoUrl.endsWith('.mp4') || isYouTubeUrl(videoUrl));
-
-    return (
-      <div className="text-gray-500 text-center flex flex-col items-center">
-        {isValidUrl ? (
-          isYouTubeUrl(videoUrl) ? (
-            <div className="w-full">
-              <iframe
-                width="100%"
-                height="315"
-                src={getYouTubeEmbedUrl(videoUrl) ?? undefined}
-                title="YouTube video player"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
-            </div>
-          ) : (
-            <div className="w-full">
-              <video
-                className="w-full h-auto rounded-md shadow-lg"
-                controls
-                src={videoUrl}
-              />
-            </div>
-          )
-        ) : (
-          <>
-            <div className="text-gray-600">
-              <VideoUploadIcon />
-            </div>
-            <div className="mt-4 text-sm">
-              <input
-                type="url"
-                placeholder="https://example.com/video.mp4 or YouTube URL"
-                value={videoUrl}
-                onChange={(e) => setVideoUrl(e.target.value)}
-                className="min-w-90 px-4 py-2 text-sm border-2 border-gray-400 rounded-md focus:outline-none focus:border-blue-500"
-              />
-            </div>
-            <div className="mt-2 text-sm text-gray-400">
-              Paste the video URL here (MP4 or YouTube)
-            </div>
-          </>
-        )}
-
-        {isValidUrl && (
-          <button
-            type="button"
-            onClick={() => setVideoUrl('')}
-            className="my-4 text-sm text-gray-500 hover:text-gray-700 cursor-pointer transition-colors"
-          >
-            Change Video
-          </button>
-        )}
-      </div>
+  const renderPreview = () =>
+    isYouTubeUrl(data.url ?? '') ? (
+      <iframe
+        width="100%"
+        height="315"
+        src={getYouTubeEmbedUrl(data.url ?? '') ?? undefined}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+        title={data.title || 'Video preview'}
+        aria-label="video preview"
+      />
+    ) : (
+      <video
+        className="w-full h-auto rounded-md shadow-lg"
+        controls
+        src={data.url}
+      />
     );
-  };
+
+  const renderVideoBlock = () => (
+    <div className="text-gray-500 text-center flex flex-col items-center">
+      {isValidUrl ? renderPreview() : renderVideoInput()}
+      {isValidUrl && (
+        <button
+          type="button"
+          onClick={() =>
+            updateContentField('data', {
+              ...data,
+              url: '',
+            })
+          }
+          className="my-4 text-sm text-gray-500 hover:text-gray-700 cursor-pointer transition-colors"
+          disabled={isSaving}
+        >
+          Change Video
+        </button>
+      )}
+    </div>
+  );
 
   if (!isOpen) return null;
 
@@ -145,8 +161,9 @@ function AddVideoModal({ isOpen, onClose, onSave }: Props) {
             <button
               onClick={handleClose}
               className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+              disabled={isSaving}
             >
-              {<CloseIcon />}
+              <CloseIcon />
             </button>
           </div>
 
@@ -161,15 +178,21 @@ function AddVideoModal({ isOpen, onClose, onSave }: Props) {
               <input
                 type="text"
                 id="videoTitle"
-                value={videoTitle}
-                onChange={(e) => setVideoTitle(e.target.value)}
+                value={data.title}
+                onChange={(e) =>
+                  updateContentField('data', {
+                    ...data,
+                    title: e.target.value,
+                  })
+                }
                 className="w-full px-4 py-2 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                 required
+                disabled={isSaving}
               />
             </div>
 
             <div className="mb-6 max-w-110 min-h-40 h-auto border border-gray-400 rounded-lg p-4 pb-0">
-              {renderVideoFile()}
+              {renderVideoBlock()}
             </div>
 
             <div className="mb-6 max-w-full">
@@ -181,11 +204,17 @@ function AddVideoModal({ isOpen, onClose, onSave }: Props) {
               </label>
               <textarea
                 id="videoDescription"
-                value={videoDescription}
-                onChange={(e) => setVideoDescription(e.target.value)}
+                value={data.content}
+                onChange={(e) =>
+                  updateContentField('data', {
+                    ...data,
+                    content: e.target.value,
+                  })
+                }
                 placeholder="Enter video description..."
                 className="w-full h-40 px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none"
                 required
+                disabled={isSaving}
               />
             </div>
 
@@ -195,8 +224,9 @@ function AddVideoModal({ isOpen, onClose, onSave }: Props) {
                 aria-label="Save Video"
                 onClick={handleSave}
                 className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-200 mr-4 w-24 h-10"
+                disabled={!canSave || isSaving}
               >
-                Save
+                {isSaving ? 'Saving...' : 'Save'}
               </button>
             </div>
           </div>

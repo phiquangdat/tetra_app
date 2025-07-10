@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useUnitContext } from '../../../context/admin/UnitContext';
 import { useModuleContext } from '../../../context/admin/ModuleContext';
 import AddArticleModal from './AddArticleModal';
@@ -19,13 +19,23 @@ function UnitForm({ unitNumber }: UnitFormProps) {
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
   const [successSaved, setSuccessSaved] = useState(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+  const [unitID, setUnitID] = useState<string | ''>('');
 
   const { updateUnitField, getUnitState, saveUnit, removeUnit, unitStates } =
     useUnitContext();
   const { id: moduleId } = useModuleContext();
 
-  const unitState = getUnitState(unitNumber);
-  if (!unitState) return null;
+  const defaultUnitState = {
+    id: '',
+    title: '',
+    description: '',
+    content: [],
+    isDirty: false,
+    isSaving: false,
+    error: null,
+  };
+
+  const unitState = getUnitState(unitNumber) || defaultUnitState;
 
   const totalUnits = Object.keys(unitStates).length;
   const canRemove = totalUnits > 1;
@@ -50,15 +60,16 @@ function UnitForm({ unitNumber }: UnitFormProps) {
     e.target.value = '';
   };
 
-  const handleContentSave = (type: ContentBlock['type'], data: any) => {
-    const sortOrder = unitState.content.length + 1;
-
-    const newBlock = { type, data: { ...data }, sortOrder };
-
-    const updatedContent = [...unitState.content, newBlock];
-
-    updateUnitField(unitNumber, 'content', updatedContent);
+  const handleAddContent = (type: ContentBlock['type'], data: any) => {
+    const newBlock = { type, data };
+    updateUnitField(unitNumber, 'content', [...unitState.content, newBlock]);
   };
+
+  useEffect(() => {
+    if (unitState?.id) {
+      setUnitID(unitState.id);
+    }
+  }, [unitState?.id]);
 
   const handleSaveUnitForm = async () => {
     if (!moduleId) {
@@ -205,6 +216,7 @@ function UnitForm({ unitNumber }: UnitFormProps) {
                 onChange={handleContentBlockChange}
                 className="bg-white border-gray-400 text-gray-700 border-2 w-full mt-6 rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
                 defaultValue=""
+                disabled={unitState.isSaving}
               >
                 <option value="" disabled>
                   + Add content
@@ -213,6 +225,11 @@ function UnitForm({ unitNumber }: UnitFormProps) {
                 <option value="addArticle">Add article</option>
                 <option value="addQuiz">Add quiz</option>
               </select>
+              {!unitState.id && (
+                <p className="text-md text-gray-500 mt-2">
+                  Please save the unit first to add content blocks.
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -223,17 +240,19 @@ function UnitForm({ unitNumber }: UnitFormProps) {
         {unitState.content.length === 0 ? (
           <p className="text-sm text-gray-500">No content blocks added yet.</p>
         ) : (
-          unitState.content
-            .sort((a, b) => a.sortOrder - b.sortOrder)
-            .map((block, index) => (
-              <div key={index} className="border p-4 rounded-md bg-gray-50">
-                <p className="text-sm font-medium text-gray-700">
-                  {block.sortOrder}.{' '}
-                  {block.type.charAt(0).toUpperCase() + block.type.slice(1)}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">{block.data.title}</p>
-              </div>
-            ))
+          unitState.content.map((block, index) => (
+            <div
+              key={`${block.type}-${index}`}
+              className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200"
+            >
+              <h5 className="text-md font-semibold text-gray-800 mb-2">
+                {block.type.charAt(0).toUpperCase() + block.type.slice(1)}
+              </h5>
+              <p className="text-sm text-gray-600 mb-2">
+                {block.data.title || 'Untitled'}
+              </p>
+            </div>
+          ))
         )}
       </div>
 
@@ -271,28 +290,31 @@ function UnitForm({ unitNumber }: UnitFormProps) {
       <AddArticleModal
         isOpen={isArticleModalOpen}
         onClose={() => setIsArticleModalOpen(false)}
-        onSave={(data) => {
-          handleContentSave('article', data);
+        onAddContent={(data) => {
+          handleAddContent('article', data);
           setIsArticleModalOpen(false);
         }}
+        unitId={unitID || ''}
       />
 
       <AddVideoModal
         isOpen={isVideoModalOpen}
         onClose={() => setIsVideoModalOpen(false)}
-        onSave={(data) => {
-          handleContentSave('video', data);
+        onAddContent={(data) => {
+          handleAddContent('video', data);
           setIsVideoModalOpen(false);
         }}
+        unitId={unitID || ''}
       />
 
       <AddQuizModal
         isOpen={isQuizModalOpen}
         onClose={() => setIsQuizModalOpen(false)}
-        onSave={(data) => {
-          handleContentSave('quiz', data);
+        onAddContent={(data) => {
+          handleAddContent('quiz', data);
           setIsQuizModalOpen(false);
         }}
+        unitId={unitID || ''}
       />
     </div>
   );

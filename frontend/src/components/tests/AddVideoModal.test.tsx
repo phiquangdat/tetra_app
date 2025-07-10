@@ -1,47 +1,80 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import AddVideoModal from '../admin/createModule/AddVideoModal';
+import { ContentBlockContextProvider } from '../../context/admin/UnitContext';
+
+const AddVideoModalWithProviders = (props: any) => {
+  return (
+    <ContentBlockContextProvider>
+      <AddVideoModal {...props} />
+    </ContentBlockContextProvider>
+  );
+};
 
 describe('AddVideoModal', () => {
-  beforeEach(() => {
+  it('renders the modal header correctly', () => {
     render(
-      <AddVideoModal
+      <AddVideoModalWithProviders
         isOpen={true}
-        onSave={() => {}}
-        onClose={function (): void {
-          throw new Error('Function not implemented.');
-        }}
+        onAddContent={() => {}}
+        onClose={() => {}}
+        unitId="unit-123"
       />,
     );
-  });
 
-  it('renders the modal header correctly', () => {
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(
       'Video',
     );
   });
 
   it('allows user to input text into the title field', async () => {
+    render(
+      <AddVideoModalWithProviders
+        isOpen={true}
+        onAddContent={() => {}}
+        onClose={() => {}}
+        unitId="unit-123"
+      />,
+    );
+
     const input = screen.getByLabelText('Title');
     await userEvent.type(input, 'Test Video Title');
     expect(input).toHaveValue('Test Video Title');
   });
 
   it('calls handleSave when Save button is clicked', async () => {
-    const onSave = vi.fn();
-    render(<AddVideoModal isOpen={true} onSave={onSave} onClose={() => {}} />);
+    const onAddContent = vi.fn();
 
-    const saveButtons = screen.getAllByRole('button', {
-      name: /save video/i,
-    });
-    const saveButton = saveButtons[0];
+    render(
+      <AddVideoModalWithProviders
+        isOpen={true}
+        onAddContent={onAddContent}
+        onClose={() => {}}
+        unitId="unit-123"
+      />,
+    );
+
+    const titleInput = screen.getByLabelText('Title');
+    const descriptionInput = screen.getByLabelText('Description');
+    const urlInput = screen.getByPlaceholderText(
+      /https:\/\/example\.com\/video\.mp4/i,
+    );
+
+    await userEvent.type(titleInput, 'Sample Title');
+    await userEvent.type(descriptionInput, 'This is a test description');
+    await userEvent.type(
+      urlInput,
+      'https://www.youtube.com/watch?v=abcdefghijk',
+    );
+
+    const saveButton = screen.getByRole('button', { name: /save video/i });
 
     await userEvent.click(saveButton);
 
-    waitFor(() => {
-      expect(onSave).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(onAddContent).toHaveBeenCalled();
     });
   });
 });

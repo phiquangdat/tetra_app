@@ -1,29 +1,47 @@
 import { EditIcon, CloseIcon } from '../../common/Icons';
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
+import { useContentBlockContext } from '../../../context/admin/UnitContext';
 
 interface AddArticleModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (article: { title: string; content: string }) => void;
+  onAddContent: (article: { title: string; content: string }) => void;
+  unitId: string;
 }
 
-function AddArticleModal({ isOpen, onClose, onSave }: AddArticleModalProps) {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+function AddArticleModal({
+  isOpen,
+  onClose,
+  onAddContent,
+  unitId,
+}: AddArticleModalProps) {
+  const { data, updateContentField, saveContent, isSaving, clearContent } =
+    useContentBlockContext();
+
   const modalRef = useRef<HTMLDivElement>(null);
 
-  const handleSave = () => {
-    if (title.trim() && content.trim()) {
-      onSave({ title, content });
-      setTitle('');
-      setContent('');
+  const canSave =
+    data.title.trim() !== '' &&
+    (data.content?.trim() ?? '') !== '' &&
+    !isSaving;
+
+  const handleSave = async () => {
+    if (!canSave) return;
+    try {
+      const title = data.title.trim();
+      const content = data.content?.trim();
+
+      await saveContent(unitId, 'quiz');
+      onAddContent({ title, content: content ?? '' });
+      clearContent();
       onClose();
+    } catch (error) {
+      console.error('Error saving article:', error);
     }
   };
 
   const handleClose = () => {
-    setTitle('');
-    setContent('');
+    clearContent();
     onClose();
   };
 
@@ -56,7 +74,7 @@ function AddArticleModal({ isOpen, onClose, onSave }: AddArticleModalProps) {
             onClick={handleClose}
             className="text-gray-400 hover:text-gray-600 transition-colors p-1"
           >
-            {<CloseIcon />}
+            <CloseIcon />
           </button>
         </div>
 
@@ -73,8 +91,13 @@ function AddArticleModal({ isOpen, onClose, onSave }: AddArticleModalProps) {
                 type="text"
                 id="title"
                 name="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                value={data.title}
+                onChange={(e) =>
+                  updateContentField('data', {
+                    ...data,
+                    title: e.target.value,
+                  })
+                }
                 className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                 required
               />
@@ -84,10 +107,15 @@ function AddArticleModal({ isOpen, onClose, onSave }: AddArticleModalProps) {
               <textarea
                 id="content"
                 name="content"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
+                value={data.content}
+                onChange={(e) =>
+                  updateContentField('data', {
+                    ...data,
+                    content: e.target.value,
+                  })
+                }
                 placeholder="Start writing your article..."
-                className="w-full h-80 px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-00 outline-none transition-colors resize-none"
+                className="w-full h-80 px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none"
                 required
               />
             </div>
@@ -98,9 +126,10 @@ function AddArticleModal({ isOpen, onClose, onSave }: AddArticleModalProps) {
               type="button"
               aria-label="Save Article"
               onClick={handleSave}
+              disabled={!canSave || isSaving}
               className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-200 mr-4 w-24 h-10"
             >
-              Save
+              {isSaving ? 'Saving...' : 'Save'}
             </button>
           </div>
         </div>

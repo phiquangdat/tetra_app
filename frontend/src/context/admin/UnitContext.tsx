@@ -24,7 +24,7 @@ type QuizQuestion = {
   answers: QuizQuestionAnswer[];
 };
 
-export type ContentBlock = {
+export interface ContentBlock {
   type: 'article' | 'video' | 'quiz';
   data: {
     title: string;
@@ -38,7 +38,7 @@ export type ContentBlock = {
   isDirty: boolean;
   isSaving: boolean;
   error: string | null;
-};
+}
 
 export type UnitContextEntry = {
   id: string | null;
@@ -155,77 +155,23 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
       setUnitState(unitNumber, { isSaving: true, error: null });
 
       try {
-        let unit_id: string; //unit_id will be used to save content blocks
+        const unitData: CreateUnitRequest = {
+          module_id: moduleId,
+          title: currentUnit.title,
+          description: currentUnit.description,
+        };
 
-        if (!currentUnit.id) {
-          const unitData: CreateUnitRequest = {
-            module_id: moduleId,
-            title: currentUnit.title,
-            description: currentUnit.description,
-          };
-
-          const response = await createUnit(unitData);
-          unit_id = response.id;
-
-          setUnitState(unitNumber, { id: unit_id });
-        } else {
-          unit_id = currentUnit.id;
-        }
-
-        // Saving content blocks
-        const updatedContent: ContentBlock[] = [];
-
-        for (const contentBlock of currentUnit.content) {
-          try {
-            switch (contentBlock.type) {
-              case 'video':
-                // Placeholder for video content saving logic
-                break;
-
-              case 'article':
-                // Placeholder for article content saving logic
-                break;
-
-              case 'quiz':
-                // Placeholder for quiz content saving logic
-                break;
-
-              default:
-                throw new Error(`Unknown content type: ${contentBlock.type}`);
-            }
-
-            updatedContent.push({
-              ...contentBlock,
-              unit_id,
-              isDirty: false,
-              isSaving: false,
-              error: null,
-            });
-          } catch (contentError) {
-            console.error('Error saving content block:', contentError);
-            updatedContent.push({
-              ...contentBlock,
-              unit_id,
-              isDirty: true,
-              isSaving: false,
-              error:
-                contentError instanceof Error
-                  ? contentError.message
-                  : 'Failed to save content',
-            });
-          }
-        }
+        const response = await createUnit(unitData);
 
         setUnitState(unitNumber, {
-          id: unit_id,
-          content: updatedContent,
+          id: response.id,
           isDirty: false,
           error: null,
         });
-      } catch (err) {
-        console.error('Error saving unit:', err);
+      } catch (err: unknown) {
+        const error = err as Error;
         setUnitState(unitNumber, {
-          error: err instanceof Error ? err.message : 'Failed to save unit',
+          error: error.message || 'Failed to save unit',
         });
       } finally {
         setUnitState(unitNumber, { isSaving: false });
@@ -279,6 +225,131 @@ export const useUnitContext = () => {
   const context = useContext(UnitContext);
   if (!context) {
     throw new Error('useUnitContext must be used within a UnitContextProvider');
+  }
+  return context;
+};
+
+// ===========================
+// Content Block Context
+// ===========================
+
+interface ContextBlockType extends ContentBlock {
+  updateContentField: (key: keyof ContentBlock, value: any) => void;
+  markContentAsDirty: () => void;
+  setContentState: (newState: Partial<ContentBlock>) => void;
+  getContentState: () => ContentBlock;
+  saveContent: (
+    moduleId: string,
+    type: 'article' | 'video' | 'quiz',
+  ) => Promise<void>;
+  clearContent: () => void;
+}
+
+const createDefaultContentBlockState = (): ContentBlock => ({
+  type: 'article',
+  data: {
+    title: '',
+    content: '',
+    url: '',
+    points: 0,
+    questions: [],
+  },
+  sortOrder: 0,
+  unit_id: '',
+  isDirty: false,
+  isSaving: false,
+  error: null,
+});
+
+const ContentBlockContext = createContext<ContextBlockType | undefined>(
+  undefined,
+);
+
+export const ContentBlockContextProvider = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
+  const [contentBlock, setContentBlock] = useState<ContentBlock>(
+    createDefaultContentBlockState(),
+  );
+
+  const updateContentField = useCallback(
+    (key: keyof ContentBlock, value: any) => {
+      setContentBlock((prev) => ({
+        ...prev,
+        [key]: value,
+        isDirty:
+          key !== 'isDirty' && key !== 'isSaving' && key !== 'error'
+            ? true
+            : prev.isDirty,
+      }));
+    },
+    [],
+  );
+
+  const markContentAsDirty = useCallback(() => {
+    setContentBlock((prev) => ({ ...prev, isDirty: true }));
+  }, []);
+
+  const setContentState = useCallback((newState: Partial<ContentBlock>) => {
+    setContentBlock((prev) => ({ ...prev, ...newState }));
+  }, []);
+
+  const getContentState = useCallback(() => {
+    return contentBlock;
+  }, [contentBlock]);
+
+  const saveContent = useCallback(
+    async (unitId: string, type: 'article' | 'video' | 'quiz') => {
+      console.log('moduleId', unitId || 'No unitId provided');
+      if (!contentBlock.isDirty || contentBlock.isSaving) return;
+
+      setContentState({ isSaving: true, error: null });
+
+      try {
+        // Simulate saving
+        // await saveContentToApi();
+        setContentState({ isDirty: false, error: null });
+      } catch (err: unknown) {
+        const error = err as Error;
+        setContentState({
+          error: error.message || 'Failed to save content',
+        });
+      } finally {
+        setContentState({ isSaving: false });
+      }
+    },
+    [contentBlock, setContentState],
+  );
+
+  const clearContent = useCallback(() => {
+    setContentBlock(createDefaultContentBlockState());
+  }, []);
+
+  const contextValue: ContextBlockType = {
+    ...contentBlock,
+    updateContentField,
+    markContentAsDirty,
+    setContentState,
+    getContentState,
+    saveContent,
+    clearContent,
+  };
+
+  return (
+    <ContentBlockContext.Provider value={contextValue}>
+      {children}
+    </ContentBlockContext.Provider>
+  );
+};
+
+export const useContentBlockContext = () => {
+  const context = useContext(ContentBlockContext);
+  if (!context) {
+    throw new Error(
+      'useContentBlockContext must be used within a ContentBlockContextProvider',
+    );
   }
   return context;
 };

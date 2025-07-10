@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import type { UnitContent } from '../../services/unit/unitApi';
 import { useUnitContent } from './UnitContentContext';
 import { useQuizModal } from './QuizModalContext.tsx';
+import { useUnitCompletionModal } from './UnitCompletionModalContext';
 
 interface Unit {
   id: string;
@@ -14,8 +15,11 @@ interface ModuleProgressContextProps {
   units: Unit[];
   setUnits: (units: Unit[]) => void;
   goToNextContent: (currentContentId: string) => void;
+  isNextContent: (currentContentId: string) => boolean | undefined;
   unitId: string;
   setUnitId: (id: string) => void;
+  moduleId: string;
+  setModuleId: (id: string) => void;
 }
 
 const ModuleProgressContext = createContext<
@@ -38,8 +42,10 @@ export const ModuleProgressProvider = ({
 }) => {
   const { contentList } = useUnitContent();
   const { openModal } = useQuizModal();
+  const { open: openUnitCompletionModal } = useUnitCompletionModal();
   const [units, setUnitsState] = useState<Unit[]>([]);
   const [unitId, setUnitId] = useState<string>('');
+  const [moduleId, setModuleId] = useState<string>('');
   const navigate = useNavigate();
 
   const setUnits = (units: Unit[]) => {
@@ -69,25 +75,41 @@ export const ModuleProgressProvider = ({
 
     // CASE 2: go to first content in next unit
     const nextUnit = units[currentUnitIndex + 1];
-    if (nextUnit && nextUnit.content && nextUnit.content.length > 0) {
-      const firstContent = nextUnit.content[0];
-      if (firstContent.content_type === 'quiz') {
-        navigate(`/user/unit/${nextUnit.id}`); // modal will be triggered in UnitPage
-      } else {
-        navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
-          state: { unitId: nextUnit.id },
-        });
-      }
-    } else if (nextUnit) {
-      navigate(`/user/unit/${nextUnit.id}`);
+    if (nextUnit) {
+      openUnitCompletionModal(nextUnit.id, moduleId);
     } else {
-      console.log('Reached end of module');
+      navigate(`/user/modules/${moduleId}`);
     }
+  };
+
+  const isNextContent = (currentContentId: string) => {
+    const currentUnitIndex = units.findIndex((u) => u.id === unitId);
+    if (currentUnitIndex === -1) return;
+
+    const currentContentIndex = contentList.findIndex(
+      (c) => c.id === currentContentId,
+    );
+    const nextContent = contentList[currentContentIndex + 1];
+
+    if (nextContent) {
+      return true;
+    }
+
+    return false;
   };
 
   return (
     <ModuleProgressContext.Provider
-      value={{ units, setUnits, goToNextContent, unitId, setUnitId }}
+      value={{
+        units,
+        setUnits,
+        goToNextContent,
+        isNextContent,
+        unitId,
+        setUnitId,
+        moduleId,
+        setModuleId,
+      }}
     >
       {children}
     </ModuleProgressContext.Provider>

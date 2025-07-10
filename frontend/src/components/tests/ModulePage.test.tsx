@@ -6,6 +6,7 @@ import * as unitApi from '../../services/unit/unitApi';
 import { QuizModalProvider } from '../../context/user/QuizModalContext.tsx';
 import { ModuleProgressProvider } from '../../context/user/ModuleContext';
 import { UnitContentProvider } from '../../context/user/UnitContentContext';
+import { UnitCompletionModalProvider } from '../../context/user/UnitCompletionModalContext';
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => vi.fn(),
@@ -14,11 +15,13 @@ vi.mock('react-router-dom', () => ({
 const renderWithProvider = (id: string = '123') =>
   render(
     <QuizModalProvider>
-      <UnitContentProvider>
-        <ModuleProgressProvider>
-          <ModulePage id={id} />
-        </ModuleProgressProvider>
-      </UnitContentProvider>
+      <UnitCompletionModalProvider>
+        <UnitContentProvider>
+          <ModuleProgressProvider>
+            <ModulePage id={id} />
+          </ModuleProgressProvider>
+        </UnitContentProvider>
+      </UnitCompletionModalProvider>
     </QuizModalProvider>,
   );
 

@@ -2,43 +2,32 @@ import { useState, useRef } from 'react';
 import QuestionForm from './QuestionForm';
 import { QuizIcon, CloseIcon } from '../../common/Icons';
 
-type QuestionOption = {
-  answerLabel: string;
-  answerText: string;
-  isCorrect: boolean;
-};
-
-type QuizQuestion = {
-  questionNumber: number;
-  questionTitle: string;
-  quizDescription: string;
-  questionType: 'trueFalse' | 'multiple';
-  options: QuestionOption[];
-};
-
-type SaveQuizRequest = {
-  unit_id: string;
-  content_type: 'quiz';
-  title: string;
-  content: string;
-  sort_order: number;
-  points: number;
-  questions_number: number;
-  questions: QuizQuestion[];
-};
-
 interface AddQuizModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: any) => void;
 }
 
+type QuestionOption = {
+  answerLabel: string;
+  answerText: string;
+  isCorrect: boolean;
+};
+
+type Question = {
+  questionNumber: number;
+  questionTitle: string;
+  quizDescription: string;
+  questionType: 'trueFalse' | 'multipleChoice';
+  options: QuestionOption[];
+};
+
 function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
   const [questionNumber, setQuestionNumber] = useState(1);
   const [quizTitle, setQuizTitle] = useState('');
   const [quizDescription, setQuizDescription] = useState('');
   const [points, setPoints] = useState(0);
-  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedOption, setSelectedOption] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
 
@@ -66,8 +55,8 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
     return newErrors;
   };
 
-  const handleAddQuestion = (type: 'trueFalse' | 'multiple') => {
-    const newQuestion: QuizQuestion = {
+  const handleAddQuestion = (type: 'trueFalse' | 'multipleChoice') => {
+    const newQuestion: Question = {
       questionNumber: questionNumber,
       questionTitle: '',
       quizDescription: '',
@@ -91,28 +80,12 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
       return;
     }
 
-    const savingData: SaveQuizRequest = {
-      unit_id: '',
-      content_type: 'quiz',
+    onSave({
       title: quizTitle,
-      content: quizDescription,
-      sort_order: 0,
+      description: quizDescription,
       points: points,
-      questions_number: questions.length,
-      questions: questions.map((q) => ({
-        questionNumber: q.questionNumber,
-        questionTitle: q.questionTitle,
-        quizDescription: q.quizDescription,
-        questionType: q.questionType,
-        options: q.options.map((opt) => ({
-          answerLabel: opt.answerLabel,
-          answerText: opt.answerText,
-          isCorrect: opt.isCorrect,
-        })),
-      })),
-    };
-
-    onSave(savingData);
+      questions: questions,
+    });
 
     setQuizTitle('');
     setQuizDescription('');
@@ -252,7 +225,7 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
                 onChange={(e) => {
                   const selectedType = e.target.value as
                     | 'trueFalse'
-                    | 'multiple';
+                    | 'multipleChoice';
                   setSelectedOption('');
                   handleAddQuestion(selectedType);
                 }}
@@ -262,7 +235,7 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
                 <option value="" disabled>
                   + Add Question
                 </option>
-                <option value="multiple">Multiple Choice</option>
+                <option value="multipleChoice">Multiple Choice</option>
                 <option value="trueFalse">True/False</option>
               </select>
             </div>

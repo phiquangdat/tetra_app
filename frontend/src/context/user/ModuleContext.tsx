@@ -78,7 +78,7 @@ export const ModuleProgressProvider = ({
     if (nextUnit) {
       openUnitCompletionModal(nextUnit.id, moduleId);
     } else {
-      console.log('Reached end of module');
+      navigate(`/user/modules/${moduleId}`);
     }
   };
 

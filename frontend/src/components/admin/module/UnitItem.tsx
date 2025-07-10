@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { fetchUnitById } from '../../../services/unit/unitApi';
 import { ChevronDownIcon, ChevronUpIcon } from '../../common/Icons';
 
@@ -6,6 +6,8 @@ interface UnitItemProps {
   id: string;
   title: string;
   index: number;
+  isOpen: boolean;
+  onToggle: () => void;
 }
 
 interface UnitDetails {
@@ -15,39 +17,38 @@ interface UnitDetails {
   moduleId: string;
 }
 
-const UnitItem: React.FC<UnitItemProps> = ({ id, title, index }) => {
-  const [open, setOpen] = useState(false);
+const UnitItem: React.FC<UnitItemProps> = ({
+  id,
+  title,
+  index,
+  isOpen,
+  onToggle,
+}) => {
   const [details, setDetails] = useState<UnitDetails | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const toggleDropdown = async () => {
-    setOpen((prev) => !prev);
-    if (!open && !details) {
+  useEffect(() => {
+    if (isOpen && !details && !loading) {
       setLoading(true);
-      try {
-        const data = await fetchUnitById(id);
-        setDetails(data);
-      } catch (err) {
-        console.error(err);
-        setError('Failed to fetch unit details');
-      } finally {
-        setLoading(false);
-      }
+      fetchUnitById(id)
+        .then(setDetails)
+        .catch(() => setError('Failed to fetch unit details'))
+        .finally(() => setLoading(false));
     }
-  };
+  }, [isOpen]);
 
   return (
     <div className="bg-[#F9F5FF] border border-[#D4C2FC] rounded-xl overflow-hidden shadow-sm">
       <button
-        onClick={toggleDropdown}
+        onClick={onToggle}
         className="w-full text-left px-6 py-4 font-semibold text-[#231942] flex justify-between items-center hover:bg-[#EFE8FF] transition"
       >
         <span>
           Unit {index + 1}: {title}
         </span>
         <span>
-          {open ? (
+          {isOpen ? (
             <ChevronUpIcon width={20} height={20} />
           ) : (
             <ChevronDownIcon width={20} height={20} />
@@ -55,7 +56,7 @@ const UnitItem: React.FC<UnitItemProps> = ({ id, title, index }) => {
         </span>
       </button>
 
-      {open && (
+      {isOpen && (
         <div className="px-6 pb-4 text-[#231942] text-base">
           {loading && <p>Loading unit details...</p>}
           {error && <p className="text-red-500">{error}</p>}

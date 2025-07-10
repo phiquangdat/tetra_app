@@ -15,6 +15,7 @@ const UnitsBlock: React.FC<UnitsBlockProps> = ({ moduleId }) => {
   const [units, setUnits] = useState<UnitPreview[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const loadUnits = async () => {
@@ -43,6 +44,8 @@ const UnitsBlock: React.FC<UnitsBlockProps> = ({ moduleId }) => {
             id={unit.id}
             title={unit.title}
             index={index}
+            isOpen={openIndex === index}
+            onToggle={() => setOpenIndex(openIndex === index ? null : index)}
           />
         ))}
       </div>

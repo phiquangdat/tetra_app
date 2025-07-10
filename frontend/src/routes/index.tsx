@@ -13,6 +13,14 @@ export const appRoutes = [
       </Suspense>
     ),
   },
+  {
+    path: '/login',
+    element: (
+      <Suspense fallback={<div>Loading Home...</div>}>
+        <Home />
+      </Suspense>
+    ),
+  },
   userRoutes,
   adminRoutes,
 ];

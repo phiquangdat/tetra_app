@@ -4,7 +4,7 @@ import UnitItem from '../../../components/admin/module/UnitItem';
 import { fetchUnitById } from '../../../services/unit/unitApi';
 import { describe, it, vi, beforeEach } from 'vitest';
 
-vi.mock('../../../../services/unit/unitApi', () => ({
+vi.mock('../../../services/unit/unitApi', () => ({
   fetchUnitById: vi.fn(),
 }));
 

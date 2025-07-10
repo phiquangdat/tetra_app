@@ -61,7 +61,7 @@ async function fetchUnitDetails(id: string) {
 }
 
 const UnitPage = ({ id }: UnitPageProps) => {
-  const { setUnitId } = useModuleProgress();
+  const { setUnitId, setModuleId } = useModuleProgress();
   const [checkedIndex, setCheckedIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -89,6 +89,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
         const details = await fetchUnitDetails(id);
         setUnitDetails(details);
         setUnitId(id);
+        setModuleId(details.moduleId);
 
         const content = await fetchUnitContentById(id);
         setUnitContent(details.id, content);

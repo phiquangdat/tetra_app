@@ -33,7 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           ${
             isActive
               ? 'bg-white/10 text-white font-semibold'
-              : 'text-[#D4C2FC] hover:bg-[#998FC7]/10 hover:text-white'
+              : 'text-highlight hover:bg-[#998FC7]/10 hover:text-white'
           }
         `}
       >
@@ -53,7 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className={`flex flex-col justify-between h-full w-64 border-r border-[#D4C2FC] py-6 bg-[#14248A] ${className || ''}`}
+      className={`flex flex-col justify-between h-full w-64 border-r border-highlight py-6 bg-surface ${className || ''}`}
     >
       <nav className="flex flex-col gap-2">{topItems.map(renderItem)}</nav>
       <nav className="flex flex-col gap-2 mt-8">

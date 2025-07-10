@@ -73,9 +73,9 @@ const Header: React.FC<HeaderProps> = ({
             aria-label="Toggle menu"
           >
             {isSidebarOpen ? (
-              <CloseIcon className="w-6 h-6 text-blue-900" />
+              <CloseIcon width={30} height={30} color="#998FC7" />
             ) : (
-              <HamburgerIcon className="w-6 h-6 text-blue-900" />
+              <HamburgerIcon />
             )}
           </button>
         )}

@@ -12,36 +12,36 @@ const ChangePasswordModal: React.FC<Props> = ({ onClose }) => {
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-[#231942] hover:text-[#7E6BBE] transition"
+          className="absolute top-4 right-4 text-primary hover:text-secondaryHover transition"
           aria-label="Close"
         >
           <X size={20} />
         </button>
 
         {/* Heading */}
-        <h2 className="text-[#14248A] text-2xl font-semibold mb-6 text-center">
+        <h2 className="text-surface text-2xl font-semibold mb-6 text-center">
           Change password
         </h2>
 
         {/* Form */}
         <form className="space-y-4">
           <div>
-            <label className="text-[#231942] text-sm font-medium mb-1 block">
+            <label className="text-primary text-sm font-medium mb-1 block">
               Current password
             </label>
             <input
               type="password"
-              className="w-full bg-[#F9F5FF] border border-[#D4C2FC] rounded-lg p-2.5 text-[#231942] focus:outline-none focus:ring-2 focus:ring-[#7E6BBE]"
+              className="w-full bg-[#F9F5FF] border border-[#D4C2FC] rounded-lg p-2.5 text-primary focus:outline-none focus:ring-2 focus:ring-secondary"
             />
           </div>
 
           <div>
-            <label className="text-[#231942] text-sm font-medium mb-1 block">
+            <label className="text-primary text-sm font-medium mb-1 block">
               New password
             </label>
             <input
               type="password"
-              className="w-full bg-[#F9F5FF] border border-[#D4C2FC] rounded-lg p-2.5 text-[#231942] focus:outline-none focus:ring-2 focus:ring-[#7E6BBE]"
+              className="w-full bg-[#F9F5FF] border border-highlight rounded-lg p-2.5 text-primary focus:outline-none focus:ring-2 focus:ring-secondary"
             />
           </div>
 
@@ -51,7 +51,7 @@ const ChangePasswordModal: React.FC<Props> = ({ onClose }) => {
             </label>
             <input
               type="password"
-              className="w-full bg-[#F9F5FF] border border-[#D4C2FC] rounded-lg p-2.5 text-[#231942] focus:outline-none focus:ring-2 focus:ring-[#7E6BBE]"
+              className="w-full bg-[#F9F5FF] border border-highlight rounded-lg p-2.5 text-primary focus:outline-none focus:ring-2 focus:ring-secondary"
             />
           </div>
 
@@ -60,13 +60,13 @@ const ChangePasswordModal: React.FC<Props> = ({ onClose }) => {
             <button
               type="button"
               onClick={onClose}
-              className="bg-[#7E6BBE] hover:bg-[#6c5aa9] text-white px-5 py-2 rounded-lg text-sm font-medium transition"
+              className="bg-secondary hover:bg-secondaryHover text-white px-5 py-2 rounded-lg text-sm font-medium transition"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="bg-[#14248A] hover:bg-[#101e72] text-white px-5 py-2 rounded-lg text-sm font-medium transition"
+              className="bg-surface hover:bg-surfaceHover text-white px-5 py-2 rounded-lg text-sm font-medium transition"
             >
               Save
             </button>

@@ -18,7 +18,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
   useEffect(() => {
     fetchArticleContentById(id).then((data) => setArticle(data));
   }, [id]);
-  const { goToNextContent } = useModuleProgress();
+  const { goToNextContent, isNextContent } = useModuleProgress();
 
   return (
     <div className="mx-auto px-8 py-8 min-h-screen text-left">
@@ -48,7 +48,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
           type="button"
           onClick={() => goToNextContent(id)}
         >
-          Up next
+          {isNextContent(id ?? '') ? 'Up next' : 'Finish'}
         </button>
       </div>
     </div>

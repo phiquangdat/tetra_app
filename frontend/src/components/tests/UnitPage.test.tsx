@@ -13,6 +13,7 @@ import { fetchUnitById } from '../../services/unit/unitApi';
 import { QuizModalProvider } from '../../context/user/QuizModalContext';
 import { UnitContentProvider } from '../../context/user/UnitContentContext.tsx';
 import { ModuleProgressProvider } from '../../context/user/ModuleContext';
+import { UnitCompletionModalProvider } from '../../context/user/UnitCompletionModalContext';
 
 vi.mock('../../services/unit/unitApi', () => ({
   fetchUnitById: vi.fn(),
@@ -36,28 +37,32 @@ const UnitPageWrapper = () => {
 const renderUnitPageWithProps = (id: string = MOCK_UNIT_ID) =>
   render(
     <QuizModalProvider>
-      <BrowserRouter>
-        <UnitContentProvider>
-          <ModuleProgressProvider>
-            <UnitPage id={id} />
-          </ModuleProgressProvider>
-        </UnitContentProvider>
-      </BrowserRouter>
+      <UnitCompletionModalProvider>
+        <BrowserRouter>
+          <UnitContentProvider>
+            <ModuleProgressProvider>
+              <UnitPage id={id} />
+            </ModuleProgressProvider>
+          </UnitContentProvider>
+        </BrowserRouter>
+      </UnitCompletionModalProvider>
     </QuizModalProvider>,
   );
 
 const renderUnitPageWithRoute = (unitId: string) =>
   render(
     <QuizModalProvider>
-      <MemoryRouter initialEntries={[`/unit/${unitId}`]}>
-        <UnitContentProvider>
-          <ModuleProgressProvider>
-            <Routes>
-              <Route path="/unit/:id" element={<UnitPageWrapper />} />
-            </Routes>
-          </ModuleProgressProvider>
-        </UnitContentProvider>
-      </MemoryRouter>
+      <UnitCompletionModalProvider>
+        <MemoryRouter initialEntries={[`/unit/${unitId}`]}>
+          <UnitContentProvider>
+            <ModuleProgressProvider>
+              <Routes>
+                <Route path="/unit/:id" element={<UnitPageWrapper />} />
+              </Routes>
+            </ModuleProgressProvider>
+          </UnitContentProvider>
+        </MemoryRouter>
+      </UnitCompletionModalProvider>
     </QuizModalProvider>,
   );
 

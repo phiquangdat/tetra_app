@@ -10,7 +10,7 @@ public class PasswordHashingService {
     private final PasswordEncoder passwordEncoder;
 
     public PasswordHashingService() {
-        this.passwordEncoder = new BCryptPasswordEncoder(); // Можно передать strength: new BCryptPasswordEncoder(12)
+        this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
     public String hashPassword(String plainPassword) {

@@ -50,7 +50,7 @@ function AddQuizModal({
     const newErrors: string[] = [];
 
     if (!data.title?.trim()) newErrors.push('Quiz title is required.');
-      if (!data.content?.trim()) newErrors.push('Quiz description is required.');
+    if (!data.content?.trim()) newErrors.push('Quiz description is required.');
     if (!data.points || data.points <= 0)
       newErrors.push('Points must be greater than zero.');
     if (!data.questions || data.questions.length === 0)
@@ -80,9 +80,11 @@ function AddQuizModal({
     updateContentField('data', { ...data, points: value });
   };
 
-  const handleChangeDescription = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        updateContentField('data', { ...data, content: e.target.value });
-    };
+  const handleChangeDescription = (
+    e: React.ChangeEvent<HTMLTextAreaElement>,
+  ) => {
+    updateContentField('data', { ...data, content: e.target.value });
+  };
 
   const canSave =
     data.title?.trim() !== '' &&

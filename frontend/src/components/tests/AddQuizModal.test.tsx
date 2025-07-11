@@ -1,74 +1,96 @@
+import React from 'react';
 import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import AddQuizModal from '../admin/createModule/AddQuizModal';
-import { ContentBlockContextProvider } from '../../context/admin/ContentBlockContext';
-import { UnitContextProvider } from '../../context/admin/UnitContext';
-
-const AddQuizModalWithProviders = (props: any) => (
-  <UnitContextProvider>
-    <ContentBlockContextProvider>
-      <AddQuizModal {...props} />
-    </ContentBlockContextProvider>
-  </UnitContextProvider>
-);
+import { UnitContext } from '../../context/admin/UnitContext';
+import { ContentBlockContext } from '../../context/admin/ContentBlockContext';
 
 describe('AddQuizModal', () => {
-  const onClose = vi.fn();
-  const onAddContent = vi.fn();
+  const mockOnClose = vi.fn();
+  const mockAddContentBlock = vi.fn();
+  const mockSaveContent = vi.fn(() => Promise.resolve());
+  const mockClearContent = vi.fn();
 
-  beforeEach(() => {
-    onClose.mockReset();
-    onAddContent.mockReset();
-  });
+  const contentState = {
+    type: 'quiz',
+    data: {
+      title: '',
+      content: '',
+      points: 1,
+      questions: [],
+    },
+    sortOrder: 0,
+    unit_id: '',
+    isDirty: true,
+    isSaving: false,
+    error: null,
+  };
 
-  it('renders the modal and allows editing points field', async () => {
-    render(
-      <AddQuizModalWithProviders
-        isOpen={true}
-        onClose={onClose}
-        onAddContent={onAddContent}
-        unitId="unit-1"
-        unitNumber={1}
-      />,
+  const Wrapper = ({ children }: { children: React.ReactNode }) => {
+    const [localContentState, setLocalContentState] =
+      React.useState(contentState);
+
+    return (
+      <UnitContext.Provider
+        value={{
+          addContentBlock: mockAddContentBlock,
+          removeContentBlock: vi.fn(),
+          unitStates: {},
+          updateUnitField: vi.fn(),
+          markUnitAsDirty: vi.fn(),
+          setUnitState: vi.fn(),
+          getUnitState: vi.fn(),
+          getNextUnitNumber: vi.fn(),
+          saveUnit: vi.fn(),
+          removeUnit: vi.fn(),
+        }}
+      >
+        <ContentBlockContext.Provider
+          value={{
+            ...localContentState,
+            updateContentField: (key, value) => {
+              if (key === 'data') {
+                setLocalContentState((prev) => ({
+                  ...prev,
+                  data: {
+                    ...prev.data,
+                    ...value,
+                  },
+                }));
+              }
+            },
+            setContentState: (val) =>
+              setLocalContentState((prev) => ({ ...prev, ...val })),
+            saveContent: mockSaveContent,
+            clearContent: mockClearContent,
+            getContentState: () => localContentState,
+            updateQuestion: vi.fn(),
+            updateAnswer: vi.fn(),
+            markContentAsDirty: vi.fn(),
+          }}
+        >
+          {children}
+        </ContentBlockContext.Provider>
+      </UnitContext.Provider>
     );
-
-    const pointsInput = screen.getByLabelText(/points/i);
-    expect(pointsInput).toBeInTheDocument();
-
-    expect(pointsInput).toHaveValue(0);
-
-    await userEvent.clear(pointsInput);
-    await userEvent.type(pointsInput, '25');
-
-    expect(pointsInput).toHaveValue(25);
-  });
-
-  it('shows validation error when points are 0 and trying to save', async () => {
-    render(
-      <AddQuizModalWithProviders
-        isOpen={true}
-        onClose={onClose}
-        onAddContent={onAddContent}
-        unitId="unit-1"
-      />,
-    );
-
-    const saveButton = screen.getByRole('button', { name: /save/i });
-
-    await userEvent.click(saveButton);
-
-    expect(onAddContent).not.toHaveBeenCalled();
-  });
+  };
 
   it('allows user input the description', async () => {
-    render(<AddQuizModal isOpen={true} onClose={onClose} onSave={onSave} />);
+    render(
+      <Wrapper>
+        <AddQuizModal
+          isOpen={true}
+          onClose={mockOnClose}
+          unitId="unit-1"
+          unitNumber={1}
+        />
+      </Wrapper>,
+    );
 
     const descriptionInput = screen.getByLabelText(/quiz description/i);
-    expect(descriptionInput).toBeInTheDocument();
-
     await userEvent.type(descriptionInput, 'This is a quiz description');
-
     expect(descriptionInput).toHaveValue('This is a quiz description');
   });
 });

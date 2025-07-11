@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import QuestionForm from './QuestionForm';
 import { QuizIcon, CloseIcon } from '../../common/Icons';
 import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
+import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
 
 interface AddQuizModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface AddQuizModalProps {
     questions: any[];
   }) => void;
   unitId: string;
+  unitNumber: number;
 }
 
 function AddQuizModal({
@@ -19,9 +21,18 @@ function AddQuizModal({
   onClose,
   onAddContent,
   unitId,
+  unitNumber,
 }: AddQuizModalProps) {
-  const { data, updateContentField, saveContent, isSaving, clearContent } =
-    useContentBlockContext();
+  const {
+    data,
+    updateContentField,
+    saveContent,
+    isSaving,
+    clearContent,
+    setContentState,
+  } = useContentBlockContext();
+
+  const { addContentBlock } = useUnitContext();
 
   const [questionNumber, setQuestionNumber] = useState(1);
   const [selectedOption, setSelectedOption] = useState('');
@@ -29,22 +40,27 @@ function AddQuizModal({
 
   const modalRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (isOpen) {
+      setContentState({
+        unit_id: unitId,
+        type: 'quiz',
+        sortOrder: 0,
+        isDirty: true,
+        isSaving: false,
+        error: null,
+      });
+    }
+  }, [isOpen]);
+
   const validateQuiz = () => {
     const newErrors: string[] = [];
 
-    if (!data.title?.trim()) {
-      newErrors.push('Quiz title is required.');
-    }
-
-    if (!data.points || data.points <= 0) {
+    if (!data.title?.trim()) newErrors.push('Quiz title is required.');
+    if (!data.points || data.points <= 0)
       newErrors.push('Points must be greater than zero.');
-    }
-
-    if (!data.questions || data.questions.length === 0) {
+    if (!data.questions || data.questions.length === 0)
       newErrors.push('At least one question is required.');
-    }
-
-    console.log(newErrors);
 
     return newErrors;
   };
@@ -75,16 +91,29 @@ function AddQuizModal({
 
   const handleSave = async () => {
     if (!canSave) return;
+
+    const validationErrors = validateQuiz();
+    if (validationErrors.length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
     try {
-      const validationErrors = validateQuiz();
-      if (validationErrors.length > 0) {
-        setErrors(validationErrors);
-        return;
-      }
+      await saveContent('quiz');
 
-      updateContentField('type', 'quiz');
-
-      await saveContent(unitId, 'article');
+      addContentBlock(unitNumber, {
+        type: 'quiz',
+        data: {
+          title: data.title,
+          points: data.points || 0,
+          questions: data.questions || [],
+        },
+        sortOrder: 0,
+        unit_id: unitId,
+        isDirty: false,
+        isSaving: false,
+        error: null,
+      });
 
       onAddContent({
         title: data.title,

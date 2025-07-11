@@ -50,6 +50,7 @@ function AddQuizModal({
     const newErrors: string[] = [];
 
     if (!data.title?.trim()) newErrors.push('Quiz title is required.');
+      if (!data.content?.trim()) newErrors.push('Quiz description is required.');
     if (!data.points || data.points <= 0)
       newErrors.push('Points must be greater than zero.');
     if (!data.questions || data.questions.length === 0)
@@ -79,8 +80,13 @@ function AddQuizModal({
     updateContentField('data', { ...data, points: value });
   };
 
+  const handleChangeDescription = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        updateContentField('data', { ...data, content: e.target.value });
+    };
+
   const canSave =
     data.title?.trim() !== '' &&
+    (data.content?.trim() || '') !== '' &&
     (data.points || 0) > 0 &&
     (data.questions || []).length > 0 &&
     !isSaving;
@@ -101,6 +107,7 @@ function AddQuizModal({
         type: 'quiz',
         data: {
           title: data.title,
+          content: data.content || '',
           points: data.points || 0,
           questions: data.questions || [],
         },
@@ -203,6 +210,25 @@ function AddQuizModal({
               className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
               required
             />
+
+            <div className="max-w-110 mt-4">
+              <label
+                htmlFor="quizDescription"
+                className="block text-sm font-medium text-gray-700 mt-4 mb-2"
+              >
+                Description
+              </label>
+              <textarea
+                id="quizDescription"
+                value={data.content || ''}
+                onChange={handleChangeDescription}
+                className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none"
+                placeholder="Enter quiz description"
+                aria-label="quiz description"
+                required
+                rows={3}
+              />
+            </div>
 
             <div className="max-w-28 mt-4">
               <label

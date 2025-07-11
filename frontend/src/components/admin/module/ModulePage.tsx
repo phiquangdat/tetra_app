@@ -1,5 +1,6 @@
 import React from 'react';
 import ModuleDetails from '../ui/ModuleDetails';
+import UnitsBlock from './UnitsBlock.tsx';
 
 interface ModulePageProps {
   id: string;
@@ -19,6 +20,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
       </div>
 
       <ModuleDetails id={id} />
+      <UnitsBlock moduleId={id} />
     </div>
   );
 };

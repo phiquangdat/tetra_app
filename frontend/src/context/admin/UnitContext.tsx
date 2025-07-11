@@ -80,7 +80,9 @@ const createDefaultUnitState = (): UnitContextEntry => ({
   error: null,
 });
 
-const UnitContext = createContext<UnitContextType | undefined>(undefined);
+export const UnitContext = createContext<UnitContextType | undefined>(
+  undefined,
+);
 
 export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
   const [unitStates, setUnitStates] = useState<

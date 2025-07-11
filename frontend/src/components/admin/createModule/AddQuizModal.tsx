@@ -7,11 +7,6 @@ import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
 interface AddQuizModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddContent: (data: {
-    title: string;
-    points: number;
-    questions: any[];
-  }) => void;
   unitId: string;
   unitNumber: number;
 }
@@ -19,7 +14,6 @@ interface AddQuizModalProps {
 function AddQuizModal({
   isOpen,
   onClose,
-  onAddContent,
   unitId,
   unitNumber,
 }: AddQuizModalProps) {
@@ -115,12 +109,6 @@ function AddQuizModal({
         isDirty: false,
         isSaving: false,
         error: null,
-      });
-
-      onAddContent({
-        title: data.title,
-        points: data.points || 0,
-        questions: data.questions || [],
       });
 
       setErrors([]);

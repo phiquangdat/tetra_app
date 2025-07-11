@@ -7,16 +7,9 @@ import {
 import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
 import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
 
-type Video = {
-  title: string;
-  content: string;
-  url: string;
-};
-
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onAddContent: (video: Video) => void;
   unitId: string;
   unitNumber: number;
 };
@@ -24,13 +17,7 @@ type Props = {
 const YOUTUBE_REGEX =
   /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^/]+\/.*[?&]v=|v\/|e\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
 
-function AddVideoModal({
-  isOpen,
-  onClose,
-  onAddContent,
-  unitId,
-  unitNumber,
-}: Props) {
+function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
   const {
     data,
     updateContentField,
@@ -91,12 +78,6 @@ function AddVideoModal({
         isDirty: false,
         isSaving: false,
         error: null,
-      });
-
-      onAddContent({
-        title: data.title.trim(),
-        content: data.content?.trim() ?? '',
-        url: data.url?.trim() ?? '',
       });
 
       clearContent();

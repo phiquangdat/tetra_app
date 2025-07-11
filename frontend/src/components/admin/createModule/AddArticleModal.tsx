@@ -6,7 +6,6 @@ import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
 interface ArticleModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddContent: (article: { title: string; content: string }) => void;
   unitId: string;
   unitNumber: number;
 }
@@ -14,7 +13,6 @@ interface ArticleModalProps {
 function AddArticleModal({
   isOpen,
   onClose,
-  onAddContent,
   unitId,
   unitNumber,
 }: ArticleModalProps) {
@@ -67,11 +65,6 @@ function AddArticleModal({
         isDirty: false,
         isSaving: false,
         error: null,
-      });
-
-      onAddContent({
-        title: data.title.trim(),
-        content: data.content?.trim() ?? '',
       });
 
       clearContent();

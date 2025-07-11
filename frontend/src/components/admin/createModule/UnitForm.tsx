@@ -6,8 +6,6 @@ import AddVideoModal from './AddVideoModal';
 import AddQuizModal from './AddQuizModal';
 import { ChevronDownIcon, ChevronUpIcon, RemoveIcon } from '../../common/Icons';
 
-import type { ContentBlock } from '../../../context/admin/UnitContext';
-
 type UnitFormProps = {
   unitNumber: number;
 };
@@ -58,11 +56,6 @@ function UnitForm({ unitNumber }: UnitFormProps) {
     if (value === 'addVideo') setIsVideoModalOpen(true);
     if (value === 'addQuiz') setIsQuizModalOpen(true);
     e.target.value = '';
-  };
-
-  const handleAddContent = (type: ContentBlock['type'], data: any) => {
-    const newBlock = { type, data };
-    updateUnitField(unitNumber, 'content', [...unitState.content, newBlock]);
   };
 
   useEffect(() => {
@@ -290,10 +283,6 @@ function UnitForm({ unitNumber }: UnitFormProps) {
       <AddArticleModal
         isOpen={isArticleModalOpen}
         onClose={() => setIsArticleModalOpen(false)}
-        onAddContent={(data) => {
-          handleAddContent('article', data);
-          setIsArticleModalOpen(false);
-        }}
         unitId={unitID || ''}
         unitNumber={unitNumber}
       />
@@ -301,10 +290,6 @@ function UnitForm({ unitNumber }: UnitFormProps) {
       <AddVideoModal
         isOpen={isVideoModalOpen}
         onClose={() => setIsVideoModalOpen(false)}
-        onAddContent={(data) => {
-          handleAddContent('video', data);
-          setIsVideoModalOpen(false);
-        }}
         unitId={unitID || ''}
         unitNumber={unitNumber}
       />
@@ -312,10 +297,6 @@ function UnitForm({ unitNumber }: UnitFormProps) {
       <AddQuizModal
         isOpen={isQuizModalOpen}
         onClose={() => setIsQuizModalOpen(false)}
-        onAddContent={(data) => {
-          handleAddContent('quiz', data);
-          setIsQuizModalOpen(false);
-        }}
         unitId={unitID || ''}
         unitNumber={unitNumber}
       />

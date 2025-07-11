@@ -1,10 +1,17 @@
+import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AddArticleModal from '../admin/createModule/AddArticleModal';
-import { ContentBlockContextProvider } from '../../context/admin/ContentBlockContext'; // ✅ CORRECT
-import { UnitContextProvider } from '../../context/admin/UnitContext';
+import {
+  ContentBlockContext,
+  ContentBlockContextProvider,
+} from '../../context/admin/ContentBlockContext'; // ✅ CORRECT
+import {
+  UnitContext,
+  UnitContextProvider,
+} from '../../context/admin/UnitContext';
 
 const AddArticleModalWithProviders = (props: any) => (
   <UnitContextProvider>
@@ -53,14 +60,87 @@ describe('AddArticleModal', () => {
     expect(input).toHaveValue('Test Article Title');
   });
 
-  it('calls onAddContent when Save button is clicked with valid input', async () => {
+  it('saves article and adds content block with valid input', async () => {
+    const mockAddContentBlock = vi.fn();
+    const mockRemoveContentBlock = vi.fn();
+    const mockSetContentState = vi.fn();
+    const mockUpdateContentField = vi.fn();
+    const mockSaveContent = vi.fn(() => Promise.resolve());
+    const mockClearContent = vi.fn();
+    const mockOnClose = vi.fn();
+
+    let contentState = {
+      type: 'article',
+      data: {
+        title: '',
+        content: '',
+      },
+      sortOrder: 0,
+      unit_id: '',
+      isDirty: false,
+      isSaving: false,
+      error: null,
+    };
+
+    const Wrapper = ({ children }: { children: React.ReactNode }) => {
+      const [localContentState, setLocalContentState] =
+        React.useState(contentState);
+
+      return (
+        <UnitContext.Provider
+          value={{
+            addContentBlock: mockAddContentBlock,
+            removeContentBlock: mockRemoveContentBlock,
+            unitStates: {},
+            updateUnitField: vi.fn(),
+            markUnitAsDirty: vi.fn(),
+            setUnitState: vi.fn(),
+            getUnitState: vi.fn(),
+            getNextUnitNumber: vi.fn(),
+            saveUnit: vi.fn(),
+            removeUnit: vi.fn(),
+          }}
+        >
+          <ContentBlockContext.Provider
+            value={{
+              ...localContentState,
+              updateContentField: (key, value) => {
+                if (key === 'data') {
+                  setLocalContentState((prev) => ({
+                    ...prev,
+                    data: {
+                      ...prev.data,
+                      ...value,
+                    },
+                  }));
+                }
+              },
+              saveContent: mockSaveContent,
+              isSaving: false,
+              isDirty: true,
+              setContentState: (val) =>
+                setLocalContentState((prev) => ({ ...prev, ...val })),
+              clearContent: mockClearContent,
+              getContentState: () => localContentState,
+              updateQuestion: vi.fn(),
+              updateAnswer: vi.fn(),
+            }}
+          >
+            {children}
+          </ContentBlockContext.Provider>
+        </UnitContext.Provider>
+      );
+    };
+
     render(
-      <AddArticleModalWithProviders
-        isOpen={true}
-        onClose={onClose}
-        onAddContent={onAddContent}
-        unitId="unit-1"
-      />,
+      <Wrapper>
+        <AddArticleModal
+          isOpen={true}
+          onClose={mockOnClose}
+          unitId="unit-1"
+          unitNumber={1}
+        />
+      </Wrapper>,
     );
 
     await userEvent.type(screen.getByLabelText('Title'), 'Article Title');
@@ -69,17 +149,28 @@ describe('AddArticleModal', () => {
       'This is a test description.',
     );
 
-    const saveButton = screen.getByRole('button', { name: /save/i });
+    const saveButton = screen.getByRole('button', { name: /save article/i });
+
+    await waitFor(() => {
+      expect(saveButton).not.toBeDisabled();
+    });
 
     await userEvent.click(saveButton);
 
     await waitFor(() => {
-      expect(onAddContent).toHaveBeenCalledWith(
+      expect(mockSaveContent).toHaveBeenCalledWith('article');
+      expect(mockAddContentBlock).toHaveBeenCalledWith(
+        1,
         expect.objectContaining({
-          title: 'Article Title',
-          content: 'This is a test description.',
+          type: 'article',
+          unit_id: 'unit-1',
+          data: expect.objectContaining({
+            title: 'Article Title',
+            content: 'This is a test description.',
+          }),
         }),
       );
+      expect(mockOnClose).toHaveBeenCalled();
     });
   });
 });

@@ -66,6 +66,8 @@ type UnitContextType = {
   getNextUnitNumber: () => number;
   saveUnit: (unitNumber: number, moduleId: string) => Promise<void>;
   removeUnit: (unitNumber: number) => void;
+  addContentBlock: (unitNumber: number, block: ContentBlock) => void;
+  removeContentBlock: (unitNumber: number, blockIndex: number) => void;
 };
 
 const createDefaultUnitState = (): UnitContextEntry => ({
@@ -205,6 +207,45 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     [unitStates],
   );
 
+  const addContentBlock = useCallback(
+    (unitNumber: number, block: ContentBlock) => {
+      setUnitStates((prev) => {
+        const currentUnit = prev[unitNumber] || createDefaultUnitState();
+        return {
+          ...prev,
+          [unitNumber]: {
+            ...currentUnit,
+            content: [...currentUnit.content, block],
+            isDirty: true,
+          },
+        };
+      });
+    },
+    [],
+  );
+
+  const removeContentBlock = useCallback(
+    (unitNumber: number, blockIndex: number) => {
+      setUnitStates((prev) => {
+        const currentUnit = prev[unitNumber];
+        if (!currentUnit) return prev;
+
+        const updatedContent = [...currentUnit.content];
+        updatedContent.splice(blockIndex, 1);
+
+        return {
+          ...prev,
+          [unitNumber]: {
+            ...currentUnit,
+            content: updatedContent,
+            isDirty: true,
+          },
+        };
+      });
+    },
+    [],
+  );
+
   const contextValue: UnitContextType = {
     unitStates,
     updateUnitField,
@@ -214,6 +255,8 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     getNextUnitNumber,
     saveUnit,
     removeUnit,
+    addContentBlock,
+    removeContentBlock,
   };
 
   return (

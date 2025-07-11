@@ -58,6 +58,7 @@ function QuestionForm({ questionNumber = 1, questionType, onClose }: Props) {
     >
       <div className="flex justify-end">
         <button
+          aria-label="Close"
           onClick={handleClose}
           className="text-gray-400 hover:text-gray-600 transition-colors p-1"
         >
@@ -66,6 +67,9 @@ function QuestionForm({ questionNumber = 1, questionType, onClose }: Props) {
       </div>
 
       <h2 className="text-lg text-gray-700 mb-4">Question {questionNumber}</h2>
+      <label htmlFor="quizTitle" className="sr-only">
+        Question Title
+      </label>
       <textarea
         name="quizTitle"
         id="quizTitle"

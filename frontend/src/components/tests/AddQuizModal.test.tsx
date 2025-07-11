@@ -2,12 +2,15 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AddQuizModal from '../admin/createModule/AddQuizModal';
-import { ContentBlockContextProvider } from '../../context/admin/UnitContext';
+import { ContentBlockContextProvider } from '../../context/admin/ContentBlockContext';
+import { UnitContextProvider } from '../../context/admin/UnitContext';
 
 const AddQuizModalWithProviders = (props: any) => (
-  <ContentBlockContextProvider>
-    <AddQuizModal {...props} />
-  </ContentBlockContextProvider>
+  <UnitContextProvider>
+    <ContentBlockContextProvider>
+      <AddQuizModal {...props} />
+    </ContentBlockContextProvider>
+  </UnitContextProvider>
 );
 
 describe('AddQuizModal', () => {
@@ -26,6 +29,7 @@ describe('AddQuizModal', () => {
         onClose={onClose}
         onAddContent={onAddContent}
         unitId="unit-1"
+        unitNumber={1}
       />,
     );
 

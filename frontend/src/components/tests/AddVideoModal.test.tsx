@@ -3,13 +3,16 @@ import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 import AddVideoModal from '../admin/createModule/AddVideoModal';
-import { ContentBlockContextProvider } from '../../context/admin/UnitContext';
+import { UnitContextProvider } from '../../context/admin/UnitContext';
+import { ContentBlockContextProvider } from '../../context/admin/ContentBlockContext';
 
 const AddVideoModalWithProviders = (props: any) => {
   return (
-    <ContentBlockContextProvider>
-      <AddVideoModal {...props} />
-    </ContentBlockContextProvider>
+    <UnitContextProvider>
+      <ContentBlockContextProvider>
+        <AddVideoModal {...props} />
+      </ContentBlockContextProvider>
+    </UnitContextProvider>
   );
 };
 

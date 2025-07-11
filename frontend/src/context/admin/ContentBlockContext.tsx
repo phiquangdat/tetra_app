@@ -43,7 +43,7 @@ const createDefaultContentBlockState = (): ContentBlock => ({
   error: null,
 });
 
-const ContentBlockContext = createContext<ContextBlockType | undefined>(
+export const ContentBlockContext = createContext<ContextBlockType | undefined>(
   undefined,
 );
 

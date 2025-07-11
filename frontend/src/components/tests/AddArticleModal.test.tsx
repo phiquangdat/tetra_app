@@ -3,12 +3,15 @@ import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AddArticleModal from '../admin/createModule/AddArticleModal';
-import { ContentBlockContextProvider } from '../../context/admin/UnitContext';
+import { ContentBlockContextProvider } from '../../context/admin/ContentBlockContext'; // ✅ CORRECT
+import { UnitContextProvider } from '../../context/admin/UnitContext';
 
 const AddArticleModalWithProviders = (props: any) => (
-  <ContentBlockContextProvider>
-    <AddArticleModal {...props} />
-  </ContentBlockContextProvider>
+  <UnitContextProvider>
+    <ContentBlockContextProvider>
+      <AddArticleModal {...props} />
+    </ContentBlockContextProvider>
+  </UnitContextProvider>
 );
 
 describe('AddArticleModal', () => {

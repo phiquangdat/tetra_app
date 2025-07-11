@@ -1,10 +1,11 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import {
   CloseIcon,
   VideoHeaderIcon,
   VideoUploadIcon,
 } from '../../common/Icons';
 import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
+import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
 
 type Video = {
   title: string;
@@ -17,16 +18,44 @@ type Props = {
   onClose: () => void;
   onAddContent: (video: Video) => void;
   unitId: string;
+  unitNumber: number;
 };
 
 const YOUTUBE_REGEX =
   /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^/]+\/.*[?&]v=|v\/|e\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
 
-function AddVideoModal({ isOpen, onClose, onAddContent, unitId }: Props) {
-  const { data, isSaving, updateContentField, saveContent, clearContent } =
-    useContentBlockContext();
+function AddVideoModal({
+  isOpen,
+  onClose,
+  onAddContent,
+  unitId,
+  unitNumber,
+}: Props) {
+  const {
+    data,
+    updateContentField,
+    saveContent,
+    isSaving,
+    clearContent,
+    setContentState,
+    isDirty,
+  } = useContentBlockContext();
+  const { addContentBlock, removeContentBlock } = useUnitContext();
 
   const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setContentState({
+        unit_id: unitId,
+        type: 'video',
+        sortOrder: 0,
+        isDirty: true,
+        isSaving: false,
+        error: null,
+      });
+    }
+  }, [isOpen]);
 
   const isYouTubeUrl = useCallback(
     (url: string) => YOUTUBE_REGEX.test(url),
@@ -48,11 +77,26 @@ function AddVideoModal({ isOpen, onClose, onAddContent, unitId }: Props) {
   const handleSave = async () => {
     if (!canSave) return;
     try {
-      await saveContent(unitId, 'video');
+      await saveContent('video');
+
+      addContentBlock(unitNumber, {
+        type: 'video',
+        data: {
+          title: data.title.trim(),
+          content: data.content?.trim() ?? '',
+          url: data.url?.trim() ?? '',
+        },
+        sortOrder: 0,
+        unit_id: unitId,
+        isDirty: false,
+        isSaving: false,
+        error: null,
+      });
+
       onAddContent({
-        title: data.title,
-        content: data.content ?? '',
-        url: data.url ?? '',
+        title: data.title.trim(),
+        content: data.content?.trim() ?? '',
+        url: data.url?.trim() ?? '',
       });
 
       clearContent();
@@ -63,6 +107,9 @@ function AddVideoModal({ isOpen, onClose, onAddContent, unitId }: Props) {
   };
 
   const handleClose = () => {
+    if (isDirty && !isSaving) {
+      removeContentBlock(unitNumber, -1);
+    }
     clearContent();
     onClose();
   };

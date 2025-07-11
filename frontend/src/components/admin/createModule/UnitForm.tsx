@@ -306,6 +306,7 @@ function UnitForm({ unitNumber }: UnitFormProps) {
           setIsVideoModalOpen(false);
         }}
         unitId={unitID || ''}
+        unitNumber={unitNumber}
       />
 
       <AddQuizModal

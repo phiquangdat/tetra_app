@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import QuestionForm from './QuestionForm';
 import { QuizIcon, CloseIcon } from '../../common/Icons';
-import { useContentBlockContext } from '../../../context/admin/UnitContext';
+import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
 
 interface AddQuizModalProps {
   isOpen: boolean;

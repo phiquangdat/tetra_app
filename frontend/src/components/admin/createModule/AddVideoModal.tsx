@@ -4,7 +4,7 @@ import {
   VideoHeaderIcon,
   VideoUploadIcon,
 } from '../../common/Icons';
-import { useContentBlockContext } from '../../../context/admin/UnitContext';
+import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
 
 type Video = {
   title: string;

@@ -1,6 +1,6 @@
 import { EditIcon, CloseIcon } from '../../common/Icons';
 import { useRef } from 'react';
-import { useContentBlockContext } from '../../../context/admin/UnitContext';
+import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
 
 interface AddArticleModalProps {
   isOpen: boolean;

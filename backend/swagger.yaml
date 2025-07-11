@@ -1,0 +1,930 @@
+openapi: 3.0.3
+info:
+  title: TETRA Project API
+  version: 1.0.0
+  description: |
+    REST API documentation for TETRA Project.
+    This API allows you to manage training modules, units, unit content (articles, videos, quizzes), questions, and answers.
+servers:
+  - url: http://localhost:8080
+
+paths:
+  /api/modules:
+    get:
+      summary: Get all modules
+      description: |
+        Returns a list of all training modules in the system.
+        Each module contains information such as title, topic, description, points, cover image URL, and status.
+      responses:
+        '200':
+          description: Successful response. Returns an array of Module objects.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Module'
+    post:
+      summary: Create a module
+      description: |
+        Creates a new training module.
+        The request body must include all required fields for the module.
+      requestBody:
+        required: true
+        description: Module object to be created.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Module'
+      responses:
+        '201':
+          description: Module successfully created. Returns the created Module object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Module'
+  /api/modules/{id}:
+    get:
+      summary: Get module by ID
+      description: |
+        Retrieves a single module by its unique identifier.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: The unique identifier (UUID) of the module to retrieve.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response. Returns the Module object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Module'
+        '404':
+          description: Module not found.
+
+  /api/units:
+    get:
+      summary: Get units by module ID or all units
+      description: |
+        Returns a list of units. If `moduleId` is provided as a query parameter, returns units for that module.
+      parameters:
+        - in: query
+          name: moduleId
+          required: false
+          description: The UUID of the module to filter units by.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of units or unit summaries.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UnitSummary'
+    post:
+      summary: Create a unit
+      description: |
+        Creates a new unit for a module.
+      requestBody:
+        required: true
+        description: Unit creation payload.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitCreate'
+      responses:
+        '201':
+          description: Unit successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+        '400':
+          description: Bad request (missing fields or invalid module_id).
+        '404':
+          description: Module not found.
+
+  /api/units/{id}:
+    get:
+      summary: Get unit by ID
+      description: |
+        Retrieves a unit by its unique identifier.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: The UUID of the unit.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The unit object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+        '404':
+          description: Unit not found.
+
+  /api/unit_content:
+    get:
+      summary: Get all unit content or by unitId
+      description: |
+        Returns all unit content blocks, or those for a specific unit if `unitId` is provided.
+      parameters:
+        - in: query
+          name: unitId
+          required: false
+          description: The UUID of the unit to filter content by.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of unit content blocks.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UnitContentSummary'
+
+  /api/unit_content/{id}:
+    get:
+      summary: Get unit content by ID
+      description: |
+        Retrieves a unit content block by its unique identifier.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: The UUID of the unit content.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The unit content object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitContent'
+        '404':
+          description: Unit content not found.
+
+  /api/unit_content/quiz/{id}:
+    get:
+      summary: Get quiz preview by ID
+      description: |
+        Returns quiz metadata and questions/answers for a quiz content block.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: The UUID of the quiz content block.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Quiz preview with questions and answers.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizPreview'
+        '404':
+          description: Quiz not found.
+
+  /api/unit_content/video:
+    get:
+      summary: Get all video content
+      description: |
+        Returns all video content blocks.
+      responses:
+        '200':
+          description: List of video content blocks.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VideoContentSummary'
+
+  /api/unit_content/video/{id}:
+    get:
+      summary: Get video content by ID
+      description: |
+        Returns a video content block by its unique identifier.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: The UUID of the video content block.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The video content object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoContent'
+        '404':
+          description: Video content not found.
+
+  /api/unit_content/article/{id}:
+    get:
+      summary: Get article content by ID
+      description: |
+        Returns an article content block by its unique identifier.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: The UUID of the article content block.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The article content object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleContent'
+        '404':
+          description: Article content not found.
+
+  /api/unit_content/quiz:
+    post:
+      summary: Create quiz content
+      description: |
+        Creates a new quiz content block with questions and answers.
+      requestBody:
+        required: true
+        description: Quiz content creation payload.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuizContentCreate'
+      responses:
+        '201':
+          description: Quiz content created.
+        '400':
+          description: Bad request.
+        '404':
+          description: Unit not found.
+
+  /api/unit_content/article:
+    post:
+      summary: Create article content
+      description: |
+        Creates a new article content block.
+      requestBody:
+        required: true
+        description: Article content creation payload.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleContentCreate'
+      responses:
+        '201':
+          description: Article content created.
+        '400':
+          description: Bad request.
+        '404':
+          description: Unit not found.
+
+  /api/unit_content/video:
+    post:
+      summary: Create video content
+      description: |
+        Creates a new video content block.
+      requestBody:
+        required: true
+        description: Video content creation payload.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoContentCreate'
+      responses:
+        '201':
+          description: Video content created.
+        '400':
+          description: Bad request.
+        '404':
+          description: Unit not found.
+
+  /api/questions:
+    get:
+      summary: Get all questions or quiz questions with answers
+      description: |
+        Returns all questions, or quiz questions with answers if `contentId` query parameter is provided.
+      parameters:
+        - in: query
+          name: contentId
+          required: false
+          description: The UUID of the quiz content block to get questions for.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of questions or quiz questions with answers.
+    post:
+      summary: Create a question
+      description: |
+        Creates a new question for a unit content block.
+      requestBody:
+        required: true
+        description: Question creation payload.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionCreate'
+      responses:
+        '200':
+          description: Question created.
+        '400':
+          description: Bad request.
+
+  /api/questions/by-content/{contentId}:
+    get:
+      summary: Get questions by content ID
+      description: |
+        Returns all questions for a specific unit content block.
+      parameters:
+        - in: path
+          name: contentId
+          required: true
+          description: The UUID of the unit content block.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of questions.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Question'
+
+  /api/questions/{id}:
+    get:
+      summary: Get question by ID
+      description: |
+        Returns a question by its unique identifier.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: The UUID of the question.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The question object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+    put:
+      summary: Update a question
+      description: |
+        Updates a question by its unique identifier.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: The UUID of the question.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Question update payload.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionCreate'
+      responses:
+        '200':
+          description: Question updated.
+        '400':
+          description: Bad request.
+    delete:
+      summary: Delete a question
+      description: |
+        Deletes a question by its unique identifier.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: The UUID of the question.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Question deleted.
+
+  /api/answers:
+    get:
+      summary: Get all answers
+      description: |
+        Returns all answers.
+      responses:
+        '200':
+          description: List of answers.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Answer'
+    post:
+      summary: Create an answer
+      description: |
+        Creates a new answer for a question.
+      requestBody:
+        required: true
+        description: Answer creation payload.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnswerCreate'
+      responses:
+        '201':
+          description: Answer created.
+        '400':
+          description: Bad request.
+
+  /api/answers/by-question/{questionId}:
+    get:
+      summary: Get answers by question ID
+      description: |
+        Returns all answers for a specific question.
+      parameters:
+        - in: path
+          name: questionId
+          required: true
+          description: The UUID of the question.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of answers.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Answer'
+
+  /api/answers/{id}:
+    get:
+      summary: Get answer by ID
+      description: |
+        Returns an answer by its unique identifier.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: The UUID of the answer.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The answer object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Answer'
+    put:
+      summary: Update an answer
+      description: |
+        Updates an answer by its unique identifier.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: The UUID of the answer.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Answer update payload.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnswerCreate'
+      responses:
+        '200':
+          description: Answer updated.
+        '400':
+          description: Bad request.
+    delete:
+      summary: Delete an answer
+      description: |
+        Deletes an answer by its unique identifier.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: The UUID of the answer.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Answer deleted.
+
+  /api/test-results:
+    post:
+      summary: Add test result
+      description: |
+        Adds a new test result for an employee.
+      parameters:
+        - in: query
+          name: employeeName
+          required: true
+          description: Name of the employee.
+          schema:
+            type: string
+        - in: query
+          name: testName
+          required: true
+          description: Name of the test.
+          schema:
+            type: string
+        - in: query
+          name: score
+          required: true
+          description: Score achieved.
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Test result added.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestResult'
+
+components:
+  schemas:
+    Module:
+      type: object
+      description: |
+        Represents a training module in the TETRA system.
+        A module contains metadata and is associated with units and content blocks.
+      properties:
+        id:
+          type: string
+          description: Unique identifier (UUID) for the module.
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        title:
+          type: string
+          description: The title of the module.
+          example: "Introduction to Cybersecurity"
+        topic:
+          type: string
+          description: The topic or category of the module.
+          example: "Cybersecurity"
+        description:
+          type: string
+          description: A detailed description of the module.
+          example: "This module covers the basics of cybersecurity, including threats and best practices."
+        points:
+          type: integer
+          description: The total number of points available for completing the module.
+          example: 100
+        coverUrl:
+          type: string
+          description: URL to the cover image for the module.
+          example: "https://example.com/images/cybersecurity-cover.png"
+        status:
+          type: string
+          description: The publication status of the module (e.g., 'draft', 'published').
+          example: "published"
+
+    Unit:
+      type: object
+      description: Represents a unit within a module.
+      properties:
+        id:
+          type: string
+          description: Unique identifier (UUID) for the unit.
+        title:
+          type: string
+          description: The title of the unit.
+        description:
+          type: string
+          description: The description of the unit.
+        module:
+          $ref: '#/components/schemas/Module'
+
+    UnitSummary:
+      type: object
+      description: Short info about a unit (for lists).
+      properties:
+        id:
+          type: string
+          description: Unit UUID.
+        title:
+          type: string
+          description: Unit title.
+
+    UnitCreate:
+      type: object
+      description: Payload for creating a unit.
+      properties:
+        module_id:
+          type: string
+          description: Module UUID.
+        title:
+          type: string
+          description: Unit title.
+        description:
+          type: string
+          description: Unit description.
+
+    UnitContent:
+      type: object
+      description: Represents a content block within a unit.
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        content_type:
+          type: string
+        sort_order:
+          type: integer
+        content:
+          type: string
+        url:
+          type: string
+        points:
+          type: integer
+        questions_number:
+          type: integer
+
+    UnitContentSummary:
+      type: object
+      description: Short info about a unit content block.
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        content_type:
+          type: string
+        sort_order:
+          type: integer
+
+    VideoContentSummary:
+      type: object
+      description: Short info about a video content block.
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        url:
+          type: string
+
+    VideoContent:
+      type: object
+      description: Represents a video content block.
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        url:
+          type: string
+
+    ArticleContent:
+      type: object
+      description: Represents an article content block.
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+
+    QuizPreview:
+      type: object
+      description: Quiz preview with questions and answers.
+      properties:
+        id:
+          type: string
+        unit_id:
+          type: string
+        content_type:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        sort_order:
+          type: integer
+        points:
+          type: integer
+        questions_number:
+          type: integer
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuizQuestionWithAnswers'
+
+    QuizQuestionWithAnswers:
+      type: object
+      description: Question with answers for quiz preview.
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        type:
+          type: string
+        sort_order:
+          type: integer
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuizAnswer'
+
+    QuizAnswer:
+      type: object
+      description: Answer for quiz preview.
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        is_correct:
+          type: boolean
+        sort_order:
+          type: integer
+
+    QuizContentCreate:
+      type: object
+      description: Payload for creating quiz content.
+      properties:
+        unit_id:
+          type: string
+        content_type:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        sort_order:
+          type: integer
+        points:
+          type: integer
+        questions_number:
+          type: integer
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuizQuestionCreate'
+
+    QuizQuestionCreate:
+      type: object
+      description: Question for quiz creation.
+      properties:
+        title:
+          type: string
+        type:
+          type: string
+        sort_order:
+          type: integer
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuizAnswerCreate'
+
+    QuizAnswerCreate:
+      type: object
+      description: Answer for quiz creation.
+      properties:
+        title:
+          type: string
+        is_correct:
+          type: boolean
+        sort_order:
+          type: integer
+
+    ArticleContentCreate:
+      type: object
+      description: Payload for creating article content.
+      properties:
+        unit_id:
+          type: string
+        content_type:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        sort_order:
+          type: integer
+
+    VideoContentCreate:
+      type: object
+      description: Payload for creating video content.
+      properties:
+        unit_id:
+          type: string
+        content_type:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        url:
+          type: string
+        sort_order:
+          type: integer
+
+    Question:
+      type: object
+      description: Represents a question for a quiz.
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        type:
+          type: string
+        sort_order:
+          type: integer
+        unitContent:
+          $ref: '#/components/schemas/UnitContent'
+
+    QuestionCreate:
+      type: object
+      description: Payload for creating a question.
+      properties:
+        title:
+          type: string
+        type:
+          type: string
+        sortOrder:
+          type: integer
+        unitContent:
+          type: object
+          properties:
+            id:
+              type: string
+
+    Answer:
+      type: object
+      description: Represents an answer for a question.
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        is_correct:
+          type: boolean
+        sort_order:
+          type: integer
+        question:
+          $ref: '#/components/schemas/Question'
+
+    AnswerCreate:
+      type: object
+      description: Payload for creating an answer.
+      properties:
+        question_id:
+          type: string
+        title:
+          type: string
+        is_correct:
+          type: boolean
+        sort_order:
+          type: integer
+
+    TestResult:
+      type: object
+      description: Represents a test result for an employee.
+      properties:
+        id:
+          type: integer
+        employeeName:
+          type: string
+        testName:
+          type: string
+        score:
+          type: integer
+        testDate:
+          type: string
+          format: date-time

@@ -7,6 +7,7 @@ import {
   UnitContextProvider,
   useUnitContext,
 } from '../../context/admin/UnitContext';
+import { ContentBlockContextProvider } from '../../context/admin/ContentBlockContext';
 import { ModuleContextProvider } from '../../context/admin/ModuleContext';
 
 import { useEffect } from 'react';
@@ -15,8 +16,10 @@ const UnitFormWithProviders = ({ unitNumber }: { unitNumber: number }) => {
   return (
     <ModuleContextProvider>
       <UnitContextProvider>
-        <InitUnitState unitNumber={unitNumber} />
-        <UnitForm unitNumber={unitNumber} />
+        <ContentBlockContextProvider>
+          <InitUnitState unitNumber={unitNumber} />
+          <UnitForm unitNumber={unitNumber} />
+        </ContentBlockContextProvider>
       </UnitContextProvider>
     </ModuleContextProvider>
   );

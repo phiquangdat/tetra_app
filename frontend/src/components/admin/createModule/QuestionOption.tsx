@@ -1,84 +1,97 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   CorrectAnswerIcon,
   IncorrectAnswerIcon,
   ReOrderIcon,
 } from '../../common/Icons';
+import { useContentBlockContext } from '../../../context/admin/ContentBlockContext';
 
 type Props = {
-  answerLabel?: string;
-  onSetQuestionOption: (option: QuestionOption) => void;
+  questionIndex: number;
+  answerIndex: number;
 };
 
-type QuestionOption = {
-  answerLabel: string;
-  answerText: string;
-  isCorrect: boolean;
-};
+function QuestionOption({ questionIndex, answerIndex }: Props) {
+  const { data, updateAnswer } = useContentBlockContext();
 
-function QuestionOption({ answerLabel = 'A', onSetQuestionOption }: Props) {
-  const [answerText, setAnswerText] = useState('');
-  const [isCorrect, setIsCorrect] = useState(false);
+  const answer = data.questions?.[questionIndex]?.answers?.[answerIndex] ?? {
+    title: '',
+    is_correct: false,
+    sort_order: answerIndex,
+  };
 
-  const handleAnswerTextChange = (e: { target: { value: string } }) => {
+  const [answerText, setAnswerText] = useState(answer.title || '');
+  const [isCorrect, setIsCorrect] = useState(answer.is_correct || false);
+
+  // Keep local state in sync if context changes (e.g., undo or reset)
+  useEffect(() => {
+    setAnswerText(answer.title || '');
+    setIsCorrect(answer.is_correct || false);
+  }, [answer.title, answer.is_correct]);
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAnswerText(e.target.value);
   };
 
-  const handleCorrectAnswerClick = () => {
-    setIsCorrect(true);
+  const applyUpdate = (isCorrectFlag: boolean) => {
+    updateAnswer(questionIndex, answerIndex, {
+      title: answerText,
+      is_correct: isCorrectFlag,
+      sort_order: answerIndex,
+    });
+    setIsCorrect(isCorrectFlag);
   };
 
-  const handleIncorrectAnswerClick = () => {
-    setIsCorrect(false);
+  const handleBlur = () => {
+    // Save on blur to context
+    updateAnswer(questionIndex, answerIndex, {
+      title: answerText,
+      is_correct: isCorrect,
+      sort_order: answerIndex,
+    });
   };
 
-  const handleSetQuestionOption = () => {
-    if (!answerText.trim()) {
-      alert('Answer text cannot be empty');
-      return;
-    }
-    const newOption: QuestionOption = {
-      answerLabel: answerLabel,
-      answerText: answerText,
-      isCorrect: isCorrect,
-    };
-
-    onSetQuestionOption(newOption);
-  };
+  const label = String.fromCharCode(65 + answerIndex); // A, B, C, ...
 
   return (
-    <div className="flex now-wrap items-center justify-between ">
+    <div className="flex now-wrap items-center justify-between">
       <div className="w-6 flex flex-col items-center justify-center">
-        <button>
+        <button type="button" title="Reorder disabled">
           <ReOrderIcon />
         </button>
       </div>
+
       <div className="w-12 text-left pl-2">
-        <p>{answerLabel}.</p>
+        <p>{label}.</p>
       </div>
+
       <div className="flex no-wrap items-center justify-between w-full border-2 border-gray-400 rounded-lg overflow-hidden">
         <input
           type="text"
           value={answerText}
-          onChange={handleAnswerTextChange}
+          onChange={handleTextChange}
+          onBlur={handleBlur}
+          placeholder="Answer text"
           className="w-full h-8 bg-white p-1 focus:outline-none focus:border-blue-500 transition-colors duration-200"
         />
-        <div className="flex no-wrap items-center justify-between bg-white">
+        <div className="flex items-center bg-white">
           <button
-            className="px-1 h-8 text-gray-700 border-r-1 border-l-1 border-gray-400"
-            onClick={() => {
-              handleCorrectAnswerClick();
-              handleSetQuestionOption();
-            }}
+            type="button"
+            className={`px-1 h-8 text-gray-700 border-r border-l border-gray-400 ${
+              isCorrect ? 'bg-green-100' : ''
+            }`}
+            title="Mark as Correct"
+            onClick={() => applyUpdate(true)}
           >
             <CorrectAnswerIcon />
           </button>
           <button
-            className="px-1 h-8 text-gray-700"
-            onClick={() => {
-              handleIncorrectAnswerClick();
-              handleSetQuestionOption();
-            }}
+            type="button"
+            className={`px-1 h-8 text-gray-700 ${
+              !isCorrect ? 'bg-red-100' : ''
+            }`}
+            title="Mark as Incorrect"
+            onClick={() => applyUpdate(false)}
           >
             <IncorrectAnswerIcon />
           </button>

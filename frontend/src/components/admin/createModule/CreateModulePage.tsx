@@ -4,6 +4,7 @@ import {
   UnitContextProvider,
   useUnitContext,
 } from '../../../context/admin/UnitContext';
+import { ContentBlockContextProvider } from '../../../context/admin/ContentBlockContext.tsx';
 import CreateModuleForm from './CreateModuleForm';
 import UnitForm from './UnitForm';
 
@@ -86,7 +87,9 @@ function CreateModulePage() {
   return (
     <ModuleContextProvider>
       <UnitContextProvider>
-        <CreateModulePageContent />
+        <ContentBlockContextProvider>
+          <CreateModulePageContent />
+        </ContentBlockContextProvider>
       </UnitContextProvider>
     </ModuleContextProvider>
   );

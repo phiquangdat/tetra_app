@@ -1,109 +1,138 @@
-import { useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import QuestionForm from './QuestionForm';
 import { QuizIcon, CloseIcon } from '../../common/Icons';
+import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
+import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
 
 interface AddQuizModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: any) => void;
+  unitId: string;
+  unitNumber: number;
 }
 
-type QuestionOption = {
-  answerLabel: string;
-  answerText: string;
-  isCorrect: boolean;
-};
+function AddQuizModal({
+  isOpen,
+  onClose,
+  unitId,
+  unitNumber,
+}: AddQuizModalProps) {
+  const {
+    data,
+    updateContentField,
+    saveContent,
+    isSaving,
+    clearContent,
+    setContentState,
+  } = useContentBlockContext();
 
-type Question = {
-  questionNumber: number;
-  questionTitle: string;
-  quizDescription: string;
-  questionType: 'trueFalse' | 'multipleChoice';
-  options: QuestionOption[];
-};
+  const { addContentBlock } = useUnitContext();
 
-function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
-  const [questionNumber, setQuestionNumber] = useState(1);
-  const [quizTitle, setQuizTitle] = useState('');
-  const [quizDescription, setQuizDescription] = useState('');
-  const [points, setPoints] = useState(0);
-  const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedOption, setSelectedOption] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
 
   const modalRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (isOpen) {
+      setContentState({
+        unit_id: unitId,
+        type: 'quiz',
+        sortOrder: 0,
+        isDirty: true,
+        isSaving: false,
+        error: null,
+      });
+    }
+  }, [isOpen]);
+
   const validateQuiz = () => {
     const newErrors: string[] = [];
 
-    if (!quizTitle.trim()) {
-      newErrors.push('Quiz title is required.');
-    }
-
-    if (!quizDescription.trim()) {
-      newErrors.push('Quiz description is required.');
-    }
-
-    if (points <= 0) {
+    if (!data.title?.trim()) newErrors.push('Quiz title is required.');
+    if (!data.content?.trim()) newErrors.push('Quiz description is required.');
+    if (!data.points || data.points <= 0)
       newErrors.push('Points must be greater than zero.');
-    }
-
-    if (questions.length === 0) {
+    if (!data.questions || data.questions.length === 0)
       newErrors.push('At least one question is required.');
-    }
 
     return newErrors;
   };
 
   const handleAddQuestion = (type: 'trueFalse' | 'multipleChoice') => {
-    const newQuestion: Question = {
-      questionNumber: questionNumber,
-      questionTitle: '',
-      quizDescription: '',
-      questionType: type,
-      options: [],
+    const currentQuestions = data.questions || [];
+
+    const newQuestion = {
+      title: '',
+      type: type === 'trueFalse' ? 'true/false' : 'multiple',
+      sort_order: currentQuestions.length + 1,
+      answers: [],
     };
 
-    setQuestions((prev) => [...prev, newQuestion]);
-    setQuestionNumber((prev) => prev + 1);
+    updateContentField('data', {
+      ...data,
+      questions: [...currentQuestions, newQuestion],
+    });
   };
 
-  const handleChangepoints = (e: { target: { value: string } }) => {
-    const value = e.target.value ? parseInt(e.target.value, 10) : 0;
-    setPoints(value);
+  const handleChangePoints = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value, 10) || 0;
+    updateContentField('data', { ...data, points: value });
   };
 
-  const handleSave = () => {
+  const handleChangeDescription = (
+    e: React.ChangeEvent<HTMLTextAreaElement>,
+  ) => {
+    updateContentField('data', { ...data, content: e.target.value });
+  };
+
+  const canSave =
+    data.title?.trim() !== '' &&
+    (data.content?.trim() || '') !== '' &&
+    (data.points || 0) > 0 &&
+    (data.questions || []).length > 0 &&
+    !isSaving;
+
+  const handleSave = async () => {
+    if (!canSave) return;
+
     const validationErrors = validateQuiz();
     if (validationErrors.length > 0) {
       setErrors(validationErrors);
       return;
     }
 
-    onSave({
-      title: quizTitle,
-      description: quizDescription,
-      points: points,
-      questions: questions,
-    });
+    try {
+      await saveContent('quiz');
 
-    setQuizTitle('');
-    setQuizDescription('');
-    setQuestionNumber(1);
-    setPoints(0);
-    setQuestions([]);
-    setErrors([]);
+      addContentBlock(unitNumber, {
+        type: 'quiz',
+        data: {
+          title: data.title,
+          content: data.content || '',
+          points: data.points || 0,
+          questions: data.questions || [],
+        },
+        sortOrder: 0,
+        unit_id: unitId,
+        isDirty: false,
+        isSaving: false,
+        error: null,
+      });
+
+      setErrors([]);
+      clearContent();
+      onClose();
+    } catch (error) {
+      console.error('Error saving quiz:', error);
+      setErrors(['Failed to save quiz. Please try again later.']);
+    }
   };
 
   const handleClose = () => {
-    setQuizTitle('');
-    setQuizDescription('');
-    setQuestionNumber(1);
-    setPoints(0);
-    onClose();
-    setQuestions([]);
     setErrors([]);
-    setSelectedOption('');
+    clearContent();
+    onClose();
   };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -113,19 +142,19 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
   };
 
   const handleCloseQuestion = (index: number) => {
-    setQuestions((prev) => prev.filter((_, i) => i !== index));
-    if (questions.length === 1) {
-      setQuestionNumber(1);
-    } else if (index < questionNumber - 1) {
-      const newQuestionNumber = questionNumber - 1;
-      setQuestionNumber(newQuestionNumber);
-      setQuestions((prev) =>
-        prev.map((q, i) => ({
-          ...q,
-          questionNumber: i + 1,
-        })),
-      );
-    }
+    const currentQuestions = data.questions || [];
+
+    const updatedQuestions = currentQuestions
+      .filter((_, i) => i !== index)
+      .map((q, i) => ({
+        ...q,
+        sort_order: i + 1,
+      }));
+
+    updateContentField('data', {
+      ...data,
+      questions: updatedQuestions,
+    });
   };
 
   if (!isOpen) return null;
@@ -151,12 +180,12 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
             onClick={handleClose}
             className="text-gray-400 hover:text-gray-600 transition-colors p-1"
           >
-            {<CloseIcon />}
+            <CloseIcon />
           </button>
         </div>
 
         {errors.length > 0 && (
-          <div className="bg-red-100 text-red-800 p-4 mb-4 rounded-lg">
+          <div className="bg-red-100 text-red-800 p-4 mb-4 rounded-lg mx-6">
             <ul className="list-disc pl-6">
               {errors.map((err, idx) => (
                 <li key={idx}>{err}</li>
@@ -176,8 +205,10 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
             <input
               type="text"
               id="quiz-title"
-              value={quizTitle}
-              onChange={(e) => setQuizTitle(e.target.value)}
+              value={data.title || ''}
+              onChange={(e) =>
+                updateContentField('data', { ...data, title: e.target.value })
+              }
               className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
               required
             />
@@ -191,8 +222,8 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
               </label>
               <textarea
                 id="quizDescription"
-                value={quizDescription}
-                onChange={(e) => setQuizDescription(e.target.value)}
+                value={data.content || ''}
+                onChange={handleChangeDescription}
                 className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none"
                 placeholder="Enter quiz description"
                 aria-label="quiz description"
@@ -203,15 +234,15 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
 
             <div className="max-w-28 mt-4">
               <label
-                htmlFor="pointsAwarded"
+                htmlFor="points"
                 className="block mb-2 font-sm text-gray-700"
               >
                 Points
               </label>
               <input
                 type="number"
-                value={points}
-                onChange={handleChangepoints}
+                value={data.points || 0}
+                onChange={handleChangePoints}
                 min={0}
                 required
                 className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
@@ -230,7 +261,6 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
                   handleAddQuestion(selectedType);
                 }}
                 className="w-full bg-white border-gray-400 border-2 rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors"
-                defaultValue=""
               >
                 <option value="" disabled>
                   + Add Question
@@ -239,25 +269,28 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
                 <option value="trueFalse">True/False</option>
               </select>
             </div>
+
             <div className="space-y-6">
-              {questions.map((question, index) => (
+              {(data.questions || []).map((question, index) => (
                 <QuestionForm
                   key={index}
-                  questionNumber={question.questionNumber}
-                  questionType={question.questionType}
+                  questionNumber={index + 1}
+                  questionType={question.type}
                   onClose={() => handleCloseQuestion(index)}
                 />
               ))}
             </div>
           </div>
+
           <div className="p-6 pt-0 flex justify-end gap-4">
             <button
               type="button"
-              aria-label="Save Video"
+              aria-label="Save Quiz"
               onClick={handleSave}
+              disabled={isSaving}
               className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-200 mr-4 w-24 h-10"
             >
-              Save
+              {isSaving ? 'Saving...' : 'Save'}
             </button>
           </div>
         </div>

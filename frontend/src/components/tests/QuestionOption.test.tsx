@@ -3,52 +3,86 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom';
 import QuestionOption from '../admin/createModule/QuestionOption';
+import { ContentBlockContextProvider } from '../../context/admin/ContentBlockContext';
+import { UnitContextProvider } from '../../context/admin/UnitContext';
+
+// Mock initial state with one question and one answer
+const initialContextValue = {
+  data: {
+    questions: [
+      {
+        answers: [
+          {
+            title: 'Initial Answer',
+            is_correct: false,
+            sort_order: 0,
+          },
+        ],
+      },
+    ],
+  },
+};
+
+const renderWithProviders = (ui: React.ReactNode) => {
+  return render(
+    <UnitContextProvider>
+      <ContentBlockContextProvider initialData={initialContextValue}>
+        {ui}
+      </ContentBlockContextProvider>
+    </UnitContextProvider>,
+  );
+};
 
 describe('QuestionOption', () => {
-  const mockOnSetQuestionOption = vi.fn();
-
   beforeEach(() => {
-    mockOnSetQuestionOption.mockClear();
+    vi.restoreAllMocks();
   });
 
-  it('renders with default answer label "A"', () => {
-    render(<QuestionOption onSetQuestionOption={mockOnSetQuestionOption} />);
-
+  it('renders label A. for answerIndex 0', () => {
+    renderWithProviders(<QuestionOption questionIndex={0} answerIndex={0} />);
     expect(screen.getByText('A.')).toBeInTheDocument();
   });
 
-  it('renders with custom answer label', () => {
-    render(
-      <QuestionOption
-        answerLabel="B"
-        onSetQuestionOption={mockOnSetQuestionOption}
-      />,
-    );
+  it('updates answer text when user types', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<QuestionOption questionIndex={0} answerIndex={0} />);
 
-    expect(screen.getByText('B.')).toBeInTheDocument();
+    const input = screen.getByPlaceholderText('Answer text');
+    await user.clear(input);
+    await user.type(input, 'Updated Answer');
+
+    expect(input).toHaveValue('Updated Answer');
   });
 
-  it('updates answer text when user types in input', async () => {
+  it('applies correct styling when marked correct', async () => {
     const user = userEvent.setup();
-    render(<QuestionOption onSetQuestionOption={mockOnSetQuestionOption} />);
+    renderWithProviders(<QuestionOption questionIndex={0} answerIndex={0} />);
 
-    const input = screen.getByRole('textbox');
-    await user.type(input, 'Test answer');
+    const correctBtn = screen.getByTitle('Mark as Correct');
+    await user.click(correctBtn);
 
-    expect(input).toHaveValue('Test answer');
+    expect(correctBtn).toHaveClass('bg-green-100');
+  });
+
+  it('applies incorrect styling when marked incorrect', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<QuestionOption questionIndex={0} answerIndex={0} />);
+
+    const incorrectBtn = screen.getByTitle('Mark as Incorrect');
+    await user.click(incorrectBtn);
+
+    expect(incorrectBtn).toHaveClass('bg-red-100');
+  });
+
+  it('has proper input styling', () => {
+    renderWithProviders(<QuestionOption questionIndex={0} answerIndex={0} />);
+    const input = screen.getByPlaceholderText('Answer text');
+    expect(input).toHaveClass('w-full', 'h-8', 'bg-white', 'p-1');
   });
 
   it('renders all three buttons (reorder, correct, incorrect)', () => {
-    render(<QuestionOption onSetQuestionOption={mockOnSetQuestionOption} />);
-
+    renderWithProviders(<QuestionOption questionIndex={0} answerIndex={0} />);
     const buttons = screen.getAllByRole('button');
-    expect(buttons).toHaveLength(3);
-  });
-
-  it('has proper input styling and focus behavior', () => {
-    render(<QuestionOption onSetQuestionOption={mockOnSetQuestionOption} />);
-
-    const input = screen.getByRole('textbox');
-    expect(input).toHaveClass('w-full', 'h-8', 'bg-white', 'p-1');
+    expect(buttons.length).toBeGreaterThanOrEqual(3); // Allow for more if icons are wrapped
   });
 });

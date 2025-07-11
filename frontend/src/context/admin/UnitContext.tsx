@@ -11,10 +11,34 @@ import {
   type CreateUnitRequest,
 } from '../../services/unit/unitApi';
 
-export type ContentBlock = {
-  type: 'video' | 'article' | 'quiz';
-  data: any;
+export type QuizQuestionAnswer = {
+  title: string;
+  is_correct: boolean;
+  sort_order: number;
 };
+
+export type QuizQuestion = {
+  title: string;
+  type: 'true/false' | 'multiple';
+  sort_order: number;
+  answers: QuizQuestionAnswer[];
+};
+
+export interface ContentBlock {
+  type: 'article' | 'video' | 'quiz';
+  data: {
+    title: string;
+    content?: string;
+    url?: string; // for video
+    points?: number; // for quiz
+    questions?: QuizQuestion[]; // for quiz
+  };
+  sortOrder: number;
+  unit_id?: string;
+  isDirty: boolean;
+  isSaving: boolean;
+  error: string | null;
+}
 
 export type UnitContextEntry = {
   id: string | null;
@@ -42,6 +66,8 @@ type UnitContextType = {
   getNextUnitNumber: () => number;
   saveUnit: (unitNumber: number, moduleId: string) => Promise<void>;
   removeUnit: (unitNumber: number) => void;
+  addContentBlock: (unitNumber: number, block: ContentBlock) => void;
+  removeContentBlock: (unitNumber: number, blockIndex: number) => void;
 };
 
 const createDefaultUnitState = (): UnitContextEntry => ({
@@ -54,7 +80,9 @@ const createDefaultUnitState = (): UnitContextEntry => ({
   error: null,
 });
 
-const UnitContext = createContext<UnitContextType | undefined>(undefined);
+export const UnitContext = createContext<UnitContextType | undefined>(
+  undefined,
+);
 
 export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
   const [unitStates, setUnitStates] = useState<
@@ -144,9 +172,10 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
           isDirty: false,
           error: null,
         });
-      } catch (err) {
+      } catch (err: unknown) {
+        const error = err as Error;
         setUnitState(unitNumber, {
-          error: err instanceof Error ? err.message : 'Failed to save unit',
+          error: error.message || 'Failed to save unit',
         });
       } finally {
         setUnitState(unitNumber, { isSaving: false });
@@ -180,6 +209,46 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     [unitStates],
   );
 
+  const addContentBlock = useCallback(
+    (unitNumber: number, block: ContentBlock) => {
+      setUnitStates((prev) => {
+        const currentUnit = prev[unitNumber] || createDefaultUnitState();
+        return {
+          ...prev,
+          [unitNumber]: {
+            ...currentUnit,
+            content: [...currentUnit.content, block],
+            isDirty: true,
+          },
+        };
+      });
+      console.log('Content is added: ', block);
+    },
+    [],
+  );
+
+  const removeContentBlock = useCallback(
+    (unitNumber: number, blockIndex: number) => {
+      setUnitStates((prev) => {
+        const currentUnit = prev[unitNumber];
+        if (!currentUnit) return prev;
+
+        const updatedContent = [...currentUnit.content];
+        updatedContent.splice(blockIndex, 1);
+
+        return {
+          ...prev,
+          [unitNumber]: {
+            ...currentUnit,
+            content: updatedContent,
+            isDirty: true,
+          },
+        };
+      });
+    },
+    [],
+  );
+
   const contextValue: UnitContextType = {
     unitStates,
     updateUnitField,
@@ -189,6 +258,8 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     getNextUnitNumber,
     saveUnit,
     removeUnit,
+    addContentBlock,
+    removeContentBlock,
   };
 
   return (

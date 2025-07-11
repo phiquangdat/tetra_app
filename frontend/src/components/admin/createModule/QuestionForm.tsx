@@ -1,78 +1,55 @@
-import { useState } from 'react';
+import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
 import QuestionOption from './QuestionOption';
 import { CloseIcon } from '../../common/Icons';
 
 type Props = {
   questionNumber: number;
-  questionType: 'trueFalse' | 'multipleChoice';
+  questionType: 'true/false' | 'multiple';
   onClose: () => void;
 };
 
-type QuestionOptionType = {
-  answerLabel: string;
-  answerText: string;
-  isCorrect: boolean;
-};
-
 function QuestionForm({ questionNumber = 1, questionType, onClose }: Props) {
-  const [quizTitle, setQuizTitle] = useState('');
-  const [answerLabel, setAnswerLabel] = useState('A');
-  const [questionOptions, setQuestionOptions] = useState<QuestionOptionType[]>(
-    [],
-  );
+  const { data, updateQuestion } = useContentBlockContext();
 
-  const handleUpdateAnswerLabel = () => {
-    const newLabel = String.fromCharCode(66 + questionOptions.length);
-    setAnswerLabel(newLabel);
+  const questionIndex = questionNumber - 1;
+  const question = data.questions?.[questionIndex];
+
+  if (!question) return null;
+
+  const handleClose = () => {
+    onClose();
   };
 
-  const handleSetQuestionOption = (option: QuestionOptionType) => {
-    setQuestionOptions((prev) => {
-      const updatedOptions = [...prev];
-      const index = updatedOptions.findIndex(
-        (opt) => opt.answerLabel === option.answerLabel,
-      );
-      if (index !== -1) {
-        updatedOptions[index] = option;
-      } else {
-        updatedOptions.push(option);
-      }
-      return updatedOptions;
+  const handleTitleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    updateQuestion(questionIndex, {
+      ...question,
+      title: e.target.value,
     });
   };
 
   const handleAddOption = () => {
-    handleUpdateAnswerLabel();
-    const newOption: QuestionOptionType = {
-      answerLabel: answerLabel,
-      answerText: '',
-      isCorrect: false,
+    const newAnswer = {
+      title: '',
+      is_correct: false,
+      sort_order: question.answers.length,
     };
-    setQuestionOptions((prev) => [...prev, newOption]);
-  };
 
-  const handleClose = () => {
-    setQuizTitle('');
-    setQuestionOptions([]);
-    onClose();
-  };
-
-  const handleRemoveOptionForm = () => {
-    setQuestionOptions((prev) => {
-      if (prev.length === 0) return prev;
-      const updatedOptions = [...prev];
-      updatedOptions.pop();
-      return updatedOptions;
-    });
-    setAnswerLabel(() => {
-      const newLabel = String.fromCharCode(65 + questionOptions.length - 1);
-      return newLabel;
+    const updatedAnswers = [...question.answers, newAnswer];
+    updateQuestion(questionIndex, {
+      ...question,
+      answers: updatedAnswers,
     });
   };
 
-  if (questionType !== 'trueFalse' && questionType !== 'multipleChoice') {
-    return null;
-  }
+  const handleRemoveOption = () => {
+    if (question.answers.length === 0) return;
+    const updatedAnswers = [...question.answers];
+    updatedAnswers.pop();
+    updateQuestion(questionIndex, {
+      ...question,
+      answers: updatedAnswers,
+    });
+  };
 
   return (
     <div
@@ -81,6 +58,7 @@ function QuestionForm({ questionNumber = 1, questionType, onClose }: Props) {
     >
       <div className="flex justify-end">
         <button
+          aria-label="Close"
           onClick={handleClose}
           className="text-gray-400 hover:text-gray-600 transition-colors p-1"
         >
@@ -89,29 +67,26 @@ function QuestionForm({ questionNumber = 1, questionType, onClose }: Props) {
       </div>
 
       <h2 className="text-lg text-gray-700 mb-4">Question {questionNumber}</h2>
+      <label htmlFor="quizTitle" className="sr-only">
+        Question Title
+      </label>
       <textarea
         name="quizTitle"
         id="quizTitle"
-        value={quizTitle}
+        value={question.title || ''}
         className="bg-white border-gray-400 border-1 w-full h-32 rounded-lg p-2 mb-6 focus:outline-none focus:border-blue-500 transition-colors duration-200"
         style={{ resize: 'none' }}
-        onChange={(e) => setQuizTitle(e.target.value)}
+        onChange={handleTitleChange}
       />
 
-      {questionType === 'trueFalse' && (
+      {questionType === 'true/false' && (
         <div className="space-y-2 mb-6">
-          <QuestionOption
-            answerLabel="A"
-            onSetQuestionOption={handleSetQuestionOption}
-          />
-          <QuestionOption
-            answerLabel="B"
-            onSetQuestionOption={handleSetQuestionOption}
-          />
+          <QuestionOption questionIndex={questionIndex} answerIndex={0} />
+          <QuestionOption questionIndex={questionIndex} answerIndex={1} />
         </div>
       )}
 
-      {questionType === 'multipleChoice' && (
+      {questionType === 'multiple' && (
         <div>
           <div className="flex justify-around items-center mb-4">
             <button
@@ -122,18 +97,18 @@ function QuestionForm({ questionNumber = 1, questionType, onClose }: Props) {
             </button>
             <button
               className="bg-white border-gray-400 border-1 text-sm text-gray-700 px-2 rounded-lg cursor-pointer w-36 h-10 hover:bg-gray-100 transition-colors duration-200 flex items-center gap-2 mb-6"
-              onClick={handleRemoveOptionForm}
-              disabled={questionOptions.length === 0}
+              onClick={handleRemoveOption}
+              disabled={question.answers.length === 0}
             >
               <span className="text-xl pb-1">-</span>Remove Option
             </button>
           </div>
           <div className="space-y-2">
-            {questionOptions.map((option, index) => (
+            {question.answers.map((_, index) => (
               <QuestionOption
                 key={index}
-                answerLabel={option.answerLabel}
-                onSetQuestionOption={handleSetQuestionOption}
+                questionIndex={questionIndex}
+                answerIndex={index}
               />
             ))}
           </div>

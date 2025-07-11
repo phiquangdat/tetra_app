@@ -1,15 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useUnitContext } from '../../../context/admin/UnitContext';
 import { useModuleContext } from '../../../context/admin/ModuleContext';
 import AddArticleModal from './AddArticleModal';
 import AddVideoModal from './AddVideoModal';
 import AddQuizModal from './AddQuizModal';
 import { ChevronDownIcon, ChevronUpIcon, RemoveIcon } from '../../common/Icons';
-
-type ContentBlock = {
-  type: 'video' | 'article' | 'quiz';
-  data: any;
-};
 
 type UnitFormProps = {
   unitNumber: number;
@@ -22,13 +17,23 @@ function UnitForm({ unitNumber }: UnitFormProps) {
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
   const [successSaved, setSuccessSaved] = useState(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+  const [unitID, setUnitID] = useState<string | ''>('');
 
   const { updateUnitField, getUnitState, saveUnit, removeUnit, unitStates } =
     useUnitContext();
   const { id: moduleId } = useModuleContext();
 
-  const unitState = getUnitState(unitNumber);
-  if (!unitState) return null;
+  const defaultUnitState = {
+    id: '',
+    title: '',
+    description: '',
+    content: [],
+    isDirty: false,
+    isSaving: false,
+    error: null,
+  };
+
+  const unitState = getUnitState(unitNumber) || defaultUnitState;
 
   const totalUnits = Object.keys(unitStates).length;
   const canRemove = totalUnits > 1;
@@ -53,10 +58,11 @@ function UnitForm({ unitNumber }: UnitFormProps) {
     e.target.value = '';
   };
 
-  const handleContentSave = (type: ContentBlock['type'], data: any) => {
-    const newBlock = { type, data };
-    updateUnitField(unitNumber, 'content', [...unitState.content, newBlock]);
-  };
+  useEffect(() => {
+    if (unitState?.id) {
+      setUnitID(unitState.id);
+    }
+  }, [unitState?.id]);
 
   const handleSaveUnitForm = async () => {
     if (!moduleId) {
@@ -93,7 +99,7 @@ function UnitForm({ unitNumber }: UnitFormProps) {
   };
 
   const confirmRemoveUnit = () => {
-    removeUnit(unitNumber); // This will remove the unit
+    removeUnit(unitNumber);
     setShowRemoveConfirm(false);
   };
 
@@ -203,6 +209,7 @@ function UnitForm({ unitNumber }: UnitFormProps) {
                 onChange={handleContentBlockChange}
                 className="bg-white border-gray-400 text-gray-700 border-2 w-full mt-6 rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
                 defaultValue=""
+                disabled={unitState.isSaving}
               >
                 <option value="" disabled>
                   + Add content
@@ -211,10 +218,36 @@ function UnitForm({ unitNumber }: UnitFormProps) {
                 <option value="addArticle">Add article</option>
                 <option value="addQuiz">Add quiz</option>
               </select>
+              {!unitState.id && (
+                <p className="text-md text-gray-500 mt-2">
+                  Please save the unit first to add content blocks.
+                </p>
+              )}
             </div>
           </div>
         )}
       </form>
+
+      <div className="mb-8 space-y-4">
+        <h4 className="text-lg font-semibold text-gray-800">Added Content</h4>
+        {unitState.content.length === 0 ? (
+          <p className="text-sm text-gray-500">No content blocks added yet.</p>
+        ) : (
+          unitState.content.map((block, index) => (
+            <div
+              key={`${block.type}-${index}`}
+              className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200"
+            >
+              <h5 className="text-md font-semibold text-gray-800 mb-2">
+                {block.type.charAt(0).toUpperCase() + block.type.slice(1)}
+              </h5>
+              <p className="text-sm text-gray-600 mb-2">
+                {block.data.title || 'Untitled'}
+              </p>
+            </div>
+          ))
+        )}
+      </div>
 
       {showRemoveConfirm && (
         <div
@@ -250,28 +283,22 @@ function UnitForm({ unitNumber }: UnitFormProps) {
       <AddArticleModal
         isOpen={isArticleModalOpen}
         onClose={() => setIsArticleModalOpen(false)}
-        onSave={(data) => {
-          handleContentSave('article', data);
-          setIsArticleModalOpen(false);
-        }}
+        unitId={unitID || ''}
+        unitNumber={unitNumber}
       />
 
       <AddVideoModal
         isOpen={isVideoModalOpen}
         onClose={() => setIsVideoModalOpen(false)}
-        onSave={(data) => {
-          handleContentSave('video', data);
-          setIsVideoModalOpen(false);
-        }}
+        unitId={unitID || ''}
+        unitNumber={unitNumber}
       />
 
       <AddQuizModal
         isOpen={isQuizModalOpen}
         onClose={() => setIsQuizModalOpen(false)}
-        onSave={(data) => {
-          handleContentSave('quiz', data);
-          setIsQuizModalOpen(false);
-        }}
+        unitId={unitID || ''}
+        unitNumber={unitNumber}
       />
     </div>
   );

@@ -2,9 +2,9 @@ import { useEffect } from 'react';
 import { ModuleContextProvider } from '../../../context/admin/ModuleContext';
 import {
   UnitContextProvider,
-  ContentBlockContextProvider,
   useUnitContext,
 } from '../../../context/admin/UnitContext';
+import { ContentBlockContextProvider } from '../../../context/admin/ContentBlockContext.tsx';
 import CreateModuleForm from './CreateModuleForm';
 import UnitForm from './UnitForm';
 

@@ -1,12 +1,14 @@
 import { EditIcon, CloseIcon } from '../../common/Icons';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
+import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
 
-interface AddArticleModalProps {
+interface ArticleModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddContent: (article: { title: string; content: string }) => void;
   unitId: string;
+  unitNumber: number;
 }
 
 function AddArticleModal({
@@ -14,9 +16,18 @@ function AddArticleModal({
   onClose,
   onAddContent,
   unitId,
-}: AddArticleModalProps) {
-  const { data, updateContentField, saveContent, isSaving, clearContent } =
-    useContentBlockContext();
+  unitNumber,
+}: ArticleModalProps) {
+  const {
+    data,
+    updateContentField,
+    saveContent,
+    isSaving,
+    clearContent,
+    setContentState,
+    isDirty,
+  } = useContentBlockContext();
+  const { addContentBlock, removeContentBlock } = useUnitContext();
 
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -25,14 +36,44 @@ function AddArticleModal({
     (data.content?.trim() ?? '') !== '' &&
     !isSaving;
 
+  useEffect(() => {
+    if (isOpen) {
+      // Set unit_id in context and add temp block
+      setContentState({
+        unit_id: unitId,
+        type: 'article',
+        sortOrder: 0,
+        isDirty: true,
+        isSaving: false,
+        error: null,
+      });
+    }
+  }, [isOpen]);
+
   const handleSave = async () => {
     if (!canSave) return;
     try {
-      const title = data.title.trim();
-      const content = data.content?.trim();
+      await saveContent('article');
 
-      await saveContent(unitId, 'quiz');
-      onAddContent({ title, content: content ?? '' });
+      // Update content in unit context
+      addContentBlock(unitNumber, {
+        type: 'article',
+        data: {
+          title: data.title.trim(),
+          content: data.content?.trim() ?? '',
+        },
+        sortOrder: 0,
+        unit_id: unitId,
+        isDirty: false,
+        isSaving: false,
+        error: null,
+      });
+
+      onAddContent({
+        title: data.title.trim(),
+        content: data.content?.trim() ?? '',
+      });
+
       clearContent();
       onClose();
     } catch (error) {
@@ -41,6 +82,10 @@ function AddArticleModal({
   };
 
   const handleClose = () => {
+    // If block is unsaved, remove from unit context
+    if (isDirty && !isSaving) {
+      removeContentBlock(unitNumber, -1); // remove last (temp) block
+    }
     clearContent();
     onClose();
   };
@@ -126,7 +171,7 @@ function AddArticleModal({
               type="button"
               aria-label="Save Article"
               onClick={handleSave}
-              disabled={!canSave || isSaving}
+              disabled={!canSave}
               className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-200 mr-4 w-24 h-10"
             >
               {isSaving ? 'Saving...' : 'Save'}

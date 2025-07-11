@@ -295,6 +295,7 @@ function UnitForm({ unitNumber }: UnitFormProps) {
           setIsArticleModalOpen(false);
         }}
         unitId={unitID || ''}
+        unitNumber={unitNumber}
       />
 
       <AddVideoModal

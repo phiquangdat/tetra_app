@@ -12,10 +12,7 @@ interface ContextBlockType extends ContentBlock {
   markContentAsDirty: () => void;
   setContentState: (newState: Partial<ContentBlock>) => void;
   getContentState: () => ContentBlock;
-  saveContent: (
-    moduleId: string,
-    type: 'article' | 'video' | 'quiz',
-  ) => Promise<void>;
+  saveContent: (type: 'article' | 'video' | 'quiz') => Promise<void>;
   clearContent: () => void;
 }
 
@@ -75,21 +72,34 @@ export const ContentBlockContextProvider = ({
   }, [contentBlock]);
 
   const saveContent = useCallback(
-    async (unitId: string, type: 'article' | 'video' | 'quiz') => {
-      console.log('moduleId', unitId || 'No unitId provided');
-      console.log(type);
-      if (!contentBlock.isDirty || contentBlock.isSaving) return;
+    async (type: 'article' | 'video' | 'quiz') => {
+      const unitId = contentBlock.unit_id;
+      if (!unitId) {
+        console.warn('[saveContent] Missing unit_id in contentBlock');
+        return;
+      }
+
+      if (!contentBlock.isDirty || contentBlock.isSaving) {
+        console.log('[saveContent] Skipped: Not dirty or already saving');
+        return;
+      }
+
+      console.log(
+        `[saveContent] Saving content block to unit ${unitId}, type: ${type}`,
+      );
+      console.log('[saveContent] Data:', contentBlock.data);
 
       setContentState({ isSaving: true, error: null });
 
       try {
-        // Simulate saving
-        // await saveContentToApi();
+        // Here must be calls to API functions made
+        // to save content blocks to the backend
+
         setContentState({ isDirty: false, error: null });
       } catch (err: unknown) {
         const error = err as Error;
         setContentState({
-          error: error.message || 'Failed to save content',
+          error: error.message || 'Error saving content',
         });
       } finally {
         setContentState({ isSaving: false });

@@ -17,13 +17,15 @@ type QuestionOption = {
 type Question = {
   questionNumber: number;
   questionTitle: string;
+  quizDescription: string;
   questionType: 'trueFalse' | 'multipleChoice';
   options: QuestionOption[];
 };
 
 function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
   const [questionNumber, setQuestionNumber] = useState(1);
-  const [quizzTitle, setQuizTitle] = useState('');
+  const [quizTitle, setQuizTitle] = useState('');
+  const [quizDescription, setQuizDescription] = useState('');
   const [points, setPoints] = useState(0);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedOption, setSelectedOption] = useState('');
@@ -34,8 +36,12 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
   const validateQuiz = () => {
     const newErrors: string[] = [];
 
-    if (!quizzTitle.trim()) {
+    if (!quizTitle.trim()) {
       newErrors.push('Quiz title is required.');
+    }
+
+    if (!quizDescription.trim()) {
+      newErrors.push('Quiz description is required.');
     }
 
     if (points <= 0) {
@@ -53,6 +59,7 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
     const newQuestion: Question = {
       questionNumber: questionNumber,
       questionTitle: '',
+      quizDescription: '',
       questionType: type,
       options: [],
     };
@@ -74,12 +81,14 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
     }
 
     onSave({
-      title: quizzTitle,
+      title: quizTitle,
+      description: quizDescription,
       points: points,
       questions: questions,
     });
 
     setQuizTitle('');
+    setQuizDescription('');
     setQuestionNumber(1);
     setPoints(0);
     setQuestions([]);
@@ -88,6 +97,7 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
 
   const handleClose = () => {
     setQuizTitle('');
+    setQuizDescription('');
     setQuestionNumber(1);
     setPoints(0);
     onClose();
@@ -135,7 +145,7 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
             <div className="text-gray-600">
               <QuizIcon />
             </div>
-            <h2 className="text-lg font-medium text-gray-900">Quizz</h2>
+            <h2 className="text-lg font-medium text-gray-900">Quiz</h2>
           </div>
           <button
             onClick={handleClose}
@@ -158,19 +168,38 @@ function AddQuizModal({ isOpen, onClose, onSave }: AddQuizModalProps) {
         <div className="flex flex-col h-full">
           <div className="mb-6 max-w-110 p-6 pb-0 flex-1 overflow-y-auto">
             <label
-              htmlFor="quizzTitle"
+              htmlFor="quizTitle"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
               Title
             </label>
             <input
               type="text"
-              id="quizz-title"
-              value={quizzTitle}
+              id="quiz-title"
+              value={quizTitle}
               onChange={(e) => setQuizTitle(e.target.value)}
               className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
               required
             />
+
+            <div className="max-w-110 mt-4">
+              <label
+                htmlFor="quizDescription"
+                className="block text-sm font-medium text-gray-700 mt-4 mb-2"
+              >
+                Description
+              </label>
+              <textarea
+                id="quizDescription"
+                value={quizDescription}
+                onChange={(e) => setQuizDescription(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none"
+                placeholder="Enter quiz description"
+                aria-label="quiz description"
+                required
+                rows={3}
+              />
+            </div>
 
             <div className="max-w-28 mt-4">
               <label

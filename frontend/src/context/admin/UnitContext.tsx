@@ -11,13 +11,13 @@ import {
   type CreateUnitRequest,
 } from '../../services/unit/unitApi';
 
-type QuizQuestionAnswer = {
+export type QuizQuestionAnswer = {
   title: string;
   is_correct: boolean;
   sort_order: number;
 };
 
-type QuizQuestion = {
+export type QuizQuestion = {
   title: string;
   type: 'true/false' | 'multiple';
   sort_order: number;
@@ -220,6 +220,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
           },
         };
       });
+      console.log('Content is added: ', block);
     },
     [],
   );

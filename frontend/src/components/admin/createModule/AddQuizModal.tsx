@@ -34,7 +34,6 @@ function AddQuizModal({
 
   const { addContentBlock } = useUnitContext();
 
-  const [questionNumber, setQuestionNumber] = useState(1);
   const [selectedOption, setSelectedOption] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
 
@@ -66,16 +65,19 @@ function AddQuizModal({
   };
 
   const handleAddQuestion = (type: 'trueFalse' | 'multipleChoice') => {
+    const currentQuestions = data.questions || [];
+
     const newQuestion = {
       title: '',
       type: type === 'trueFalse' ? 'true/false' : 'multiple',
-      sort_order: questionNumber,
+      sort_order: currentQuestions.length + 1,
       answers: [],
     };
 
-    const updatedQuestions = [...(data.questions || []), newQuestion];
-    updateContentField('data', { ...data, questions: updatedQuestions });
-    setQuestionNumber((prev) => prev + 1);
+    updateContentField('data', {
+      ...data,
+      questions: [...currentQuestions, newQuestion],
+    });
   };
 
   const handleChangePoints = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,7 +124,6 @@ function AddQuizModal({
       });
 
       setErrors([]);
-      setQuestionNumber(1);
       clearContent();
       onClose();
     } catch (error) {
@@ -132,7 +133,6 @@ function AddQuizModal({
   };
 
   const handleClose = () => {
-    setQuestionNumber(1);
     setErrors([]);
     clearContent();
     onClose();
@@ -145,14 +145,19 @@ function AddQuizModal({
   };
 
   const handleCloseQuestion = (index: number) => {
-    const updatedQuestions = (data.questions || []).filter(
-      (_, i) => i !== index,
-    );
-    updateContentField('data', { ...data, questions: updatedQuestions });
+    const currentQuestions = data.questions || [];
 
-    if (updatedQuestions.length < questionNumber) {
-      setQuestionNumber(updatedQuestions.length + 1);
-    }
+    const updatedQuestions = currentQuestions
+      .filter((_, i) => i !== index)
+      .map((q, i) => ({
+        ...q,
+        sort_order: i + 1,
+      }));
+
+    updateContentField('data', {
+      ...data,
+      questions: updatedQuestions,
+    });
   };
 
   if (!isOpen) return null;
@@ -253,13 +258,14 @@ function AddQuizModal({
               {(data.questions || []).map((question, index) => (
                 <QuestionForm
                   key={index}
-                  questionNumber={question.sort_order}
+                  questionNumber={index + 1}
                   questionType={question.type}
                   onClose={() => handleCloseQuestion(index)}
                 />
               ))}
             </div>
           </div>
+
           <div className="p-6 pt-0 flex justify-end gap-4">
             <button
               type="button"

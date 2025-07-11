@@ -5,7 +5,11 @@ import {
   useContext,
   useState,
 } from 'react';
-import type { ContentBlock } from './UnitContext.tsx';
+import type {
+  ContentBlock,
+  QuizQuestion,
+  QuizQuestionAnswer,
+} from './UnitContext.tsx';
 
 interface ContextBlockType extends ContentBlock {
   updateContentField: (key: keyof ContentBlock, value: any) => void;
@@ -14,6 +18,13 @@ interface ContextBlockType extends ContentBlock {
   getContentState: () => ContentBlock;
   saveContent: (type: 'article' | 'video' | 'quiz') => Promise<void>;
   clearContent: () => void;
+
+  updateQuestion: (index: number, question: QuizQuestion) => void;
+  updateAnswer: (
+    questionIndex: number,
+    answerIndex: number,
+    answer: QuizQuestionAnswer,
+  ) => void;
 }
 
 const createDefaultContentBlockState = (): ContentBlock => ({
@@ -55,6 +66,7 @@ export const ContentBlockContextProvider = ({
             ? true
             : prev.isDirty,
       }));
+      console.log('updateContentField', updateContentField);
     },
     [],
   );
@@ -112,6 +124,53 @@ export const ContentBlockContextProvider = ({
     setContentBlock(createDefaultContentBlockState());
   }, []);
 
+  const updateQuestion = useCallback(
+    (index: number, updatedQuestion: QuizQuestion) => {
+      setContentBlock((prev) => {
+        const updatedQuestions = [...(prev.data.questions || [])];
+        updatedQuestions[index] = updatedQuestion;
+
+        return {
+          ...prev,
+          data: {
+            ...prev.data,
+            questions: updatedQuestions,
+          },
+          isDirty: true,
+        };
+      });
+    },
+    [],
+  );
+
+  const updateAnswer = useCallback(
+    (
+      questionIndex: number,
+      answerIndex: number,
+      updatedAnswer: QuizQuestionAnswer,
+    ) => {
+      setContentBlock((prev) => {
+        const updatedQuestions = [...(prev.data.questions || [])];
+        const targetQuestion = { ...updatedQuestions[questionIndex] };
+        const updatedAnswers = [...(targetQuestion.answers || [])];
+
+        updatedAnswers[answerIndex] = updatedAnswer;
+        targetQuestion.answers = updatedAnswers;
+        updatedQuestions[questionIndex] = targetQuestion;
+
+        return {
+          ...prev,
+          data: {
+            ...prev.data,
+            questions: updatedQuestions,
+          },
+          isDirty: true,
+        };
+      });
+    },
+    [],
+  );
+
   const contextValue: ContextBlockType = {
     ...contentBlock,
     updateContentField,
@@ -120,6 +179,8 @@ export const ContentBlockContextProvider = ({
     getContentState,
     saveContent,
     clearContent,
+    updateQuestion,
+    updateAnswer,
   };
 
   return (

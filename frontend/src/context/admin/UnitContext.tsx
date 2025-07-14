@@ -25,6 +25,7 @@ export type QuizQuestion = {
 };
 
 export interface ContentBlock {
+  id?: string;
   type: 'article' | 'video' | 'quiz';
   data: {
     title: string;

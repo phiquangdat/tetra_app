@@ -10,6 +10,10 @@ import type {
   QuizQuestion,
   QuizQuestionAnswer,
 } from './UnitContext.tsx';
+import {
+  saveVideoContent,
+  type SaveVideoRequest,
+} from '../../services/unit/content/unitContentApi.ts';
 
 interface ContextBlockType extends ContentBlock {
   updateContentField: (key: keyof ContentBlock, value: any) => void;
@@ -104,9 +108,41 @@ export const ContentBlockContextProvider = ({
       setContentState({ isSaving: true, error: null });
 
       try {
-        // Here must be calls to API functions made
-        // to save content blocks to the backend
+        switch (type) {
+          case 'video': {
+            const { title, content, url } = contentBlock.data;
+            const sort_order = contentBlock.sortOrder;
 
+            if (!title || !content || !url) {
+              throw new Error('Video title, content, and URL are required');
+            }
+
+            try {
+              new URL(url);
+            } catch {
+              throw new Error('Invalid video URL');
+            }
+
+            const payload: SaveVideoRequest = {
+              unit_id: unitId,
+              content_type: 'video',
+              title: title as string,
+              content: content as string,
+              url: url as string,
+              sort_order,
+            };
+
+            const result = await saveVideoContent(payload);
+            setContentState({ id: result.id });
+            console.log(
+              `[saveContent] Video content saved successfully, ID: ${result.id}`,
+            );
+            break;
+          }
+
+          default:
+            throw new Error(`Unsupported content type: ${type}`);
+        }
         setContentState({ isDirty: false, error: null });
       } catch (err: unknown) {
         const error = err as Error;

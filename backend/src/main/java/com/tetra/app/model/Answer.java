@@ -1,7 +1,8 @@
 package com.tetra.app.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import jakarta.persistence.*;
 import java.util.UUID;
 
@@ -16,7 +17,7 @@ public class Answer {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_id", foreignKey = @ForeignKey(name = "answers_question_fk"))
-    @JsonIgnore
+    @JsonProperty(access = Access.WRITE_ONLY)
     private Question question;
 
     @Column(name = "title")
@@ -31,18 +32,21 @@ public class Answer {
     // Getters and setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
+
     public Question getQuestion() { return question; }
     public void setQuestion(Question question) { this.question = question; }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("questionId")
+    @JsonProperty("questionId")
     public UUID getQuestionId() {
         return question != null ? question.getId() : null;
     }
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
+
     public Boolean getIsCorrect() { return isCorrect; }
     public void setIsCorrect(Boolean isCorrect) { this.isCorrect = isCorrect; }
+
     public Integer getSortOrder() { return sortOrder; }
     public void setSortOrder(Integer sortOrder) { this.sortOrder = sortOrder; }
 }

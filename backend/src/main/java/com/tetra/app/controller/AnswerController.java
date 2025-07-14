@@ -69,7 +69,7 @@ public class AnswerController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Question not found");
             }
 
-            String title = titleObj != null ? titleObj.toString() : null;
+            String title = titleObj.toString();
             Boolean isCorrect = false;
             if (isCorrectObj instanceof Boolean) {
                 isCorrect = (Boolean) isCorrectObj;
@@ -103,25 +103,68 @@ public class AnswerController {
         }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable UUID id, @RequestBody Answer answer) {
+    @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+    public ResponseEntity<?> update(@PathVariable UUID id, @RequestBody Map<String, Object> body) {
+        if (!body.containsKey("question_id") || !body.containsKey("title")
+                || !body.containsKey("is_correct") || !body.containsKey("sort_order")) {
+            logger.error("Missing required fields");
+            return ResponseEntity.badRequest().body("question_id, title, is_correct, and sort_order are required");
+        }
+
         try {
-            if (answer.getQuestion() == null || answer.getQuestion().getId() == null) {
-                logger.error("Question id is required");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Question id is required");
-            }
-            Question question = questionRepository.findById(answer.getQuestion().getId()).orElse(null);
+            UUID questionId = UUID.fromString(body.get("question_id").toString());
+
+            Question question = questionRepository.findById(questionId).orElse(null);
             if (question == null) {
-                logger.error("Question not found: {}", answer.getQuestion().getId());
+                logger.error("Question not found: {}", questionId);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Question not found");
             }
-            answer.setId(id);
+
+            Answer answer = answerRepository.findById(id).orElse(null);
+            if (answer == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Answer not found");
+            }
+
+            Object titleObj = body.get("title");
+            Object isCorrectObj = body.get("is_correct");
+            Object sortOrderObj = body.get("sort_order");
+
             answer.setQuestion(question);
+
+            if (titleObj != null) {
+                answer.setTitle(titleObj.toString());
+            }
+
+            if (isCorrectObj != null) {
+                if (isCorrectObj instanceof Boolean) {
+                    answer.setIsCorrect((Boolean) isCorrectObj);
+                } else if (isCorrectObj instanceof String) {
+                    answer.setIsCorrect(Boolean.parseBoolean((String) isCorrectObj));
+                } else if (isCorrectObj instanceof Number) {
+                    answer.setIsCorrect(((Number) isCorrectObj).intValue() != 0);
+                }
+            }
+
+            if (sortOrderObj != null) {
+                if (sortOrderObj instanceof Integer) {
+                    answer.setSortOrder((Integer) sortOrderObj);
+                } else if (sortOrderObj instanceof Number) {
+                    answer.setSortOrder(((Number) sortOrderObj).intValue());
+                } else if (sortOrderObj instanceof String) {
+                    answer.setSortOrder(Integer.parseInt((String) sortOrderObj));
+                }
+            }
+
             Answer saved = answerRepository.save(answer);
             return ResponseEntity.ok(saved);
+
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid question_id format", e);
+            return ResponseEntity.badRequest().body("Invalid question_id format");
         } catch (Exception e) {
             logger.error("Error updating answer", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Internal Server Error: " + e.getMessage());
         }
     }
 
@@ -130,5 +173,3 @@ public class AnswerController {
         answerRepository.deleteById(id);
     }
 }
-
-

@@ -255,14 +255,19 @@ export const UploadAltIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
   </svg>
 );
 
-export const ProgressIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
-  props,
-) => (
+export const ProgressIcon: React.FC<IconProps> = ({
+  width = 30,
+  height = 30,
+  color = '#998FC7',
+  ...props
+}) => (
   <svg
+    width={width}
+    height={height}
     className="h-12 w-12 mb-2 text-gray-700"
     fill="none"
     viewBox="0 0 48 48"
-    stroke="currentColor"
+    stroke={color}
     strokeWidth={2.5}
     {...props}
   >
@@ -271,12 +276,19 @@ export const ProgressIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
   </svg>
 );
 
-export const ContentIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+export const ContentIcon: React.FC<IconProps> = ({
+  width = 30,
+  height = 30,
+  color = '#998FC7',
+  ...props
+}) => (
   <svg
+    width={width}
+    height={height}
     className="h-12 w-12 mb-2 text-gray-700"
     fill="none"
     viewBox="0 0 48 48"
-    stroke="currentColor"
+    stroke={color}
     strokeWidth={2.5}
     {...props}
   >
@@ -291,14 +303,19 @@ export const ContentIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   </svg>
 );
 
-export const GamifiedIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
-  props,
-) => (
+export const GamifiedIcon: React.FC<IconProps> = ({
+  width = 30,
+  height = 30,
+  color = '#998FC7',
+  ...props
+}) => (
   <svg
+    width={width}
+    height={height}
     className="h-12 w-12 mb-2 text-gray-700"
     fill="none"
     viewBox="0 0 48 48"
-    stroke="currentColor"
+    stroke={color}
     strokeWidth={2.5}
     {...props}
   >

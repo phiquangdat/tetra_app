@@ -623,3 +623,25 @@ export const RemoveIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
     <line x1="14" y1="11" x2="14" y2="17" />
   </svg>
 );
+
+export const ArticleIcon: React.FC<IconProps> = ({
+  width = 24,
+  height = 24,
+  color = '#998FC7',
+  className,
+  ...props
+}) => (
+  <svg
+    width={width}
+    height={height}
+    className={className}
+    fill="none"
+    stroke={color}
+    strokeWidth={2}
+    viewBox="0 0 24 24"
+    {...props}
+  >
+    <path d="M4 4h16v16H4z" strokeLinejoin="round" />
+    <path d="M8 8h8M8 12h6M8 16h4" strokeLinecap="round" />
+  </svg>
+);

@@ -36,7 +36,7 @@ const VideoBlock: React.FC<VideoBlockProps> = ({ id }) => {
           <p>{video?.title || 'No title available'}</p>
         </div>
 
-        <div className="aspect-video rounded-2xl overflow-hidden shadow">
+        <div className="max-w-2xl mx-auto aspect-video rounded-2xl overflow-hidden shadow">
           {isValid ? (
             isYouTube ? (
               <iframe

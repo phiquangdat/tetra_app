@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { X } from 'lucide-react';
 
 interface AddUserFormProps {
   isOpen: boolean;
@@ -64,151 +65,156 @@ const AddUserForm = ({ isOpen, onClose }: AddUserFormProps) => {
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 flex items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-    >
-      <div className="bg-white rounded-2xl w-full max-w-md">
-        <div className="flex bg-gray-200 rounded-t-2xl items-center justify-between p-4">
-          <h2 className="text-lg font-medium text-gray-900">Add New User</h2>
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+      <div className="bg-background rounded-2xl w-full max-w-md">
+        <div className="flex bg-cardBackground rounded-t-2xl items-center justify-between px-6 py-4">
+          <h2 className="text-surface text-xl font-semibold text-center">
+            Add New User
+          </h2>
 
           <button
             onClick={handleClose}
-            className="cursor-pointer hover:bg-gray-300 rounded-full p-1"
+            className="top-4 right-4 text-primary hover:text-secondaryHover transition"
+            aria-label="Close"
           >
-            X
+            <X size={20} />
           </button>
         </div>
 
         <div className="text-center">
           <div className="p-6 pb-0 flex-1 overflow-y-auto">
-            <div className="flex mb-6 items-center">
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700 mb-2 w-1/2"
-              >
-                Full Name
-              </label>
-              <div className="w-full">
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={name}
-                  onChange={(e) => {
-                    errors.name = undefined;
-                    setName(e.target.value);
-                  }}
-                  className={`w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.name ? 'border-red-500' : 'border-gray-400'
-                  }`}
-                  required
-                />
+            <form className="space-y-4">
+              <div className="mb-6">
+                <div className="flex items-center gap-4">
+                  <label
+                    htmlFor="name"
+                    className="text-primary text-sm font-medium min-w-[120px]"
+                  >
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={name}
+                    onChange={(e) => {
+                      errors.name = undefined;
+                      setName(e.target.value);
+                    }}
+                    className={`flex-1 bg-cardBackground border ${errors.name ? 'border-error' : 'border-highlight'} rounded-lg p-2.5 text-primary focus:outline-none focus:ring-2 focus:ring-secondary`}
+                    required
+                  />
+                </div>
                 {errors.name && (
-                  <p className="text-red-500 text-xs mt-1 text-left">
-                    {errors.name}
-                  </p>
+                  <div className="flex items-center gap-4 mt-1">
+                    <div className="min-w-[120px]" />
+                    <p className="text-error text-xs font-medium text-left flex-1">
+                      {errors.name}
+                    </p>
+                  </div>
                 )}
               </div>
-            </div>
 
-            <div className="flex mb-6 items-center">
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-2 w-1/2"
-              >
-                Email
-              </label>
-              <div className="w-full">
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={email}
-                  onChange={(e) => {
-                    errors.email = undefined;
-                    setEmail(e.target.value);
-                  }}
-                  className={`w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.email ? 'border-red-500' : 'border-gray-400'
-                  }`}
-                  required
-                />
+              <div className="mb-6">
+                <div className="flex items-center gap-4">
+                  <label
+                    htmlFor="email"
+                    className="text-primary text-sm font-medium min-w-[120px]"
+                  >
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={email}
+                    onChange={(e) => {
+                      errors.email = undefined;
+                      setEmail(e.target.value);
+                    }}
+                    className={`flex-1 bg-cardBackground border ${errors.email ? 'border-error' : 'border-highlight'} rounded-lg p-2.5 text-primary focus:outline-none focus:ring-2 focus:ring-secondary`}
+                    required
+                  />
+                </div>
                 {errors.email && (
-                  <p className="text-red-500 text-xs mt-1 text-left">
-                    {errors.email}
-                  </p>
+                  <div className="flex items-center gap-4 mt-1">
+                    <div className="min-w-[120px]" />
+                    <p className="text-error text-xs font-medium text-left flex-1">
+                      {errors.email}
+                    </p>
+                  </div>
                 )}
               </div>
-            </div>
 
-            <div className="flex mb-6 items-center">
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-2 w-1/2"
-              >
-                Password
-              </label>
-              <div className="w-full">
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={password}
-                  onChange={(e) => {
-                    errors.password = undefined;
-                    setPassword(e.target.value);
-                  }}
-                  className={`w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.password ? 'border-red-500' : 'border-gray-400'
-                  }`}
-                  required
-                />
+              <div className="mb-6">
+                <div className="flex items-center gap-4">
+                  <label
+                    htmlFor="password"
+                    className="text-primary text-sm font-medium min-w-[120px]"
+                  >
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    value={password}
+                    onChange={(e) => {
+                      errors.password = undefined;
+                      setPassword(e.target.value);
+                    }}
+                    className={`flex-1 bg-cardBackground border ${errors.password ? 'border-error' : 'border-highlight'} rounded-lg p-2.5 text-primary focus:outline-none focus:ring-2 focus:ring-secondary`}
+                    required
+                  />
+                </div>
                 {errors.password && (
-                  <p className="text-red-500 text-xs mt-1 text-left">
-                    {errors.password}
-                  </p>
+                  <div className="flex items-center gap-4 mt-1">
+                    <div className="min-w-[120px]" />
+                    <p className="text-error text-xs font-medium text-left flex-1">
+                      {errors.password}
+                    </p>
+                  </div>
                 )}
               </div>
-            </div>
 
-            <div className="flex mb-6 items-center">
-              <label
-                htmlFor="role"
-                className="block text-sm font-medium text-gray-700 mb-2 w-1/2"
-              >
-                Role
-              </label>
-              <div className="w-full">
-                <select
-                  id="role"
-                  name="role"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="Learner">Learner</option>
-                  <option value="Admin">Admin</option>
-                </select>
+              <div className="mb-6">
+                <div className="flex items-center gap-4">
+                  <label
+                    htmlFor="role"
+                    className="text-primary text-sm font-medium min-w-[120px]"
+                  >
+                    Role
+                  </label>
+                  <select
+                    id="role"
+                    name="role"
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="flex-1 bg-cardBackground border border-highlight rounded-lg p-2.5 text-primary focus:outline-none focus:ring-2 focus:ring-secondary"
+                  >
+                    <option value="Learner">Learner</option>
+                    <option value="Admin">Admin</option>
+                  </select>
+                </div>
               </div>
-            </div>
-          </div>
 
-          <div className="flex justify-end p-6">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-200 mr-4 w-24 h-10"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              className="bg-blue-500 text-white text-sm px-4 py-1 rounded-lg cursor-pointer hover:bg-blue-600 w-24 h-10"
-            >
-              Save
-            </button>
+              <div className="flex justify-end gap-3 p-6">
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="bg-secondary hover:bg-secondaryHover text-background px-5 py-2 rounded-lg text-sm font-medium transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  className="bg-surface hover:bg-surfaceHover text-background px-5 py-2 rounded-lg text-sm font-medium transition"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>

@@ -18,6 +18,14 @@ export interface SaveVideoRequest {
   sort_order: number;
 }
 
+export interface SaveArticleRequest {
+  unit_id: string;
+  content_type: 'article';
+  title: string;
+  content: string;
+  sort_order: number;
+}
+
 export async function saveVideoContent(
   data: SaveVideoRequest,
 ): Promise<{ id: string }> {
@@ -41,6 +49,35 @@ export async function saveVideoContent(
   } catch (error) {
     console.error(
       'Error saving video content:',
+      error instanceof Error ? error.message : 'Unknown error',
+    );
+    throw error instanceof Error ? error : new Error('Unknown error occurred');
+  }
+}
+
+export async function saveArticleContent(
+  data: SaveArticleRequest,
+): Promise<{ id: string }> {
+  try {
+    const response = await fetch(`${BASE_URL}/unit_content/article`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to save article content: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    const result = await response.json();
+    return { id: result.id };
+  } catch (error) {
+    console.error(
+      'Error saving article content:',
       error instanceof Error ? error.message : 'Unknown error',
     );
     throw error instanceof Error ? error : new Error('Unknown error occurred');

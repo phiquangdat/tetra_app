@@ -13,6 +13,8 @@ import type {
 import {
   saveVideoContent,
   type SaveVideoRequest,
+  saveArticleContent,
+  type SaveArticleRequest,
 } from '../../services/unit/content/unitContentApi.ts';
 
 interface ContextBlockType extends ContentBlock {
@@ -136,6 +138,29 @@ export const ContentBlockContextProvider = ({
             setContentState({ id: result.id });
             console.log(
               `[saveContent] Video content saved successfully, ID: ${result.id}`,
+            );
+            break;
+          }
+          case 'article': {
+            const { title, content } = contentBlock.data;
+            const sort_order = contentBlock.sortOrder;
+
+            if (!title || !content) {
+              throw new Error('Article title and content are required');
+            }
+
+            const payload: SaveArticleRequest = {
+              unit_id: unitId,
+              content_type: 'article',
+              title: title as string,
+              content: content as string,
+              sort_order,
+            };
+
+            const result = await saveArticleContent(payload);
+            setContentState({ id: result.id });
+            console.log(
+              `[saveContent] Article content saved successfully, ID: ${result.id}`,
             );
             break;
           }

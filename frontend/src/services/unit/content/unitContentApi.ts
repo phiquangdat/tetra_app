@@ -26,6 +26,30 @@ export interface SaveArticleRequest {
   sort_order: number;
 }
 
+export type QuizQuestionAnswer = {
+  title: string;
+  is_correct: boolean;
+  sort_order: number;
+};
+
+export type QuizQuestion = {
+  title: string;
+  type: 'true/false' | 'multiple';
+  sort_order: number;
+  answers: QuizQuestionAnswer[];
+};
+
+export interface SaveQuizRequest {
+  unit_id: string;
+  content_type: 'quiz';
+  title: string;
+  content: string;
+  sort_order: number;
+  points: number;
+  questions_number: number;
+  questions: QuizQuestion[];
+}
+
 export async function saveVideoContent(
   data: SaveVideoRequest,
 ): Promise<{ id: string }> {
@@ -78,6 +102,35 @@ export async function saveArticleContent(
   } catch (error) {
     console.error(
       'Error saving article content:',
+      error instanceof Error ? error.message : 'Unknown error',
+    );
+    throw error instanceof Error ? error : new Error('Unknown error occurred');
+  }
+}
+
+export async function saveQuizContent(
+  data: SaveQuizRequest,
+): Promise<{ id: string }> {
+  try {
+    const response = await fetch(`${BASE_URL}/unit_content/quiz`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to save quiz content: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    const result = await response.json();
+    return { id: result.id };
+  } catch (error) {
+    console.error(
+      'Error saving quiz content:',
       error instanceof Error ? error.message : 'Unknown error',
     );
     throw error instanceof Error ? error : new Error('Unknown error occurred');

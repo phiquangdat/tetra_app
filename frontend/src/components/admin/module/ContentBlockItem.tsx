@@ -1,6 +1,7 @@
 import React from 'react';
 import VideoBlock from './VideoBlock';
 import ArticleBlock from './ArticleBlock';
+import QuizBlock from './QuizBlock';
 
 interface ContentBlockItemProps {
   id: string;
@@ -21,7 +22,7 @@ const ContentBlockItem: React.FC<ContentBlockItemProps> = ({
     case 'article':
       return <ArticleBlock id={id} />;
     case 'quiz':
-      return <div className="p-4">Quiz content</div>;
+      return <QuizBlock />;
     default:
       return <div className="p-4 text-red-500">Unsupported content type</div>;
   }

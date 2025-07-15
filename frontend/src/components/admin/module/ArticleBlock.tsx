@@ -16,7 +16,7 @@ const ArticleBlock: React.FC<ArticleBlockProps> = ({ id }) => {
   }, [id]);
 
   return (
-    <div className="px-6 pb-4 text-[#231942] text-base">
+    <div className="px-6 pb-4 text-primary text-base">
       <div className="space-y-4 mt-4">
         <div>
           <p className="font-semibold">Article title</p>
@@ -32,7 +32,7 @@ const ArticleBlock: React.FC<ArticleBlockProps> = ({ id }) => {
         </div>
 
         <div className="flex gap-4">
-          <button className="px-4 py-2 bg-[#998FC7] text-white rounded-lg hover:bg-[#7d6bb3]">
+          <button className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover">
             Edit
           </button>
           <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">

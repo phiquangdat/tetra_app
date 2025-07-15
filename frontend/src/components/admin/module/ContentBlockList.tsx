@@ -37,13 +37,13 @@ const ContentBlockList: React.FC<ContentBlockListProps> = ({ unitId }) => {
   };
 
   return (
-    <div className="bg-[#F9F5FF] rounded-2xl p-6 shadow-lg border border-[#D4C2FC]">
-      <h3 className="text-lg font-semibold text-[#231942] mb-4">
+    <div className="bg-cardBackground rounded-2xl p-6 shadow-lg border border-highlight">
+      <h3 className="text-lg font-semibold text-primary mb-4">
         Content Blocks
       </h3>
 
       {contentBlocks.length === 0 && (
-        <p className="text-[#998FC7]">
+        <p className="text-secondary">
           No content blocks available for this unit.
         </p>
       )}
@@ -53,7 +53,7 @@ const ContentBlockList: React.FC<ContentBlockListProps> = ({ unitId }) => {
           <div
             onClick={() => toggleOpen(index)}
             className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-colors 
-              hover:bg-[#D4C2FC] ${openIndex === index ? 'bg-[#998FC7]/30' : 'bg-white'}`}
+              hover:bg-highlight ${openIndex === index ? 'bg-secondary/30' : 'bg-white'}`}
           >
             <div className="w-6 h-6 flex items-center justify-center">
               {iconForType[block.content_type as keyof typeof iconForType]}
@@ -61,7 +61,7 @@ const ContentBlockList: React.FC<ContentBlockListProps> = ({ unitId }) => {
             <div className="capitalize text-base font-medium text-[#231942] w-24">
               {block.content_type}
             </div>
-            <div className="text-[#231942] text-base flex-1">{block.title}</div>
+            <div className="text-primary text-base flex-1">{block.title}</div>
 
             <div className="ml-auto">
               {openIndex === index ? <ChevronUpIcon /> : <ChevronDownIcon />}

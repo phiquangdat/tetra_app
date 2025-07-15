@@ -43,7 +43,7 @@ const UnitItem: React.FC<UnitItemProps> = ({
     <div className="bg-[#F9F5FF] border border-highlight rounded-xl overflow-hidden shadow-sm">
       <button
         onClick={onToggle}
-        className="w-full text-left px-6 py-4 font-semibold text-primary flex justify-between items-center hover:bg-[#EFE8FF] transition"
+        className="w-full text-left px-6 py-4 text-base font-semibold text-primary flex justify-between items-center hover:bg-[#EFE8FF] transition"
       >
         <span>
           Unit {index + 1}: {title}
@@ -64,21 +64,20 @@ const UnitItem: React.FC<UnitItemProps> = ({
           {details && (
             <div className="space-y-4 mt-4">
               <div>
-                <p className="font-semibold">Unit title</p>
+                <p className="text-sm font-semibold">Unit title</p>
                 <p>{details.title}</p>
               </div>
               <div>
-                <p className="font-semibold">Unit description</p>
+                <p className="text-sm font-semibold">Unit description</p>
                 <p>{details.description}</p>
               </div>
               <button
                 onClick={() => {}}
-                className="mt-2 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover"
+                className="mt-2 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover text-sm"
               >
                 Edit
               </button>
 
-              {/* Content blocks */}
               <div className="mt-6">
                 <ContentBlockList unitId={id} />
               </div>

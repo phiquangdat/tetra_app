@@ -19,7 +19,7 @@ const ArticleBlock: React.FC<ArticleBlockProps> = ({ id }) => {
     <div className="px-6 pb-4 text-primary text-base">
       <div className="space-y-4 mt-4">
         <div>
-          <p className="font-semibold">Article title</p>
+          <p className="text-sm font-semibold">Article title</p>
           <p>{article?.title || 'No title available'}</p>
         </div>
 
@@ -32,10 +32,10 @@ const ArticleBlock: React.FC<ArticleBlockProps> = ({ id }) => {
         </div>
 
         <div className="flex gap-4">
-          <button className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover">
+          <button className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover text-sm">
             Edit
           </button>
-          <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+          <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm">
             Delete
           </button>
         </div>

@@ -43,7 +43,7 @@ const ContentBlockList: React.FC<ContentBlockListProps> = ({ unitId }) => {
       </h3>
 
       {contentBlocks.length === 0 && (
-        <p className="text-secondary">
+        <p className="text-secondary text-base">
           No content blocks available for this unit.
         </p>
       )}
@@ -58,10 +58,10 @@ const ContentBlockList: React.FC<ContentBlockListProps> = ({ unitId }) => {
             <div className="w-6 h-6 flex items-center justify-center">
               {iconForType[block.content_type as keyof typeof iconForType]}
             </div>
-            <div className="capitalize text-base font-medium text-[#231942] w-24">
+            <div className="capitalize text-sm font-medium text-[#231942] w-24">
               {block.content_type}
             </div>
-            <div className="text-primary text-base flex-1">{block.title}</div>
+            <div className="text-base text-primary flex-1">{block.title}</div>
 
             <div className="ml-auto">
               {openIndex === index ? <ChevronUpIcon /> : <ChevronDownIcon />}

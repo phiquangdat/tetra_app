@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { fetchUnitById } from '../../../services/unit/unitApi';
 import { ChevronDownIcon, ChevronUpIcon } from '../../common/Icons';
+import ContentBlockList from './ContentBlockList.tsx';
 
 interface UnitItemProps {
   id: string;
@@ -76,6 +77,11 @@ const UnitItem: React.FC<UnitItemProps> = ({
               >
                 Edit
               </button>
+
+              {/* Content blocks */}
+              <div className="mt-6">
+                <ContentBlockList unitId={id} />
+              </div>
             </div>
           )}
         </div>

@@ -1,12 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ChangePasswordModal from './ChangePasswordModal';
 
 const SettingsPage: React.FC = () => {
+  const [fields, setFields] = useState({
+    name: 'Jane Doe',
+    email: 'jane.doe@example.com',
+  });
+  const [edit, setEdit] = useState({
+    name: false,
+    email: false,
+  });
+  const [inputs, setInputs] = useState({
+    name: fields.name,
+    email: fields.email,
+  }); // Inputs used to store the original values
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  const handleStartEdit = (field: 'name' | 'email') => {
+    setInputs((inputs) => ({ ...inputs, [field]: fields[field] }));
+    setEdit((edit) => ({ ...edit, [field]: true }));
+  };
+
+  const handleSaveField = (field: 'name' | 'email') => {
+    setEdit((edit) => ({ ...edit, [field]: false }));
+    if (inputs[field] !== fields[field]) {
+      setFields((f) => ({ ...f, [field]: inputs[field] }));
+      console.log(inputs[field]);
+    }
+  };
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
@@ -20,20 +47,73 @@ const SettingsPage: React.FC = () => {
         <div className="mb-4">
           <label className="text-primary text-sm font-medium">Name</label>
           <div className="flex items-center justify-between mt-1">
-            <span className="text-primary text-base">Jane Doe</span>
-            <button className="bg-secondary hover:bg-secondaryHover text-white text-sm font-medium px-4 py-1.5 rounded-lg transition">
-              Edit
-            </button>
+            {edit.name ? (
+              <>
+                <input
+                  type="text"
+                  className="text-primary bg-background border border-highlight rounded-lg p-2 text-base focus:outline-none focus:ring-2 focus:ring-secondary"
+                  value={inputs.name}
+                  onChange={(e) =>
+                    setInputs((i) => ({ ...i, name: e.target.value }))
+                  }
+                  ref={nameInputRef}
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  className="bg-surface hover:bg-surfaceHover text-background px-5 py-2 rounded-lg text-sm font-medium transition"
+                  onClick={() => handleSaveField('name')}
+                >
+                  Save
+                </button>
+              </>
+            ) : (
+              <>
+                <span className="text-primary text-base">{fields.name}</span>
+                <button
+                  className="bg-secondary hover:bg-secondaryHover text-background text-sm font-medium px-5 py-2 rounded-lg transition"
+                  onClick={() => handleStartEdit('name')}
+                >
+                  Edit
+                </button>
+              </>
+            )}
           </div>
         </div>
-
         <div className="mb-4">
           <label className="text-primary text-sm font-medium">Email</label>
           <div className="flex items-center justify-between mt-1">
-            <span className="text-primary text-base">jane.doe@example.com</span>
-            <button className="bg-secondary hover:bg-secondaryHover text-white text-sm font-medium px-4 py-1.5 rounded-lg transition">
-              Edit
-            </button>
+            {edit.email ? (
+              <>
+                <input
+                  type="email"
+                  className="text-primary bg-background border border-highlight rounded-lg p-2 text-base focus:outline-none focus:ring-2 focus:ring-secondary"
+                  value={inputs.email}
+                  onChange={(e) =>
+                    setInputs((i) => ({ ...i, email: e.target.value }))
+                  }
+                  ref={emailInputRef}
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  className="bg-surface hover:bg-surfaceHover text-background text-sm font-medium px-5 py-2 rounded-lg transition"
+                  onClick={() => handleSaveField('email')}
+                >
+                  Save
+                </button>
+              </>
+            ) : (
+              <>
+                <span className="text-primary text-base">{fields.email}</span>
+                <button
+                  className="bg-secondary hover:bg-secondaryHover text-background text-sm font-medium px-5 py-2 rounded-lg transition"
+                  onClick={() => handleStartEdit('email')}
+                >
+                  Edit
+                </button>
+              </>
+            )}
           </div>
         </div>
 

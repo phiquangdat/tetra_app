@@ -14,16 +14,16 @@ const UserPage = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Users List</h1>
+    <div className="p-6 max-w-5xl mx-auto my-6">
+      <h1 className="text-3xl font-bold text-primary mb-6">Users List</h1>
 
       <div className="flex justify-between items-center mb-6">
-        <p className="text-lg font-semibold text-gray-700">
+        <p className="text-base font-semibold text-primary">
           Total Users: {data.length}
         </p>
 
         <button
-          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 cursor-pointer"
+          className="bg-surface hover:bg-surfaceHover text-background text-base font-medium px-5 py-2 rounded-lg transition cursor-pointer"
           onClick={() => {
             setIsOpen(true);
           }}
@@ -33,11 +33,14 @@ const UserPage = () => {
       </div>
 
       <div className="rounded-2xl shadow overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-100">
+        <table className="w-full bg-cardBackground text-center">
+          <thead className="bg-secondary">
             <tr>
               {headers.map((header) => (
-                <th className="p-4 text-left font-semibold" key={header}>
+                <th
+                  className="p-4 font-semibold text-background text-base"
+                  key={header}
+                >
                   {header}
                 </th>
               ))}
@@ -45,11 +48,11 @@ const UserPage = () => {
           </thead>
           <tbody>
             {data.map((user, index) => (
-              <tr key={index} className="border-t border-gray-100">
-                <td className="p-4 text-gray-900">{index + 1}</td>
-                <td className="p-4 text-gray-900 font-medium">{user.name}</td>
-                <td className="p-4 text-gray-600">{user.email}</td>
-                <td className="p-4">{user.role}</td>
+              <tr key={index} className="border-t-2 border-background">
+                <td className="p-4 text-primary">{index + 1}</td>
+                <td className="p-4 text-primary font-semibold">{user.name}</td>
+                <td className="p-4 text-primary">{user.email}</td>
+                <td className="p-4 text-primary">{user.role}</td>
               </tr>
             ))}
           </tbody>

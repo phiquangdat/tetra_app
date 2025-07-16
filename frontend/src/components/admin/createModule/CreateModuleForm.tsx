@@ -4,6 +4,7 @@ import {
   isValidImageUrl,
   isImageUrlRenderable,
 } from '../../../utils/validators';
+import ModuleDetailsPreview from './ModuleDetailsPreview.tsx';
 
 type Props = {};
 
@@ -26,6 +27,7 @@ const CreateModuleForm: React.FC<Props> = () => {
   const [formErrors, setFormErrors] = useState<string[]>([]);
 
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const [isEditing, setIsEditing] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -101,6 +103,7 @@ const CreateModuleForm: React.FC<Props> = () => {
       setSuccessSaved(true);
       setFormErrors([]);
       setTimeout(() => setSuccessSaved(false), 3000);
+      setIsEditing(false);
     } catch (err) {
       console.error('Error saving module:', err);
     }
@@ -197,111 +200,115 @@ const CreateModuleForm: React.FC<Props> = () => {
         </div>
       ) : null}
 
-      <form className="space-y-6 max-w-110 mx-0 mb-11">
-        <div>
-          <div className="mb-8">
-            <label
-              htmlFor="moduleCoverPicture"
-              className="block mb-2 font-medium text-gray-700"
-            >
-              Module Cover Picture
-            </label>
-            {renderCoverPicture()}
-          </div>
+      {!isEditing ? (
+        <ModuleDetailsPreview onEdit={() => setIsEditing(true)} />
+      ) : (
+        <form className="space-y-6 max-w-110 mx-0 mb-11">
+          <div>
+            <div className="mb-8">
+              <label
+                htmlFor="moduleCoverPicture"
+                className="block mb-2 font-medium text-gray-700"
+              >
+                Module Cover Picture
+              </label>
+              {renderCoverPicture()}
+            </div>
 
-          <div className="max-w-90 mb-11">
-            <label
-              htmlFor="moduleTitle"
-              className="block mb-2 font-medium text-gray-700"
-            >
-              Module Title
-            </label>
-            <input
-              type="text"
-              id="moduleTitle"
-              name="moduleTitle"
-              value={title}
-              onChange={handleTitleChange}
-              required
-              className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
-            />
-          </div>
+            <div className="max-w-90 mb-11">
+              <label
+                htmlFor="moduleTitle"
+                className="block mb-2 font-medium text-gray-700"
+              >
+                Module Title
+              </label>
+              <input
+                type="text"
+                id="moduleTitle"
+                name="moduleTitle"
+                value={title}
+                onChange={handleTitleChange}
+                required
+                className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
+              />
+            </div>
 
-          <div className="w-full mb-11">
-            <label
-              htmlFor="moduleDescription"
-              className="block mb-2 font-medium text-gray-700"
-            >
-              Module Description
-            </label>
-            <textarea
-              id="moduleDescription"
-              name="moduleDescription"
-              value={description}
-              onChange={handleDescriptionChange}
-              rows={4}
-              required
-              className="bg-white border-gray-400 border-2 w-full h-60 rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
-              style={{ resize: 'none' }}
-            />
-          </div>
+            <div className="w-full mb-11">
+              <label
+                htmlFor="moduleDescription"
+                className="block mb-2 font-medium text-gray-700"
+              >
+                Module Description
+              </label>
+              <textarea
+                id="moduleDescription"
+                name="moduleDescription"
+                value={description}
+                onChange={handleDescriptionChange}
+                rows={4}
+                required
+                className="bg-white border-gray-400 border-2 w-full h-60 rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
+                style={{ resize: 'none' }}
+              />
+            </div>
 
-          <div className="max-w-90 mb-11">
-            <label
-              htmlFor="moduleTopic"
-              className="block mb-2 font-medium text-gray-700"
-            >
-              Module Topic
-            </label>
-            <select
-              id="moduleTopic"
-              name="moduleTopic"
-              value={topic}
-              onChange={handleTopicChange}
-              required
-              className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
-            >
-              <option value="" disabled>
-                Select topic
-              </option>
-              <option value="cybersecurity">Cybersecurity</option>
-              <option value="artificial-intelligence">
-                Artificial Intelligence
-              </option>
-              <option value="esg">ESG</option>
-              <option value="occupational-safety">Occupational Safety</option>
-            </select>
-          </div>
+            <div className="max-w-90 mb-11">
+              <label
+                htmlFor="moduleTopic"
+                className="block mb-2 font-medium text-gray-700"
+              >
+                Module Topic
+              </label>
+              <select
+                id="moduleTopic"
+                name="moduleTopic"
+                value={topic}
+                onChange={handleTopicChange}
+                required
+                className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
+              >
+                <option value="" disabled>
+                  Select topic
+                </option>
+                <option value="cybersecurity">Cybersecurity</option>
+                <option value="artificial-intelligence">
+                  Artificial Intelligence
+                </option>
+                <option value="esg">ESG</option>
+                <option value="occupational-safety">Occupational Safety</option>
+              </select>
+            </div>
 
-          <div className="max-w-48">
-            <label
-              htmlFor="pointsAwarded"
-              className="block mb-0 font-medium text-gray-700"
-            >
-              Points Awarded
-            </label>
-            <input
-              type="number"
-              id="pointsAwarded"
-              name="pointsAwarded"
-              value={pointsAwarded}
-              onChange={handlePointsChange}
-              min={0}
-              required
-              className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
-            />
+            <div className="max-w-48">
+              <label
+                htmlFor="pointsAwarded"
+                className="block mb-0 font-medium text-gray-700"
+              >
+                Points Awarded
+              </label>
+              <input
+                type="number"
+                id="pointsAwarded"
+                name="pointsAwarded"
+                value={pointsAwarded}
+                onChange={handlePointsChange}
+                min={0}
+                required
+                className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
+              />
+            </div>
           </div>
-        </div>
-        <button
-          type="button"
-          aria-label="Save Module"
-          disabled={isSaving}
-          onClick={handleSaveModule}
-          className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-200 mr-4 mt-8 w-28 h-10"
-        >
-          {isSaving ? 'Saving...' : 'Save'}
-        </button>
-      </form>
+          <button
+            type="button"
+            aria-label="Save Module"
+            disabled={isSaving}
+            onClick={handleSaveModule}
+            className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-200 mr-4 mt-8 w-28 h-10"
+          >
+            {isSaving ? 'Saving...' : 'Save'}
+          </button>
+        </form>
+      )}
     </div>
   );
 };

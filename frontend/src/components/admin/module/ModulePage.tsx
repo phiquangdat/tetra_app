@@ -1,5 +1,5 @@
 import React from 'react';
-import ModuleDetails from '../ui/ModuleDetails';
+import ModuleDetails from './ModuleDetails.tsx';
 import UnitsBlock from './UnitsBlock.tsx';
 
 interface ModulePageProps {

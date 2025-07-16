@@ -4,9 +4,17 @@ import UnitItem from '../../../components/admin/module/UnitItem';
 import { fetchUnitById } from '../../../services/unit/unitApi';
 import { describe, it, vi, beforeEach } from 'vitest';
 
-vi.mock('../../../services/unit/unitApi', () => ({
-  fetchUnitById: vi.fn(),
-}));
+vi.mock('../../../services/unit/unitApi', async () => {
+  const actual = await vi.importActual<
+    typeof import('../../../services/unit/unitApi')
+  >('../../../services/unit/unitApi');
+
+  return {
+    ...actual,
+    fetchUnitById: vi.fn(), // already mocked
+    fetchUnitContentById: vi.fn().mockResolvedValue([]), // 👈 add default mock
+  };
+});
 
 const mockUnitDetails = {
   id: '1',

@@ -36,7 +36,7 @@ const UnitsBlock: React.FC<UnitsBlockProps> = ({ moduleId }) => {
     <div className="mt-10">
       <h2 className="text-xl font-bold text-[#231942] mb-4">Units</h2>
       {loading && <p>Loading units...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-error">{error}</p>}
       <div className="flex flex-col gap-4">
         {units.map((unit, index) => (
           <UnitItem

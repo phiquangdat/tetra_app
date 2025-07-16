@@ -23,6 +23,8 @@ const CreateModuleForm: React.FC<Props> = () => {
 
   const [successSaved, setSuccessSaved] = useState(false);
   const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<string[]>([]);
+
   const coverInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -50,14 +52,54 @@ const CreateModuleForm: React.FC<Props> = () => {
     };
   }, [coverPicture]);
 
+  const validateForm = async () => {
+    const newformErrors: string[] = [];
+
+    if (!coverPicture) {
+      newformErrors.push('Cover picture is required');
+    } else if (!isValidImageUrl(coverPicture)) {
+      newformErrors.push('Cover picture must be a valid URL');
+    } else {
+      const isRenderable = await isImageUrlRenderable(coverPicture);
+      if (!isRenderable) {
+        newformErrors.push(
+          'Image URL is not accessible or does not point to an actual image',
+        );
+      }
+    }
+
+    if (!title.trim()) {
+      newformErrors.push('Title is required');
+    }
+    if (!description.trim()) {
+      newformErrors.push('Description is required');
+    }
+    if (!topic) {
+      newformErrors.push('Topic is required');
+    }
+    if (pointsAwarded < 0) {
+      newformErrors.push('Points awarded cannot be negative');
+    }
+
+    if (formErrors.length > 0) {
+      setSuccessSaved(false);
+    }
+
+    setFormErrors(newformErrors);
+    return newformErrors.length === 0;
+  };
+
   const handleSaveModule = async () => {
-    if (isSaving) return;
-    window.scrollTo(0, 0);
-    setSuccessSaved(false);
+    const isValid = await validateForm();
+    if (!isValid || isSaving) {
+      window.scrollTo(0, 0);
+      return;
+    }
 
     try {
       await saveModule();
       setSuccessSaved(true);
+      setFormErrors([]);
       setTimeout(() => setSuccessSaved(false), 3000);
     } catch (err) {
       console.error('Error saving module:', err);
@@ -134,7 +176,18 @@ const CreateModuleForm: React.FC<Props> = () => {
       <h2 className="text-2xl font-semibold text-gray-800 mb-6">
         Module Details
       </h2>
-      {error ? (
+
+      {formErrors.length ? (
+        <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-6">
+          <ul className="list-disc list-inside">
+            {formErrors.map((error, index) => (
+              <li key={index} className="text-sm">
+                {error}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : error ? (
         <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-6">
           <p className="text-sm">{error}</p>
         </div>

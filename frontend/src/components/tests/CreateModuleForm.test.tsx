@@ -57,8 +57,8 @@ describe('CreateModuleForm', () => {
 
   it('allows user to click the Save button', async () => {
     const saveButton = screen.getByRole('button', { name: /Save/i });
-    await userEvent.click(saveButton);
     expect(saveButton).toBeInTheDocument();
+    await userEvent.click(saveButton);
   });
 
   it('allows user upload cover picture via URL', async () => {

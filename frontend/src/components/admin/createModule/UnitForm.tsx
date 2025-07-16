@@ -209,7 +209,12 @@ function UnitForm({ unitNumber }: UnitFormProps) {
                 onChange={handleContentBlockChange}
                 className="bg-white border-gray-400 text-gray-700 border-2 w-full mt-6 rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
                 defaultValue=""
-                disabled={unitState.isSaving}
+                disabled={!unitState.id || unitState.isSaving}
+                title={
+                  !unitState.id
+                    ? 'Please save the unit first to add content.'
+                    : ''
+                }
               >
                 <option value="" disabled>
                   + Add content

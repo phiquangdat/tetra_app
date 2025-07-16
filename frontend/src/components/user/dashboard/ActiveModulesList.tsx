@@ -1,4 +1,5 @@
 import { StarIcon } from '../../common/Icons';
+import { Link } from 'react-router-dom';
 
 const data = [
   {
@@ -50,9 +51,12 @@ const ActiveModulesList = () => {
       </div>
 
       <div className="flex justify-center mt-8">
-        <a href="#" className="text-gray-700 font-medium gap-2 hover:underline">
+        <Link
+          to="/user/modules"
+          className="text-gray-700 font-medium gap-2 hover:underline"
+        >
           View all Modules <span>&rarr;</span>
-        </a>
+        </Link>
       </div>
     </div>
   );

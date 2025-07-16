@@ -15,6 +15,8 @@ import {
   type SaveVideoRequest,
   saveArticleContent,
   type SaveArticleRequest,
+  saveQuizContent,
+  type SaveQuizRequest,
 } from '../../services/unit/content/unitContentApi.ts';
 
 interface ContextBlockType extends ContentBlock {
@@ -164,7 +166,34 @@ export const ContentBlockContextProvider = ({
             );
             break;
           }
+          case 'quiz': {
+            const { title, content, points, questions } = contentBlock.data;
+            const sort_order = contentBlock.sortOrder;
 
+            if (!title || !points || !questions || questions.length === 0) {
+              throw new Error(
+                'Quiz title, points, and at least one question are required',
+              );
+            }
+
+            const payload: SaveQuizRequest = {
+              unit_id: unitId,
+              content_type: 'quiz',
+              title: title as string,
+              content: content as string,
+              sort_order,
+              points: points as number,
+              questions_number: questions.length,
+              questions: questions as QuizQuestion[],
+            };
+
+            const result = await saveQuizContent(payload);
+            setContentState({ id: result.id });
+            console.log(
+              `[saveContent] Quiz content saved successfully, ID: ${result.id}`,
+            );
+            break;
+          }
           default:
             throw new Error(`Unsupported content type: ${type}`);
         }

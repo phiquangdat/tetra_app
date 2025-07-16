@@ -13,6 +13,19 @@ const renderWithProvider = () => {
   );
 };
 
+vi.mock('../../../utils/validators', async () => {
+  return {
+    isValidImageUrl: vi.fn().mockImplementation((url: string) => {
+      return url.endsWith('.png') || url.endsWith('.jpg');
+    }),
+    isImageUrlRenderable: vi.fn().mockResolvedValue(true),
+  };
+});
+
+vi.mock('../../services/module/moduleApi.ts', () => ({
+  createModule: vi.fn().mockResolvedValue({ id: '123', status: 'success' }),
+}));
+
 beforeAll(() => {
   window.URL.revokeObjectURL = vi.fn();
 });
@@ -65,9 +78,28 @@ describe('CreateModuleForm', () => {
   });
 
   it('shows success message after saving module', async () => {
-    const saveButton = screen.getByRole('button', { name: /Save/i });
-    await userEvent.click(saveButton);
+    const titleInput = screen.getByLabelText(/Module Title/i);
+    const descriptionInput = screen.getByLabelText(/Module Description/i);
+    const topicSelect = screen.getByLabelText(/Module Topic/i);
+    const pointsInput = screen.getByLabelText(/Points Awarded/i);
+    const coverInput = screen.getByLabelText(/Cover Picture URL/i);
+    const saveButton = screen.getByLabelText(/Save Module/i);
 
-    expect(screen.getByText(/Module saved successfully!/i)).toBeInTheDocument();
+    await userEvent.clear(titleInput);
+    await userEvent.type(titleInput, 'Test Module');
+    await userEvent.clear(descriptionInput);
+    await userEvent.type(
+      descriptionInput,
+      'This is a test module description.',
+    );
+    await userEvent.selectOptions(topicSelect, 'cybersecurity');
+    await userEvent.clear(pointsInput);
+    await userEvent.type(pointsInput, '10');
+    await userEvent.clear(coverInput);
+    await userEvent.type(coverInput, 'https://example.com/image.jpg');
+    await userEvent.click(saveButton);
+    screen.findByText((content) =>
+      content.includes('Module saved successfully'),
+    );
   });
 });

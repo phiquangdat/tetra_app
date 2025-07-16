@@ -38,7 +38,7 @@ const QuizBlock: React.FC<QuizBlockProps> = ({ id }) => {
 
   if (loading)
     return <p className="px-6 py-4 text-primary">Loading quiz content...</p>;
-  if (error) return <p className="px-6 py-4 text-red-500">{error}</p>;
+  if (error) return <p className="px-6 py-4 text-error">{error}</p>;
   if (!quiz) return null;
 
   return (
@@ -92,7 +92,7 @@ const QuizBlock: React.FC<QuizBlockProps> = ({ id }) => {
           <button className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover text-sm">
             Edit
           </button>
-          <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm">
+          <button className="px-4 py-2 bg-error text-white rounded-lg hover:bg-errorHover text-sm">
             Delete
           </button>
         </div>

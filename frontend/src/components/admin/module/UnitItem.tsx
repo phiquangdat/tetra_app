@@ -60,7 +60,7 @@ const UnitItem: React.FC<UnitItemProps> = ({
       {isOpen && (
         <div className="px-6 pb-4 text-primary text-base">
           {loading && <p>Loading unit details...</p>}
-          {error && <p className="text-red-500">{error}</p>}
+          {error && <p className="text-error">{error}</p>}
           {details && (
             <div className="space-y-4 mt-4">
               <div>

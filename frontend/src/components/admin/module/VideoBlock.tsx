@@ -67,7 +67,7 @@ const VideoBlock: React.FC<VideoBlockProps> = ({ id }) => {
           <button className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover text-sm">
             Edit
           </button>
-          <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm">
+          <button className="px-4 py-2 bg-error text-white rounded-lg hover:bg-errorHover text-sm">
             Delete
           </button>
         </div>

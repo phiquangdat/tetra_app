@@ -24,7 +24,7 @@ const ContentBlockItem: React.FC<ContentBlockItemProps> = ({
     case 'quiz':
       return <QuizBlock id={id} />;
     default:
-      return <div className="p-4 text-red-500">Unsupported content type</div>;
+      return <div className="p-4 text-error">Unsupported content type</div>;
   }
 };
 

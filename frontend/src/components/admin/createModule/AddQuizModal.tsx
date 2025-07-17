@@ -103,20 +103,12 @@ function AddQuizModal({
     updateContentField('data', { ...data, content: e.target.value });
   };
 
-  const canSave =
-    data.title?.trim() !== '' &&
-    (data.content?.trim() || '') !== '' &&
-    (data.points || 0) > 0 &&
-    (data.questions || []).length > 0 &&
-    !isSaving;
-
   const handleSave = async () => {
     const validationErrors = validateQuiz();
     if (validationErrors.length > 0) {
       setErrors(validationErrors);
       return;
     }
-    if (!canSave) return;
 
     try {
       await saveContent('quiz');
@@ -126,7 +118,7 @@ function AddQuizModal({
         data: {
           title: data.title,
           content: data.content || '',
-          points: data.points || 0,
+          points: data.points,
           questions: data.questions || [],
         },
         sortOrder: 0,

@@ -568,6 +568,72 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TestResult'
+  /api/users:
+    post:
+      summary: Create a new user
+      description: |
+        Creates a new user (ADMIN or LEARNER).
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        description: User creation payload.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created successfully.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "User created successfully."
+        '400':
+          description: Invalid input or error.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Error: Invalid role. Allowed roles: ADMIN, LEARNER"
+        '500':
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Unexpected error: ..."
+
+    get:
+      summary: Get all users (ADMIN only)
+      description: |
+        Returns a list of all users. Requires ADMIN role.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of users.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserSummary'
+        '401':
+          description: Missing or invalid Authorization header.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Missing or invalid Authorization header"
+        '403':
+          description: Access denied (not ADMIN).
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Access denied"
 
 components:
   schemas:
@@ -928,3 +994,44 @@ components:
         testDate:
           type: string
           format: date-time
+
+    CreateUserRequest:
+      type: object
+      description: Payload for creating a user.
+      properties:
+        name:
+          type: string
+          example: "John Doe"
+        email:
+          type: string
+          example: "john@example.com"
+        password:
+          type: string
+          example: "password123"
+        role:
+          type: string
+          description: User role (ADMIN or LEARNER)
+          example: "LEARNER"
+
+    UserSummary:
+      type: object
+      description: Short info about a user.
+      properties:
+        id:
+          type: string
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        name:
+          type: string
+          example: "John Doe"
+        email:
+          type: string
+          example: "john@example.com"
+        role:
+          type: string
+          example: "LEARNER"
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

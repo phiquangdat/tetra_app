@@ -27,7 +27,7 @@ export async function loginUser(loginData: LoginProps): Promise<LoginResponse> {
 
     if (!response.ok) {
       throw new Error(
-        `Failed to login: ${response.status} ${response.statusText}`,
+        `Failed to login: ${response.status === 401 ? 'Invalid credentials' : response.statusText}`,
       );
     }
     const data: LoginResponse = await response.json();

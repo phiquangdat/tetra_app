@@ -22,11 +22,15 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
 
     try {
       const loginData = { email, password };
-      console.log('Attempting login with:', loginData);
+      console.log('Attempting login with:', loginData.email);
       const response = await loginUser(loginData);
       if (!response || !response.token) {
         throw new Error('Invalid response from server');
       }
+
+      sessionStorage.setItem('jwt_token', response.token);
+      sessionStorage.setItem('user_id', response.id);
+      sessionStorage.setItem('user_role', response.role.toLowerCase());
 
       if (response.role.toLowerCase() === 'admin') {
         navigate('/admin/');
@@ -158,6 +162,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
           <button
             type="submit"
             className="w-1/2 bg-[#14248A] hover:bg-[#101e72] text-white px-5 py-3 rounded-lg text-sm font-medium transition block mx-auto"
+            disabled={loading}
           >
             Log in
           </button>

@@ -3,6 +3,7 @@ package com.tetra.app.controller;
 import com.tetra.app.dto.CreateUserRequest;
 import com.tetra.app.model.Role;
 import com.tetra.app.service.UserService;
+import com.tetra.app.service.PasswordHashingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 
 import org.springframework.http.MediaType;
 
@@ -23,8 +25,14 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.tetra.app.security.JwtUtil;
+import com.tetra.app.model.User;
+import java.util.List;
+import java.util.UUID;
+
 @WebMvcTest(UserController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import(PasswordHashingService.class)
 public class UserControllerTest {
 
     @Autowired
@@ -32,6 +40,9 @@ public class UserControllerTest {
 
     @MockBean
     private UserService userService;
+
+    @MockBean
+    private JwtUtil jwtUtil;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -119,5 +130,61 @@ public class UserControllerTest {
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().string("Unexpected error: DB down"));
+    }
+
+    @Test
+    public void getAllUsers_MissingAuthorizationHeader_ReturnsUnauthorized() throws Exception {
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/users"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().string("Missing or invalid Authorization header"));
+    }
+
+    @Test
+    public void getAllUsers_InvalidToken_ReturnsUnauthorized() throws Exception {
+        when(jwtUtil.extractRole(anyString())).thenThrow(new RuntimeException("Invalid JWT token"));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/users")
+                .header("Authorization", "Bearer invalidtoken"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().string("Invalid token"));
+    }
+
+    @Test
+    public void getAllUsers_NonAdminRole_ReturnsForbidden() throws Exception {
+        when(jwtUtil.extractRole(anyString())).thenReturn("LEARNER");
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/users")
+                .header("Authorization", "Bearer sometoken"))
+                .andExpect(status().isForbidden())
+                .andExpect(content().string("Access denied"));
+    }
+
+    @Test
+    public void getAllUsers_AdminRole_ReturnsUserList() throws Exception {
+        when(jwtUtil.extractRole(anyString())).thenReturn("ADMIN");
+
+        User user1 = new User();
+        user1.setId(UUID.randomUUID());
+        user1.setName("Alice");
+        user1.setEmail("alice@example.com");
+        user1.setRole(Role.ADMIN);
+
+        User user2 = new User();
+        user2.setId(UUID.randomUUID());
+        user2.setName("Bob");
+        user2.setEmail("bob@example.com");
+        user2.setRole(Role.LEARNER);
+
+        when(userService.getAllUsers()).thenReturn(List.of(user1, user2));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/users")
+                .header("Authorization", "Bearer validtoken"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Alice"))
+                .andExpect(jsonPath("$[0].email").value("alice@example.com"))
+                .andExpect(jsonPath("$[0].role").value("ADMIN"))
+                .andExpect(jsonPath("$[1].name").value("Bob"))
+                .andExpect(jsonPath("$[1].email").value("bob@example.com"))
+                .andExpect(jsonPath("$[1].role").value("LEARNER"));
     }
 }

@@ -73,7 +73,6 @@ public class TrainingModuleController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateModule(@PathVariable UUID id, @RequestBody TrainingModule updated) {
-        // Validate required fields
         if (updated.getTitle() == null || updated.getTitle().isEmpty()) {
             return new ResponseEntity<>("Title is required", HttpStatus.BAD_REQUEST);
         }

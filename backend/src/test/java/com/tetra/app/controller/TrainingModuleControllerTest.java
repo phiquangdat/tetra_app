@@ -160,10 +160,6 @@ class TrainingModuleControllerTest {
         assertTrue(errorMessage.contains("required"));
     }
 
-    // ==============================
-    // NEW TESTS FOR UPDATE ENDPOINT
-    // ==============================
-
     @Test
     @WithMockUser
     void testUpdateModule_Success() throws Exception {

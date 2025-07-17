@@ -79,8 +79,14 @@ const CreateModuleForm: React.FC<Props> = () => {
     if (!topic) {
       newformErrors.push('Topic is required');
     }
-    if (pointsAwarded < 0) {
-      newformErrors.push('Points awarded cannot be negative');
+
+    const pointsStr = String(
+      pointsAwarded !== undefined && pointsAwarded !== null
+        ? pointsAwarded
+        : '',
+    ).trim();
+    if (!pointsStr && pointsAwarded !== 0) {
+      newformErrors.push('Points awarded is required');
     }
 
     if (formErrors.length > 0) {
@@ -124,8 +130,19 @@ const CreateModuleForm: React.FC<Props> = () => {
   };
 
   const handlePointsChange = (e: ChangeEvent<HTMLInputElement>) => {
-    updateModuleField('pointsAwarded', parseInt(e.target.value) || 0);
-    markModuleAsDirty();
+    const value = e.target.value;
+
+    if (value === '') {
+      updateModuleField('pointsAwarded', '');
+      markModuleAsDirty();
+      return;
+    }
+
+    if (/^\d+$/.test(value)) {
+      const numValue = parseInt(value, 10);
+      updateModuleField('pointsAwarded', numValue);
+      markModuleAsDirty();
+    }
   };
 
   const handleCoverPictureChange = async () => {
@@ -287,12 +304,15 @@ const CreateModuleForm: React.FC<Props> = () => {
                 Points Awarded
               </label>
               <input
-                type="number"
+                type="text"
                 id="pointsAwarded"
                 name="pointsAwarded"
-                value={pointsAwarded}
+                value={
+                  pointsAwarded !== undefined && pointsAwarded !== null
+                    ? String(pointsAwarded)
+                    : ''
+                }
                 onChange={handlePointsChange}
-                min={0}
                 required
                 className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
               />

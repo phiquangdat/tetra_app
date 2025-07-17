@@ -51,8 +51,16 @@ function AddQuizModal({
 
     if (!data.title?.trim()) newErrors.push('Quiz title is required.');
     if (!data.content?.trim()) newErrors.push('Quiz description is required.');
-    if (!data.points || data.points <= 0)
-      newErrors.push('Points must be greater than zero.');
+
+    const pointsValue = data.points;
+    const pointsStr = String(
+      pointsValue !== undefined && pointsValue !== null ? pointsValue : '',
+    ).trim();
+
+    if (!pointsStr && pointsValue !== 0) {
+      newErrors.push('Points is required.');
+    }
+
     if (!data.questions || data.questions.length === 0)
       newErrors.push('At least one question is required.');
 
@@ -76,8 +84,17 @@ function AddQuizModal({
   };
 
   const handleChangePoints = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value, 10) || 0;
-    updateContentField('data', { ...data, points: value });
+    const value = e.target.value;
+
+    if (value === '') {
+      updateContentField('data', { ...data, points: '' });
+      return;
+    }
+
+    if (/^\d+$/.test(value)) {
+      const numValue = parseInt(value, 10);
+      updateContentField('data', { ...data, points: numValue });
+    }
   };
 
   const handleChangeDescription = (
@@ -94,13 +111,12 @@ function AddQuizModal({
     !isSaving;
 
   const handleSave = async () => {
-    if (!canSave) return;
-
     const validationErrors = validateQuiz();
     if (validationErrors.length > 0) {
       setErrors(validationErrors);
       return;
     }
+    if (!canSave) return;
 
     try {
       await saveContent('quiz');
@@ -240,10 +256,13 @@ function AddQuizModal({
                 Points
               </label>
               <input
-                type="number"
-                value={data.points || 0}
+                type="text"
+                value={
+                  data.points !== undefined && data.points !== null
+                    ? String(data.points)
+                    : ''
+                }
                 onChange={handleChangePoints}
-                min={0}
                 required
                 className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
                 aria-label="points"

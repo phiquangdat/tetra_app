@@ -5,11 +5,11 @@ import {
 } from '../../../services/unit/unitApi';
 import UnitsBlock from '../ui/UnitsBlock';
 
-interface AdminUnitsBlockProps {
+interface UnitsBlockUIProps {
   moduleId: string;
 }
 
-const AdminUnitsBlock: React.FC<AdminUnitsBlockProps> = ({ moduleId }) => {
+const UnitsBlockUI: React.FC<UnitsBlockUIProps> = ({ moduleId }) => {
   const [units, setUnits] = useState<
     { id: string; title: string; description?: string }[]
   >([]);
@@ -61,4 +61,4 @@ const AdminUnitsBlock: React.FC<AdminUnitsBlockProps> = ({ moduleId }) => {
   );
 };
 
-export default AdminUnitsBlock;
+export default UnitsBlockUI;

@@ -109,6 +109,7 @@ function AddQuizModal({
       setErrors(validationErrors);
       return;
     }
+    if (!canSave) return;
 
     try {
       await saveContent('quiz');

@@ -16,6 +16,17 @@ function QuestionForm({ questionNumber = 1, questionType, onClose }: Props) {
 
   if (!question) return null;
 
+  if (questionType === 'multiple' && question.answers.length === 0) {
+    const defaultAnswers = [
+      { title: '', is_correct: false, sort_order: 0 },
+      { title: '', is_correct: false, sort_order: 1 },
+    ];
+    updateQuestion(questionIndex, {
+      ...question,
+      answers: defaultAnswers,
+    });
+  }
+
   const handleClose = () => {
     onClose();
   };
@@ -42,7 +53,7 @@ function QuestionForm({ questionNumber = 1, questionType, onClose }: Props) {
   };
 
   const handleRemoveOption = () => {
-    if (question.answers.length === 0) return;
+    if (question.answers.length <= 2) return;
     const updatedAnswers = [...question.answers];
     updatedAnswers.pop();
     updateQuestion(questionIndex, {
@@ -98,7 +109,7 @@ function QuestionForm({ questionNumber = 1, questionType, onClose }: Props) {
             <button
               className="bg-white border-gray-400 border-1 text-sm text-gray-700 px-2 rounded-lg cursor-pointer w-36 h-10 hover:bg-gray-100 transition-colors duration-200 flex items-center gap-2 mb-6"
               onClick={handleRemoveOption}
-              disabled={question.answers.length === 0}
+              disabled={question.answers.length <= 2}
             >
               <span className="text-xl pb-1">-</span>Remove Option
             </button>

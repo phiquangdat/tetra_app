@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { fetchUnitById } from '../../../services/unit/unitApi';
 import { ChevronDownIcon, ChevronUpIcon } from '../../common/Icons';
-import ContentBlockList from './ContentBlockList.tsx';
+import ContentBlockList from '../module/ContentBlockList';
 
-interface UnitItemProps {
+export interface UnitItemProps {
   id: string;
   title: string;
   index: number;
   isOpen: boolean;
   onToggle: () => void;
+  onEdit?: () => void;
 }
 
 interface UnitDetails {
@@ -24,6 +25,7 @@ const UnitItem: React.FC<UnitItemProps> = ({
   index,
   isOpen,
   onToggle,
+  onEdit,
 }) => {
   const [details, setDetails] = useState<UnitDetails | null>(null);
   const [loading, setLoading] = useState(false);
@@ -61,27 +63,36 @@ const UnitItem: React.FC<UnitItemProps> = ({
         <div className="px-6 pb-4 text-primary text-base">
           {loading && <p>Loading unit details...</p>}
           {error && <p className="text-error">{error}</p>}
-          {details && (
-            <div className="space-y-4 mt-4">
-              <div>
-                <p className="text-sm font-semibold">Unit title</p>
-                <p>{details.title}</p>
+          {details ? (
+            <>
+              <div className="space-y-4 mt-4">
+                <div>
+                  <p className="text-sm font-semibold">Unit title</p>
+                  <p>{details.title}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Unit description</p>
+                  <p>{details.description}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold">Unit description</p>
-                <p>{details.description}</p>
-              </div>
-              <button
-                onClick={() => {}}
-                className="mt-2 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover text-sm"
-              >
-                Edit
-              </button>
+
+              {onEdit && (
+                <button
+                  onClick={onEdit}
+                  className="mt-2 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover text-sm"
+                >
+                  Edit
+                </button>
+              )}
 
               <div className="mt-6">
                 <ContentBlockList unitId={id} />
               </div>
-            </div>
+            </>
+          ) : (
+            <p className="text-sm text-gray-500 mt-2">
+              Loading unit details...
+            </p>
           )}
         </div>
       )}

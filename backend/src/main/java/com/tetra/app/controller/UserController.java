@@ -3,22 +3,34 @@ package com.tetra.app.controller;
 import com.tetra.app.dto.CreateUserRequest;
 import com.tetra.app.model.Role;
 import com.tetra.app.service.UserService;
+import com.tetra.app.security.JwtUtil;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.stream.Collectors;
+import java.util.Map;
+
 @RestController
+@SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/users")
 public class UserController {
 
     private final UserService userService;
+    private final JwtUtil jwtUtil;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, JwtUtil jwtUtil) {
         this.userService = userService;
+        this.jwtUtil = jwtUtil;
     }
 
+    @Operation(summary = "Create a new user", security = @SecurityRequirement(name = "bearerAuth"))
     @PostMapping
     public ResponseEntity<?> createUser(@Valid @RequestBody CreateUserRequest request) {
         try {
@@ -42,5 +54,32 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Unexpected error: " + e.getMessage());
         }
+    }
+
+    @Operation(summary = "Get all users (ADMIN only)", security = @SecurityRequirement(name = "bearerAuth"))
+    @GetMapping
+    public ResponseEntity<?> getAllUsers(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
+        var users = userService.getAllUsers().stream()
+            .map(u -> Map.of(
+                "id", u.getId(),
+                "name", u.getName(),
+                "email", u.getEmail(),
+                "role", u.getRole().name()
+            ))
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(users);
     }
 }

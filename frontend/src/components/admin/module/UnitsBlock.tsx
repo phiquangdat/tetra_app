@@ -41,6 +41,7 @@ const UnitsBlockUI: React.FC<UnitsBlockUIProps> = ({ moduleId }) => {
         setLoading(false);
       }
     };
+
     loadUnits();
   }, [moduleId]);
 

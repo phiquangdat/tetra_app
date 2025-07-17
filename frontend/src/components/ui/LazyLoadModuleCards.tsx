@@ -20,14 +20,14 @@ function LazyLoadModuleCards({
       {visibleCount < total ? (
         <button
           onClick={onLoadMore}
-          className="bg-gray-300 hover:bg-gray-400 text-black px-6 py-2 rounded-lg"
+          className="bg-secondary hover:bg-secondaryHover text-background px-6 py-2 rounded-lg font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-highlight"
         >
           Load more
         </button>
       ) : (
         <button
           onClick={onShowLess}
-          className="bg-gray-300 hover:bg-gray-400 text-black px-6 py-2 rounded-lg"
+          className="bg-secondary hover:bg-secondaryHover text-background px-6 py-2 rounded-lg font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-highlight"
         >
           Show less
         </button>

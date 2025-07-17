@@ -64,6 +64,35 @@ paths:
                 $ref: '#/components/schemas/Module'
         '404':
           description: Module not found.
+    put:
+      summary: Update module by ID
+      description: |
+        Updates an existing module's information.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: The unique identifier (UUID) of the module to update.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Module object with updated fields.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Module'
+      responses:
+        '200':
+          description: Module successfully updated. Returns the updated Module object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Module'
+        '400':
+          description: Bad request (missing or invalid fields).
+        '404':
+          description: Module not found.
 
   /api/units:
     get:

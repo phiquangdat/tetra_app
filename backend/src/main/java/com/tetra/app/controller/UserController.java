@@ -37,6 +37,7 @@ public class UserController {
         this.jwtUtil = jwtUtil;
     }
 
+    @Operation(summary = "Create a new user", security = @SecurityRequirement(name = "bearerAuth"))
     @PostMapping
     public ResponseEntity<?> createUser(
         @RequestHeader(value = "Authorization", required = false) String authHeader,

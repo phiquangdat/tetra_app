@@ -315,6 +315,20 @@ public class UnitContentController {
                 return ResponseEntity.badRequest().body("sort_order must be a non-negative integer");
             }
 
+            Integer points = null;
+            if (body.containsKey("points") && body.get("points") != null) {
+                Object pointsObj = body.get("points");
+                if (pointsObj instanceof Integer) {
+                    points = (Integer) pointsObj;
+                } else {
+                    try {
+                        points = Integer.parseInt(pointsObj.toString());
+                    } catch (Exception e) {
+                        return ResponseEntity.badRequest().body("points must be an integer");
+                    }
+                }
+            }
+
             // Validate unit exists
             Unit unit = unitRepository.findById(unitId).orElse(null);
             if (unit == null) {
@@ -335,6 +349,7 @@ public class UnitContentController {
             unitContent.setTitle(title);
             unitContent.setContent(content);
             unitContent.setSortOrder(sortOrder);
+            unitContent.setPoints(points);
 
             unitContent = unitContentRepository.saveAndFlush(unitContent);
 
@@ -345,6 +360,7 @@ public class UnitContentController {
             response.put("title", unitContent.getTitle());
             response.put("content", unitContent.getContent());
             response.put("sort_order", unitContent.getSortOrder());
+            response.put("points", unitContent.getPoints());
 
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {

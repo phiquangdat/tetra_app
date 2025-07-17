@@ -23,9 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @WebMvcTest(TrainingModuleController.class)
 @Import(SecurityConfig.class)
@@ -98,9 +96,8 @@ class TrainingModuleControllerTest {
         module.setPoints(20);
         module.setTopic("New Topic");
         module.setCoverurl("new_cover.jpg");
-        module.setStatus("draft"); // Use allowed status
+        module.setStatus("draft");
 
-        // Set up the saved module with an id
         TrainingModule savedModule = new TrainingModule();
         savedModule.setId(UUID.fromString("00000000-0000-0000-0000-000000000010"));
         savedModule.setTitle("New Module");
@@ -108,7 +105,7 @@ class TrainingModuleControllerTest {
         savedModule.setPoints(20);
         savedModule.setTopic("New Topic");
         savedModule.setCoverurl("new_cover.jpg");
-        savedModule.setStatus("draft"); // Use allowed status
+        savedModule.setStatus("draft");
 
         when(trainingModuleRepository.save(any(TrainingModule.class))).thenReturn(savedModule);
 
@@ -140,7 +137,6 @@ class TrainingModuleControllerTest {
                 .andReturn();
 
         String errorMessage = result.getResponse().getContentAsString();
-        // Assert that the error message is one of the expected messages
         assertTrue(errorMessage.contains("required"));
     }
 
@@ -148,7 +144,6 @@ class TrainingModuleControllerTest {
     @WithMockUser
     void testCreateModule_MissingFields() throws Exception {
         TrainingModule module = new TrainingModule();
-        // Intentionally leaving out required fields like title, description, etc.
         module.setTitle(null);
         module.setDescription(null);
         module.setPoints(null);
@@ -162,7 +157,88 @@ class TrainingModuleControllerTest {
                 .andReturn();
 
         String errorMessage = result.getResponse().getContentAsString();
-        // Assert that the error message is one of the expected messages
         assertTrue(errorMessage.contains("required"));
+    }
+
+    // ==============================
+    // NEW TESTS FOR UPDATE ENDPOINT
+    // ==============================
+
+    @Test
+    @WithMockUser
+    void testUpdateModule_Success() throws Exception {
+        UUID moduleId = UUID.fromString("00000000-0000-0000-0000-000000000005");
+
+        TrainingModule existing = new TrainingModule();
+        existing.setId(moduleId);
+        existing.setTitle("Old Title");
+        existing.setDescription("Old Desc");
+        existing.setTopic("Old Topic");
+        existing.setPoints(5);
+        existing.setCoverurl("old.jpg");
+        existing.setStatus("draft");
+
+        TrainingModule updated = new TrainingModule();
+        updated.setTitle("Updated Title");
+        updated.setDescription("Updated Desc");
+        updated.setTopic("Updated Topic");
+        updated.setPoints(15);
+        updated.setCoverurl("updated.jpg");
+        updated.setStatus("published");
+
+        TrainingModule saved = new TrainingModule();
+        saved.setId(moduleId);
+        saved.setTitle("Updated Title");
+        saved.setDescription("Updated Desc");
+        saved.setTopic("Updated Topic");
+        saved.setPoints(15);
+        saved.setCoverurl("updated.jpg");
+        saved.setStatus("published");
+
+        when(trainingModuleRepository.findById(moduleId)).thenReturn(Optional.of(existing));
+        when(trainingModuleRepository.save(any(TrainingModule.class))).thenReturn(saved);
+
+        mockMvc.perform(put("/api/modules/" + moduleId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updated)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(moduleId.toString()))
+                .andExpect(jsonPath("$.title").value("Updated Title"))
+                .andExpect(jsonPath("$.status").value("published"));
+    }
+
+    @Test
+    @WithMockUser
+    void testUpdateModule_MissingRequiredFields() throws Exception {
+        UUID moduleId = UUID.randomUUID();
+
+        TrainingModule updated = new TrainingModule(); // Missing required fields
+
+        mockMvc.perform(put("/api/modules/" + moduleId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updated)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("required")));
+    }
+
+    @Test
+    @WithMockUser
+    void testUpdateModule_NotFound() throws Exception {
+        UUID moduleId = UUID.fromString("00000000-0000-0000-0000-000000000099");
+
+        TrainingModule updated = new TrainingModule();
+        updated.setTitle("Title");
+        updated.setDescription("Desc");
+        updated.setTopic("Topic");
+        updated.setPoints(10);
+        updated.setCoverurl("cover.jpg");
+        updated.setStatus("draft");
+
+        when(trainingModuleRepository.findById(moduleId)).thenReturn(Optional.empty());
+
+        mockMvc.perform(put("/api/modules/" + moduleId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updated)))
+                .andExpect(status().isNotFound());
     }
 }

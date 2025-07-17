@@ -585,15 +585,23 @@ export const ReOrderIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   </svg>
 );
 
-export const UsersIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+export const UsersIcon: React.FC<React.SVGProps<SVGSVGElement>> = ({
+  width = 24,
+  height = 24,
+  color = '#998FC7',
+  className,
+  ...props
+}) => (
   <svg
+    width={width}
+    height={height}
+    className={className}
     viewBox="0 0 24 24"
     fill="none"
-    stroke="currentColor"
+    stroke={color}
     strokeWidth={2}
     strokeLinecap="round"
     strokeLinejoin="round"
-    className="w-6 h-6 text-gray-700 flex-shrink-0"
     {...props}
   >
     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />

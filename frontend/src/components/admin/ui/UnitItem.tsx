@@ -6,6 +6,7 @@ import ContentBlockList from '../module/ContentBlockList';
 export interface UnitItemProps {
   id: string;
   title: string;
+  details?: UnitDetails;
   index: number;
   isOpen: boolean;
   onToggle: () => void;
@@ -22,12 +23,15 @@ interface UnitDetails {
 const UnitItem: React.FC<UnitItemProps> = ({
   id,
   title,
+  details,
   index,
   isOpen,
   onToggle,
   onEdit,
 }) => {
-  const [details, setDetails] = useState<UnitDetails | null>(null);
+  const [unitDetails, setUnitDetails] = useState<UnitDetails | null>(
+    details || null,
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -35,7 +39,7 @@ const UnitItem: React.FC<UnitItemProps> = ({
     if (isOpen && !details && !loading) {
       setLoading(true);
       fetchUnitById(id)
-        .then(setDetails)
+        .then(setUnitDetails)
         .catch(() => setError('Failed to fetch unit details'))
         .finally(() => setLoading(false));
     }
@@ -63,16 +67,16 @@ const UnitItem: React.FC<UnitItemProps> = ({
         <div className="px-6 pb-4 text-primary text-base">
           {loading && <p>Loading unit details...</p>}
           {error && <p className="text-error">{error}</p>}
-          {details ? (
+          {unitDetails ? (
             <>
               <div className="space-y-4 mt-4">
                 <div>
                   <p className="text-sm font-semibold">Unit title</p>
-                  <p>{details.title}</p>
+                  <p>{unitDetails.title}</p>
                 </div>
                 <div>
                   <p className="text-sm font-semibold">Unit description</p>
-                  <p>{details.description}</p>
+                  <p>{unitDetails.description}</p>
                 </div>
               </div>
 

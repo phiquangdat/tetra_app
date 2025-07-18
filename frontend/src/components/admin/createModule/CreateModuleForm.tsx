@@ -214,8 +214,8 @@ const CreateModuleForm: React.FC<Props> = () => {
           id="coverPictureUrl"
           name="coverPictureUrl"
           placeholder="https://example.com/image.jpg"
+          value={coverPicture ?? ''}
           onChange={handleCoverPictureChange}
-          defaultValue={coverPicture ?? ''}
           className="text-xs bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
         />
       </div>

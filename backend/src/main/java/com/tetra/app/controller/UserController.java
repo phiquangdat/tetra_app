@@ -17,7 +17,6 @@ import com.tetra.app.model.Role;
 import com.tetra.app.security.JwtUtil;
 import com.tetra.app.service.UserService;
 
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 
@@ -34,7 +33,6 @@ public class UserController {
         this.jwtUtil = jwtUtil;
     }
 
-    @Operation(summary = "Create a new user", security = @SecurityRequirement(name = "bearerAuth"))
     @PostMapping
     public ResponseEntity<?> createUser(
         @RequestHeader(value = "Authorization", required = false) String authHeader,

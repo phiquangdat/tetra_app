@@ -69,6 +69,7 @@ type UnitContextType = {
   removeUnit: (unitNumber: number) => void;
   addContentBlock: (unitNumber: number, block: ContentBlock) => void;
   removeContentBlock: (unitNumber: number, blockIndex: number) => void;
+  addUnit: () => void;
 };
 
 const createDefaultUnitState = (): UnitContextEntry => ({
@@ -150,6 +151,15 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     const unitNumbers = Object.keys(unitStates).map(Number);
     return unitNumbers.length > 0 ? Math.max(...unitNumbers) + 1 : 1;
   }, [unitStates]);
+
+  const addUnit = useCallback(() => {
+    setUnitStates((prev) => {
+      const next = Object.keys(prev).length
+        ? Math.max(...Object.keys(prev).map(Number)) + 1
+        : 1;
+      return { ...prev, [next]: createDefaultUnitState() };
+    });
+  }, []);
 
   const saveUnit = useCallback(
     async (unitNumber: number, moduleId: string) => {
@@ -261,6 +271,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     removeUnit,
     addContentBlock,
     removeContentBlock,
+    addUnit,
   };
 
   return (

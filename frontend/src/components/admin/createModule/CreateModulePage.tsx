@@ -7,6 +7,27 @@ import {
 import { ContentBlockContextProvider } from '../../../context/admin/ContentBlockContext.tsx';
 import CreateModuleForm from './CreateModuleForm';
 import UnitForm from './UnitForm';
+import UnitsBlock from '../ui/UnitsBlock.tsx';
+
+const UnitsManager: React.FC = () => {
+  const { unitStates, addUnit } = useUnitContext();
+
+  return (
+    <UnitsBlock>
+      {Object.keys(unitStates).map((key) => {
+        const num = parseInt(key, 10);
+        return <UnitForm key={num} unitNumber={num} />;
+      })}
+      <button
+        type="button"
+        onClick={addUnit}
+        className="mt-4 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition"
+      >
+        Add new unit
+      </button>
+    </UnitsBlock>
+  );
+};
 
 function CreateModulePageContent() {
   const { unitStates, setUnitState, getNextUnitNumber } = useUnitContext();
@@ -42,26 +63,11 @@ function CreateModulePageContent() {
     <div className="m-0 px-4 py-4 max-w-5xl">
       <h1 className="font-extrabold text-[28px] pb-4">Create New Module</h1>
       <CreateModuleForm />
+      <UnitsManager />
       <div
         className="max-w-5xl px-16 py-9 my-6 rounded-3xl"
         style={{ backgroundColor: '#F2EAEA' }}
       >
-        <h2 className="text-2xl font-semibold text-gray-700 mb-6">Units</h2>
-
-        {unitNumbers.map((unitNumber) => (
-          <UnitForm key={unitNumber} unitNumber={unitNumber} />
-        ))}
-
-        <div className="mx-auto my-6 flex justify-center">
-          <button
-            onClick={handleAddUnit}
-            className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-2 rounded-lg cursor-pointer w-44 h-10 hover:bg-gray-100 transition-colors duration-200 flex items-center gap-2"
-          >
-            <span className="text-xl pb-1">+</span>
-            Add another unit
-          </button>
-        </div>
-
         <div className="mx-auto my-6 flex justify-center gap-2">
           <button
             type="button"

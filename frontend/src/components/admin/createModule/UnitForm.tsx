@@ -1,42 +1,66 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useUnitContext } from '../../../context/admin/UnitContext';
 import { useModuleContext } from '../../../context/admin/ModuleContext';
+import Accordion from '../ui/Accordion';
+import UnitItemPreview from './UnitItemPreview';
+import { RemoveIcon } from '../../common/Icons';
 import AddArticleModal from './AddArticleModal';
 import AddVideoModal from './AddVideoModal';
 import AddQuizModal from './AddQuizModal';
-import { ChevronDownIcon, ChevronUpIcon, RemoveIcon } from '../../common/Icons';
 
 type UnitFormProps = {
   unitNumber: number;
 };
 
-function UnitForm({ unitNumber }: UnitFormProps) {
+const UnitForm: React.FC<UnitFormProps> = ({ unitNumber }) => {
+  const { id: moduleId } = useModuleContext();
+  const { unitStates, getUnitState, updateUnitField, saveUnit, removeUnit } =
+    useUnitContext();
+
+  const unitState = getUnitState(unitNumber);
+  const canRemove = Object.keys(unitStates).length > 1;
+
   const [isOpen, setIsOpen] = useState(true);
+  const [isEditing, setIsEditing] = useState(true);
+  const [successSaved, setSuccessSaved] = useState(false);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
   const [isArticleModalOpen, setIsArticleModalOpen] = useState(false);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
-  const [successSaved, setSuccessSaved] = useState(false);
-  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
-  const [unitID, setUnitID] = useState<string | ''>('');
 
-  const { updateUnitField, getUnitState, saveUnit, removeUnit, unitStates } =
-    useUnitContext();
-  const { id: moduleId } = useModuleContext();
+  // Reset success message when editing again
+  useEffect(() => {
+    if (isEditing) {
+      setSuccessSaved(false);
+    }
+  }, [isEditing]);
 
-  const defaultUnitState = {
-    id: '',
-    title: '',
-    description: '',
-    content: [],
-    isDirty: false,
-    isSaving: false,
-    error: null,
+  const handleSave = async () => {
+    // if there's no state, or we're already saving, do nothing
+    if (!unitState || unitState.isSaving) {
+      return;
+    }
+
+    // if nothing dirty, just close the form (no backend call)
+    if (!unitState.isDirty) {
+      setIsEditing(false);
+      return;
+    }
+
+    try {
+      await saveUnit(unitNumber, moduleId!);
+      setSuccessSaved(true);
+      setIsEditing(false);
+      setTimeout(() => setSuccessSaved(false), 3000);
+    } catch (err) {
+      console.error('Error saving unit:', err);
+      updateUnitField(
+        unitNumber,
+        'error',
+        err instanceof Error ? err.message : 'Failed to save unit',
+      );
+    }
   };
-
-  const unitState = getUnitState(unitNumber) || defaultUnitState;
-
-  const totalUnits = Object.keys(unitStates).length;
-  const canRemove = totalUnits > 1;
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateUnitField(unitNumber, 'title', e.target.value);
@@ -58,225 +82,171 @@ function UnitForm({ unitNumber }: UnitFormProps) {
     e.target.value = '';
   };
 
-  useEffect(() => {
-    if (unitState?.id) {
-      setUnitID(unitState.id);
-    }
-  }, [unitState?.id]);
-
-  const handleSaveUnitForm = async () => {
-    if (!moduleId) {
-      updateUnitField(
-        unitNumber,
-        'error',
-        'Module must be saved before saving units',
-      );
-      return;
-    }
-    if (unitState.isSaving) return;
-    setSuccessSaved(false);
-
-    try {
-      await saveUnit(unitNumber, moduleId);
-      setSuccessSaved(true);
-      setTimeout(() => {
-        setSuccessSaved(false);
-      }, 3000);
-    } catch (err) {
-      console.error('Error saving unit:', err);
-      updateUnitField(
-        unitNumber,
-        'error',
-        err instanceof Error ? err.message : 'Failed to save unit',
-      );
-    }
-  };
-
-  const handleRemoveUnit = () => {
+  const handleRemove = () => {
     if (canRemove) {
       setShowRemoveConfirm(true);
     }
   };
 
-  const confirmRemoveUnit = () => {
+  const confirmRemove = () => {
     removeUnit(unitNumber);
     setShowRemoveConfirm(false);
   };
 
-  const cancelRemoveUnit = () => {
+  const cancelRemove = () => {
     setShowRemoveConfirm(false);
   };
 
+  // If we've saved, show the preview with Edit button
+  if (!isEditing) {
+    return (
+      <UnitItemPreview
+        unitNumber={unitNumber}
+        moduleId={moduleId}
+        onEdit={() => setIsEditing(true)}
+      />
+    );
+  }
+
   return (
-    <div>
+    <>
       <form onSubmit={(e) => e.preventDefault()}>
-        <div
-          className={`flex items-center justify-between px-3 py-4 mb-4 ${isOpen ? '' : 'bg-gray-100'} rounded-lg cursor-pointer transition-colors duration-200`}
-          onClick={() => setIsOpen(!isOpen)}
-          aria-expanded={isOpen}
-        >
-          <h3 className="text-xl font-semibold text-gray-700">
-            Unit {unitNumber}
-          </h3>
-          <div className="flex items-center gap-2">
-            {canRemove && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRemoveUnit();
-                }}
-                title="Remove Unit"
-                aria-label="Remove Unit"
-                className="w-10 h-8"
-              >
-                <RemoveIcon />
-              </button>
-            )}
-            {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
-          </div>
-        </div>
-
-        {isOpen && (
-          <div className="space-y-6 max-w-110 mx-0 mb-11">
-            {unitState.error ? (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                <p className="text-sm">{unitState.error}</p>
-              </div>
-            ) : successSaved ? (
-              <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                <p className="text-sm">Unit saved successfully!</p>
-              </div>
-            ) : null}
-
-            <div className="max-w-90 mb-11">
-              <label
-                htmlFor="unitTitle"
-                className="block mb-2 font-medium text-gray-700"
-              >
-                Unit Title
-              </label>
-              <input
-                type="text"
-                id="unitTitle"
-                name="unitTitle"
-                value={unitState.title}
-                onChange={handleTitleChange}
-                className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
-              />
-            </div>
-
-            <div className="mb-11">
-              <label
-                htmlFor="unitDescription"
-                className="block mb-2 font-medium text-gray-700"
-              >
-                Unit Description
-              </label>
-              <textarea
-                id="unitDescription"
-                name="unitDescription"
-                value={unitState.description}
-                onChange={handleDescriptionChange}
-                className="bg-white border-gray-400 border-2 w-full h-60 rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
-                style={{ resize: 'none' }}
-              />
-            </div>
-
-            <button
-              type="button"
-              aria-label="Save unit"
-              onClick={handleSaveUnitForm}
-              disabled={unitState.isSaving}
-              className={`border-2 text-sm px-4 py-1 rounded-lg transition-colors duration-200 mr-4 mb-20 w-28 h-10 ${
-                unitState.isSaving
-                  ? 'bg-gray-300 border-gray-300 text-gray-500 cursor-not-allowed'
-                  : unitState.isDirty
-                    ? 'bg-blue-500 border-blue-500 text-white hover:bg-blue-600 cursor-pointer'
-                    : 'bg-white border-gray-400 text-gray-700 hover:bg-gray-100 cursor-pointer'
-              }`}
-            >
-              {unitState.isSaving ? 'Saving...' : 'Save'}
-            </button>
-
-            <div className="w-48 mb-11">
-              <label htmlFor="contentBlocks" className="text-xl font-semibold">
-                Content Blocks
-              </label>
-              <select
-                id="contentBlocks"
-                name="contentBlocks"
-                onChange={handleContentBlockChange}
-                className="bg-white border-gray-400 text-gray-700 border-2 w-full mt-6 rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
-                defaultValue=""
-                disabled={!unitState.id || unitState.isSaving}
-                title={
-                  !unitState.id
-                    ? 'Please save the unit first to add content.'
-                    : ''
-                }
-              >
-                <option value="" disabled>
-                  + Add content
-                </option>
-                <option value="addVideo">Add video</option>
-                <option value="addArticle">Add article</option>
-                <option value="addQuiz">Add quiz</option>
-              </select>
-              {!unitState.id && (
-                <p className="text-md text-gray-500 mt-2">
-                  Please save the unit first to add content blocks.
-                </p>
+        <Accordion
+          header={
+            <div className="flex items-center justify-between w-full">
+              <h3 className="text-xl font-semibold text-gray-700">
+                Unit {unitNumber}
+              </h3>
+              {canRemove && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemove();
+                  }}
+                  aria-label="Remove Unit"
+                >
+                  <RemoveIcon />
+                </button>
               )}
             </div>
+          }
+          isOpen={isOpen}
+          onToggle={() => setIsOpen((o) => !o)}
+        >
+          {/* Error or Success Messages */}
+          {unitState?.error && (
+            <div className="bg-red-100 text-red-700 p-2 rounded mb-4">
+              {unitState.error}
+            </div>
+          )}
+          {successSaved && (
+            <div className="bg-green-100 text-green-700 p-2 rounded mb-4">
+              Unit saved successfully!
+            </div>
+          )}
+
+          {/* Title Input */}
+          <div className="mb-6">
+            <label
+              htmlFor={`unitTitle-${unitNumber}`}
+              className="block mb-1 font-medium"
+            >
+              Title
+            </label>
+            <input
+              id={`unitTitle-${unitNumber}`}
+              type="text"
+              value={unitState?.title || ''}
+              onChange={handleTitleChange}
+              className="w-full border-gray-300 border rounded p-2 focus:outline-none focus:border-blue-500"
+            />
           </div>
-        )}
+
+          {/* Description Input */}
+          <div className="mb-6">
+            <label
+              htmlFor={`unitDesc-${unitNumber}`}
+              className="block mb-1 font-medium"
+            >
+              Description
+            </label>
+            <textarea
+              id={`unitDesc-${unitNumber}`}
+              value={unitState?.description || ''}
+              onChange={handleDescriptionChange}
+              rows={4}
+              className="w-full border-gray-300 border rounded p-2 focus:outline-none focus:border-blue-500 resize-none"
+            />
+          </div>
+
+          {/* Save Button */}
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={unitState?.isSaving}
+            className={`px-4 py-2 rounded-lg transition ${
+              unitState?.isSaving
+                ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                : unitState?.isDirty
+                  ? 'bg-blue-500 text-white hover:bg-blue-600'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            {unitState?.isSaving ? 'Saving...' : 'Save'}
+          </button>
+
+          {/* Content Blocks Selector */}
+          <div className="mt-6">
+            <label
+              htmlFor={`contentBlocks-${unitNumber}`}
+              className="block mb-2 font-medium"
+            >
+              Add Content Block
+            </label>
+            <select
+              id={`contentBlocks-${unitNumber}`}
+              onChange={handleContentBlockChange}
+              className="w-full border-gray-300 border rounded p-2 focus:outline-none focus:border-blue-500"
+              disabled={!unitState?.id || unitState.isSaving}
+              defaultValue=""
+            >
+              <option value="" disabled>
+                + Add content
+              </option>
+              <option value="addVideo">Add video</option>
+              <option value="addArticle">Add article</option>
+              <option value="addQuiz">Add quiz</option>
+            </select>
+            {!unitState?.id && (
+              <p className="text-sm text-gray-500 mt-2">
+                Save the unit first to add content blocks.
+              </p>
+            )}
+          </div>
+        </Accordion>
       </form>
 
-      <div className="mb-8 space-y-4">
-        <h4 className="text-lg font-semibold text-gray-800">Added Content</h4>
-        {unitState.content.length === 0 ? (
-          <p className="text-sm text-gray-500">No content blocks added yet.</p>
-        ) : (
-          unitState.content.map((block, index) => (
-            <div
-              key={`${block.type}-${index}`}
-              className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200"
-            >
-              <h5 className="text-md font-semibold text-gray-800 mb-2">
-                {block.type.charAt(0).toUpperCase() + block.type.slice(1)}
-              </h5>
-              <p className="text-sm text-gray-600 mb-2">
-                {block.data.title || 'Untitled'}
-              </p>
-            </div>
-          ))
-        )}
-      </div>
-
+      {/* Remove Confirmation Modal */}
       {showRemoveConfirm && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-        >
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded-lg max-w-sm w-full">
+            <h4 className="text-lg font-semibold mb-4">
               Remove Unit {unitNumber}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to remove this unit? This action cannot be
-              undone.
+            </h4>
+            <p className="mb-6">
+              Are you sure you want to remove this unit? This cannot be undone.
             </p>
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-4">
               <button
-                onClick={cancelRemoveUnit}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors duration-200"
+                onClick={cancelRemove}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
               >
                 Cancel
               </button>
               <button
-                onClick={confirmRemoveUnit}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors duration-200"
+                onClick={confirmRemove}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
               >
                 Remove
               </button>
@@ -285,28 +255,27 @@ function UnitForm({ unitNumber }: UnitFormProps) {
         </div>
       )}
 
+      {/* Content Block Modals */}
       <AddArticleModal
         isOpen={isArticleModalOpen}
         onClose={() => setIsArticleModalOpen(false)}
-        unitId={unitID || ''}
+        unitId={unitState?.id ?? ''}
         unitNumber={unitNumber}
       />
-
       <AddVideoModal
         isOpen={isVideoModalOpen}
         onClose={() => setIsVideoModalOpen(false)}
-        unitId={unitID || ''}
+        unitId={unitState?.id ?? ''}
         unitNumber={unitNumber}
       />
-
       <AddQuizModal
         isOpen={isQuizModalOpen}
         onClose={() => setIsQuizModalOpen(false)}
-        unitId={unitID || ''}
+        unitId={unitState?.id ?? ''}
         unitNumber={unitNumber}
       />
-    </div>
+    </>
   );
-}
+};
 
 export default UnitForm;

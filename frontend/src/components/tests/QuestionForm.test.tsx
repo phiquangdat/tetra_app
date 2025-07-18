@@ -14,6 +14,7 @@ const mockData = {
       answers: [
         { title: 'Paris', is_correct: true, sort_order: 0 },
         { title: 'Berlin', is_correct: false, sort_order: 1 },
+        { title: 'Madrid', is_correct: false, sort_order: 2 },
       ],
       type: 'multiple',
       sort_order: 1,

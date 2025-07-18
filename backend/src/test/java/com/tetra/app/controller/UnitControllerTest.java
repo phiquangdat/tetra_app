@@ -106,12 +106,13 @@ public class UnitControllerTest {
         TrainingModule module = new TrainingModule();
         module.setId(moduleId);
 
-        when(trainingModuleRepository.findById(moduleId)).thenReturn(java.util.Optional.of(module));
+        when(trainingModuleRepository.findById(moduleId)).thenReturn(Optional.of(module));
 
-        Map<String, Object> body = new java.util.HashMap<>();
-        body.put("module_id", "00000000-0000-0000-0000-000000000001");
-        body.put("title", "Test Unit");
-        body.put("description", "Test Description");
+        Map<String, Object> body = Map.of(
+                "module_id", "00000000-0000-0000-0000-000000000001",
+                "title", "Test Unit",
+                "description", "Test Description"
+        );
 
         Unit savedUnit = new Unit(module, "Test Unit", "Test Description");
         when(unitRepository.save(any(Unit.class))).thenReturn(savedUnit);
@@ -125,12 +126,13 @@ public class UnitControllerTest {
     @Test
     void testCreateUnit_ModuleNotFound() {
         UUID moduleId = UUID.fromString("00000000-0000-0000-0000-000000000002");
-        when(trainingModuleRepository.findById(moduleId)).thenReturn(java.util.Optional.empty());
+        when(trainingModuleRepository.findById(moduleId)).thenReturn(Optional.empty());
 
-        Map<String, Object> body = new java.util.HashMap<>();
-        body.put("module_id", "00000000-0000-0000-0000-000000000002");
-        body.put("title", "Test Unit");
-        body.put("description", "Test Description");
+        Map<String, Object> body = Map.of(
+                "module_id", "00000000-0000-0000-0000-000000000002",
+                "title", "Test Unit",
+                "description", "Test Description"
+        );
 
         ResponseEntity<?> response = unitController.createUnit(body);
 
@@ -140,10 +142,99 @@ public class UnitControllerTest {
 
     @Test
     void testCreateUnit_BadRequest() {
-        Map<String, Object> body = new java.util.HashMap<>();
-        
+        Map<String, Object> body = Map.of();
+
         ResponseEntity<?> response = unitController.createUnit(body);
         assertEquals(400, response.getStatusCode().value());
         assertEquals("module_id, title, and description are required", response.getBody());
+    }
+
+    
+    @Test
+    void testUpdateUnit_Success() {
+        UUID unitId = UUID.randomUUID();
+        Unit existingUnit = new Unit(null, "Old Title", "Old Description");
+
+        when(unitRepository.findById(unitId)).thenReturn(Optional.of(existingUnit));
+        when(unitRepository.save(any(Unit.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Map<String, Object> updateBody = Map.of(
+                "title", "New Title",
+                "description", "New Description"
+        );
+
+        ResponseEntity<?> response = unitController.updateUnit(unitId, updateBody);
+
+        assertEquals(200, response.getStatusCodeValue());
+        Unit updatedUnit = (Unit) response.getBody();
+        assertNotNull(updatedUnit);
+        assertEquals("New Title", updatedUnit.getTitle());
+        assertEquals("New Description", updatedUnit.getDescription());
+
+        verify(unitRepository, times(1)).findById(unitId);
+        verify(unitRepository, times(1)).save(existingUnit);
+    }
+
+    @Test
+    void testUpdateUnit_PartialUpdate_TitleOnly() {
+        UUID unitId = UUID.randomUUID();
+        Unit existingUnit = new Unit(null, "Old Title", "Old Description");
+
+        when(unitRepository.findById(unitId)).thenReturn(Optional.of(existingUnit));
+        when(unitRepository.save(any(Unit.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Map<String, Object> updateBody = Map.of("title", "New Title");
+
+        ResponseEntity<?> response = unitController.updateUnit(unitId, updateBody);
+
+        assertEquals(200, response.getStatusCodeValue());
+        Unit updatedUnit = (Unit) response.getBody();
+        assertNotNull(updatedUnit);
+        assertEquals("New Title", updatedUnit.getTitle());
+        assertEquals("Old Description", updatedUnit.getDescription());
+
+        verify(unitRepository, times(1)).findById(unitId);
+        verify(unitRepository, times(1)).save(existingUnit);
+    }
+
+    @Test
+    void testUpdateUnit_PartialUpdate_DescriptionOnly() {
+        UUID unitId = UUID.randomUUID();
+        Unit existingUnit = new Unit(null, "Old Title", "Old Description");
+
+        when(unitRepository.findById(unitId)).thenReturn(Optional.of(existingUnit));
+        when(unitRepository.save(any(Unit.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Map<String, Object> updateBody = Map.of("description", "New Description");
+
+        ResponseEntity<?> response = unitController.updateUnit(unitId, updateBody);
+
+        assertEquals(200, response.getStatusCodeValue());
+        Unit updatedUnit = (Unit) response.getBody();
+        assertNotNull(updatedUnit);
+        assertEquals("Old Title", updatedUnit.getTitle());
+        assertEquals("New Description", updatedUnit.getDescription());
+
+        verify(unitRepository, times(1)).findById(unitId);
+        verify(unitRepository, times(1)).save(existingUnit);
+    }
+
+    @Test
+    void testUpdateUnit_UnitNotFound() {
+        UUID unitId = UUID.randomUUID();
+
+        when(unitRepository.findById(unitId)).thenReturn(Optional.empty());
+
+        Map<String, Object> updateBody = Map.of("title", "New Title");
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            unitController.updateUnit(unitId, updateBody);
+        });
+
+        assertEquals(404, exception.getStatusCode().value());
+        assertEquals("Unit not found with id: " + unitId, exception.getReason());
+
+        verify(unitRepository, times(1)).findById(unitId);
+        verify(unitRepository, never()).save(any());
     }
 }

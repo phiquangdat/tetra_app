@@ -21,6 +21,8 @@ export interface Module {
   status: string; // Add this line to match the expected type in components
 }
 
+export type ModuleInput = Omit<Module, 'id'>;
+
 export async function fetchModuleById(id: string): Promise<Module> {
   const url = `${BASE_URL}/modules/${id}`;
   console.log(`[fetchModuleById] Fetching: ${url}`);
@@ -107,6 +109,40 @@ export async function createModule(module: Module): Promise<Module> {
     return data;
   } catch (error) {
     console.error('[createModule] Exception:', error);
+    throw error;
+  }
+}
+
+export async function updateModule(
+  id: string,
+  module: ModuleInput,
+): Promise<Module> {
+  const url = `${BASE_URL}/modules/${id}`;
+  console.log('[updateModule] Updating:', url, 'Payload:', module);
+
+  try {
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(module),
+    });
+    console.log(`[update] Response status: ${response.status}`);
+    console.log(
+      `[updateModule] Response headers:`,
+      Object.fromEntries(response.headers.entries()),
+    );
+    if (!response.ok) {
+      const text = await response.text();
+      console.error(`[update] Error response body:`, text);
+      throw new Error(`Failed to update module. Status: ${response.status}`);
+    }
+    const data: Module = await response.json();
+    console.log(`[updateModule] Success. Data:`, data);
+    return data;
+  } catch (error) {
+    console.error(`[update] Exception:`, error);
     throw error;
   }
 }

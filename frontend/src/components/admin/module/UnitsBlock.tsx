@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
+  type UnitContent,
+  type UnitDetailsResponse,
   fetchUnitById,
   fetchUnitTitleByModuleId,
 } from '../../../services/unit/unitApi';
 import UnitsBlock from '../ui/UnitsBlock';
+import UnitItem from '../ui/UnitItem';
 
 interface UnitsBlockUIProps {
   moduleId: string;
@@ -21,43 +24,54 @@ const UnitsBlockUI: React.FC<UnitsBlockUIProps> = ({ moduleId }) => {
     const loadUnits = async () => {
       try {
         const previews = await fetchUnitTitleByModuleId(moduleId);
-        const detailedUnits = await Promise.all(
-          previews.map(async (unit: { id: string; title: string }) => {
+        const detailed = await Promise.all(
+          previews.map(async (u: UnitContent) => {
             try {
-              const details = await fetchUnitById(unit.id);
-              return { ...unit, description: details.description };
+              const d: UnitDetailsResponse = await fetchUnitById(u.id);
+              return { ...u, description: d.description };
             } catch {
-              return { ...unit };
+              return u;
             }
           }),
         );
-        setUnits(detailedUnits);
-      } catch (err) {
+        setUnits(detailed);
+      } catch {
         setError('Failed to load units');
       } finally {
         setLoading(false);
       }
     };
-
     loadUnits();
   }, [moduleId]);
 
-  const handleToggle = (id: string) => {
+  const toggle = (id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
   };
 
+  if (loading) return <p>Loading units…</p>;
+  if (error) return <p className="text-error">{error}</p>;
+
   return (
-    <>
-      {loading && <p>Loading units...</p>}
-      {error && <p className="text-error">{error}</p>}
-      {!loading && !error && (
-        <UnitsBlock
-          units={units}
-          expandedId={expandedId}
-          onToggle={handleToggle}
+    <UnitsBlock>
+      {units.map((u, i) => (
+        <UnitItem
+          key={u.id}
+          index={i}
+          id={u.id}
+          title={u.title}
+          details={{
+            id: u.id,
+            title: u.title,
+            description: u.description || '',
+          }}
+          isOpen={expandedId === u.id}
+          onToggle={() => toggle(u.id)}
+          onEdit={() => {
+            /* optional edit hook */
+          }}
         />
-      )}
-    </>
+      ))}
+    </UnitsBlock>
   );
 };
 

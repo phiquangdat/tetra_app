@@ -82,4 +82,20 @@ public class UnitController {
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUnit(@PathVariable UUID id, @RequestBody Map<String, Object> body) {
+        Unit unit = unitRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Unit not found with id: " + id));
+
+        String title = body.get("title") != null ? body.get("title").toString() : null;
+        String description = body.get("description") != null ? body.get("description").toString() : null;
+
+        if (title != null) unit.setTitle(title);
+        if (description != null) unit.setDescription(description);
+
+        Unit updatedUnit = unitRepository.save(unit);
+
+        return ResponseEntity.ok(updatedUnit);
+    }
+
 }

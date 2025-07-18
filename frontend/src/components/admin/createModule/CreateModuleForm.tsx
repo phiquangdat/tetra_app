@@ -25,9 +25,12 @@ const CreateModuleForm: React.FC<Props> = () => {
   const [successSaved, setSuccessSaved] = useState(false);
   const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<string[]>([]);
+  const [showFormErrors, setShowFormErrors] = useState(false);
+  const [showContextError, setShowContextError] = useState(false);
 
   const coverInputRef = useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = useState(true);
+  const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,6 +56,31 @@ const CreateModuleForm: React.FC<Props> = () => {
       cancelled = true;
     };
   }, [coverPicture]);
+
+  useEffect(() => {
+    if (showFormErrors || showContextError) {
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+
+      errorTimeoutRef.current = setTimeout(() => {
+        setShowFormErrors(false);
+        setShowContextError(false);
+      }, 5000);
+    }
+
+    return () => {
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+    };
+  }, [showFormErrors, showContextError]);
+
+  useEffect(() => {
+    if (error) {
+      setShowContextError(true);
+    }
+  }, [error]);
 
   const validateForm = async () => {
     const newformErrors: string[] = [];
@@ -89,8 +117,9 @@ const CreateModuleForm: React.FC<Props> = () => {
       newformErrors.push('Points awarded is required');
     }
 
-    if (formErrors.length > 0) {
+    if (newformErrors.length > 0) {
       setSuccessSaved(false);
+      setShowFormErrors(true);
     }
 
     setFormErrors(newformErrors);
@@ -108,6 +137,11 @@ const CreateModuleForm: React.FC<Props> = () => {
       await saveModule();
       setSuccessSaved(true);
       setFormErrors([]);
+      setShowFormErrors(false);
+      setShowContextError(false);
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
       setTimeout(() => setSuccessSaved(false), 3000);
       setIsEditing(false);
     } catch (err) {
@@ -197,7 +231,7 @@ const CreateModuleForm: React.FC<Props> = () => {
         Module Details
       </h2>
 
-      {formErrors.length ? (
+      {showFormErrors && formErrors.length > 0 ? (
         <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-6">
           <ul className="list-disc list-inside">
             {formErrors.map((error, index) => (
@@ -207,7 +241,7 @@ const CreateModuleForm: React.FC<Props> = () => {
             ))}
           </ul>
         </div>
-      ) : error ? (
+      ) : showContextError && error ? (
         <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-6">
           <p className="text-sm">{error}</p>
         </div>

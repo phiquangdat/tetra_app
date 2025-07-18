@@ -56,6 +56,8 @@ public class UserControllerTest {
         validRequest.setEmail("john@example.com");
         validRequest.setPassword("password123");
         validRequest.setRole("LEARNER");
+        // Default: mock ADMIN role for createUser tests
+        when(jwtUtil.extractRole(anyString())).thenReturn("ADMIN");
     }
 
 
@@ -64,6 +66,7 @@ public class UserControllerTest {
         validRequest.setRole("invalidrole");
 
         mockMvc.perform(post("/api/users")
+                        .header("Authorization", "Bearer validtoken")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isBadRequest())
@@ -71,12 +74,13 @@ public class UserControllerTest {
 
         verify(userService, never()).createUser(anyString(), anyString(), anyString(), any(Role.class));
     }
-    
+
     @Test
     public void createUser_BlankName_ReturnsBadRequest() throws Exception {
         validRequest.setName("");
 
         mockMvc.perform(post("/api/users")
+                        .header("Authorization", "Bearer validtoken")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isBadRequest());
@@ -89,6 +93,7 @@ public class UserControllerTest {
         validRequest.setEmail("");
 
         mockMvc.perform(post("/api/users")
+                        .header("Authorization", "Bearer validtoken")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isBadRequest());
@@ -101,6 +106,7 @@ public class UserControllerTest {
         validRequest.setPassword("123");
 
         mockMvc.perform(post("/api/users")
+                        .header("Authorization", "Bearer validtoken")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isBadRequest());
@@ -114,6 +120,7 @@ public class UserControllerTest {
                 .when(userService).createUser(anyString(), anyString(), anyString(), any(Role.class));
 
         mockMvc.perform(post("/api/users")
+                        .header("Authorization", "Bearer validtoken")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isBadRequest())
@@ -126,6 +133,7 @@ public class UserControllerTest {
                 .when(userService).createUser(anyString(), anyString(), anyString(), any(Role.class));
 
         mockMvc.perform(post("/api/users")
+                        .header("Authorization", "Bearer validtoken")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isInternalServerError())

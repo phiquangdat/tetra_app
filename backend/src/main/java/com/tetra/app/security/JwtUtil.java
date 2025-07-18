@@ -1,6 +1,8 @@
 package com.tetra.app.security;
 
 import com.tetra.app.model.User;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +17,6 @@ public class JwtUtil {
 
     private SecretKey key;
 
-    
     @Value("${jwt.secret}")
     public void setSecret(String secret) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
@@ -32,5 +33,18 @@ public class JwtUtil {
                 .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(key)
                 .compact();
+    }
+
+    public String extractRole(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+            return claims.get("role", String.class);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new RuntimeException("Invalid JWT token");
+        }
     }
 }

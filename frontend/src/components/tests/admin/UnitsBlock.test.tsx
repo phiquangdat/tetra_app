@@ -30,11 +30,11 @@ describe('UnitsBlock Component', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole('button', { name: /Unit 1: Unit: Unit One/i }),
+        screen.getByRole('button', { name: /Unit 1: Unit One/i }),
       ).toBeInTheDocument();
 
       expect(
-        screen.getByRole('button', { name: /Unit 2: Unit: Unit Two/i }),
+        screen.getByRole('button', { name: /Unit 2: Unit Two/i }),
       ).toBeInTheDocument();
     });
   });
@@ -54,6 +54,6 @@ describe('UnitsBlock Component', () => {
 
   it('shows loading state initially', () => {
     render(<UnitsBlock moduleId="test-module-id" />);
-    expect(screen.getByText('Loading units...')).toBeInTheDocument();
+    expect(screen.getByText(/loading units/i)).toBeInTheDocument();
   });
 });

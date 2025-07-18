@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { fetchUnitById } from '../../../services/unit/unitApi';
-import { ChevronDownIcon, ChevronUpIcon } from '../../common/Icons';
+import Accordion from './Accordion';
 import ContentBlockList from '../module/ContentBlockList';
 
 export interface UnitItemProps {
@@ -13,11 +13,11 @@ export interface UnitItemProps {
   onEdit?: () => void;
 }
 
-interface UnitDetails {
+export interface UnitDetails {
   id: string;
   title: string;
   description: string;
-  moduleId: string;
+  moduleId?: string;
 }
 
 const UnitItem: React.FC<UnitItemProps> = ({
@@ -30,7 +30,7 @@ const UnitItem: React.FC<UnitItemProps> = ({
   onEdit,
 }) => {
   const [unitDetails, setUnitDetails] = useState<UnitDetails | null>(
-    details || null,
+    details ?? null,
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -46,61 +46,44 @@ const UnitItem: React.FC<UnitItemProps> = ({
   }, [isOpen]);
 
   return (
-    <div className="bg-[#F9F5FF] border border-highlight rounded-xl overflow-hidden shadow-sm">
-      <button
-        onClick={onToggle}
-        className="w-full text-left px-6 py-4 text-base font-semibold text-primary flex justify-between items-center hover:bg-[#EFE8FF] transition"
-      >
-        <span>
-          Unit {index + 1}: {title}
-        </span>
-        <span>
-          {isOpen ? (
-            <ChevronUpIcon width={20} height={20} />
-          ) : (
-            <ChevronDownIcon width={20} height={20} />
+    <Accordion
+      header={`Unit ${index + 1}: ${title}`}
+      isOpen={isOpen}
+      onToggle={onToggle}
+    >
+      {loading && <p>Loading unit details…</p>}
+      {error && <p className="text-error">{error}</p>}
+
+      {unitDetails ? (
+        <>
+          <div className="space-y-4 mt-4">
+            <div>
+              <p className="text-sm font-semibold">Unit title</p>
+              <p>{unitDetails.title}</p>
+            </div>
+            <div>
+              <p className="text-sm font-semibold">Unit description</p>
+              <p>{unitDetails.description}</p>
+            </div>
+          </div>
+
+          {onEdit && (
+            <button
+              onClick={onEdit}
+              className="mt-2 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover text-sm"
+            >
+              Edit
+            </button>
           )}
-        </span>
-      </button>
 
-      {isOpen && (
-        <div className="px-6 pb-4 text-primary text-base">
-          {loading && <p>Loading unit details...</p>}
-          {error && <p className="text-error">{error}</p>}
-          {unitDetails ? (
-            <>
-              <div className="space-y-4 mt-4">
-                <div>
-                  <p className="text-sm font-semibold">Unit title</p>
-                  <p>{unitDetails.title}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">Unit description</p>
-                  <p>{unitDetails.description}</p>
-                </div>
-              </div>
-
-              {onEdit && (
-                <button
-                  onClick={onEdit}
-                  className="mt-2 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover text-sm"
-                >
-                  Edit
-                </button>
-              )}
-
-              <div className="mt-6">
-                <ContentBlockList unitId={id} />
-              </div>
-            </>
-          ) : (
-            <p className="text-sm text-gray-500 mt-2">
-              Loading unit details...
-            </p>
-          )}
-        </div>
+          <div className="mt-6">
+            <ContentBlockList unitId={id} />
+          </div>
+        </>
+      ) : (
+        <p className="text-sm text-gray-500 mt-2">Loading unit details…</p>
       )}
-    </div>
+    </Accordion>
   );
 };
 

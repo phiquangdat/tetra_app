@@ -8,6 +8,13 @@ export interface UnitContent {
   content_type: string;
 }
 
+export interface UnitDetailsResponse {
+  id: string;
+  title: string;
+  description: string;
+  moduleId?: string;
+}
+
 export interface Video {
   id: string;
   title: string;

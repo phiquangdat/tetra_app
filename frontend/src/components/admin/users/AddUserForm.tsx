@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
-
+import { createUser } from '../../../services/user/userApi';
 interface AddUserFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -38,12 +38,18 @@ const AddUserForm = ({ isOpen, onClose }: AddUserFormProps) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
-    console.log('Creating user:', { name, email, role, password });
+  const handleSave = async () => {
+    if (!validateForm()) return;
 
-    if (!validateForm()) {
-      return;
-    }
+    const userData = {
+      name,
+      email,
+      password,
+      role,
+    };
+
+    const response = await createUser(userData);
+    console.log(response);
 
     setName('');
     setEmail('');

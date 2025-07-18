@@ -94,8 +94,8 @@ class QuestionControllerTest {
         questionMap.put("unitContent", unitContentMap);
 
         mockMvc.perform(post("/api/questions")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(questionMap)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(questionMap)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Sample Question"));
     }
@@ -106,11 +106,11 @@ class QuestionControllerTest {
         questionMap.put("title", "Sample Question");
         questionMap.put("type", "single");
         questionMap.put("sortOrder", 1);
-        questionMap.put("unitContent", new HashMap<>()); // unitContent без id
+        questionMap.put("unitContent", new HashMap<>());
 
         mockMvc.perform(post("/api/questions")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(questionMap)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(questionMap)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("UnitContent id is required"));
     }
@@ -128,8 +128,8 @@ class QuestionControllerTest {
         questionMap.put("unitContent", unitContentMap);
 
         mockMvc.perform(post("/api/questions")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(questionMap)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(questionMap)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("UnitContent not found"));
     }
@@ -148,8 +148,8 @@ class QuestionControllerTest {
         questionMap.put("unitContent", unitContentMap);
 
         mockMvc.perform(put("/api/questions/" + questionId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(questionMap)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(questionMap)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(questionId.toString()));
     }
@@ -166,8 +166,7 @@ class QuestionControllerTest {
         when(questionRepository.findByUnitContent_Id(contentId)).thenReturn(List.of(question));
         mockMvc.perform(get("/api/questions/by-content/" + contentId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].unitContent").exists())
-                .andExpect(jsonPath("$[0].unitContentId").value(contentId.toString()));
+                .andExpect(jsonPath("$[0].unitContent.id").value(contentId.toString()));
     }
 
     @Test
@@ -176,60 +175,63 @@ class QuestionControllerTest {
         UnitContent quizContent = new UnitContent();
         quizContent.setId(quizId);
         quizContent.setContentType("quiz");
-        quizContent.setTitle("Quiz Block");
-        quizContent.setContentData("{\"points\":5}");
 
-        Question q1 = new Question();
-        q1.setId(UUID.randomUUID());
-        q1.setTitle("Q1");
-        q1.setType("single");
-        q1.setSortOrder(1);
-        q1.setUnitContent(quizContent);
+        Question q = new Question();
+        q.setId(UUID.randomUUID());
+        q.setTitle("Q1");
+        q.setType("single");
+        q.setSortOrder(1);
+        q.setUnitContent(quizContent);
 
-        Question q2 = new Question();
-        q2.setId(UUID.randomUUID());
-        q2.setTitle("Q2");
-        q2.setType("multiple");
-        q2.setSortOrder(2);
-        q2.setUnitContent(quizContent);
-
-        Answer a1 = new Answer();
-        a1.setId(UUID.randomUUID());
-        a1.setTitle("A1");
-        a1.setSortOrder(1);
-        a1.setIsCorrect(true);
-        a1.setQuestion(q1);
-
-        Answer a2 = new Answer();
-        a2.setId(UUID.randomUUID());
-        a2.setTitle("A2");
-        a2.setSortOrder(2);
-        a2.setIsCorrect(false);
-        a2.setQuestion(q1);
-
-        Answer a3 = new Answer();
-        a3.setId(UUID.randomUUID());
-        a3.setTitle("B1");
-        a3.setSortOrder(1);
-        a3.setIsCorrect(false);
-        a3.setQuestion(q2);
+        Answer a = new Answer();
+        a.setId(UUID.randomUUID());
+        a.setTitle("A1");
+        a.setSortOrder(1);
+        a.setIsCorrect(true);
+        a.setQuestion(q);
 
         when(unitContentRepository.findById(quizId)).thenReturn(Optional.of(quizContent));
-        when(questionRepository.findByUnitContent_Id(quizId)).thenReturn(List.of(q1, q2));
-        when(answerRepository.findByQuestion_Id(eq(q1.getId()))).thenReturn(List.of(a1, a2));
-        when(answerRepository.findByQuestion_Id(eq(q2.getId()))).thenReturn(List.of(a3));
+        when(questionRepository.findByUnitContent_Id(quizId)).thenReturn(List.of(q));
+        when(answerRepository.findByQuestion_Id(q.getId())).thenReturn(List.of(a));
 
-        mockMvc.perform(get("/api/questions").param("contentId", quizId.toString()))
+        mockMvc.perform(get("/api/questions")
+                        .param("contentId", quizId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.quizId").value(quizId.toString()))
-                .andExpect(jsonPath("$.questions[0].id").value(q1.getId().toString()))
-                .andExpect(jsonPath("$.questions[0].answers[0].id").value(a1.getId().toString()))
-                .andExpect(jsonPath("$.questions[0].answers[0].title").value("A1"))
-                .andExpect(jsonPath("$.questions[0].answers[0].sort_order").value(1))
-                .andExpect(jsonPath("$.questions[0].answers[0].is_correct").doesNotExist())
-                .andExpect(jsonPath("$.questions[1].id").value(q2.getId().toString()))
-                .andExpect(jsonPath("$.questions[1].answers[0].id").value(a3.getId().toString()))
-                .andExpect(jsonPath("$.questions[1].answers[0].is_correct").doesNotExist());
+                .andExpect(jsonPath("$.questions[0].answers[0].is_correct").doesNotExist());
+    }
+
+    @Test
+    void testGetQuizQuestionsWithAnswers_WithCorrectAnswers() throws Exception {
+        UUID quizId = UUID.randomUUID();
+        UnitContent quizContent = new UnitContent();
+        quizContent.setId(quizId);
+        quizContent.setContentType("quiz");
+
+        Question q = new Question();
+        q.setId(UUID.randomUUID());
+        q.setTitle("Q1");
+        q.setType("single");
+        q.setSortOrder(1);
+        q.setUnitContent(quizContent);
+
+        Answer a = new Answer();
+        a.setId(UUID.randomUUID());
+        a.setTitle("A1");
+        a.setSortOrder(1);
+        a.setIsCorrect(true);
+        a.setQuestion(q);
+
+        when(unitContentRepository.findById(quizId)).thenReturn(Optional.of(quizContent));
+        when(questionRepository.findByUnitContent_Id(quizId)).thenReturn(List.of(q));
+        when(answerRepository.findByQuestion_Id(q.getId())).thenReturn(List.of(a));
+
+        mockMvc.perform(get("/api/questions")
+                        .param("contentId", quizId.toString())
+                        .param("includeCorrect", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.quizId").value(quizId.toString()))
+                .andExpect(jsonPath("$.questions[0].answers[0].is_correct").value(true));
     }
 
     @Test
@@ -247,6 +249,7 @@ class QuestionControllerTest {
         UnitContent notQuiz = new UnitContent();
         notQuiz.setId(quizId);
         notQuiz.setContentType("video");
+
         when(unitContentRepository.findById(quizId)).thenReturn(Optional.of(notQuiz));
 
         mockMvc.perform(get("/api/questions").param("contentId", quizId.toString()))

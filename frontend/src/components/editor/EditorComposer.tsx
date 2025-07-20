@@ -4,6 +4,7 @@ import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
+import { TextNode } from 'lexical';
 
 import ToolbarPlugin from '../../plugins/ToolbarPlugin';
 import OnChangePlugin from '../../plugins/OnChangePlugin';
@@ -14,24 +15,27 @@ const editorConfig = {
   onError: (error: Error) => {
     throw error;
   },
-  nodes: [],
+  nodes: [TextNode],
   theme: {
     paragraph: 'mb-2',
     text: {
       bold: 'font-bold',
       italic: 'italic',
       underline: 'underline',
+      strikethrough: 'line-through',
     },
   },
 };
 
-const EditorComposer = () => {
+export default function EditorComposer() {
   return (
     <LexicalComposer initialConfig={editorConfig}>
       <div className="border border-gray-400 rounded-lg p-2">
         <ToolbarPlugin />
         <RichTextPlugin
-          contentEditable={<ContentEditable className="min-h-[300px] outline-none p-4" />}
+          contentEditable={
+            <ContentEditable className="min-h-[300px] outline-none p-4" />
+          }
           placeholder={<Placeholder />}
           ErrorBoundary={LexicalErrorBoundary}
         />
@@ -41,6 +45,4 @@ const EditorComposer = () => {
       </div>
     </LexicalComposer>
   );
-};
-
-export default EditorComposer;
+}

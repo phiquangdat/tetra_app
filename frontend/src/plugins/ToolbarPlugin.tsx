@@ -1,15 +1,15 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { FORMAT_TEXT_COMMAND, $getSelection, $isRangeSelection } from 'lexical';
 import { useEffect, useState } from 'react';
-import { Bold, Italic, Underline } from 'lucide-react';
+import { Bold, Italic, Underline, Strikethrough } from 'lucide-react';
 
 export default function ToolbarPlugin() {
   const [editor] = useLexicalComposerContext();
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
   const [isUnderline, setIsUnderline] = useState(false);
+  const [isStrikethrough, setIsStrikethrough] = useState(false);
 
-  // Update toolbar state based on selection
   useEffect(() => {
     return editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
@@ -18,6 +18,7 @@ export default function ToolbarPlugin() {
           setIsBold(selection.hasFormat('bold'));
           setIsItalic(selection.hasFormat('italic'));
           setIsUnderline(selection.hasFormat('underline'));
+          setIsStrikethrough(selection.hasFormat('strikethrough'));
         }
       });
     });
@@ -50,6 +51,15 @@ export default function ToolbarPlugin() {
         aria-label="Underline"
       >
         <Underline size={18} />
+      </button>
+      <button
+        onClick={() =>
+          editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'strikethrough')
+        }
+        className={buttonStyle(isStrikethrough)}
+        aria-label="Strikethrough"
+      >
+        <Strikethrough size={18} />
       </button>
     </div>
   );

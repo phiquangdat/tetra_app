@@ -4,7 +4,7 @@ import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
-import { TextNode } from 'lexical';
+import { TextNode, ParagraphNode } from 'lexical';
 
 import ToolbarPlugin from '../../plugins/ToolbarPlugin';
 import OnChangePlugin from '../../plugins/OnChangePlugin';
@@ -15,7 +15,7 @@ const editorConfig = {
   onError: (error: Error) => {
     throw error;
   },
-  nodes: [TextNode],
+  nodes: [TextNode, ParagraphNode],
   theme: {
     paragraph: 'mb-2',
     text: {
@@ -23,6 +23,16 @@ const editorConfig = {
       italic: 'italic',
       underline: 'underline',
       strikethrough: 'line-through',
+    },
+    heading: {
+      h1: 'text-2xl font-bold',
+      h2: 'text-xl font-semibold',
+    },
+    align: {
+      left: 'text-left',
+      center: 'text-center',
+      right: 'text-right',
+      justify: 'text-justify',
     },
   },
 };

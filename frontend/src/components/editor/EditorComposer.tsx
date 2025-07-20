@@ -5,6 +5,7 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { TextNode, ParagraphNode } from 'lexical';
+import { HeadingNode } from '@lexical/rich-text'; // ✅ Required for headings
 
 import ToolbarPlugin from '../../plugins/ToolbarPlugin';
 import OnChangePlugin from '../../plugins/OnChangePlugin';
@@ -15,7 +16,7 @@ const editorConfig = {
   onError: (error: Error) => {
     throw error;
   },
-  nodes: [TextNode, ParagraphNode],
+  nodes: [TextNode, ParagraphNode, HeadingNode],
   theme: {
     paragraph: 'mb-2',
     text: {
@@ -25,8 +26,12 @@ const editorConfig = {
       strikethrough: 'line-through',
     },
     heading: {
-      h1: 'text-2xl font-bold',
-      h2: 'text-xl font-semibold',
+      h1: 'text-3xl font-bold',
+      h2: 'text-2xl font-bold',
+      h3: 'text-xl font-semibold',
+      h4: 'text-lg font-semibold',
+      h5: 'text-base font-medium',
+      h6: 'text-sm font-medium',
     },
     align: {
       left: 'text-left',

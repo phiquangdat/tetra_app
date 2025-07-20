@@ -1,5 +1,12 @@
+import { useEffect, useState } from 'react';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { FORMAT_TEXT_COMMAND, $getSelection, $isRangeSelection } from 'lexical';
+import {
+  FORMAT_TEXT_COMMAND,
+  FORMAT_ELEMENT_COMMAND,
+  $getSelection,
+  $isRangeSelection,
+  $createParagraphNode,
+} from 'lexical';
 import {
   Bold,
   Italic,
@@ -10,8 +17,9 @@ import {
   AlignRight,
   AlignJustify,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { FORMAT_ELEMENT_COMMAND } from 'lexical';
+import { $isHeadingNode, $createHeadingNode } from '@lexical/rich-text';
+
+const headingTags = ['paragraph', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
 
 export default function ToolbarPlugin() {
   const [editor] = useLexicalComposerContext();
@@ -22,6 +30,7 @@ export default function ToolbarPlugin() {
     strikethrough: false,
   });
   const [alignment, setAlignment] = useState<string>('left');
+  const [blockType, setBlockType] = useState<string>('paragraph');
 
   useEffect(() => {
     return editor.registerUpdateListener(({ editorState }) => {
@@ -35,13 +44,13 @@ export default function ToolbarPlugin() {
             strikethrough: selection.hasFormat('strikethrough'),
           });
 
-          const node = selection.getNodes()[0];
-          const parent = node.getParentOrThrow();
-          if (parent?.getFormatType) {
-            setAlignment(parent.getFormatType());
-          } else {
-            setAlignment('left');
-          }
+          const anchorNode = selection.anchor.getNode();
+          const topNode = anchorNode.getTopLevelElementOrThrow();
+
+          setAlignment(topNode.getFormatType?.() ?? 'left');
+          setBlockType(
+            $isHeadingNode(topNode) ? topNode.getTag() : 'paragraph',
+          );
         }
       });
     });
@@ -57,13 +66,64 @@ export default function ToolbarPlugin() {
       alignment === align ? 'bg-blue-100 text-blue-600' : 'text-gray-700'
     }`;
 
+  const handleHeadingChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setBlockType(value);
+
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        for (const node of selection.getNodes()) {
+          const topNode = node.getTopLevelElementOrThrow();
+
+          if (value === 'paragraph') {
+            if ($isHeadingNode(topNode)) {
+              const paragraph = $createParagraphNode();
+              paragraph.append(...topNode.getChildren());
+              topNode.replace(paragraph);
+            }
+          } else if ($isHeadingNode(topNode)) {
+            topNode.setTag(value as any);
+          } else {
+            const heading = $createHeadingNode(value as any);
+            if (
+              'getChildren' in topNode &&
+              typeof topNode.getChildren === 'function'
+            ) {
+              heading.append(...topNode.getChildren());
+            }
+            topNode.replace(heading);
+          }
+        }
+      }
+    });
+  };
+
   return (
-    <div className="flex flex-wrap gap-2 border-b border-gray-300 mb-2 px-2 py-1">
+    <div
+      className="flex flex-wrap items-center gap-2 border-b border-gray-300 mb-2 px-2 py-1"
+      role="toolbar"
+    >
+      {/* Heading Dropdown */}
+      <select
+        value={blockType}
+        onChange={handleHeadingChange}
+        className="text-sm border border-gray-300 rounded p-1"
+        aria-label="Block type"
+      >
+        {headingTags.map((tag) => (
+          <option key={tag} value={tag}>
+            {tag === 'paragraph' ? 'Paragraph' : `Heading ${tag.slice(1)}`}
+          </option>
+        ))}
+      </select>
+
       {/* FORMAT BUTTONS */}
       <button
         onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold')}
         className={formatButton(formats.bold)}
         aria-label="Bold"
+        aria-pressed={formats.bold}
       >
         <Bold size={18} />
       </button>
@@ -71,6 +131,7 @@ export default function ToolbarPlugin() {
         onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic')}
         className={formatButton(formats.italic)}
         aria-label="Italic"
+        aria-pressed={formats.italic}
       >
         <Italic size={18} />
       </button>
@@ -78,6 +139,7 @@ export default function ToolbarPlugin() {
         onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline')}
         className={formatButton(formats.underline)}
         aria-label="Underline"
+        aria-pressed={formats.underline}
       >
         <Underline size={18} />
       </button>
@@ -87,41 +149,32 @@ export default function ToolbarPlugin() {
         }
         className={formatButton(formats.strikethrough)}
         aria-label="Strikethrough"
+        aria-pressed={formats.strikethrough}
       >
         <Strikethrough size={18} />
       </button>
 
       {/* ALIGNMENT BUTTONS */}
-      <button
-        onClick={() => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'left')}
-        className={alignButton('left')}
-        aria-label="Align Left"
-      >
-        <AlignLeft size={18} />
-      </button>
-      <button
-        onClick={() => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'center')}
-        className={alignButton('center')}
-        aria-label="Align Center"
-      >
-        <AlignCenter size={18} />
-      </button>
-      <button
-        onClick={() => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'right')}
-        className={alignButton('right')}
-        aria-label="Align Right"
-      >
-        <AlignRight size={18} />
-      </button>
-      <button
-        onClick={() =>
-          editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'justify')
-        }
-        className={alignButton('justify')}
-        aria-label="Align Justify"
-      >
-        <AlignJustify size={18} />
-      </button>
+      {['left', 'center', 'right', 'justify'].map((alignmentType) => (
+        <button
+          key={alignmentType}
+          onClick={() =>
+            editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, alignmentType as any)
+          }
+          className={alignButton(alignmentType)}
+          aria-label={`Align ${alignmentType}`}
+          aria-pressed={alignment === alignmentType}
+        >
+          {
+            {
+              left: <AlignLeft size={18} />,
+              center: <AlignCenter size={18} />,
+              right: <AlignRight size={18} />,
+              justify: <AlignJustify size={18} />,
+            }[alignmentType]
+          }
+        </button>
+      ))}
     </div>
   );
 }

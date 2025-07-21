@@ -6,6 +6,8 @@ import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { TextNode, ParagraphNode, type EditorThemeClasses } from 'lexical';
 import { HeadingNode } from '@lexical/rich-text';
+import { ListNode, ListItemNode } from '@lexical/list';
+import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 
 import ToolbarPlugin from '../../plugins/ToolbarPlugin';
 import OnChangePlugin from '../../plugins/OnChangePlugin';
@@ -32,6 +34,11 @@ interface EditorConfig {
 // Theme configuration
 const createEditorTheme = (): EditorThemeClasses => ({
   paragraph: 'mb-2',
+  list: {
+    ul: 'list-disc list-inside ml-6',
+    ol: 'list-decimal list-inside ml-6',
+    listitem: 'mb-1',
+  },
   text: {
     bold: 'font-bold',
     italic: 'italic',
@@ -55,7 +62,13 @@ const createEditorTheme = (): EditorThemeClasses => ({
 });
 
 // Node configuration
-const getEditorNodes = () => [TextNode, ParagraphNode, HeadingNode];
+const getEditorNodes = () => [
+  TextNode,
+  ParagraphNode,
+  HeadingNode,
+  ListNode,
+  ListItemNode,
+];
 
 const defaultErrorHandler = (error: Error) => {
   console.error('Editor error:', error);
@@ -149,6 +162,7 @@ export default function EditorComposer({
 
         <OnChangePlugin />
         <HistoryPlugin />
+        <ListPlugin />
 
         {autoFocus && <AutoFocusPlugin />}
       </LexicalComposer>

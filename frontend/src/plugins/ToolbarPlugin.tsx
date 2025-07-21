@@ -14,6 +14,13 @@ import {
   type ElementFormatType,
 } from 'lexical';
 import {
+  INSERT_UNORDERED_LIST_COMMAND,
+  INSERT_ORDERED_LIST_COMMAND,
+  REMOVE_LIST_COMMAND,
+  $isListNode,
+  $isListItemNode,
+} from '@lexical/list';
+import {
   Bold,
   Italic,
   Underline,
@@ -24,6 +31,9 @@ import {
   AlignJustify,
   Undo2,
   Redo2,
+  List,
+  ListOrdered,
+  ListX,
 } from 'lucide-react';
 import {
   $isHeadingNode,
@@ -62,7 +72,6 @@ const ALIGNMENT_OPTIONS: {
   { type: 'justify', icon: AlignJustify, label: 'Align justify' },
 ];
 
-// Custom hooks
 function useUndoRedo() {
   const [editor] = useLexicalComposerContext();
   const [canUndo, setCanUndo] = useState(false);
@@ -231,6 +240,12 @@ export default function ToolbarPlugin() {
 
         const anchorNode = selection.anchor.getNode();
         const blockElement = anchorNode.getTopLevelElementOrThrow();
+
+        // ✅ Prevent heading inside list items
+        if ($isListNode(blockElement) || $isListItemNode(blockElement)) {
+          return;
+        }
+
         const currentFormat = blockElement.getFormatType?.() ?? 'left';
 
         const newNode =
@@ -302,6 +317,34 @@ export default function ToolbarPlugin() {
             <Icon size={18} />
           </ToolbarButton>
         ))}
+      </div>
+
+      {/* List Buttons */}
+      <div className="flex items-center gap-1">
+        <ToolbarButton
+          onClick={() =>
+            editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined)
+          }
+          aria-label="Unordered list"
+        >
+          <List size={18} />
+        </ToolbarButton>
+
+        <ToolbarButton
+          onClick={() =>
+            editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined)
+          }
+          aria-label="Ordered list"
+        >
+          <ListOrdered size={18} />
+        </ToolbarButton>
+
+        <ToolbarButton
+          onClick={() => editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined)}
+          aria-label="Remove list"
+        >
+          <ListX size={18} />
+        </ToolbarButton>
       </div>
 
       {/* Undo/Redo Buttons */}

@@ -36,7 +36,7 @@ function ImageComponent({
       alt: altText,
       style: { maxWidth: `${width}px`, width: '100%', height: 'auto' },
       className: 'rounded max-w-full mx-auto',
-    })
+    }),
   );
 }
 

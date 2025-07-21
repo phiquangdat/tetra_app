@@ -19,6 +19,7 @@ const AddUserForm = ({ isOpen, onClose }: AddUserFormProps) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [formError, setFormError] = useState<string | null>(null);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -68,10 +69,9 @@ const AddUserForm = ({ isOpen, onClose }: AddUserFormProps) => {
       }
     } catch (error) {
       setLoading(false);
-      setErrors({
-        ...errors,
-        email: error instanceof Error ? error.message : 'Failed to create user',
-      });
+      setFormError(
+        error instanceof Error ? error.message : 'Failed to create user',
+      );
     }
   };
 
@@ -219,6 +219,10 @@ const AddUserForm = ({ isOpen, onClose }: AddUserFormProps) => {
                   </select>
                 </div>
               </div>
+
+              {formError && (
+                <div className="text-error text-center">{formError}</div>
+              )}
 
               <div className="flex justify-end gap-3 p-6">
                 <button

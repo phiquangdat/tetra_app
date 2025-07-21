@@ -47,4 +47,29 @@ public class UserService {
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
+
+    public User updateUser(User user, String name, String email, String newPassword, String oldPassword) {
+        if (name != null) {
+            if (name.isBlank())
+                throw new IllegalArgumentException("Name is required");
+            user.setName(name);
+        }
+        if (email != null) {
+            if (email.isBlank())
+                throw new IllegalArgumentException("Email is required");
+            if (!user.getEmail().equals(email) && userRepository.existsByEmail(email))
+                throw new IllegalArgumentException("Email already exists");
+            user.setEmail(email);
+        }
+        if (newPassword != null && !newPassword.isBlank()) {
+            if (oldPassword == null || oldPassword.isBlank())
+                throw new IllegalArgumentException("oldPassword is required to change password");
+            if (!passwordHashingService.verifyPassword(oldPassword, user.getPassword()))
+                throw new IllegalArgumentException("Old password is incorrect");
+            if (newPassword.length() < 6)
+                throw new IllegalArgumentException("Password must be at least 6 characters");
+            user.setPassword(passwordHashingService.hashPassword(newPassword));
+        }
+        return userRepository.save(user);
+    }
 }

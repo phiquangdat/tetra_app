@@ -16,6 +16,7 @@ describe('AddUserForm', () => {
   const defaultProps = {
     isOpen: true,
     onClose: vi.fn(),
+    onUserAdded: vi.fn(),
   };
 
   it('create new user successfully', async () => {
@@ -52,7 +53,7 @@ describe('AddUserForm', () => {
       expect(screen.getByLabelText(/email/i)).toHaveValue('');
       expect(screen.getByLabelText(/password/i)).toHaveValue('');
       expect(screen.getByLabelText(/role/i)).toHaveValue('Learner');
-      expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
+      expect(defaultProps.onUserAdded).toHaveBeenCalledTimes(1);
     });
   });
 });

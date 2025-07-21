@@ -7,6 +7,8 @@ const headers = ['Id', 'Name', 'Email', 'Role'];
 const UserPage = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     try {
@@ -14,6 +16,11 @@ const UserPage = () => {
       setData(users);
     } catch (error) {
       console.error(error);
+      setError(
+        error instanceof Error ? error.message : 'Failed to fetch users',
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,14 +67,36 @@ const UserPage = () => {
             </tr>
           </thead>
           <tbody>
-            {data.map((user, index) => (
-              <tr key={index} className="border-t-2 border-background">
-                <td className="p-4 text-primary">{index + 1}</td>
-                <td className="p-4 text-primary font-semibold">{user.name}</td>
-                <td className="p-4 text-primary">{user.email}</td>
-                <td className="p-4 text-primary">{user.role}</td>
+            {loading ? (
+              <tr>
+                <td
+                  colSpan={headers.length}
+                  className="p-4 text-center text-primary"
+                >
+                  Loading users...
+                </td>
               </tr>
-            ))}
+            ) : error ? (
+              <tr>
+                <td
+                  colSpan={headers.length}
+                  className="p-4 text-center text-error"
+                >
+                  {error}
+                </td>
+              </tr>
+            ) : (
+              data.map((user, index) => (
+                <tr key={index} className="border-t-2 border-background">
+                  <td className="p-4 text-primary">{index + 1}</td>
+                  <td className="p-4 text-primary font-semibold">
+                    {user.name}
+                  </td>
+                  <td className="p-4 text-primary">{user.email}</td>
+                  <td className="p-4 text-primary">{user.role}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

@@ -44,5 +44,5 @@ export async function createUser(userData: CreateUserRequest): Promise<any> {
 }
 
 export async function getUsers(): Promise<User[]> {
-  return fetchWithAuth(`${BASE_URL}/users`);
+  return fetchWithAuth(`${BASE_URL}/sada/users`);
 }

@@ -47,4 +47,17 @@ public class JwtUtil {
             throw new RuntimeException("Invalid JWT token");
         }
     }
+
+    public String extractUserId(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+            return claims.get("id", String.class);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new RuntimeException("Invalid JWT token");
+        }
+    }
 }

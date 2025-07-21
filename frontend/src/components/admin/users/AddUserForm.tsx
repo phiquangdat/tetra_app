@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
-
+import { createUser } from '../../../services/user/userApi';
 interface AddUserFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -17,7 +17,9 @@ const AddUserForm = ({ isOpen, onClose }: AddUserFormProps) => {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('Learner');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [formError, setFormError] = useState<string | null>(null);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -28,29 +30,49 @@ const AddUserForm = ({ isOpen, onClose }: AddUserFormProps) => {
 
     if (!email.trim()) {
       newErrors.email = 'Email is required';
+    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+      newErrors.email = 'Email must include @ and a valid domain';
     }
 
     if (!password.trim()) {
       newErrors.password = 'Password is required';
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
-    console.log('Creating user:', { name, email, role, password });
+  const handleSave = async () => {
+    if (!validateForm()) return;
 
-    if (!validateForm()) {
-      return;
+    const userData = {
+      name,
+      email,
+      password,
+      role,
+    };
+    setLoading(true);
+
+    try {
+      const response = await createUser(userData);
+      console.log(response);
+      if (response) {
+        setLoading(false);
+        setName('');
+        setEmail('');
+        setRole('Learner');
+        setPassword('');
+        setErrors({});
+        onClose();
+      }
+    } catch (error) {
+      setLoading(false);
+      setFormError(
+        error instanceof Error ? error.message : 'Failed to create user',
+      );
     }
-
-    setName('');
-    setEmail('');
-    setRole('Learner');
-    setPassword('');
-    setErrors({});
-    onClose();
   };
 
   const handleClose = () => {
@@ -198,6 +220,10 @@ const AddUserForm = ({ isOpen, onClose }: AddUserFormProps) => {
                 </div>
               </div>
 
+              {formError && (
+                <div className="text-error text-center">{formError}</div>
+              )}
+
               <div className="flex justify-end gap-3 p-6">
                 <button
                   type="button"
@@ -209,9 +235,13 @@ const AddUserForm = ({ isOpen, onClose }: AddUserFormProps) => {
                 <button
                   type="button"
                   onClick={handleSave}
-                  className="bg-surface hover:bg-surfaceHover text-background px-5 py-2 rounded-lg text-sm font-medium transition"
+                  className="bg-surface hover:bg-surfaceHover text-background px-5 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2"
+                  disabled={loading}
                 >
-                  Save
+                  {loading && (
+                    <span className="animate-spin inline-block w-4 h-4 border-t-2 border-b-2 border-background rounded-full"></span>
+                  )}
+                  {loading ? 'Saving...' : 'Save'}
                 </button>
               </div>
             </form>

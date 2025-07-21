@@ -1,7 +1,9 @@
 package com.tetra.app.controller;
 
 import com.tetra.app.dto.CreateUserRequest;
+import com.tetra.app.dto.UpdateUserRequest;
 import com.tetra.app.model.Role;
+import com.tetra.app.model.User;
 import com.tetra.app.service.UserService;
 import com.tetra.app.security.JwtUtil;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

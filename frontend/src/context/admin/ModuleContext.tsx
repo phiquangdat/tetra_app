@@ -115,11 +115,12 @@ export const ModuleContextProvider = ({
         });
       } else {
         responseModule = await createModule({
-          ...module,
+          title: module.title,
+          description: module.description,
+          topic: module.topic,
           points: module.pointsAwarded,
           coverUrl: module.coverPicture ?? '',
-          id: module.id ?? '',
-          status: module.status, // <-- Ensure status is included here
+          status: module.status,
         });
       }
 

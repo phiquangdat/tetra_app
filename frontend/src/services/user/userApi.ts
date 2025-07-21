@@ -2,7 +2,14 @@ const envBaseUrl = import.meta.env.VITE_BACKEND_URL;
 const BASE_URL =
   envBaseUrl && envBaseUrl.trim() !== '' ? `${envBaseUrl}/api` : '/api';
 
-import { getAuthToken } from '../../utils/authHelpers';
+import { getAuthToken, fetchWithAuth } from '../../utils/authHelpers';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
 
 export interface CreateUserRequest {
   name: string;
@@ -34,4 +41,8 @@ export async function createUser(userData: CreateUserRequest): Promise<any> {
       ? error
       : new Error('Unknown error occurred while creating user');
   }
+}
+
+export async function getUsers(): Promise<User[]> {
+  return fetchWithAuth(`${BASE_URL}/users`);
 }

@@ -4,6 +4,7 @@ import { createUser } from '../../../services/user/userApi';
 interface AddUserFormProps {
   isOpen: boolean;
   onClose: () => void;
+  onUserAdded: () => void;
 }
 
 interface FormErrors {
@@ -12,7 +13,7 @@ interface FormErrors {
   password?: string;
 }
 
-const AddUserForm = ({ isOpen, onClose }: AddUserFormProps) => {
+const AddUserForm = ({ isOpen, onClose, onUserAdded }: AddUserFormProps) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('Learner');
@@ -65,7 +66,7 @@ const AddUserForm = ({ isOpen, onClose }: AddUserFormProps) => {
         setRole('Learner');
         setPassword('');
         setErrors({});
-        onClose();
+        onUserAdded();
       }
     } catch (error) {
       setLoading(false);

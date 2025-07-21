@@ -1,17 +1,30 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AddUserForm from './AddUserForm';
-
-const data = [
-  { name: 'John Doe', email: 'john.doe@example.com', role: 'Admin' },
-  { name: 'Jane Smith', email: 'jane.smith@example.com', role: 'User' },
-  { name: 'Alice Johnson', email: 'alice.johnson@example.com', role: 'Admin' },
-  { name: 'Bob Brown', email: 'bob.brown@example.com', role: 'User' },
-];
+import { getUsers } from '../../../services/user/userApi';
 
 const headers = ['Id', 'Name', 'Email', 'Role'];
 
 const UserPage = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [data, setData] = useState<any[]>([]);
+
+  const fetchUsers = async () => {
+    try {
+      const users = await getUsers();
+      setData(users);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleUserAdded = () => {
+    fetchUsers();
+    setIsOpen(false);
+  };
 
   return (
     <div className="p-6 max-w-5xl mx-auto my-6">
@@ -59,7 +72,11 @@ const UserPage = () => {
         </table>
       </div>
 
-      <AddUserForm isOpen={isOpen} onClose={() => setIsOpen(false)} />
+      <AddUserForm
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        onUserAdded={handleUserAdded}
+      />
     </div>
   );
 };

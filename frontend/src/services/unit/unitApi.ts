@@ -28,11 +28,14 @@ export interface Article {
   content: string;
 }
 
-export interface CreateUnitRequest {
+export interface Unit {
+  id: string;
   module_id: string;
   title: string;
   description: string;
 }
+
+export type UnitInput = Omit<Unit, 'id'>;
 
 export interface CreateUnitResponse {
   id: string;
@@ -115,7 +118,7 @@ export async function fetchArticleContentById(id: string): Promise<Article> {
 }
 
 export async function createUnit(
-  unitData: CreateUnitRequest,
+  unitData: UnitInput,
 ): Promise<CreateUnitResponse> {
   try {
     const response = await fetch(`${BASE_URL}/units`, {
@@ -139,5 +142,36 @@ export async function createUnit(
     throw error instanceof Error
       ? error
       : new Error('Unknown error occurred while creating unit');
+  }
+}
+
+export async function updateUnit(id: string, unit: UnitInput): Promise<Unit> {
+  const url = `${BASE_URL}/units/${id}`;
+  console.log('[updateModule] Updating:', url, 'Payload:', unit);
+
+  try {
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(unit),
+    });
+    console.log(`[updateUnit] Response status: ${response.status}`);
+    console.log(
+      `[updateUnit] Response headers:`,
+      Object.fromEntries(response.headers.entries()),
+    );
+    if (!response.ok) {
+      const text = await response.text();
+      console.error(`[updateUnit] Error response body:`, text);
+      throw new Error(`Failed to update unit. Status: ${response.status}`);
+    }
+    const data: Unit = await response.json();
+    console.log(`[updateUnit] Success. Data:`, data);
+    return data;
+  } catch (error) {
+    console.error(`[updateUnit] Exception:`, error);
+    throw error;
   }
 }

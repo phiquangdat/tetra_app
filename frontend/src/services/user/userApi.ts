@@ -44,5 +44,9 @@ export async function createUser(userData: CreateUserRequest): Promise<any> {
 }
 
 export async function getUsers(): Promise<User[]> {
-  return fetchWithAuth(`${BASE_URL}/sada/users`);
+  try {
+    return await fetchWithAuth(`${BASE_URL}/users`);
+  } catch (error) {
+    throw error instanceof Error ? error : new Error('Failed to fetch users');
+  }
 }

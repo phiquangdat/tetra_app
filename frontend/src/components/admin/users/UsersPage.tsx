@@ -1,16 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import AddUserForm from './AddUserForm';
-import { getUsers } from '../../../services/user/userApi';
-
-const headers = ['Id', 'Name', 'Email', 'Role'];
+import { getUsers, type User } from '../../../services/user/userApi';
 
 const UserPage = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUsers = async () => {
+  const headers = useMemo(() => ['Id', 'Name', 'Email', 'Role'], []);
+
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
       const users = await getUsers();
       setData(users);
@@ -22,11 +24,11 @@ const UserPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
 
   const handleUserAdded = () => {
     fetchUsers();
@@ -71,7 +73,7 @@ const UserPage = () => {
               <tr>
                 <td
                   colSpan={headers.length}
-                  className="p-4 text-center text-primary"
+                  className="p-4 text-center text-primary font-semibold"
                 >
                   Loading users...
                 </td>
@@ -80,14 +82,23 @@ const UserPage = () => {
               <tr>
                 <td
                   colSpan={headers.length}
-                  className="p-4 text-center text-error"
+                  className="p-4 text-center text-error font-semibold"
                 >
                   {error}
                 </td>
               </tr>
+            ) : data.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={headers.length}
+                  className="p-4 text-center text-primary"
+                >
+                  No users found
+                </td>
+              </tr>
             ) : (
               data.map((user, index) => (
-                <tr key={index} className="border-t-2 border-background">
+                <tr key={user.id} className="border-t-2 border-background">
                   <td className="p-4 text-primary">{index + 1}</td>
                   <td className="p-4 text-primary font-semibold">
                     {user.name}

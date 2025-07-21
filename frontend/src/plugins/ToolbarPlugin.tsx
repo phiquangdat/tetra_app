@@ -11,6 +11,8 @@ import {
   $getSelection,
   $isRangeSelection,
   $createParagraphNode,
+  INDENT_CONTENT_COMMAND,
+  OUTDENT_CONTENT_COMMAND,
   type ElementFormatType,
 } from 'lexical';
 import {
@@ -34,6 +36,8 @@ import {
   List,
   ListOrdered,
   ListX,
+  Indent,
+  Outdent,
 } from 'lucide-react';
 import {
   $isHeadingNode,
@@ -241,7 +245,6 @@ export default function ToolbarPlugin() {
         const anchorNode = selection.anchor.getNode();
         const blockElement = anchorNode.getTopLevelElementOrThrow();
 
-        // ✅ Prevent heading inside list items
         if ($isListNode(blockElement) || $isListItemNode(blockElement)) {
           return;
         }
@@ -261,16 +264,73 @@ export default function ToolbarPlugin() {
     [editor],
   );
 
+  const handleIndent = useCallback(() => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if (!$isRangeSelection(selection)) return;
+
+      const node = selection.anchor.getNode();
+      const parent = node.getParent();
+
+      // If the current node or its parent is a list item, do nothing
+      if ($isListItemNode(node) || $isListItemNode(parent)) return;
+
+      editor.dispatchCommand(INDENT_CONTENT_COMMAND, undefined);
+    });
+  }, [editor]);
+
+  const handleOutdent = useCallback(() => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if (!$isRangeSelection(selection)) return;
+
+      const node = selection.anchor.getNode();
+      const parent = node.getParent();
+
+      if ($isListItemNode(node) || $isListItemNode(parent)) return;
+
+      editor.dispatchCommand(OUTDENT_CONTENT_COMMAND, undefined);
+    });
+  }, [editor]);
+
+  const handleInsertUnorderedList = useCallback(() => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if (!$isRangeSelection(selection)) return;
+
+      const node = selection.anchor.getNode();
+      const topBlock = node.getTopLevelElementOrThrow();
+
+      // Prevent list if already inside a list or indented
+      if ($isListItemNode(topBlock) || topBlock.getIndent?.() > 0) return;
+
+      editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
+    });
+  }, [editor]);
+
+  const handleInsertOrderedList = useCallback(() => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if (!$isRangeSelection(selection)) return;
+
+      const node = selection.anchor.getNode();
+      const topBlock = node.getTopLevelElementOrThrow();
+
+      // Prevent list if already inside a list or indented
+      if ($isListItemNode(topBlock) || topBlock.getIndent?.() > 0) return;
+
+      editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
+    });
+  }, [editor]);
+
   return (
     <div
       className="flex flex-wrap items-center gap-2 border-b border-gray-300 mb-2 px-2 py-1 bg-white"
       role="toolbar"
       aria-label="Text formatting toolbar"
     >
-      {/* Block Type Selection */}
       <HeadingSelect value={blockType} onChange={handleHeadingChange} />
 
-      {/* Text Format Buttons */}
       <div className="flex items-center gap-1">
         <ToolbarButton
           onClick={() => handleTextFormat('bold')}
@@ -305,7 +365,6 @@ export default function ToolbarPlugin() {
         </ToolbarButton>
       </div>
 
-      {/* Alignment Buttons */}
       <div className="flex items-center gap-1">
         {ALIGNMENT_OPTIONS.map(({ type, icon: Icon, label }) => (
           <ToolbarButton
@@ -319,21 +378,16 @@ export default function ToolbarPlugin() {
         ))}
       </div>
 
-      {/* List Buttons */}
       <div className="flex items-center gap-1">
         <ToolbarButton
-          onClick={() =>
-            editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined)
-          }
+          onClick={handleInsertUnorderedList}
           aria-label="Unordered list"
         >
           <List size={18} />
         </ToolbarButton>
 
         <ToolbarButton
-          onClick={() =>
-            editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined)
-          }
+          onClick={handleInsertOrderedList}
           aria-label="Ordered list"
         >
           <ListOrdered size={18} />
@@ -345,9 +399,16 @@ export default function ToolbarPlugin() {
         >
           <ListX size={18} />
         </ToolbarButton>
+
+        <ToolbarButton onClick={handleIndent} aria-label="Indent">
+          <Indent size={18} />
+        </ToolbarButton>
+
+        <ToolbarButton onClick={handleOutdent} aria-label="Outdent">
+          <Outdent size={18} />
+        </ToolbarButton>
       </div>
 
-      {/* Undo/Redo Buttons */}
       <div className="flex items-center gap-1 ml-auto">
         <ToolbarButton onClick={undo} disabled={!canUndo} aria-label="Undo">
           <Undo2 size={18} />

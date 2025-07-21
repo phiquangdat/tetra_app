@@ -8,11 +8,13 @@ import { TextNode, ParagraphNode, type EditorThemeClasses } from 'lexical';
 import { HeadingNode } from '@lexical/rich-text';
 import { ListNode, ListItemNode } from '@lexical/list';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
+import { TabIndentationPlugin } from '@lexical/react/LexicalTabIndentationPlugin';
 
 import ToolbarPlugin from '../../plugins/ToolbarPlugin';
 import OnChangePlugin from '../../plugins/OnChangePlugin';
 import Placeholder from '../../context/editor/PlaceHolder';
 import type { JSX } from 'react';
+
 
 interface EditorComposerProps {
   initialValue?: string;
@@ -163,6 +165,7 @@ export default function EditorComposer({
         <OnChangePlugin />
         <HistoryPlugin />
         <ListPlugin />
+        <TabIndentationPlugin />
 
         {autoFocus && <AutoFocusPlugin />}
       </LexicalComposer>

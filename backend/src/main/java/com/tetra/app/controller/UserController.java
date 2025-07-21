@@ -99,7 +99,6 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    @Operation(summary = "Update an existing user", security = @SecurityRequirement(name = "bearerAuth"))
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(
         @PathVariable String id,

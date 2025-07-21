@@ -10,6 +10,7 @@ import { ListNode, ListItemNode } from '@lexical/list';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { TabIndentationPlugin } from '@lexical/react/LexicalTabIndentationPlugin';
 
+import { ImageNode } from './nodes/ImageNode';
 import ToolbarPlugin from '../../plugins/ToolbarPlugin';
 import OnChangePlugin from '../../plugins/OnChangePlugin';
 import Placeholder from '../../context/editor/PlaceHolder';
@@ -70,6 +71,7 @@ const getEditorNodes = () => [
   HeadingNode,
   ListNode,
   ListItemNode,
+  ImageNode,
 ];
 
 const defaultErrorHandler = (error: Error) => {

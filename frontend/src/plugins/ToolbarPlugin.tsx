@@ -33,44 +33,60 @@ import {
   ListX,
   Indent,
   Outdent,
+  Image,
 } from 'lucide-react';
 import { ToolbarButton } from './ToolbarButton';
 import { HeadingSelect, type BlockType } from './HeadingSelect';
-import { useEditorState, type AlignmentType, type TextFormats } from './useEditorState';
+import {
+  useEditorState,
+  type AlignmentType,
+  type TextFormats,
+} from './useEditorState';
 import { useUndoRedo } from './useUndoRedo';
+import { $createImageNode } from '../components/editor/nodes/ImageNode';
 
 export default function ToolbarPlugin() {
   const [editor] = useLexicalComposerContext();
   const { formats, alignment, blockType } = useEditorState();
   const { canUndo, canRedo, undo, redo } = useUndoRedo();
 
-  const handleTextFormat = useCallback((format: keyof TextFormats) => {
-    editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
-  }, [editor]);
+  const handleTextFormat = useCallback(
+    (format: keyof TextFormats) => {
+      editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
+    },
+    [editor],
+  );
 
-  const handleAlignment = useCallback((alignmentType: AlignmentType) => {
-    editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, alignmentType);
-  }, [editor]);
+  const handleAlignment = useCallback(
+    (alignmentType: AlignmentType) => {
+      editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, alignmentType);
+    },
+    [editor],
+  );
 
-  const handleHeadingChange = useCallback((newBlockType: BlockType) => {
-    editor.update(() => {
-      const selection = $getSelection();
-      if (!$isRangeSelection(selection)) return;
+  const handleHeadingChange = useCallback(
+    (newBlockType: BlockType) => {
+      editor.update(() => {
+        const selection = $getSelection();
+        if (!$isRangeSelection(selection)) return;
 
-      const anchorNode = selection.anchor.getNode();
-      const blockElement = anchorNode.getTopLevelElementOrThrow();
-      if ($isListNode(blockElement) || $isListItemNode(blockElement)) return;
+        const anchorNode = selection.anchor.getNode();
+        const blockElement = anchorNode.getTopLevelElementOrThrow();
+        if ($isListNode(blockElement) || $isListItemNode(blockElement)) return;
 
-      const currentFormat = blockElement.getFormatType?.() ?? 'left';
-      const newNode = newBlockType === 'paragraph'
-        ? $createParagraphNode()
-        : $createHeadingNode(newBlockType);
+        const currentFormat = blockElement.getFormatType?.() ?? 'left';
+        const newNode =
+          newBlockType === 'paragraph'
+            ? $createParagraphNode()
+            : $createHeadingNode(newBlockType);
 
-      newNode.setFormat(currentFormat);
-      newNode.append(...blockElement.getChildren());
-      blockElement.replace(newNode);
-    });
-  }, [editor]);
+        newNode.setFormat(currentFormat);
+        newNode.append(...blockElement.getChildren());
+        blockElement.replace(newNode);
+      });
+    },
+    [editor],
+  );
 
   const handleIndent = useCallback(() => {
     editor.update(() => {
@@ -124,6 +140,30 @@ export default function ToolbarPlugin() {
     });
   }, [editor]);
 
+  const handleInsertImage = useCallback(() => {
+    const url = prompt('Enter image URL');
+    if (!url) return;
+
+    editor.update(() => {
+      const selection = $getSelection();
+      if (!$isRangeSelection(selection)) return;
+
+      const imageNode = $createImageNode({
+        src: url,
+        altText: 'Inserted image',
+        width: 800,
+      });
+
+      const paragraphNode = $createParagraphNode();
+
+      // Insert image and new paragraph
+      selection.insertNodes([imageNode, paragraphNode]);
+
+      // Move cursor to the new paragraph
+      paragraphNode.selectStart();
+    });
+  }, [editor]);
+
   return (
     <div
       className="flex flex-wrap items-center gap-2 border-b border-gray-300 mb-2 px-2 py-1 bg-white"
@@ -133,16 +173,32 @@ export default function ToolbarPlugin() {
       <HeadingSelect value={blockType} onChange={handleHeadingChange} />
 
       <div className="flex items-center gap-1">
-        <ToolbarButton onClick={() => handleTextFormat('bold')} active={formats.bold} aria-label="Bold">
+        <ToolbarButton
+          onClick={() => handleTextFormat('bold')}
+          active={formats.bold}
+          aria-label="Bold"
+        >
           <Bold size={18} />
         </ToolbarButton>
-        <ToolbarButton onClick={() => handleTextFormat('italic')} active={formats.italic} aria-label="Italic">
+        <ToolbarButton
+          onClick={() => handleTextFormat('italic')}
+          active={formats.italic}
+          aria-label="Italic"
+        >
           <Italic size={18} />
         </ToolbarButton>
-        <ToolbarButton onClick={() => handleTextFormat('underline')} active={formats.underline} aria-label="Underline">
+        <ToolbarButton
+          onClick={() => handleTextFormat('underline')}
+          active={formats.underline}
+          aria-label="Underline"
+        >
           <Underline size={18} />
         </ToolbarButton>
-        <ToolbarButton onClick={() => handleTextFormat('strikethrough')} active={formats.strikethrough} aria-label="Strikethrough">
+        <ToolbarButton
+          onClick={() => handleTextFormat('strikethrough')}
+          active={formats.strikethrough}
+          aria-label="Strikethrough"
+        >
           <Strikethrough size={18} />
         </ToolbarButton>
       </div>
@@ -166,13 +222,22 @@ export default function ToolbarPlugin() {
       </div>
 
       <div className="flex items-center gap-1">
-        <ToolbarButton onClick={handleInsertUnorderedList} aria-label="Unordered list">
+        <ToolbarButton
+          onClick={handleInsertUnorderedList}
+          aria-label="Unordered list"
+        >
           <List size={18} />
         </ToolbarButton>
-        <ToolbarButton onClick={handleInsertOrderedList} aria-label="Ordered list">
+        <ToolbarButton
+          onClick={handleInsertOrderedList}
+          aria-label="Ordered list"
+        >
           <ListOrdered size={18} />
         </ToolbarButton>
-        <ToolbarButton onClick={() => editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined)} aria-label="Remove list">
+        <ToolbarButton
+          onClick={() => editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined)}
+          aria-label="Remove list"
+        >
           <ListX size={18} />
         </ToolbarButton>
         <ToolbarButton onClick={handleIndent} aria-label="Indent">
@@ -182,6 +247,10 @@ export default function ToolbarPlugin() {
           <Outdent size={18} />
         </ToolbarButton>
       </div>
+
+      <ToolbarButton onClick={handleInsertImage} aria-label="Insert image">
+        <Image size={18} />
+      </ToolbarButton>
 
       <div className="flex items-center gap-1 ml-auto">
         <ToolbarButton onClick={undo} disabled={!canUndo} aria-label="Undo">

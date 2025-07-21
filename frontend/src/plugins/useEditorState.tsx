@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import {
-  $getSelection,
-  $isRangeSelection,
-} from 'lexical';
+import { $getSelection, $isRangeSelection } from 'lexical';
 import { $isHeadingNode } from '@lexical/rich-text';
 
 export interface TextFormats {
@@ -41,7 +38,9 @@ export function useEditorState() {
         });
 
         const anchorNode = selection.anchor.getNode();
-        const topNode = anchorNode.getTopLevelElementOrThrow();
+        const topNode = anchorNode.getTopLevelElement();
+
+        if (!topNode || topNode.getParent() === null) return;
 
         setAlignment((topNode.getFormatType?.() ?? 'left') as AlignmentType);
         setBlockType($isHeadingNode(topNode) ? topNode.getTag() : 'paragraph');

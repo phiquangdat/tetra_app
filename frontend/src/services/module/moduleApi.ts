@@ -83,7 +83,7 @@ export async function fetchModules(): Promise<Module[]> {
   }
 }
 
-export async function createModule(module: Module): Promise<Module> {
+export async function createModule(module: ModuleInput): Promise<Module> {
   const url = `${BASE_URL}/modules`;
   console.log('[createModule] POST:', url, 'Payload:', module);
   try {

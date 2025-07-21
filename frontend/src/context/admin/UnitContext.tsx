@@ -8,7 +8,8 @@ import {
 
 import {
   createUnit,
-  type CreateUnitRequest,
+  type UnitInput,
+  updateUnit,
 } from '../../services/unit/unitApi';
 
 export type QuizQuestionAnswer = {
@@ -170,13 +171,18 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
       setUnitState(unitNumber, { isSaving: true, error: null });
 
       try {
-        const unitData: CreateUnitRequest = {
+        const unitData: UnitInput = {
           module_id: moduleId,
           title: currentUnit.title,
           description: currentUnit.description,
         };
 
-        const response = await createUnit(unitData);
+        let response;
+        if (currentUnit.id) {
+          response = await updateUnit(currentUnit.id, unitData);
+        } else {
+          response = await createUnit(unitData);
+        }
 
         setUnitState(unitNumber, {
           id: response.id,

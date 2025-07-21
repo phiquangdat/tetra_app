@@ -664,6 +664,72 @@ paths:
                 type: string
                 example: "Access denied"
 
+  /api/users/{id}:
+    put:
+      summary: Update user by ID
+      description: |
+        Updates a user's name, email, and optionally password.
+        If password is being changed, requires oldPassword for validation.
+        Only ADMIN or the user themself can update.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: The UUID of the user to update.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: User update payload.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSummary'
+        '400':
+          description: Invalid input or error.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Error: Old password is incorrect"
+        '401':
+          description: Missing or invalid Authorization header.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Missing or invalid Authorization header"
+        '403':
+          description: Access denied.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Access denied"
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "User not found"
+        '500':
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Unexpected error: ..."
+
 components:
   schemas:
     Module:
@@ -1058,6 +1124,21 @@ components:
         role:
           type: string
           example: "LEARNER"
+
+    UpdateUserRequest:
+      type: object
+      description: Payload for updating a user.
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+          description: New password (optional)
+        oldPassword:
+          type: string
+          description: Required if password is being changed
 
   securitySchemes:
     bearerAuth:

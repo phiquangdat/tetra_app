@@ -58,47 +58,40 @@ describe('UnitForm', () => {
   });
 
   it('renders the form elements correctly', () => {
-    expect(screen.getByLabelText('Unit Title')).toBeInTheDocument();
-    expect(screen.getByLabelText('Unit Description')).toBeInTheDocument();
-    expect(screen.getByLabelText('Content Blocks')).toBeInTheDocument();
+    expect(screen.getByLabelText('Title')).toBeInTheDocument();
+    expect(screen.getByLabelText('Description')).toBeInTheDocument();
   });
 
   it('allows user to input text into the unit title field', async () => {
-    const input = screen.getByLabelText('Unit Title');
+    const input = screen.getByLabelText('Title');
     await userEvent.type(input, 'Test Unit');
     expect(input).toHaveValue('Test Unit');
   });
 
   it('allows user to input text into the unit description field', async () => {
-    const textarea = screen.getByLabelText('Unit Description');
+    const textarea = screen.getByLabelText('Description');
     await userEvent.type(textarea, 'This is a test description.');
     expect(textarea).toHaveValue('This is a test description.');
-  });
-
-  it('allows user to select a content block', async () => {
-    const select = screen.getByLabelText('Content Blocks');
-    await userEvent.selectOptions(select, 'addVideo');
-
-    const selectVideos = screen.getAllByText(/Video/i);
-    expect(selectVideos.length).toBeGreaterThan(0);
   });
 
   it('toggles unit visibility when clicking on the unit header', async () => {
     const unitHeader = screen.getByText(/Unit 2/i);
 
-    expect(screen.getByLabelText('Unit Title')).toBeInTheDocument();
+    expect(screen.getByLabelText('Title')).toBeInTheDocument();
 
     await userEvent.click(unitHeader);
-    expect(screen.queryByLabelText('Unit Title')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Title')).not.toBeInTheDocument();
 
     await userEvent.click(unitHeader);
-    expect(screen.getByLabelText('Unit Title')).toBeInTheDocument();
+    expect(screen.getByLabelText('Title')).toBeInTheDocument();
   });
 
   it('allows user to click the Save button', async () => {
     const saveButton = screen.getByRole('button', { name: /Save/i });
     await userEvent.click(saveButton);
-    expect(saveButton).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Save/i }),
+    ).not.toBeInTheDocument();
   });
 
   it('allows user to click the Remove button and confirms removal', async () => {

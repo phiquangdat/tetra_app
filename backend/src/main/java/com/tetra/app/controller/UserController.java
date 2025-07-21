@@ -7,7 +7,6 @@ import com.tetra.app.model.User;
 import com.tetra.app.service.UserService;
 import com.tetra.app.security.JwtUtil;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,13 +31,29 @@ public class UserController {
         this.jwtUtil = jwtUtil;
     }
 
-    @Operation(summary = "Create a new user", security = @SecurityRequirement(name = "bearerAuth"))
     @PostMapping
-    public ResponseEntity<?> createUser(@Valid @RequestBody CreateUserRequest request) {
+    public ResponseEntity<?> createUser(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @Valid @RequestBody CreateUserRequest request
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String role;
         try {
-            Role role;
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
+
+        try {
+            Role userRole;
             try {
-                role = Role.valueOf(request.getRole().toUpperCase());
+                userRole = Role.valueOf(request.getRole().toUpperCase());
             } catch (IllegalArgumentException e) {
                 return ResponseEntity.badRequest().body("Invalid role. Allowed roles: ADMIN, LEARNER");
             }
@@ -47,7 +62,7 @@ public class UserController {
                 request.getName(),
                 request.getEmail(),
                 request.getPassword(),
-                role
+                userRole
             );
 
             return ResponseEntity.status(HttpStatus.CREATED).body("User created successfully.");
@@ -58,7 +73,6 @@ public class UserController {
         }
     }
 
-    @Operation(summary = "Get all users (ADMIN only)", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping
     public ResponseEntity<?> getAllUsers(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {

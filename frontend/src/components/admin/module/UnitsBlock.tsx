@@ -1,29 +1,41 @@
 import React, { useEffect, useState } from 'react';
-import { fetchUnitTitleByModuleId } from '../../../services/unit/unitApi';
-import UnitItem from './UnitItem';
+import {
+  type UnitContent,
+  type UnitDetailsResponse,
+  fetchUnitById,
+  fetchUnitTitleByModuleId,
+} from '../../../services/unit/unitApi';
+import UnitsBlock from '../ui/UnitsBlock';
+import UnitItem from '../ui/UnitItem';
 
-interface UnitsBlockProps {
+interface UnitsBlockUIProps {
   moduleId: string;
 }
 
-interface UnitPreview {
-  id: string;
-  title: string;
-}
-
-const UnitsBlock: React.FC<UnitsBlockProps> = ({ moduleId }) => {
-  const [units, setUnits] = useState<UnitPreview[]>([]);
+const UnitsBlockUI: React.FC<UnitsBlockUIProps> = ({ moduleId }) => {
+  const [units, setUnits] = useState<
+    { id: string; title: string; description?: string }[]
+  >([]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const loadUnits = async () => {
       try {
-        const data = await fetchUnitTitleByModuleId(moduleId);
-        setUnits(data);
-      } catch (err) {
-        console.error(err);
+        const previews = await fetchUnitTitleByModuleId(moduleId);
+        const detailed = await Promise.all(
+          previews.map(async (u: UnitContent) => {
+            try {
+              const d: UnitDetailsResponse = await fetchUnitById(u.id);
+              return { ...u, description: d.description };
+            } catch {
+              return u;
+            }
+          }),
+        );
+        setUnits(detailed);
+      } catch {
         setError('Failed to load units');
       } finally {
         setLoading(false);
@@ -32,25 +44,35 @@ const UnitsBlock: React.FC<UnitsBlockProps> = ({ moduleId }) => {
     loadUnits();
   }, [moduleId]);
 
+  const toggle = (id: string) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
+
+  if (loading) return <p>Loading units…</p>;
+  if (error) return <p className="text-error">{error}</p>;
+
   return (
-    <div className="mt-10">
-      <h2 className="text-xl font-bold text-[#231942] mb-4">Units</h2>
-      {loading && <p>Loading units...</p>}
-      {error && <p className="text-error">{error}</p>}
-      <div className="flex flex-col gap-4">
-        {units.map((unit, index) => (
-          <UnitItem
-            key={unit.id}
-            id={unit.id}
-            title={unit.title}
-            index={index}
-            isOpen={openIndex === index}
-            onToggle={() => setOpenIndex(openIndex === index ? null : index)}
-          />
-        ))}
-      </div>
-    </div>
+    <UnitsBlock>
+      {units.map((u, i) => (
+        <UnitItem
+          key={u.id}
+          index={i}
+          id={u.id}
+          title={u.title}
+          details={{
+            id: u.id,
+            title: u.title,
+            description: u.description || '',
+          }}
+          isOpen={expandedId === u.id}
+          onToggle={() => toggle(u.id)}
+          onEdit={() => {
+            /* optional edit hook */
+          }}
+        />
+      ))}
+    </UnitsBlock>
   );
 };
 
-export default UnitsBlock;
+export default UnitsBlockUI;

@@ -30,8 +30,8 @@ describe('QuizBlock', () => {
         id: 'q1',
         title: 'What is 2 + 2?',
         answers: [
-          { id: 'a1', title: '3', isCorrect: false },
-          { id: 'a2', title: '4', isCorrect: true },
+          { id: 'a1', title: '3', is_correct: false },
+          { id: 'a2', title: '4', is_correct: true },
         ],
       },
       {

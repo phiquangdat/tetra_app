@@ -22,7 +22,7 @@ const QuizBlock: React.FC<QuizBlockProps> = ({ id }) => {
       try {
         const [quizData, questionData] = await Promise.all([
           fetchQuizById(id),
-          fetchQuizQuestionsByQuizId(id),
+          fetchQuizQuestionsByQuizId(id, true),
         ]);
         setQuiz(quizData);
         setQuestions(questionData);
@@ -71,10 +71,10 @@ const QuizBlock: React.FC<QuizBlockProps> = ({ id }) => {
                 <p className="text-sm font-medium">{q.title}</p>
 
                 <div className="space-y-2 mt-2">
-                  {q.answers.map((a: Answer & { isCorrect?: boolean }) => (
+                  {q.answers.map((a: Answer & { is_correct?: boolean }) => (
                     <div key={a.id} className="flex items-center gap-2 text-sm">
                       <span>{a.title}</span>
-                      {a.isCorrect && (
+                      {a.is_correct && (
                         <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
                           Correct
                         </span>

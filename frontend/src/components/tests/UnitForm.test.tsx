@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -126,5 +126,45 @@ describe('UnitForm', () => {
     expect(
       screen.queryByText(/Are you sure you want to remove this unit?/i),
     ).not.toBeInTheDocument();
+  });
+
+  it('allows editing a unit after initial save', async () => {
+    // Step 1: Type title and description
+    const titleInput = screen.getByLabelText('Title');
+    const descriptionInput = screen.getByLabelText('Description');
+    await userEvent.type(titleInput, 'Initial Unit Title');
+    await userEvent.type(descriptionInput, 'Initial Unit Description');
+
+    // Step 2: Save the unit
+    const saveButton = screen.getByRole('button', { name: /Save/i });
+    await userEvent.click(saveButton);
+
+    // Step 3: Wait for preview to render with the updated title
+    await waitFor(() =>
+      expect(screen.getByText('Initial Unit Title')).toBeInTheDocument(),
+    );
+    expect(screen.getByText('Initial Unit Description')).toBeInTheDocument();
+
+    // Step 4: Click Edit to return to the form
+    const editButton = screen.getByRole('button', { name: /Edit/i });
+    await userEvent.click(editButton);
+
+    // Step 5: Update the title and description
+    const updatedTitle = screen.getByLabelText('Title');
+    const updatedDescription = screen.getByLabelText('Description');
+    await userEvent.clear(updatedTitle);
+    await userEvent.type(updatedTitle, 'Updated Unit Title');
+    await userEvent.clear(updatedDescription);
+    await userEvent.type(updatedDescription, 'Updated Unit Description');
+
+    // Step 6: Save again
+    const secondSaveButton = screen.getByRole('button', { name: /Save/i });
+    await userEvent.click(secondSaveButton);
+
+    // Step 7: Confirm updated values are shown in preview
+    await waitFor(() =>
+      expect(screen.getByText('Updated Unit Title')).toBeInTheDocument(),
+    );
+    expect(screen.getByText('Updated Unit Description')).toBeInTheDocument();
   });
 });

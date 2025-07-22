@@ -1,29 +1,16 @@
 package com.tetra.app.controller;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.tetra.app.model.Question;
 import com.tetra.app.model.UnitContent;
-import com.tetra.app.repository.AnswerRepository;
+import com.tetra.app.model.Answer;
 import com.tetra.app.repository.QuestionRepository;
 import com.tetra.app.repository.UnitContentRepository;
+import com.tetra.app.repository.AnswerRepository;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/questions")

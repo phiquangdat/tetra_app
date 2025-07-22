@@ -730,6 +730,49 @@ paths:
                 type: string
                 example: "Unexpected error: ..."
 
+    get:
+      summary: Get user by ID
+      description: |
+        Returns user information by user ID.
+        Requires authentication (ADMIN or the user themself).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: The UUID of the user to retrieve.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User info.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSummary'
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "User not found"
+        '401':
+          description: Missing or invalid Authorization header.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Missing or invalid Authorization header"
+        '403':
+          description: Access denied.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Access denied"
+
 components:
   schemas:
     Module:

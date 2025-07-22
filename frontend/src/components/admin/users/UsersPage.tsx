@@ -1,17 +1,46 @@
-import { useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import AddUserForm from './AddUserForm';
-
-const data = [
-  { name: 'John Doe', email: 'john.doe@example.com', role: 'Admin' },
-  { name: 'Jane Smith', email: 'jane.smith@example.com', role: 'User' },
-  { name: 'Alice Johnson', email: 'alice.johnson@example.com', role: 'Admin' },
-  { name: 'Bob Brown', email: 'bob.brown@example.com', role: 'User' },
-];
-
-const headers = ['Id', 'Name', 'Email', 'Role'];
+import { getUsers, type User } from '../../../services/user/userApi';
 
 const UserPage = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [data, setData] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const headers = useMemo(() => ['Id', 'Name', 'Email', 'Role'], []);
+
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const users = await getUsers();
+      setData(users);
+    } catch (error) {
+      console.error(error);
+      let message = 'Failed to fetch users';
+      if (
+        error instanceof Error &&
+        (error.message.includes('401') || error.message.includes('403'))
+      ) {
+        message = 'You are not authorized. Please log in to view this content.';
+      } else if (error instanceof Error) {
+        message = error.message;
+      }
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  const handleUserAdded = () => {
+    fetchUsers();
+    setIsOpen(false);
+  };
 
   return (
     <div className="p-6 max-w-5xl mx-auto my-6">
@@ -47,19 +76,54 @@ const UserPage = () => {
             </tr>
           </thead>
           <tbody>
-            {data.map((user, index) => (
-              <tr key={index} className="border-t-2 border-background">
-                <td className="p-4 text-primary">{index + 1}</td>
-                <td className="p-4 text-primary font-semibold">{user.name}</td>
-                <td className="p-4 text-primary">{user.email}</td>
-                <td className="p-4 text-primary">{user.role}</td>
+            {loading ? (
+              <tr>
+                <td
+                  colSpan={headers.length}
+                  className="p-4 text-center text-primary font-semibold"
+                >
+                  Loading users...
+                </td>
               </tr>
-            ))}
+            ) : error ? (
+              <tr>
+                <td
+                  colSpan={headers.length}
+                  className="p-4 text-center text-error font-semibold"
+                >
+                  {error}
+                </td>
+              </tr>
+            ) : data.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={headers.length}
+                  className="p-4 text-center text-primary"
+                >
+                  No users found
+                </td>
+              </tr>
+            ) : (
+              data.map((user, index) => (
+                <tr key={user.id} className="border-t-2 border-background">
+                  <td className="p-4 text-primary">{index + 1}</td>
+                  <td className="p-4 text-primary font-semibold">
+                    {user.name}
+                  </td>
+                  <td className="p-4 text-primary">{user.email}</td>
+                  <td className="p-4 text-primary">{user.role}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
-      <AddUserForm isOpen={isOpen} onClose={() => setIsOpen(false)} />
+      <AddUserForm
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        onUserAdded={handleUserAdded}
+      />
     </div>
   );
 };

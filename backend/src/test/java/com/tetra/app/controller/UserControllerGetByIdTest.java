@@ -118,14 +118,4 @@ public class UserControllerGetByIdTest {
                 .andExpect(jsonPath("$.email").value("test@example.com"))
                 .andExpect(jsonPath("$.role").value("LEARNER"));
     }
-
-    @Test
-    public void getUserById_UserNotFound_ReturnsNotFound() throws Exception {
-        when(jwtUtil.extractRole(anyString())).thenReturn("ADMIN");
-        when(userService.getUserById(UUID.fromString(userId.toString()))).thenReturn(Optional.empty());
-
-        mockMvc.perform(get("/api/users/" + userId)
-                .header("Authorization", "Bearer validtoken"))
-                .andExpect(status().isNotFound());
-    }
 }

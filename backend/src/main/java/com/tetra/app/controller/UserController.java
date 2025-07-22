@@ -2,6 +2,7 @@ package com.tetra.app.controller;
 
 import com.tetra.app.dto.CreateUserRequest;
 import com.tetra.app.dto.UpdateUserRequest;
+import com.tetra.app.dto.UserInfoResponse;
 import com.tetra.app.model.Role;
 import com.tetra.app.model.User;
 import com.tetra.app.service.UserService;
@@ -15,8 +16,11 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.Map;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @SecurityRequirement(name = "bearerAuth")
@@ -148,5 +152,36 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Unexpected error: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUserById(
+        @PathVariable UUID id,
+        @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
+        Optional<User> userOpt = userService.getUserById(id);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        User user = userOpt.get();
+        UserInfoResponse response = new UserInfoResponse(
+            user.getName(),
+            user.getEmail(),
+            user.getRole().name()
+        );
+        return ResponseEntity.ok(response);
     }
 }

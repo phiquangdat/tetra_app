@@ -43,7 +43,7 @@ import {
   type TextFormats,
 } from './useEditorState';
 import { useUndoRedo } from './useUndoRedo';
-import { $createImageNode } from '../components/editor/nodes/ImageNode';
+import { $createImageNode } from '../nodes/ImageNode';
 
 export default function ToolbarPlugin() {
   const [editor] = useLexicalComposerContext();

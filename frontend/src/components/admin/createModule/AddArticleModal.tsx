@@ -2,8 +2,8 @@ import { EditIcon, CloseIcon } from '../../common/Icons';
 import { useEffect, useRef } from 'react';
 import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
 import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
-import EditorComposer from '../../editor/EditorComposer';
-import { EditorStateProvider } from '../../../context/editor/EditorStateContext.tsx';
+import EditorComposer from '../../../utils/editor/EditorComposer.tsx';
+import { EditorStateProvider } from '../../../utils/editor/contexts/EditorStateContext.tsx';
 
 interface ArticleModalProps {
   isOpen: boolean;

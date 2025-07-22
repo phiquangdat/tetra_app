@@ -14,7 +14,11 @@ export const useEditorStateContext = () => {
   return ctx;
 };
 
-export const EditorStateProvider = ({ children }: { children: React.ReactNode }) => {
+export const EditorStateProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [editorContent, setEditorContent] = useState('');
 
   const onChange = (editorState: any) => {
@@ -25,7 +29,9 @@ export const EditorStateProvider = ({ children }: { children: React.ReactNode })
   };
 
   return (
-    <EditorStateContext.Provider value={{ editorContent, setEditorContent, onChange }}>
+    <EditorStateContext.Provider
+      value={{ editorContent, setEditorContent, onChange }}
+    >
       {children}
     </EditorStateContext.Provider>
   );

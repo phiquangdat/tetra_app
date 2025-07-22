@@ -16,7 +16,6 @@ import OnChangePlugin from '../../plugins/OnChangePlugin';
 import Placeholder from '../../context/editor/PlaceHolder';
 import type { JSX } from 'react';
 
-
 interface EditorComposerProps {
   initialValue?: string;
   placeholder?: string;

@@ -18,9 +18,16 @@ const UserPage = () => {
       setData(users);
     } catch (error) {
       console.error(error);
-      setError(
-        error instanceof Error ? error.message : 'Failed to fetch users',
-      );
+      let message = 'Failed to fetch users';
+      if (
+        error instanceof Error &&
+        (error.message.includes('401') || error.message.includes('403'))
+      ) {
+        message = 'You are not authorized. Please log in to view this content.';
+      } else if (error instanceof Error) {
+        message = error.message;
+      }
+      setError(message);
     } finally {
       setLoading(false);
     }

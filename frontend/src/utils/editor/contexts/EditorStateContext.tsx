@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from 'react';
+import { $generateHtmlFromNodes } from '@lexical/html';
 
 interface EditorStateContextType {
   editorContent: string;
@@ -23,7 +24,7 @@ export const EditorStateProvider = ({
 
   const onChange = (editorState: any) => {
     editorState.read(() => {
-      const html = JSON.stringify(editorState);
+      const html = $generateHtmlFromNodes(editorState, null);
       setEditorContent(html);
     });
   };

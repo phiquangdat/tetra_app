@@ -1,6 +1,7 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useEffect } from 'react';
 import { useEditorStateContext } from '../contexts/EditorStateContext';
+import { $generateHtmlFromNodes } from '@lexical/html';
 
 export default function OnChangePlugin() {
   const [editor] = useLexicalComposerContext();
@@ -9,8 +10,8 @@ export default function OnChangePlugin() {
   useEffect(() => {
     return editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
-        const json = JSON.stringify(editorState);
-        setEditorContent(json);
+        const html = $generateHtmlFromNodes(editor, null);
+        setEditorContent(html);
       });
     });
   }, [editor]);

@@ -8,6 +8,7 @@ import { ContentBlockContextProvider } from '../../../context/admin/ContentBlock
 import CreateModuleForm from './CreateModuleForm';
 import UnitForm from './UnitForm';
 import UnitsBlock from '../ui/UnitsBlock.tsx';
+import { EditorStateProvider } from '../../../utils/editor/contexts/EditorStateContext';
 
 const UnitsManager: React.FC = () => {
   const { unitStates, addUnit } = useUnitContext();
@@ -94,7 +95,9 @@ function CreateModulePage() {
     <ModuleContextProvider>
       <UnitContextProvider>
         <ContentBlockContextProvider>
-          <CreateModulePageContent />
+          <EditorStateProvider>
+            <CreateModulePageContent />
+          </EditorStateProvider>
         </ContentBlockContextProvider>
       </UnitContextProvider>
     </ModuleContextProvider>

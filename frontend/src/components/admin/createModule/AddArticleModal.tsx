@@ -2,6 +2,8 @@ import { EditIcon, CloseIcon } from '../../common/Icons';
 import { useEffect, useRef } from 'react';
 import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
 import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
+import EditorComposer from '../../../utils/editor/EditorComposer.tsx';
+import { useEditorStateContext } from '../../../utils/editor/contexts/EditorStateContext.tsx';
 
 interface ArticleModalProps {
   isOpen: boolean;
@@ -26,6 +28,7 @@ function AddArticleModal({
     isDirty,
   } = useContentBlockContext();
   const { addContentBlock, removeContentBlock } = useUnitContext();
+  const { editorContent } = useEditorStateContext();
 
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -33,6 +36,15 @@ function AddArticleModal({
     data.title.trim() !== '' &&
     (data.content?.trim() ?? '') !== '' &&
     !isSaving;
+
+  useEffect(() => {
+    if (editorContent !== data.content) {
+      updateContentField('data', {
+        ...data,
+        content: editorContent,
+      });
+    }
+  }, [editorContent]);
 
   useEffect(() => {
     if (isOpen) {
@@ -49,7 +61,15 @@ function AddArticleModal({
   }, [isOpen]);
 
   const handleSave = async () => {
+    console.log('editorContent:', editorContent);
+
     if (!canSave) return;
+
+    updateContentField('data', {
+      ...data,
+      content: editorContent,
+    });
+
     try {
       await saveContent('article');
 
@@ -58,7 +78,7 @@ function AddArticleModal({
         type: 'article',
         data: {
           title: data.title.trim(),
-          content: data.content?.trim() ?? '',
+          content: editorContent,
         },
         sortOrder: 0,
         unit_id: unitId,
@@ -142,20 +162,7 @@ function AddArticleModal({
             </div>
 
             <div className="mb-6">
-              <textarea
-                id="content"
-                name="content"
-                value={data.content}
-                onChange={(e) =>
-                  updateContentField('data', {
-                    ...data,
-                    content: e.target.value,
-                  })
-                }
-                placeholder="Start writing your article..."
-                className="w-full h-80 px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none"
-                required
-              />
+              <EditorComposer />
             </div>
           </div>
 

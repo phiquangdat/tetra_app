@@ -1,5 +1,9 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
-import { createModule, updateModule } from '../../services/module/moduleApi';
+import {
+  createModule,
+  updateModule,
+  type ModuleInput,
+} from '../../services/module/moduleApi';
 import { isValidImageUrl, isImageUrlRenderable } from '../../utils/validators';
 
 interface ModuleContextProps {
@@ -103,24 +107,20 @@ export const ModuleContextProvider = ({
         throw new Error('Invalid image URL format for cover picture.');
       }
 
+      const moduleInput: ModuleInput = {
+        title: module.title,
+        description: module.description,
+        topic: module.topic,
+        points: module.pointsAwarded,
+        coverUrl: module.coverPicture ?? '',
+        status: module.status,
+      };
+
       let responseModule;
       if (module.id) {
-        responseModule = await updateModule(module.id, {
-          title: module.title,
-          description: module.description,
-          topic: module.topic,
-          points: module.pointsAwarded,
-          coverUrl: module.coverPicture ?? '',
-          status: module.status,
-        });
+        responseModule = await updateModule(module.id, moduleInput);
       } else {
-        responseModule = await createModule({
-          ...module,
-          points: module.pointsAwarded,
-          coverUrl: module.coverPicture ?? '',
-          id: module.id ?? '',
-          status: module.status, // <-- Ensure status is included here
-        });
+        responseModule = await createModule(moduleInput);
       }
 
       setModule((prev) => ({

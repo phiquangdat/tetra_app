@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
 import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
 import EditorComposer from '../../../utils/editor/EditorComposer.tsx';
-import { EditorStateProvider } from '../../../utils/editor/contexts/EditorStateContext.tsx';
+import { useEditorStateContext } from '../../../utils/editor/contexts/EditorStateContext.tsx';
 
 interface ArticleModalProps {
   isOpen: boolean;
@@ -28,6 +28,7 @@ function AddArticleModal({
     isDirty,
   } = useContentBlockContext();
   const { addContentBlock, removeContentBlock } = useUnitContext();
+  const { editorContent } = useEditorStateContext();
 
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -35,6 +36,15 @@ function AddArticleModal({
     data.title.trim() !== '' &&
     (data.content?.trim() ?? '') !== '' &&
     !isSaving;
+
+  useEffect(() => {
+    if (editorContent !== data.content) {
+      updateContentField('data', {
+        ...data,
+        content: editorContent,
+      });
+    }
+  }, [editorContent]);
 
   useEffect(() => {
     if (isOpen) {
@@ -51,7 +61,15 @@ function AddArticleModal({
   }, [isOpen]);
 
   const handleSave = async () => {
+    console.log('editorContent:', editorContent);
+
     if (!canSave) return;
+
+    updateContentField('data', {
+      ...data,
+      content: editorContent,
+    });
+
     try {
       await saveContent('article');
 
@@ -60,7 +78,7 @@ function AddArticleModal({
         type: 'article',
         data: {
           title: data.title.trim(),
-          content: data.content?.trim() ?? '',
+          content: editorContent,
         },
         sortOrder: 0,
         unit_id: unitId,
@@ -144,9 +162,7 @@ function AddArticleModal({
             </div>
 
             <div className="mb-6">
-              <EditorStateProvider>
-                <EditorComposer />
-              </EditorStateProvider>
+              <EditorComposer />
             </div>
           </div>
 

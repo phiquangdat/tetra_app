@@ -12,13 +12,17 @@ import { ModuleContextProvider } from '../../context/admin/ModuleContext';
 
 import { useEffect } from 'react';
 
+import { EditorStateProvider } from '../../utils/editor/contexts/EditorStateContext';
+
 const UnitFormWithProviders = ({ unitNumber }: { unitNumber: number }) => {
   return (
     <ModuleContextProvider>
       <UnitContextProvider>
         <ContentBlockContextProvider>
-          <InitUnitState unitNumber={unitNumber} />
-          <UnitForm unitNumber={unitNumber} />
+          <EditorStateProvider>
+            <InitUnitState unitNumber={unitNumber} />
+            <UnitForm unitNumber={unitNumber} />
+          </EditorStateProvider>
         </ContentBlockContextProvider>
       </UnitContextProvider>
     </ModuleContextProvider>

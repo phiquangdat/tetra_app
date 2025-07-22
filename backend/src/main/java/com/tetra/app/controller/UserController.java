@@ -1,7 +1,9 @@
 package com.tetra.app.controller;
 
 import com.tetra.app.dto.CreateUserRequest;
+import com.tetra.app.dto.UpdateUserRequest;
 import com.tetra.app.model.Role;
+import com.tetra.app.model.User;
 import com.tetra.app.service.UserService;
 import com.tetra.app.security.JwtUtil;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -95,5 +97,56 @@ public class UserController {
             ))
             .collect(Collectors.toList());
         return ResponseEntity.ok(users);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUser(
+        @PathVariable String id,
+        @Valid @RequestBody UpdateUserRequest request,
+        @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String role;
+        String requesterId;
+        try {
+            role = jwtUtil.extractRole(token);
+            requesterId = jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role) && !id.equals(requesterId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
+
+        var userOpt = userService.getUserByEmail(request.getEmail());
+        java.util.UUID userId = java.util.UUID.fromString(id);
+        var user = userService.getAllUsers().stream().filter(u -> u.getId().equals(userId)).findFirst().orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        try {
+            User updated = userService.updateUser(
+                user,
+                request.getName(),
+                request.getEmail(),
+                request.getPassword(),
+                request.getOldPassword()
+            );
+            java.util.Map<String, Object> response = java.util.Map.of(
+                "id", updated.getId(),
+                "name", updated.getName(),
+                "email", updated.getEmail(),
+                "role", updated.getRole().name()
+            );
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Unexpected error: " + e.getMessage());
+        }
     }
 }

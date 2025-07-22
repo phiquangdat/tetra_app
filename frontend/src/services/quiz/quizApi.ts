@@ -47,9 +47,17 @@ export async function fetchQuizById(id: string): Promise<Quiz> {
 
 export async function fetchQuizQuestionsByQuizId(
   quizId: string,
+  includeCorrect: boolean = false,
 ): Promise<Question[]> {
   try {
-    const response = await fetch(`${BASE_URL}/questions?contentId=${quizId}`);
+    const queryParams = new URLSearchParams({ contentId: quizId });
+    if (includeCorrect) {
+      queryParams.append('includeCorrect', 'true');
+    }
+
+    const response = await fetch(
+      `${BASE_URL}/questions?${queryParams.toString()}`,
+    );
     if (!response.ok) {
       throw new Error(`Failed to fetch QUIZ questions for ${quizId}`);
     }
@@ -58,7 +66,7 @@ export async function fetchQuizQuestionsByQuizId(
     console.log('Fetched questions are', data.questions);
     return data.questions;
   } catch (error) {
-    console.error('Error fetching QUIZ questions for ${quizId}:');
+    console.error(`Error fetching QUIZ questions for ${quizId}:`);
     throw error instanceof Error ? error : new Error('Unknown error occurred');
   }
 }

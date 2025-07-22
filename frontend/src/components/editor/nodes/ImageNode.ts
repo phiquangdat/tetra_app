@@ -26,15 +26,18 @@ type SerializedImageNode = Spread<
 function ImageComponent({
   src,
   altText,
-  width,
-}: Pick<ImagePayload, 'src' | 'altText' | 'width'>) {
+}: Pick<ImagePayload, 'src' | 'altText'>) {
   return React.createElement(
     'figure',
     { className: 'my-4' },
     React.createElement('img', {
-      src: src,
+      src,
       alt: altText,
-      style: { maxWidth: `${width}px`, width: '100%', height: 'auto' },
+      style: {
+        maxWidth: '640px',
+        width: '100%',
+        height: 'auto',
+      },
       className: 'rounded max-w-full mx-auto',
     }),
   );
@@ -86,7 +89,6 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
     return React.createElement(ImageComponent, {
       src: this.__src,
       altText: this.__altText,
-      width: this.__width,
     });
   }
 

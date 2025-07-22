@@ -66,13 +66,18 @@ describe('AddArticleModal', () => {
         onClose={onClose}
         onAddContent={onAddContent}
         unitId="unit-1"
+        unitNumber={1}
       />,
     );
 
     const titleInput = screen.getByLabelText('Title');
     await user.type(titleInput, 'Test Article Title');
 
-    const saveButton = screen.getByRole('button', { name: 'Save Article' });
+    const editor = screen.getByRole('textbox', { name: 'Article content' });
+    await user.click(editor);
+    await user.type(editor, 'Some article content');
+
+    const saveButton = screen.getByRole('button', { name: /save article/i });
     await user.click(saveButton);
 
     await waitFor(() => {

@@ -103,6 +103,8 @@ function EditorContentEditable({
 
   return (
     <ContentEditable
+      role="textbox"
+      aria-label="Article content"
       className={`${baseClasses} ${className}`}
       style={{ minHeight }}
     />

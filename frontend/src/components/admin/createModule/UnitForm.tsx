@@ -1,19 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { useUnitContext } from '../../../context/admin/UnitContext';
 import { useModuleContext } from '../../../context/admin/ModuleContext';
+import { useUnitContext } from '../../../context/admin/UnitContext';
 import Accordion from '../ui/Accordion';
-import UnitItemPreview from './UnitItemPreview';
 import { RemoveIcon } from '../../common/Icons';
-import AddArticleModal from './AddArticleModal';
-import AddVideoModal from './AddVideoModal';
-import AddQuizModal from './AddQuizModal';
-import AddContentDropdown from './AddContentDropdown';
 
-type UnitFormProps = {
+interface UnitFormProps {
   unitNumber: number;
-};
+  onSaved: () => void;
+}
 
-const UnitForm: React.FC<UnitFormProps> = ({ unitNumber }) => {
+const UnitForm: React.FC<UnitFormProps> = ({ unitNumber, onSaved }) => {
   const { id: moduleId } = useModuleContext();
   const { unitStates, getUnitState, updateUnitField, saveUnit, removeUnit } =
     useUnitContext();
@@ -22,36 +18,32 @@ const UnitForm: React.FC<UnitFormProps> = ({ unitNumber }) => {
   const canRemove = Object.keys(unitStates).length > 1;
 
   const [isOpen, setIsOpen] = useState(true);
-  const [isEditing, setIsEditing] = useState(true);
+  const [localSaving, setLocalSaving] = useState(false);
   const [successSaved, setSuccessSaved] = useState(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
-  const [isArticleModalOpen, setIsArticleModalOpen] = useState(false);
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
-  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
 
-  // Reset success message when editing again
+  // Clear the green “saved!” banner after 3s
   useEffect(() => {
-    if (isEditing) {
-      setSuccessSaved(false);
+    if (successSaved) {
+      const t = setTimeout(() => setSuccessSaved(false), 3000);
+      return () => clearTimeout(t);
     }
-  }, [isEditing]);
+  }, [successSaved]);
 
   const handleSave = async () => {
-    // if there's no state, or we're already saving, do nothing
-    if (!unitState || unitState.isSaving) {
-      return;
-    }
+    if (!unitState || unitState.isSaving || localSaving) return;
 
-    // if nothing dirty, just close the form (no backend call)
+    // If nothing changed, just exit edit mode
     if (!unitState.isDirty) {
-      setIsEditing(false);
+      onSaved();
       return;
     }
 
+    setLocalSaving(true);
     try {
       await saveUnit(unitNumber, moduleId!);
       setSuccessSaved(true);
-      setIsEditing(false);
+      onSaved();
       setTimeout(() => setSuccessSaved(false), 3000);
     } catch (err) {
       console.error('Error saving unit:', err);
@@ -63,137 +55,116 @@ const UnitForm: React.FC<UnitFormProps> = ({ unitNumber }) => {
     }
   };
 
+  const handleRemove = () => {
+    if (canRemove) setShowRemoveConfirm(true);
+  };
+  const confirmRemove = () => {
+    removeUnit(unitNumber);
+    setShowRemoveConfirm(false);
+  };
+  const cancelRemove = () => {
+    setShowRemoveConfirm(false);
+  };
+
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateUnitField(unitNumber, 'title', e.target.value);
   };
-
   const handleDescriptionChange = (
     e: React.ChangeEvent<HTMLTextAreaElement>,
   ) => {
     updateUnitField(unitNumber, 'description', e.target.value);
   };
 
-  const handleRemove = () => {
-    if (canRemove) {
-      setShowRemoveConfirm(true);
-    }
-  };
-
-  const confirmRemove = () => {
-    removeUnit(unitNumber);
-    setShowRemoveConfirm(false);
-  };
-
-  const cancelRemove = () => {
-    setShowRemoveConfirm(false);
-  };
-
   return (
-    <>
-      {isEditing ? (
-        <form onSubmit={(e) => e.preventDefault()}>
-          <Accordion
-            header={
-              <div className="flex items-center justify-between w-full">
-                <h3 className="text-xl font-semibold text-gray-700">
-                  Unit {unitNumber}
-                </h3>
-                {canRemove && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemove();
-                    }}
-                    aria-label="Remove Unit"
-                  >
-                    <RemoveIcon />
-                  </button>
-                )}
-              </div>
-            }
-            isOpen={isOpen}
-            onToggle={() => setIsOpen((o) => !o)}
+    <form onSubmit={(e) => e.preventDefault()}>
+      <Accordion
+        header={
+          <div className="flex items-center justify-between w-full">
+            <h3 className="text-xl font-semibold text-gray-700">
+              Unit {unitNumber}
+            </h3>
+            {canRemove && (
+              <span
+                role="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemove();
+                }}
+                aria-label="Remove Unit"
+                className="cursor-pointer p-1"
+              >
+                <RemoveIcon />
+              </span>
+            )}
+          </div>
+        }
+        isOpen={isOpen}
+        onToggle={() => setIsOpen((o) => !o)}
+      >
+        {/* Error or Success Messages */}
+        {unitState?.error && (
+          <div className="bg-red-100 text-red-700 p-2 rounded mb-4">
+            {unitState.error}
+          </div>
+        )}
+        {successSaved && (
+          <div className="bg-green-100 text-green-700 p-2 rounded mb-4">
+            Unit saved successfully!
+          </div>
+        )}
+
+        {/* Title Input */}
+        <div className="mb-6">
+          <label
+            htmlFor={`unitTitle-${unitNumber}`}
+            className="block mb-1 font-medium"
           >
-            {/* Error or Success Messages */}
-            {unitState?.error && (
-              <div className="bg-red-100 text-red-700 p-2 rounded mb-4">
-                {unitState.error}
-              </div>
-            )}
-            {successSaved && (
-              <div className="bg-green-100 text-green-700 p-2 rounded mb-4">
-                Unit saved successfully!
-              </div>
-            )}
+            Title
+          </label>
+          <input
+            id={`unitTitle-${unitNumber}`}
+            type="text"
+            value={unitState?.title || ''}
+            onChange={handleTitleChange}
+            className="w-full border-gray-300 border rounded p-2 focus:outline-none focus:border-blue-500"
+          />
+        </div>
 
-            {/* Title Input */}
-            <div className="mb-6">
-              <label
-                htmlFor={`unitTitle-${unitNumber}`}
-                className="block mb-1 font-medium"
-              >
-                Title
-              </label>
-              <input
-                id={`unitTitle-${unitNumber}`}
-                type="text"
-                value={unitState?.title || ''}
-                onChange={handleTitleChange}
-                className="w-full border-gray-300 border rounded p-2 focus:outline-none focus:border-blue-500"
-              />
-            </div>
+        {/* Description Input */}
+        <div className="mb-6">
+          <label
+            htmlFor={`unitDesc-${unitNumber}`}
+            className="block mb-1 font-medium"
+          >
+            Description
+          </label>
+          <textarea
+            id={`unitDesc-${unitNumber}`}
+            value={unitState?.description || ''}
+            onChange={handleDescriptionChange}
+            rows={4}
+            className="w-full border-gray-300 border rounded p-2 focus:outline-none focus:border-blue-500 resize-none"
+          />
+        </div>
 
-            {/* Description Input */}
-            <div className="mb-6">
-              <label
-                htmlFor={`unitDesc-${unitNumber}`}
-                className="block mb-1 font-medium"
-              >
-                Description
-              </label>
-              <textarea
-                id={`unitDesc-${unitNumber}`}
-                value={unitState?.description || ''}
-                onChange={handleDescriptionChange}
-                rows={4}
-                className="w-full border-gray-300 border rounded p-2 focus:outline-none focus:border-blue-500 resize-none"
-              />
-            </div>
-
-            {/* Save Button */}
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={unitState?.isSaving}
-              className={`px-4 py-2 rounded-lg transition ${
-                unitState?.isSaving
-                  ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                  : unitState?.isDirty
-                    ? 'bg-blue-500 text-white hover:bg-blue-600'
-                    : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              {unitState?.isSaving ? 'Saving...' : 'Save'}
-            </button>
-          </Accordion>
-        </form>
-      ) : (
-        <UnitItemPreview
-          unitNumber={unitNumber}
-          moduleId={moduleId}
-          onEdit={() => setIsEditing(true)}
-          addContentComponent={
-            <AddContentDropdown
-              unitNumber={unitNumber}
-              disabled={!unitState?.id || unitState.isSaving}
-              onOpenArticle={() => setIsArticleModalOpen(true)}
-              onOpenVideo={() => setIsVideoModalOpen(true)}
-              onOpenQuiz={() => setIsQuizModalOpen(true)}
-            />
-          }
-        />
-      )}
+        {/* Save Button */}
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={unitState?.isSaving || localSaving}
+            className={`px-4 py-2 rounded-lg transition ${
+              unitState?.isSaving || localSaving
+                ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                : unitState?.isDirty
+                  ? 'bg-blue-500 text-white hover:bg-blue-600'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            {unitState?.isSaving || localSaving ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+      </Accordion>
 
       {/* Remove Confirmation Modal */}
       {showRemoveConfirm && (
@@ -222,27 +193,7 @@ const UnitForm: React.FC<UnitFormProps> = ({ unitNumber }) => {
           </div>
         </div>
       )}
-
-      {/* Content Block Modals */}
-      <AddArticleModal
-        isOpen={isArticleModalOpen}
-        onClose={() => setIsArticleModalOpen(false)}
-        unitId={unitState?.id ?? ''}
-        unitNumber={unitNumber}
-      />
-      <AddVideoModal
-        isOpen={isVideoModalOpen}
-        onClose={() => setIsVideoModalOpen(false)}
-        unitId={unitState?.id ?? ''}
-        unitNumber={unitNumber}
-      />
-      <AddQuizModal
-        isOpen={isQuizModalOpen}
-        onClose={() => setIsQuizModalOpen(false)}
-        unitId={unitState?.id ?? ''}
-        unitNumber={unitNumber}
-      />
-    </>
+    </form>
   );
 };
 

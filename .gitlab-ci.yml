@@ -18,11 +18,16 @@ test_backend:
   services:
     - docker:28.2.1-dind
   tags: ["Docker"]
+  cache:
+    key: gradle-cache
+    paths:
+      - backend/.gradle/
   script:
+    - set -e
     - echo "Running backend tests"
     - cd backend
     - chmod +x gradlew
-    - ./gradlew test --no-daemon
+    - ./gradlew test --no-daemon --parallel
   artifacts:
     when: always
     reports:
@@ -34,12 +39,17 @@ test_frontend:
   services:
     - docker:28.2.1-dind
   tags: ["Docker"]
+  cache:
+    key: npm-cache
+    paths:
+      - frontend/node_modules/
   script:
+    - set -e
     - echo "Running frontend tests"
     - cd frontend
     - npm ci
     - mkdir -p test-results
-    - npx vitest run --reporter=verbose --reporter=junit --outputFile.junit=dist/test-results/junit.xml
+    - npx vitest run --threads --reporter=verbose --reporter=junit --outputFile.junit=dist/test-results/junit.xml
   artifacts:
     when: always
     reports:
@@ -51,15 +61,19 @@ check_prettier:
   services:
     - docker:28.2.1-dind
   tags: ["Docker"]
+  cache:
+    key: npm-cache
+    paths:
+      - frontend/node_modules/
   script:
+    - set -e
     - echo "Checking Prettier formatting"
     - cd frontend
     - npm ci
     - npm run format
     - git diff --exit-code
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH != "main"
+     - if: '$CI_COMMIT_BRANCH == "testPi" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
 
 build_frontend:
   image: node:20
@@ -68,18 +82,22 @@ build_frontend:
     - docker:28.2.1-dind
   tags: ["Docker"]
   needs: [test_frontend]
+  cache:
+    key: npm-cache
+    paths:
+      - frontend/node_modules/
   script:
+    - set -e
     - echo "Building frontend"
     - cd frontend
     - echo "VITE_BACKEND_URL=$VITE_BACKEND_URL" > .env.production
     - npm ci
-    - npm run build
+    - npm run build -- --maxWorkers=4
   artifacts:
     paths:
       - frontend/dist/
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+     - if: '$CI_COMMIT_BRANCH == "testPi" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
 
 build_backend:
   image: gradle:8.14.1-jdk24
@@ -88,16 +106,20 @@ build_backend:
     - docker:28.2.1-dind
   tags: ["Docker"]
   needs: [test_backend]
+  cache:
+    key: gradle-cache
+    paths:
+      - backend/.gradle/
   script:
+    - set -e
     - cd backend
     - chmod +x gradlew
-    - ./gradlew clean bootJar --no-daemon
+    - ./gradlew clean bootJar --no-daemon --parallel
   artifacts:
     paths:
       - backend/build/libs/*.jar
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+     - if: '$CI_COMMIT_BRANCH == "testPi" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
 
 build_and_push_backend:
   image: docker:28.2.1
@@ -109,13 +131,13 @@ build_and_push_backend:
     - job: build_backend
       optional: true
   script:
+    - set -e
     - echo "Building backend Docker image"
     - echo "$DEPLOY_TOKEN" | docker login -u "$DEPLOY_USER" --password-stdin $DOCKER_REGISTRY
     - docker buildx create --use || true
     - docker buildx build --platform linux/amd64 -t $BACKEND_IMAGE ./backend --push
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+    - if: '$CI_COMMIT_BRANCH == "testPi" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
 
 build_and_push_frontend:
   image: docker:28.2.1
@@ -127,13 +149,13 @@ build_and_push_frontend:
     - job: build_frontend
       optional: true
   script:
+    - set -e
     - echo "Building frontend Docker image:"
     - echo "$DEPLOY_TOKEN" | docker login -u "$DEPLOY_USER" --password-stdin $DOCKER_REGISTRY
     - docker buildx create --use || true
     - docker buildx build --platform linux/amd64 -t $FRONTEND_IMAGE ./frontend --push
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+    - if: '$CI_COMMIT_BRANCH == "testPi" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
 
 trigger_rancher_update:
   stage: deploy
@@ -143,6 +165,7 @@ trigger_rancher_update:
     - job: build_and_push_backend
     - job: build_and_push_frontend
   script:
+    - set -e
     - |
       cat <<EOF > kubeconfig.yaml
       apiVersion: v1
@@ -170,5 +193,4 @@ trigger_rancher_update:
     - kubectl rollout restart deployment/backend -n default
     - kubectl rollout restart deployment/frontend -n default
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+    - if: '$CI_COMMIT_BRANCH == "testPi" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'

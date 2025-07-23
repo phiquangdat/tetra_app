@@ -15,8 +15,6 @@ stages:
 test_backend:
   image: gradle:8.14.1-jdk24
   stage: test
-  services:
-    - docker:28.2.1-dind
   tags: ["Docker-Non-Protected"]
   cache:
     key: gradle-cache
@@ -36,8 +34,6 @@ test_backend:
 test_frontend:
   image: node:24.0.0
   stage: test
-  services:
-    - docker:28.2.1-dind
   tags: ["Docker-Non-Protected"]
   cache:
     key: npm-cache

@@ -11,6 +11,7 @@ export interface UnitItemProps {
   isOpen: boolean;
   onToggle: () => void;
   onEdit?: () => void;
+  addContentComponent?: React.ReactNode;
 }
 
 export interface UnitDetails {
@@ -28,6 +29,7 @@ const UnitItem: React.FC<UnitItemProps> = ({
   isOpen,
   onToggle,
   onEdit,
+  addContentComponent,
 }) => {
   const [unitDetails, setUnitDetails] = useState<UnitDetails | null>(
     details ?? null,
@@ -75,6 +77,8 @@ const UnitItem: React.FC<UnitItemProps> = ({
               Edit
             </button>
           )}
+
+          {addContentComponent}
 
           <div className="mt-6">
             <ContentBlockList unitId={id} />

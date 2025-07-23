@@ -6,9 +6,15 @@ interface Props {
   unitNumber: number;
   moduleId: string | null;
   onEdit: () => void;
+  addContentComponent?: React.ReactNode;
 }
 
-const UnitItemPreview: React.FC<Props> = ({ unitNumber, moduleId, onEdit }) => {
+const UnitItemPreview: React.FC<Props> = ({
+  unitNumber,
+  moduleId,
+  onEdit,
+  addContentComponent,
+}) => {
   const { getUnitState } = useUnitContext();
   const unit = getUnitState(unitNumber);
 
@@ -33,6 +39,7 @@ const UnitItemPreview: React.FC<Props> = ({ unitNumber, moduleId, onEdit }) => {
       isOpen={isOpen}
       onToggle={() => setIsOpen((o) => !o)}
       onEdit={onEdit}
+      addContentComponent={addContentComponent}
     />
   );
 };

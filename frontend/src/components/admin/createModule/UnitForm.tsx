@@ -7,6 +7,7 @@ import { RemoveIcon } from '../../common/Icons';
 import AddArticleModal from './AddArticleModal';
 import AddVideoModal from './AddVideoModal';
 import AddQuizModal from './AddQuizModal';
+import AddContentDropdown from './AddContentDropdown';
 
 type UnitFormProps = {
   unitNumber: number;
@@ -72,16 +73,6 @@ const UnitForm: React.FC<UnitFormProps> = ({ unitNumber }) => {
     updateUnitField(unitNumber, 'description', e.target.value);
   };
 
-  const handleContentBlockChange = (
-    e: React.ChangeEvent<HTMLSelectElement>,
-  ) => {
-    const value = e.target.value;
-    if (value === 'addArticle') setIsArticleModalOpen(true);
-    if (value === 'addVideo') setIsVideoModalOpen(true);
-    if (value === 'addQuiz') setIsQuizModalOpen(true);
-    e.target.value = '';
-  };
-
   const handleRemove = () => {
     if (canRemove) {
       setShowRemoveConfirm(true);
@@ -97,135 +88,112 @@ const UnitForm: React.FC<UnitFormProps> = ({ unitNumber }) => {
     setShowRemoveConfirm(false);
   };
 
-  // If we've saved, show the preview with Edit button
-  if (!isEditing) {
-    return (
-      <UnitItemPreview
-        unitNumber={unitNumber}
-        moduleId={moduleId}
-        onEdit={() => setIsEditing(true)}
-      />
-    );
-  }
-
   return (
     <>
-      <form onSubmit={(e) => e.preventDefault()}>
-        <Accordion
-          header={
-            <div className="flex items-center justify-between w-full">
-              <h3 className="text-xl font-semibold text-gray-700">
-                Unit {unitNumber}
-              </h3>
-              {canRemove && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemove();
-                  }}
-                  aria-label="Remove Unit"
-                >
-                  <RemoveIcon />
-                </button>
-              )}
-            </div>
-          }
-          isOpen={isOpen}
-          onToggle={() => setIsOpen((o) => !o)}
-        >
-          {/* Error or Success Messages */}
-          {unitState?.error && (
-            <div className="bg-red-100 text-red-700 p-2 rounded mb-4">
-              {unitState.error}
-            </div>
-          )}
-          {successSaved && (
-            <div className="bg-green-100 text-green-700 p-2 rounded mb-4">
-              Unit saved successfully!
-            </div>
-          )}
-
-          {/* Title Input */}
-          <div className="mb-6">
-            <label
-              htmlFor={`unitTitle-${unitNumber}`}
-              className="block mb-1 font-medium"
-            >
-              Title
-            </label>
-            <input
-              id={`unitTitle-${unitNumber}`}
-              type="text"
-              value={unitState?.title || ''}
-              onChange={handleTitleChange}
-              className="w-full border-gray-300 border rounded p-2 focus:outline-none focus:border-blue-500"
-            />
-          </div>
-
-          {/* Description Input */}
-          <div className="mb-6">
-            <label
-              htmlFor={`unitDesc-${unitNumber}`}
-              className="block mb-1 font-medium"
-            >
-              Description
-            </label>
-            <textarea
-              id={`unitDesc-${unitNumber}`}
-              value={unitState?.description || ''}
-              onChange={handleDescriptionChange}
-              rows={4}
-              className="w-full border-gray-300 border rounded p-2 focus:outline-none focus:border-blue-500 resize-none"
-            />
-          </div>
-
-          {/* Save Button */}
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={unitState?.isSaving}
-            className={`px-4 py-2 rounded-lg transition ${
-              unitState?.isSaving
-                ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                : unitState?.isDirty
-                  ? 'bg-blue-500 text-white hover:bg-blue-600'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
+      {isEditing ? (
+        <form onSubmit={(e) => e.preventDefault()}>
+          <Accordion
+            header={
+              <div className="flex items-center justify-between w-full">
+                <h3 className="text-xl font-semibold text-gray-700">
+                  Unit {unitNumber}
+                </h3>
+                {canRemove && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemove();
+                    }}
+                    aria-label="Remove Unit"
+                  >
+                    <RemoveIcon />
+                  </button>
+                )}
+              </div>
+            }
+            isOpen={isOpen}
+            onToggle={() => setIsOpen((o) => !o)}
           >
-            {unitState?.isSaving ? 'Saving...' : 'Save'}
-          </button>
-
-          {/* Content Blocks Selector */}
-          <div className="mt-6">
-            <label
-              htmlFor={`contentBlocks-${unitNumber}`}
-              className="block mb-2 font-medium"
-            >
-              Add Content Block
-            </label>
-            <select
-              id={`contentBlocks-${unitNumber}`}
-              onChange={handleContentBlockChange}
-              className="w-full border-gray-300 border rounded p-2 focus:outline-none focus:border-blue-500"
-              disabled={!unitState?.id || unitState.isSaving}
-              defaultValue=""
-            >
-              <option value="" disabled>
-                + Add content
-              </option>
-              <option value="addVideo">Add video</option>
-              <option value="addArticle">Add article</option>
-              <option value="addQuiz">Add quiz</option>
-            </select>
-            {!unitState?.id && (
-              <p className="text-sm text-gray-500 mt-2">
-                Save the unit first to add content blocks.
-              </p>
+            {/* Error or Success Messages */}
+            {unitState?.error && (
+              <div className="bg-red-100 text-red-700 p-2 rounded mb-4">
+                {unitState.error}
+              </div>
             )}
-          </div>
-        </Accordion>
-      </form>
+            {successSaved && (
+              <div className="bg-green-100 text-green-700 p-2 rounded mb-4">
+                Unit saved successfully!
+              </div>
+            )}
+
+            {/* Title Input */}
+            <div className="mb-6">
+              <label
+                htmlFor={`unitTitle-${unitNumber}`}
+                className="block mb-1 font-medium"
+              >
+                Title
+              </label>
+              <input
+                id={`unitTitle-${unitNumber}`}
+                type="text"
+                value={unitState?.title || ''}
+                onChange={handleTitleChange}
+                className="w-full border-gray-300 border rounded p-2 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            {/* Description Input */}
+            <div className="mb-6">
+              <label
+                htmlFor={`unitDesc-${unitNumber}`}
+                className="block mb-1 font-medium"
+              >
+                Description
+              </label>
+              <textarea
+                id={`unitDesc-${unitNumber}`}
+                value={unitState?.description || ''}
+                onChange={handleDescriptionChange}
+                rows={4}
+                className="w-full border-gray-300 border rounded p-2 focus:outline-none focus:border-blue-500 resize-none"
+              />
+            </div>
+
+            {/* Save Button */}
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={unitState?.isSaving}
+              className={`px-4 py-2 rounded-lg transition ${
+                unitState?.isSaving
+                  ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                  : unitState?.isDirty
+                    ? 'bg-blue-500 text-white hover:bg-blue-600'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {unitState?.isSaving ? 'Saving...' : 'Save'}
+            </button>
+          </Accordion>
+        </form>
+      ) : (
+        <UnitItemPreview
+          unitNumber={unitNumber}
+          moduleId={moduleId}
+          onEdit={() => setIsEditing(true)}
+          addContentComponent={
+            <AddContentDropdown
+              unitNumber={unitNumber}
+              disabled={!unitState?.id || unitState.isSaving}
+              onOpenArticle={() => setIsArticleModalOpen(true)}
+              onOpenVideo={() => setIsVideoModalOpen(true)}
+              onOpenQuiz={() => setIsQuizModalOpen(true)}
+            />
+          }
+        />
+      )}
 
       {/* Remove Confirmation Modal */}
       {showRemoveConfirm && (

@@ -61,8 +61,34 @@ function AddQuizModal({
       newErrors.push('Points is required.');
     }
 
-    if (!data.questions || data.questions.length === 0)
-      newErrors.push('At least one question is required.');
+    const cleanedQuestions = (data.questions || []).map((q) => {
+      const validAnswers = (q.answers || []).filter((a) => a.title?.trim());
+      return {
+        ...q,
+        title: q.title?.trim() || '',
+        answers: validAnswers,
+      };
+    });
+
+    const validQuestions = cleanedQuestions.filter(
+      (q) => q.title && q.answers.length >= 2,
+    );
+
+    if (validQuestions.length === 0) {
+      newErrors.push(
+        'At least one valid question (with title and 2+ answers) is required.',
+      );
+    }
+
+    const hasCorrectAnswer = validQuestions.some((q) =>
+      q.answers.some((a) => a.is_correct),
+    );
+
+    if (!hasCorrectAnswer) {
+      newErrors.push(
+        'At least one question must have a correct answer selected.',
+      );
+    }
 
     return newErrors;
   };
@@ -104,6 +130,25 @@ function AddQuizModal({
   };
 
   const handleSave = async () => {
+    const rawQuestions = data.questions || [];
+
+    const cleanedQuestions = rawQuestions
+      .map((q, i) => {
+        const answers = (q.answers || []).filter((a) => a.title?.trim());
+        return {
+          ...q,
+          title: q.title?.trim(),
+          answers,
+          sort_order: i + 1,
+        };
+      })
+      .filter((q) => q.title && q.answers.length >= 2);
+
+    const updatedData = {
+      ...data,
+      questions: cleanedQuestions,
+    };
+
     const validationErrors = validateQuiz();
     if (validationErrors.length > 0) {
       setErrors(validationErrors);
@@ -116,10 +161,7 @@ function AddQuizModal({
       addContentBlock(unitNumber, {
         type: 'quiz',
         data: {
-          title: data.title,
-          content: data.content || '',
-          points: data.points,
-          questions: data.questions || [],
+          ...updatedData,
         },
         sortOrder: 0,
         unit_id: unitId,

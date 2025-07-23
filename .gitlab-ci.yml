@@ -17,7 +17,7 @@ test_backend:
   stage: test
   services:
     - docker:28.2.1-dind
-  tags: ["Docker"]
+  tags: ["Docker-Non-Protected"]
   cache:
     key: gradle-cache
     paths:
@@ -38,7 +38,7 @@ test_frontend:
   stage: test
   services:
     - docker:28.2.1-dind
-  tags: ["Docker"]
+  tags: ["Docker-Non-Protected"]
   cache:
     key: npm-cache
     paths:
@@ -49,7 +49,7 @@ test_frontend:
     - cd frontend
     - npm ci
     - mkdir -p test-results
-    - npx vitest run --threads --reporter=verbose --reporter=junit --outputFile.junit=dist/test-results/junit.xml
+    - npx vitest run --reporter=verbose --reporter=junit --outputFile.junit=dist/test-results/junit.xml
   artifacts:
     when: always
     reports:
@@ -60,7 +60,7 @@ check_prettier:
   stage: test
   services:
     - docker:28.2.1-dind
-  tags: ["Docker"]
+  tags: ["Docker-Non-Protected"]
   cache:
     key: npm-cache
     paths:
@@ -73,14 +73,14 @@ check_prettier:
     - npm run format
     - git diff --exit-code
   rules:
-     - if: '$CI_COMMIT_BRANCH == "testPi" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+    - if: '$CI_COMMIT_BRANCH == "testPi" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
 
 build_frontend:
   image: node:20
   stage: build
   services:
     - docker:28.2.1-dind
-  tags: ["Docker"]
+  tags: ["Docker-Protected"]
   needs: [test_frontend]
   cache:
     key: npm-cache
@@ -97,14 +97,14 @@ build_frontend:
     paths:
       - frontend/dist/
   rules:
-     - if: '$CI_COMMIT_BRANCH == "testPi" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+    - if: '$CI_COMMIT_BRANCH == "testPi" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
 
 build_backend:
   image: gradle:8.14.1-jdk24
   stage: build
   services:
     - docker:28.2.1-dind
-  tags: ["Docker"]
+  tags: ["Docker-Protected"]
   needs: [test_backend]
   cache:
     key: gradle-cache
@@ -119,14 +119,14 @@ build_backend:
     paths:
       - backend/build/libs/*.jar
   rules:
-     - if: '$CI_COMMIT_BRANCH == "testPi" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+    - if: '$CI_COMMIT_BRANCH == "testPi" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
 
 build_and_push_backend:
   image: docker:28.2.1
   stage: push
   services:
     - docker:28.2.1-dind
-  tags: ["Docker"]
+  tags: ["Docker-Protected"]
   needs:
     - job: build_backend
       optional: true
@@ -144,7 +144,7 @@ build_and_push_frontend:
   stage: push
   services:
     - docker:28.2.1-dind
-  tags: ["Docker"]
+  tags: ["Docker-Protected"]
   needs:
     - job: build_frontend
       optional: true
@@ -160,7 +160,7 @@ build_and_push_frontend:
 trigger_rancher_update:
   stage: deploy
   image: alpine/k8s:1.28.0
-  tags: ["Docker"]
+  tags: ["Docker-Protected"]
   needs:
     - job: build_and_push_backend
     - job: build_and_push_frontend

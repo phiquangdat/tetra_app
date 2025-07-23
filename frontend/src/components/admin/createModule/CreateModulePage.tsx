@@ -6,9 +6,9 @@ import {
 } from '../../../context/admin/UnitContext';
 import { ContentBlockContextProvider } from '../../../context/admin/ContentBlockContext.tsx';
 import CreateModuleForm from './CreateModuleForm';
-import UnitForm from './UnitForm';
 import UnitsBlock from '../ui/UnitsBlock.tsx';
 import { EditorStateProvider } from '../../../utils/editor/contexts/EditorStateContext';
+import UnitContainer from './UnitContainer';
 
 const UnitsManager: React.FC = () => {
   const { unitStates, addUnit } = useUnitContext();
@@ -17,7 +17,7 @@ const UnitsManager: React.FC = () => {
     <UnitsBlock>
       {Object.keys(unitStates).map((key) => {
         const num = parseInt(key, 10);
-        return <UnitForm key={num} unitNumber={num} />;
+        return <UnitContainer key={num} unitNumber={num} />;
       })}
       <button
         type="button"

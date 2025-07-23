@@ -4,6 +4,7 @@ import com.tetra.app.model.TrainingModule;
 import com.tetra.app.model.Unit;
 import com.tetra.app.repository.TrainingModuleRepository;
 import com.tetra.app.repository.UnitRepository;
+import com.tetra.app.security.JwtUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,10 +21,12 @@ public class UnitController {
 
     private final UnitRepository unitRepository;
     private final TrainingModuleRepository trainingModuleRepository;
+    private final JwtUtil jwtUtil;
 
-    public UnitController(UnitRepository unitRepository, TrainingModuleRepository trainingModuleRepository) {
+    public UnitController(UnitRepository unitRepository, TrainingModuleRepository trainingModuleRepository, JwtUtil jwtUtil) {
         this.unitRepository = unitRepository;
         this.trainingModuleRepository = trainingModuleRepository;
+        this.jwtUtil = jwtUtil;
     }
 
     @GetMapping
@@ -96,6 +99,35 @@ public class UnitController {
         Unit updatedUnit = unitRepository.save(unit);
 
         return ResponseEntity.ok(updatedUnit);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUnit(
+            @PathVariable UUID id,
+            @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+
+        String token = authHeader.substring(7);
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
+
+        if (!unitRepository.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Unit not found with id: " + id);
+        }
+
+        unitRepository.deleteById(id);
+        return ResponseEntity.ok("Unit deleted");
     }
 
 }

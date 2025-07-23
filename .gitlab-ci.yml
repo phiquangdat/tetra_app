@@ -80,7 +80,7 @@ check_prettier:
     - npm run format
     - git diff --exit-code
   rules:
-    - if: '$CI_COMMIT_BRANCH == "testPi" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
 
 build_frontend:
   image: node:20
@@ -104,7 +104,7 @@ build_frontend:
     paths:
       - frontend/dist/
   rules:
-    - if: '$CI_COMMIT_BRANCH == "testPi" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
 
 build_backend:
   image: gradle:8.14.1-jdk24
@@ -126,7 +126,7 @@ build_backend:
     paths:
       - backend/build/libs/*.jar
   rules:
-    - if: '$CI_COMMIT_BRANCH == "testPi" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
 
 build_and_push_backend:
   image: docker:28.2.1
@@ -144,7 +144,7 @@ build_and_push_backend:
     - docker buildx create --use || true
     - docker buildx build --platform linux/amd64 -t $BACKEND_IMAGE ./backend --push
   rules:
-    - if: '$CI_COMMIT_BRANCH == "testPi" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
 
 build_and_push_frontend:
   image: docker:28.2.1
@@ -162,7 +162,7 @@ build_and_push_frontend:
     - docker buildx create --use || true
     - docker buildx build --platform linux/amd64 -t $FRONTEND_IMAGE ./frontend --push
   rules:
-    - if: '$CI_COMMIT_BRANCH == "testPi" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
 
 trigger_rancher_update:
   stage: deploy
@@ -200,4 +200,4 @@ trigger_rancher_update:
     - kubectl rollout restart deployment/backend -n default
     - kubectl rollout restart deployment/frontend -n default
   rules:
-    - if: '$CI_COMMIT_BRANCH == "testPi" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'

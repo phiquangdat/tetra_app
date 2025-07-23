@@ -6,6 +6,19 @@ variables:
   FRONTEND_IMAGE: $DOCKER_REGISTRY/$PROJECT_PATH/frontend:$IMAGE_TAG
   VITE_BACKEND_URL: "http://65.21.51.239:32000"
 
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
+
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: always
+
+    - when: never
+
 stages:
   - test
   - build

@@ -54,8 +54,6 @@ test_frontend:
 check_prettier:
   image: node:20
   stage: test
-  services:
-    - docker:28.2.1-dind
   tags: ["Docker-Non-Protected"]
   cache:
     key: npm-cache

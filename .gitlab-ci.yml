@@ -52,7 +52,7 @@ test_frontend:
       junit: frontend/dist/test-results/junit.xml
 
 check_prettier:
-  image: node:24.0.0
+  image: node:20
   stage: test
   services:
     - docker:28.2.1-dind

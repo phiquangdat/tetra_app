@@ -6,6 +6,7 @@ export interface UnitContent {
   id: string;
   title: string;
   content_type: string;
+  sort_order: number;
 }
 
 export interface UnitDetailsResponse {

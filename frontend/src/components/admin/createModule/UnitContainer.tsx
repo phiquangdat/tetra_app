@@ -30,6 +30,7 @@ const UnitContainer: React.FC<UnitContainerProps> = ({ unitNumber }) => {
     <>
       <UnitItem
         id={unitId}
+        unitNumber={unitNumber}
         title={unitState?.title || ''}
         details={{
           id: unitId,

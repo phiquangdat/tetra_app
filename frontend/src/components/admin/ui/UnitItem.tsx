@@ -5,6 +5,7 @@ import ContentBlockList from '../module/ContentBlockList';
 
 export interface UnitItemProps {
   id: string;
+  unitNumber?: number;
   title: string;
   details?: UnitDetails;
   index: number;
@@ -25,6 +26,7 @@ export interface UnitDetails {
 
 const UnitItem: React.FC<UnitItemProps> = ({
   id,
+  unitNumber,
   title,
   details,
   index,
@@ -101,7 +103,7 @@ const UnitItem: React.FC<UnitItemProps> = ({
       {addContentComponent}
 
       <div className="mt-6">
-        <ContentBlockList unitId={id} />
+        <ContentBlockList unitId={id} unitNumber={unitNumber ?? undefined} />
       </div>
     </Accordion>
   );

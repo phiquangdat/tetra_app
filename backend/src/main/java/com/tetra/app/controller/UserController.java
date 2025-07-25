@@ -164,12 +164,14 @@ public class UserController {
         }
         String token = authHeader.substring(7);
         String role;
+        String requesterId;
         try {
             role = jwtUtil.extractRole(token);
+            requesterId = jwtUtil.extractUserId(token);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
-        if (!"ADMIN".equals(role)) {
+        if (!"ADMIN".equals(role) && !id.toString().equals(requesterId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
         }
         Optional<User> userOpt = userService.getUserById(id);

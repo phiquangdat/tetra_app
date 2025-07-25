@@ -2,7 +2,7 @@ const envBaseUrl = import.meta.env.VITE_BACKEND_URL;
 const BASE_URL =
   envBaseUrl && envBaseUrl.trim() !== '' ? `${envBaseUrl}/api` : '/api';
 
-import { fetchWithAuth, getAuthToken } from '../../utils/authHelpers';
+import { getAuthToken, fetchWithAuth } from '../../utils/authHelpers';
 
 export interface User {
   id: string;

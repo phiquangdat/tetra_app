@@ -171,7 +171,7 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
   return (
     <div>
       <div
-        className="fixed inset-0 flex items-center justify-center z-10 p-4 overflow-auto"
+        className="fixed inset-0 flex items-center justify-center z-50 p-4 overflow-auto"
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
         onClick={handleBackdropClick}
       >

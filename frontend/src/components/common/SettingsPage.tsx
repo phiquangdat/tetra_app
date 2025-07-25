@@ -1,10 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ChangePasswordModal from './ChangePasswordModal';
+import { useAuth } from '../../context/auth/AuthContext';
+import { getUserById } from '../../services/user/userApi';
 
 const SettingsPage: React.FC = () => {
+  const { userId, authToken } = useAuth();
   const [fields, setFields] = useState({
-    name: 'Jane Doe',
-    email: 'jane.doe@example.com',
+    name: '',
+    email: '',
+    role: '',
   });
   const [edit, setEdit] = useState({
     name: false,
@@ -20,6 +24,16 @@ const SettingsPage: React.FC = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    const fetchUser = async () => {
+      const user = await getUserById(userId, authToken);
+      setFields({
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      });
+      console.log(user);
+    };
+    fetchUser();
   }, []);
 
   const handleStartEdit = (field: 'name' | 'email') => {
@@ -119,7 +133,7 @@ const SettingsPage: React.FC = () => {
 
         <div>
           <label className="text-primary text-sm font-medium">Role</label>
-          <div className="mt-1 text-primary text-base">Administrator</div>
+          <div className="mt-1 text-primary text-base">{fields.role}</div>
         </div>
       </div>
 

@@ -21,20 +21,40 @@ const SettingsPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
     const fetchUser = async () => {
-      const user = await getUserById(userId, authToken);
-      setFields({
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      });
-      console.log(user);
+      setLoading(true);
+      try {
+        const user = await getUserById(userId, authToken);
+        setFields({
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        });
+      } catch (error: any) {
+        let message = 'Unexpected error occurred. Please try again.';
+        if (error instanceof Error) {
+          if (error.message.includes('400') || error.message.includes('401')) {
+            message =
+              'You are not authorized. Please log in to view this content.';
+          } else if (error.message.includes('403')) {
+            message =
+              'Access denied. You do not have permission to view this user.';
+          } else if (error.message.includes('404')) {
+            message = 'User not found with the given ID.';
+          }
+        }
+        setError(message);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchUser();
-  }, []);
+  }, [userId, authToken]);
 
   const handleStartEdit = (field: 'name' | 'email') => {
     setInputs((inputs) => ({ ...inputs, [field]: fields[field] }));
@@ -56,6 +76,12 @@ const SettingsPage: React.FC = () => {
     <div className="min-h-screen bg-[#FFFFFF] p-6">
       <h1 className="text-[#231942] text-3xl font-semibold mb-6">Settings</h1>
 
+      {error && (
+        <div className="bg-error/10 text-error p-4 rounded-lg mb-6 w-fit mx-auto text-center">
+          {error}
+        </div>
+      )}
+
       {/* First Card */}
       <div className="border border-highlight rounded-2xl bg-cardBackground p-6 mb-6 shadow-sm">
         <div className="mb-4">
@@ -72,6 +98,7 @@ const SettingsPage: React.FC = () => {
                   }
                   ref={nameInputRef}
                   autoFocus
+                  placeholder="Enter your name"
                 />
                 <button
                   type="button"
@@ -83,10 +110,13 @@ const SettingsPage: React.FC = () => {
               </>
             ) : (
               <>
-                <span className="text-primary text-base">{fields.name}</span>
+                <span className="text-primary text-base">
+                  {fields.name || ''}
+                </span>
                 <button
-                  className="bg-secondary hover:bg-secondaryHover text-background text-sm font-medium px-5 py-2 rounded-lg transition"
+                  className="bg-secondary hover:bg-secondaryHover text-background text-sm font-medium px-5 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => handleStartEdit('name')}
+                  disabled={error !== null}
                 >
                   Edit
                 </button>
@@ -108,6 +138,7 @@ const SettingsPage: React.FC = () => {
                   }
                   ref={emailInputRef}
                   autoFocus
+                  placeholder="Enter your email"
                 />
                 <button
                   type="button"
@@ -119,10 +150,13 @@ const SettingsPage: React.FC = () => {
               </>
             ) : (
               <>
-                <span className="text-primary text-base">{fields.email}</span>
+                <span className="text-primary text-base">
+                  {fields.email || ''}
+                </span>
                 <button
-                  className="bg-secondary hover:bg-secondaryHover text-background text-sm font-medium px-5 py-2 rounded-lg transition"
+                  className="bg-secondary hover:bg-secondaryHover text-background text-sm font-medium px-5 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => handleStartEdit('email')}
+                  disabled={error !== null}
                 >
                   Edit
                 </button>
@@ -133,7 +167,7 @@ const SettingsPage: React.FC = () => {
 
         <div>
           <label className="text-primary text-sm font-medium">Role</label>
-          <div className="mt-1 text-primary text-base">{fields.role}</div>
+          <div className="mt-1 text-primary text-base">{fields.role || ''}</div>
         </div>
       </div>
 
@@ -143,8 +177,9 @@ const SettingsPage: React.FC = () => {
           Password and Authentication
         </h2>
         <button
-          className="bg-surface hover:bg-surfaceHover text-white text-sm font-medium px-5 py-2 rounded-lg transition"
+          className="bg-surface hover:bg-surfaceHover text-white text-sm font-medium px-5 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleOpenModal}
+          disabled={error !== null}
         >
           Change password
         </button>
@@ -152,6 +187,12 @@ const SettingsPage: React.FC = () => {
 
       {/* Modal */}
       {isModalOpen && <ChangePasswordModal onClose={handleCloseModal} />}
+
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-background"></div>
+        </div>
+      )}
     </div>
   );
 };

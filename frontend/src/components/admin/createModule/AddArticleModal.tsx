@@ -119,7 +119,7 @@ function AddArticleModal({
     >
       <div
         ref={modalRef}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between p-6 pb-0">
           <div className="flex items-center gap-3">

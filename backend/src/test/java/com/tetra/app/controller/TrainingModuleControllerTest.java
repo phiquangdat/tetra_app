@@ -3,6 +3,7 @@ package com.tetra.app.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tetra.app.config.SecurityConfig;
 import com.tetra.app.model.TrainingModule;
+import com.tetra.app.repository.BlacklistedTokenRepository;
 import com.tetra.app.repository.TrainingModuleRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -34,6 +35,9 @@ class TrainingModuleControllerTest {
 
     @MockBean
     private TrainingModuleRepository trainingModuleRepository;
+
+    @MockBean
+    private BlacklistedTokenRepository blacklistedTokenRepository;
 
     @Autowired
     private ObjectMapper objectMapper;

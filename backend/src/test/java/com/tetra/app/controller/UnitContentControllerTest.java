@@ -8,6 +8,7 @@ import com.tetra.app.repository.UnitContentRepository;
 import com.tetra.app.repository.UnitRepository;
 import com.tetra.app.repository.QuestionRepository;
 import com.tetra.app.repository.AnswerRepository;
+import com.tetra.app.repository.BlacklistedTokenRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -49,6 +50,9 @@ public class UnitContentControllerTest {
 
     @MockBean
     private AnswerRepository answerRepository;
+
+    @MockBean
+    private BlacklistedTokenRepository blacklistedTokenRepository;
 
     @Autowired
     private ObjectMapper objectMapper;

@@ -4,6 +4,7 @@ import com.tetra.app.model.Role;
 import com.tetra.app.model.User;
 import com.tetra.app.service.UserService;
 import com.tetra.app.security.JwtUtil;
+import com.tetra.app.repository.BlacklistedTokenRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -35,6 +36,9 @@ public class UserControllerGetByIdTest {
 
     @MockBean
     private JwtUtil jwtUtil;
+
+    @MockBean
+    private BlacklistedTokenRepository blacklistedTokenRepository;
 
     private UUID userId;
     private User user;

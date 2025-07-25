@@ -15,6 +15,7 @@ export interface SaveVideoRequest {
   title: string;
   content: string;
   url: string;
+  points: number;
   sort_order: number;
 }
 

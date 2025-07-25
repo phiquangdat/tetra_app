@@ -1,8 +1,10 @@
+import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ArticleBlock from '../../../components/admin/module/ArticleBlock';
 import { fetchArticleContentById } from '../../../services/unit/unitApi';
 import { describe, it, vi, beforeEach } from 'vitest';
+import { UnitContextProvider } from '../../../context/admin/UnitContext';
 
 vi.mock('../../../services/unit/unitApi', () => ({
   fetchArticleContentById: vi.fn(),
@@ -20,8 +22,13 @@ describe('ArticleBlock', () => {
       content: '<p>Article content</p>',
     });
 
-    render(<ArticleBlock id="2" />);
+    render(
+      <UnitContextProvider>
+        <ArticleBlock id="2" />
+      </UnitContextProvider>,
+    );
 
+    // we should see the fetched title & content
     await waitFor(() => {
       expect(screen.getByText('Article title')).toBeInTheDocument();
       expect(screen.getByText('Article Title')).toBeInTheDocument();

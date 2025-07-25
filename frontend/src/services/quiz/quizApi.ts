@@ -13,6 +13,7 @@ export interface Quiz {
 export interface Answer {
   id: string;
   title: string;
+  is_correct?: boolean;
   sort_order: number;
 }
 

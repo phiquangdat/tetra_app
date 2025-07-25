@@ -6,15 +6,9 @@ type Props = {
   questionNumber: number;
   questionType: 'true/false' | 'multiple';
   onClose: () => void;
-  errors?: string[];
 };
 
-function QuestionForm({
-  questionNumber = 1,
-  questionType,
-  onClose,
-  errors = [],
-}: Props) {
+function QuestionForm({ questionNumber = 1, questionType, onClose }: Props) {
   const { data, updateQuestion } = useContentBlockContext();
 
   const questionIndex = questionNumber - 1;
@@ -84,23 +78,12 @@ function QuestionForm({
       </div>
 
       <h2 className="text-lg text-gray-700 mb-4">Question {questionNumber}</h2>
-
-      {errors.length > 0 && (
-        <div className="bg-red-100 text-red-800 p-4 mb-4 rounded-lg">
-          <ul className="list-disc pl-6 text-sm">
-            {errors.map((err, idx) => (
-              <li key={idx}>{err}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <label htmlFor={`quizTitle-${questionNumber}`} className="sr-only">
+      <label htmlFor="quizTitle" className="sr-only">
         Question Title
       </label>
       <textarea
-        name={`quizTitle-${questionNumber}`}
-        id={`quizTitle-${questionNumber}`}
+        name="quizTitle"
+        id="quizTitle"
         value={question.title || ''}
         className="bg-white border-gray-400 border w-full h-32 rounded-lg p-2 mb-6 focus:outline-none focus:border-blue-500 transition-colors duration-200"
         style={{ resize: 'none' }}

@@ -25,26 +25,27 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
       <div className="mb-6">
         <a
           onClick={() => navigate(`/user/unit/${unitIdFromState}`)}
-          className="inline-flex items-center text-gray-500 hover:text-black px-3 py-1 rounded-lg hover:bg-gray-100 hover:border hover:border-gray-300 active:bg-gray-200 transition-all"
+          className="inline-flex items-center text-secondary hover:text-primary px-3 py-1 rounded-lg hover:bg-cardBackground hover:border hover:border-highlight active:bg-highlight transition-all cursor-pointer"
         >
           <span className="mr-2 text-xl">←</span>
           Back to Unit page
         </a>
       </div>
 
-      <h1 className="text-3xl font-bold mb-6 text-gray-800 text-center">
+      <h1 className="text-4xl font-extrabold mb-8 text-primary text-center">
         {article?.title}
       </h1>
-      <div className="bg-gray-100 rounded-2xl p-12 shadow-md w-full md:w-full mx-auto">
+
+      <div className="bg-cardBackground rounded-3xl p-10 sm:p-14 shadow-xl w-full md:w-3/4 mx-auto border-l-8 border-accent">
         <div
-          className="prose prose-lg max-w-none"
+          className="prose prose-lg max-w-none leading-relaxed text-primary/90 text-justify"
           dangerouslySetInnerHTML={{ __html: article?.content || '' }}
         />
       </div>
 
-      <div className="flex justify-end mt-8">
+      <div className="flex justify-end mt-10">
         <button
-          className="bg-blue-200 font-semibold px-16 py-3 rounded-full text-lg shadow-md hover:bg-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition w-fit"
+          className="bg-surface text-background font-semibold px-12 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition-all duration-200 w-fit"
           type="button"
           onClick={() => goToNextContent(id)}
         >

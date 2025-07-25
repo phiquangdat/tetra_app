@@ -212,7 +212,7 @@ public class UnitContentController {
             unitContent.setUnit(unit);
             unitContent.setContentType(contentType);
             unitContent.setTitle(title);
-            unitContent.setContent(content); // <-- store plain text
+            unitContent.setContent(content); 
             unitContent.setSortOrder(sortOrder);
             unitContent.setPoints(points);
             unitContent.setQuestionsNumber(questionsNumber);

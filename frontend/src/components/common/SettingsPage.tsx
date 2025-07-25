@@ -89,7 +89,6 @@ const SettingsPage: React.FC = () => {
 
   const handleInputChange = (field: 'name' | 'email', value: string) => {
     setInputs((i) => ({ ...i, [field]: value }));
-    // Validate and show error as user types
     setErrorField((prev) => ({
       ...prev,
       [field]: validateField(field, value),
@@ -140,7 +139,9 @@ const SettingsPage: React.FC = () => {
                 autoComplete="name"
               />
               {errorField.name && (
-                <p className="text-error text-base">{errorField.name}</p>
+                <p className="text-left text-error text-base">
+                  {errorField.name}
+                </p>
               )}
               <button
                 type="submit"
@@ -189,7 +190,9 @@ const SettingsPage: React.FC = () => {
                 autoComplete="email"
               />
               {errorField.email && (
-                <p className="text-error text-base">{errorField.email}</p>
+                <p className="text-left text-error text-base">
+                  {errorField.email}
+                </p>
               )}
               <button
                 type="submit"

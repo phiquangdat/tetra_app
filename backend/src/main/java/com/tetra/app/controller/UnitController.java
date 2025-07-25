@@ -2,6 +2,7 @@ package com.tetra.app.controller;
 
 import com.tetra.app.model.TrainingModule;
 import com.tetra.app.model.Unit;
+import com.tetra.app.repository.BlacklistedTokenRepository;
 import com.tetra.app.repository.TrainingModuleRepository;
 import com.tetra.app.repository.UnitRepository;
 import com.tetra.app.security.JwtUtil;
@@ -22,11 +23,13 @@ public class UnitController {
     private final UnitRepository unitRepository;
     private final TrainingModuleRepository trainingModuleRepository;
     private final JwtUtil jwtUtil;
+    private final BlacklistedTokenRepository blacklistedTokenRepository;
 
-    public UnitController(UnitRepository unitRepository, TrainingModuleRepository trainingModuleRepository, JwtUtil jwtUtil) {
+    public UnitController(UnitRepository unitRepository, TrainingModuleRepository trainingModuleRepository, JwtUtil jwtUtil, BlacklistedTokenRepository blacklistedTokenRepository) {
         this.unitRepository = unitRepository;
         this.trainingModuleRepository = trainingModuleRepository;
         this.jwtUtil = jwtUtil;
+        this.blacklistedTokenRepository = blacklistedTokenRepository;
     }
 
     @GetMapping
@@ -111,6 +114,9 @@ public class UnitController {
         }
 
         String token = authHeader.substring(7);
+        if (blacklistedTokenRepository.existsByToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is blacklisted (logged out)");
+        }
         String role;
         try {
             role = jwtUtil.extractRole(token);

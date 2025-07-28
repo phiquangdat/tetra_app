@@ -30,6 +30,9 @@ function AddQuizModal({
 
   const [selectedOption, setSelectedOption] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
+  const [questionErrors, setQuestionErrors] = useState<
+    Record<number, string[]>
+  >({});
 
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -48,6 +51,7 @@ function AddQuizModal({
 
   const validateQuiz = () => {
     const newErrors: string[] = [];
+    const newQuestionErrors: Record<number, string[]> = {};
 
     if (!data.title?.trim()) newErrors.push('Quiz title is required.');
     if (!data.content?.trim()) newErrors.push('Quiz description is required.');
@@ -61,8 +65,39 @@ function AddQuizModal({
       newErrors.push('Points is required.');
     }
 
-    if (!data.questions || data.questions.length === 0)
-      newErrors.push('At least one question is required.');
+    const questions = data.questions || [];
+
+    questions.forEach((q, index) => {
+      const questionErrs: string[] = [];
+
+      if (!q.title?.trim()) {
+        questionErrs.push('Question title is required.');
+      }
+
+      if (!q.answers || q.answers.length < 2) {
+        questionErrs.push('At least 2 answer choices are required.');
+      } else {
+        const hasEmptyAnswer = q.answers.some((a) => !a.title?.trim());
+        if (hasEmptyAnswer) {
+          questionErrs.push('All answer choices must have a title.');
+        }
+
+        const hasCorrect = q.answers.some((a) => a.is_correct);
+        if (!hasCorrect) {
+          questionErrs.push('One correct answer must be selected.');
+        }
+      }
+
+      if (questionErrs.length > 0) {
+        newQuestionErrors[index] = questionErrs;
+      }
+    });
+
+    setQuestionErrors(newQuestionErrors);
+
+    if (Object.keys(newQuestionErrors).length > 0) {
+      newErrors.push('There are errors in some questions.');
+    }
 
     return newErrors;
   };
@@ -105,6 +140,7 @@ function AddQuizModal({
 
   const handleSave = async () => {
     const validationErrors = validateQuiz();
+
     if (validationErrors.length > 0) {
       setErrors(validationErrors);
       return;
@@ -116,10 +152,7 @@ function AddQuizModal({
       addContentBlock(unitNumber, {
         type: 'quiz',
         data: {
-          title: data.title,
-          content: data.content || '',
-          points: data.points,
-          questions: data.questions || [],
+          ...data,
         },
         sortOrder: 0,
         unit_id: unitId,
@@ -129,6 +162,7 @@ function AddQuizModal({
       });
 
       setErrors([]);
+      setQuestionErrors({});
       clearContent();
       onClose();
     } catch (error) {
@@ -139,6 +173,7 @@ function AddQuizModal({
 
   const handleClose = () => {
     setErrors([]);
+    setQuestionErrors({});
     clearContent();
     onClose();
   };
@@ -163,6 +198,11 @@ function AddQuizModal({
       ...data,
       questions: updatedQuestions,
     });
+
+    // Remove the errors for the removed question
+    const updatedErrors = { ...questionErrors };
+    delete updatedErrors[index];
+    setQuestionErrors(updatedErrors);
   };
 
   if (!isOpen) return null;
@@ -288,6 +328,7 @@ function AddQuizModal({
                   questionNumber={index + 1}
                   questionType={question.type}
                   onClose={() => handleCloseQuestion(index)}
+                  errors={questionErrors[index] || []}
                 />
               ))}
             </div>

@@ -50,3 +50,22 @@ export async function getUsers(): Promise<User[]> {
     throw error instanceof Error ? error : new Error('Failed to fetch users');
   }
 }
+
+export async function getUserById(
+  id: string | null,
+  token: string | null,
+): Promise<User> {
+  try {
+    return await fetchWithAuth(`${BASE_URL}/users/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to fetch user by ID');
+  }
+}

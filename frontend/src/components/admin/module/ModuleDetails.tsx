@@ -4,6 +4,8 @@ import {
   type Module,
 } from '../../../services/module/moduleApi';
 import ModuleDetailsUI from '../ui/ModuleDetails';
+import { useModuleContext } from '../../../context/admin/ModuleContext';
+import { initialModuleState } from '../../../context/admin/ModuleContext';
 
 interface ModuleDetailsProps {
   id: string;
@@ -13,11 +15,27 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ id }) => {
   const [module, setModule] = useState<Module | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  const { setModuleState } = useModuleContext();
 
   useEffect(() => {
+    setModuleState(initialModuleState);
+
     const loadModule = async () => {
       try {
         const data = await fetchModuleById(id);
+
+        setModuleState({
+          id: data.id,
+          title: data.title,
+          description: data.description,
+          topic: data.topic,
+          pointsAwarded: data.points,
+          coverPicture: data.coverUrl,
+          status: data.status,
+          isDirty: false,
+          error: null,
+        });
+
         setModule(data);
       } catch (err) {
         console.error(err);
@@ -27,7 +45,7 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ id }) => {
       }
     };
     loadModule();
-  }, [id]);
+  }, [id, setModuleState]);
 
   if (loading) return <div>Loading module...</div>;
   if (error || !module)
@@ -35,7 +53,6 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ id }) => {
 
   return (
     <ModuleDetailsUI
-      module={module}
       onEdit={() => {
         return;
       }}

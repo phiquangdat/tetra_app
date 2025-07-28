@@ -1,42 +1,46 @@
 import React from 'react';
-import { type Module } from '../../../services/module/moduleApi';
+import { useModuleContext } from '../../../context/admin/ModuleContext.tsx';
 
 interface ModuleDetailsProps {
-  module: Module;
   onEdit?: () => void;
 }
 
-const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module, onEdit }) => {
+const ModuleDetails: React.FC<ModuleDetailsProps> = ({ onEdit }) => {
+  const { title, status, coverPicture, description, topic, pointsAwarded } =
+    useModuleContext();
+
   return (
     <div className="bg-[#F9F5FF] border border-highlight rounded-3xl p-6 shadow-md text-primary w-full">
-      <h1 className="text-2xl font-extrabold">{module.title}</h1>
+      <h1 className="text-2xl font-extrabold">{title}</h1>
 
       <p className="text-sm text-secondary mb-4">
-        <span className="font-semibold">{module.status}</span>
+        <span className="font-semibold">{status}</span>
       </p>
 
       <div className="mb-4">
         <p className="font-semibold">Cover picture</p>
-        <img
-          src={module.coverUrl}
-          alt="Cover"
-          className="rounded-xl mt-2 max-w-xs"
-        />
+        {coverPicture && (
+          <img
+            src={coverPicture}
+            alt="Cover"
+            className="rounded-xl mt-2 max-w-xs"
+          />
+        )}
       </div>
 
       <div className="mb-4">
         <p className="font-semibold">Description</p>
-        <p className="mt-1">{module.description}</p>
+        <p className="mt-1">{description}</p>
       </div>
 
       <div className="mb-4">
         <p className="font-semibold">Topic</p>
-        <p className="mt-1">{module.topic}</p>
+        <p className="mt-1">{topic}</p>
       </div>
 
       <div className="mb-6">
         <p className="font-semibold">Points Awarded</p>
-        <p className="mt-1">{module.points}</p>
+        <p className="mt-1">{pointsAwarded}</p>
       </div>
 
       {onEdit && (

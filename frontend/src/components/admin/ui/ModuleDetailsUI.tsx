@@ -5,7 +5,7 @@ interface ModuleDetailsProps {
   onEdit?: () => void;
 }
 
-const ModuleDetails: React.FC<ModuleDetailsProps> = ({ onEdit }) => {
+const ModuleDetailsUI: React.FC<ModuleDetailsProps> = ({ onEdit }) => {
   const { title, status, coverPicture, description, topic, pointsAwarded } =
     useModuleContext();
 
@@ -57,4 +57,4 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ onEdit }) => {
   );
 };
 
-export default ModuleDetails;
+export default ModuleDetailsUI;

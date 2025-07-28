@@ -2,8 +2,10 @@ package com.tetra.app.controller;
 
 import com.tetra.app.model.TrainingModule;
 import com.tetra.app.model.Unit;
+import com.tetra.app.repository.BlacklistedTokenRepository;
 import com.tetra.app.repository.TrainingModuleRepository;
 import com.tetra.app.repository.UnitRepository;
+import com.tetra.app.security.JwtUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,6 +30,12 @@ public class UnitControllerTest {
 
     @Mock
     private TrainingModuleRepository trainingModuleRepository;
+
+    @Mock
+    private JwtUtil jwtUtil;
+
+    @Mock
+    private BlacklistedTokenRepository blacklistedTokenRepository;
 
     @InjectMocks
     private UnitController unitController;
@@ -236,5 +244,78 @@ public class UnitControllerTest {
 
         verify(unitRepository, times(1)).findById(unitId);
         verify(unitRepository, never()).save(any());
+    }
+
+     @Test
+    void testDeleteUnit_AdminSuccess() {
+        UUID unitId = UUID.randomUUID();
+        String token = "validtoken";
+        String authHeader = "Bearer " + token;
+
+        when(jwtUtil.extractRole(token)).thenReturn("ADMIN");
+        when(unitRepository.existsById(unitId)).thenReturn(true);
+
+        ResponseEntity<?> response = unitController.deleteUnit(unitId, authHeader);
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("Unit deleted", response.getBody());
+        verify(unitRepository, times(1)).deleteById(unitId);
+    }
+
+    @Test
+    void testDeleteUnit_ForbiddenForNonAdmin() {
+        UUID unitId = UUID.randomUUID();
+        String token = "usertoken";
+        String authHeader = "Bearer " + token;
+
+        when(jwtUtil.extractRole(token)).thenReturn("LEARNER");
+
+        ResponseEntity<?> response = unitController.deleteUnit(unitId, authHeader);
+
+        assertEquals(403, response.getStatusCodeValue());
+        assertEquals("Access denied", response.getBody());
+        verify(unitRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void testDeleteUnit_UnauthorizedMissingHeader() {
+        UUID unitId = UUID.randomUUID();
+
+        ResponseEntity<?> response = unitController.deleteUnit(unitId, null);
+
+        assertEquals(401, response.getStatusCodeValue());
+        assertEquals("Missing or invalid Authorization header", response.getBody());
+        verify(unitRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void testDeleteUnit_UnauthorizedInvalidToken() {
+        UUID unitId = UUID.randomUUID();
+        String token = "badtoken";
+        String authHeader = "Bearer " + token;
+
+        when(jwtUtil.extractRole(token)).thenThrow(new RuntimeException("Invalid token"));
+
+        ResponseEntity<?> response = unitController.deleteUnit(unitId, authHeader);
+
+        assertEquals(401, response.getStatusCodeValue());
+        assertEquals("Invalid token", response.getBody());
+        verify(unitRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void testDeleteUnit_NotFound() {
+        UUID unitId = UUID.randomUUID();
+        String token = "validtoken";
+        String authHeader = "Bearer " + token;
+
+        when(jwtUtil.extractRole(token)).thenReturn("ADMIN");
+        when(unitRepository.existsById(unitId)).thenReturn(false);
+
+        ResponseEntity<?> response = unitController.deleteUnit(unitId, authHeader);
+
+        assertEquals(404, response.getStatusCodeValue());
+        assertEquals("Unit not found with id: " + unitId, response.getBody());
+        verify(unitRepository, never()).deleteById(any());
     }
 }

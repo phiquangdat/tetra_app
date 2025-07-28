@@ -3,27 +3,45 @@ package com.tetra.app.controller;
 import com.tetra.app.dto.LoginRequest;
 import com.tetra.app.dto.LoginResponse;
 import com.tetra.app.model.User;
+import com.tetra.app.model.BlacklistedToken;
+import com.tetra.app.repository.BlacklistedTokenRepository;
 import com.tetra.app.security.JwtUtil;
 import com.tetra.app.service.PasswordHashingService;
 import com.tetra.app.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final PasswordHashingService passwordHashingService;
+    private final JwtUtil jwtUtil;
+    private final BlacklistedTokenRepository blacklistedTokenRepository;
+
+    // Simple in-memory blacklist for demonstration
+    private static final Set<String> tokenBlacklist = ConcurrentHashMap.newKeySet();
 
     @Autowired
-    private PasswordHashingService passwordHashingService;
-
-    @Autowired
-    private JwtUtil jwtUtil;
+    public AuthController(
+        UserService userService,
+        PasswordHashingService passwordHashingService,
+        JwtUtil jwtUtil,
+        BlacklistedTokenRepository blacklistedTokenRepository
+    ) {
+        this.userService = userService;
+        this.passwordHashingService = passwordHashingService;
+        this.jwtUtil = jwtUtil;
+        this.blacklistedTokenRepository = blacklistedTokenRepository;
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
@@ -42,5 +60,25 @@ public class AuthController {
         String token = jwtUtil.generateToken(user);
 
         return ResponseEntity.ok(new LoginResponse(user.getId(), user.getRole(), token));
+    }
+
+    protected boolean isTokenBlacklisted(String token) {
+        return blacklistedTokenRepository.existsByToken(token);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        UUID userId;
+        try {
+            userId = UUID.fromString(jwtUtil.extractUserId(token));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        blacklistedTokenRepository.save(new BlacklistedToken(token, userId));
+        return ResponseEntity.ok("Logged out successfully. User ID: " + userId);
     }
 }

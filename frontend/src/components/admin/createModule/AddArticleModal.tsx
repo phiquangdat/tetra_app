@@ -113,13 +113,13 @@ function AddArticleModal({
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center z-10 p-4"
+      className="fixed inset-0 flex items-center justify-center z-50 p-4"
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
       onClick={handleBackdropClick}
     >
       <div
         ref={modalRef}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between p-6 pb-0">
           <div className="flex items-center gap-3">

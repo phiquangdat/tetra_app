@@ -68,7 +68,7 @@ function ModuleCards() {
         <div>
           <button
             onClick={handleCreateModule}
-            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
+            className="bg-secondary hover:bg-secondaryHover text-background text-base tracking-wide font-semibold px-6 py-2.5 rounded-xl transition-colors cursor-pointer ease-in-out duration-200"
           >
             Create new module
           </button>

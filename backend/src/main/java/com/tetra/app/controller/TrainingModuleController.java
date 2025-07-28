@@ -2,6 +2,7 @@ package com.tetra.app.controller;
 
 import com.tetra.app.model.TrainingModule;
 import com.tetra.app.repository.TrainingModuleRepository;
+import com.tetra.app.security.JwtUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,9 +16,11 @@ import java.util.UUID;
 public class TrainingModuleController {
 
     private final TrainingModuleRepository trainingModuleRepository;
+    private final JwtUtil jwtUtil;
 
-    public TrainingModuleController(TrainingModuleRepository trainingModuleRepository) {
+    public TrainingModuleController(TrainingModuleRepository trainingModuleRepository, JwtUtil jwtUtil) {
         this.trainingModuleRepository = trainingModuleRepository;
+        this.jwtUtil = jwtUtil;
     }
 
     @GetMapping
@@ -109,6 +112,31 @@ public class TrainingModuleController {
         existing.setStatus(updated.getStatus());
         TrainingModule saved = trainingModuleRepository.save(existing);
         return new ResponseEntity<>(saved, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteModule(
+        @PathVariable UUID id,
+        @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String role;
+        try {            
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
+        if (!trainingModuleRepository.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Module not found with id: " + id);
+        }
+        trainingModuleRepository.deleteById(id);
+        return ResponseEntity.ok("Module deleted");
     }
 }
 

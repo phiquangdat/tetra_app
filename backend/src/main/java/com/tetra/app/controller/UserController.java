@@ -7,6 +7,8 @@ import com.tetra.app.model.Role;
 import com.tetra.app.model.User;
 import com.tetra.app.service.UserService;
 import com.tetra.app.security.JwtUtil;
+import com.tetra.app.controller.AuthController;
+import com.tetra.app.repository.BlacklistedTokenRepository;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,10 +31,12 @@ public class UserController {
 
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final BlacklistedTokenRepository blacklistedTokenRepository;
 
-    public UserController(UserService userService, JwtUtil jwtUtil) {
+    public UserController(UserService userService, JwtUtil jwtUtil, BlacklistedTokenRepository blacklistedTokenRepository) {
         this.userService = userService;
         this.jwtUtil = jwtUtil;
+        this.blacklistedTokenRepository = blacklistedTokenRepository;
     }
 
     @PostMapping
@@ -44,6 +48,9 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
         }
         String token = authHeader.substring(7);
+        if (blacklistedTokenRepository.existsByToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is blacklisted (logged out)");
+        }
         String role;
         try {
             role = jwtUtil.extractRole(token);
@@ -83,6 +90,9 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
         }
         String token = authHeader.substring(7);
+        if (blacklistedTokenRepository.existsByToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is blacklisted (logged out)");
+        }
         String role;
         try {
             role = jwtUtil.extractRole(token);
@@ -113,6 +123,9 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
         }
         String token = authHeader.substring(7);
+        if (blacklistedTokenRepository.existsByToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is blacklisted (logged out)");
+        }
         String role;
         String requesterId;
         try {
@@ -163,13 +176,18 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
         }
         String token = authHeader.substring(7);
+        if (blacklistedTokenRepository.existsByToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is blacklisted (logged out)");
+        }
         String role;
+        String requesterId;
         try {
             role = jwtUtil.extractRole(token);
+            requesterId = jwtUtil.extractUserId(token);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
-        if (!"ADMIN".equals(role)) {
+        if (!"ADMIN".equals(role) && !id.toString().equals(requesterId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
         }
         Optional<User> userOpt = userService.getUserById(id);

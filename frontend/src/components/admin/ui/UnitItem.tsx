@@ -1,15 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, type ReactNode } from 'react';
 import { fetchUnitById } from '../../../services/unit/unitApi';
 import Accordion from './Accordion';
 import ContentBlockList from '../module/ContentBlockList';
 
 export interface UnitItemProps {
   id: string;
+  unitNumber?: number;
   title: string;
   details?: UnitDetails;
   index: number;
   isOpen: boolean;
   onToggle: () => void;
+  renderEdit?: ReactNode;
+  isEditing?: boolean;
+  addContentComponent?: ReactNode;
   onEdit?: () => void;
 }
 
@@ -22,18 +26,28 @@ export interface UnitDetails {
 
 const UnitItem: React.FC<UnitItemProps> = ({
   id,
+  unitNumber,
   title,
   details,
   index,
   isOpen,
   onToggle,
+  isEditing = false,
+  renderEdit,
   onEdit,
+  addContentComponent,
 }) => {
   const [unitDetails, setUnitDetails] = useState<UnitDetails | null>(
     details ?? null,
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (details) {
+      setUnitDetails(details);
+    }
+  }, [details]);
 
   useEffect(() => {
     if (isOpen && !details && !loading) {
@@ -43,7 +57,7 @@ const UnitItem: React.FC<UnitItemProps> = ({
         .catch(() => setError('Failed to fetch unit details'))
         .finally(() => setLoading(false));
     }
-  }, [isOpen]);
+  }, [isOpen, details]);
 
   return (
     <Accordion
@@ -54,7 +68,11 @@ const UnitItem: React.FC<UnitItemProps> = ({
       {loading && <p>Loading unit details…</p>}
       {error && <p className="text-error">{error}</p>}
 
-      {unitDetails ? (
+      {/* If we're in edit mode and were given a form, render it */}
+      {isEditing && renderEdit ? (
+        <>{renderEdit}</>
+      ) : unitDetails ? (
+        /* Otherwise render the normal preview: */
         <>
           <div className="space-y-4 mt-4">
             <div>
@@ -67,6 +85,7 @@ const UnitItem: React.FC<UnitItemProps> = ({
             </div>
           </div>
 
+          {/* Optional “Edit” button in preview mode */}
           {onEdit && (
             <button
               onClick={onEdit}
@@ -75,14 +94,17 @@ const UnitItem: React.FC<UnitItemProps> = ({
               Edit
             </button>
           )}
-
-          <div className="mt-6">
-            <ContentBlockList unitId={id} />
-          </div>
         </>
       ) : (
         <p className="text-sm text-gray-500 mt-2">Loading unit details…</p>
       )}
+
+      {/* Always render these two below, whether in edit or preview */}
+      {addContentComponent}
+
+      <div className="mt-6">
+        <ContentBlockList unitId={id} unitNumber={unitNumber ?? undefined} />
+      </div>
     </Accordion>
   );
 };

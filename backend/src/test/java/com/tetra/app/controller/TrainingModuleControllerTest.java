@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -244,5 +245,65 @@ class TrainingModuleControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updated)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser
+    void testDeleteModule_AdminSuccess() throws Exception {
+        UUID moduleId = UUID.randomUUID();
+        when(jwtUtil.extractRole(anyString())).thenReturn("ADMIN");
+        when(trainingModuleRepository.existsById(moduleId)).thenReturn(true);
+
+        mockMvc.perform(delete("/api/modules/" + moduleId)
+                .header("Authorization", "Bearer validtoken"))
+            .andExpect(status().isOk())
+            .andExpect(content().string("Module deleted"));
+    }
+
+    @Test
+    @WithMockUser
+    void testDeleteModule_ForbiddenForNonAdmin() throws Exception {
+        UUID moduleId = UUID.randomUUID();
+        when(jwtUtil.extractRole(anyString())).thenReturn("LEARNER");
+
+        mockMvc.perform(delete("/api/modules/" + moduleId)
+                .header("Authorization", "Bearer sometoken"))
+            .andExpect(status().isForbidden())
+            .andExpect(content().string("Access denied"));
+    }
+
+    @Test
+    @WithMockUser
+    void testDeleteModule_UnauthorizedMissingHeader() throws Exception {
+        UUID moduleId = UUID.randomUUID();
+
+        mockMvc.perform(delete("/api/modules/" + moduleId))
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().string("Missing or invalid Authorization header"));
+    }
+
+    @Test
+    @WithMockUser
+    void testDeleteModule_UnauthorizedInvalidToken() throws Exception {
+        UUID moduleId = UUID.randomUUID();
+        when(jwtUtil.extractRole(anyString())).thenThrow(new RuntimeException("Invalid token"));
+
+        mockMvc.perform(delete("/api/modules/" + moduleId)
+                .header("Authorization", "Bearer invalidtoken"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().string("Invalid token"));
+    }
+
+    @Test
+    @WithMockUser
+    void testDeleteModule_NotFound() throws Exception {
+        UUID moduleId = UUID.randomUUID();
+        when(jwtUtil.extractRole(anyString())).thenReturn("ADMIN");
+        when(trainingModuleRepository.existsById(moduleId)).thenReturn(false);
+
+        mockMvc.perform(delete("/api/modules/" + moduleId)
+                .header("Authorization", "Bearer validtoken"))
+            .andExpect(status().isNotFound())
+            .andExpect(content().string("Module not found with id: " + moduleId));
     }
 }

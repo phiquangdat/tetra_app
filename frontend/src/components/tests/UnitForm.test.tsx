@@ -1,37 +1,26 @@
+// src/components/tests/UnitForm.test.tsx
+import React, { useState, useEffect } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import UnitForm from '../admin/createModule/UnitForm';
+import { ModuleContextProvider } from '../../context/admin/ModuleContext';
 import {
   UnitContextProvider,
   useUnitContext,
 } from '../../context/admin/UnitContext';
 import { ContentBlockContextProvider } from '../../context/admin/ContentBlockContext';
-import { ModuleContextProvider } from '../../context/admin/ModuleContext';
-
-import { useEffect } from 'react';
-
 import { EditorStateProvider } from '../../utils/editor/contexts/EditorStateContext';
 
-const UnitFormWithProviders = ({ unitNumber }: { unitNumber: number }) => {
-  return (
-    <ModuleContextProvider>
-      <UnitContextProvider>
-        <ContentBlockContextProvider>
-          <EditorStateProvider>
-            <InitUnitState unitNumber={unitNumber} />
-            <UnitForm unitNumber={unitNumber} />
-          </EditorStateProvider>
-        </ContentBlockContextProvider>
-      </UnitContextProvider>
-    </ModuleContextProvider>
-  );
-};
+vi.mock('../../../services/unit/unitApi', () => ({
+  createUnit: vi.fn().mockResolvedValue({ id: 'unit-1' }),
+  updateUnit: vi.fn().mockResolvedValue({ id: 'unit-1' }),
+}));
 
-const InitUnitState = ({ unitNumber }: { unitNumber: number }) => {
+const InitUnitState: React.FC = () => {
   const { setUnitState } = useUnitContext();
-
   useEffect(() => {
     setUnitState(1, {
       id: 'unit-1',
@@ -42,7 +31,6 @@ const InitUnitState = ({ unitNumber }: { unitNumber: number }) => {
       isSaving: false,
       error: null,
     });
-
     setUnitState(2, {
       id: 'unit-2',
       title: '',
@@ -52,120 +40,174 @@ const InitUnitState = ({ unitNumber }: { unitNumber: number }) => {
       isSaving: false,
       error: null,
     });
-  }, [setUnitState, unitNumber]);
-
+  }, [setUnitState]);
   return null;
 };
+
+const Preview: React.FC<{ unitNumber: number; onEdit: () => void }> = ({
+  unitNumber,
+  onEdit,
+}) => {
+  const { getUnitState } = useUnitContext();
+  const unit = getUnitState(unitNumber)!;
+  return (
+    <div data-testid="preview">
+      <h1>{unit.title}</h1>
+      <p>{unit.description}</p>
+      <button onClick={onEdit}>Edit</button>
+    </div>
+  );
+};
+
+const TestWrapper: React.FC<{ unitNumber: number }> = ({ unitNumber }) => {
+  const [visible, setVisible] = useState(true);
+  return (
+    <ModuleContextProvider>
+      <UnitContextProvider>
+        <ContentBlockContextProvider>
+          <EditorStateProvider>
+            <InitUnitState />
+            {visible ? (
+              <UnitForm
+                unitNumber={unitNumber}
+                onSaved={() => setVisible(false)}
+              />
+            ) : (
+              <Preview
+                unitNumber={unitNumber}
+                onEdit={() => setVisible(true)}
+              />
+            )}
+          </EditorStateProvider>
+        </ContentBlockContextProvider>
+      </UnitContextProvider>
+    </ModuleContextProvider>
+  );
+};
+
 describe('UnitForm', () => {
   beforeEach(() => {
-    render(<UnitFormWithProviders unitNumber={2} />);
+    render(<TestWrapper unitNumber={1} />);
+  });
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('renders the form elements correctly', () => {
+  it('renders the Title and Description fields', () => {
     expect(screen.getByLabelText('Title')).toBeInTheDocument();
     expect(screen.getByLabelText('Description')).toBeInTheDocument();
   });
 
-  it('allows user to input text into the unit title field', async () => {
-    const input = screen.getByLabelText('Title');
-    await userEvent.type(input, 'Test Unit');
-    expect(input).toHaveValue('Test Unit');
+  it('allows typing into the fields', async () => {
+    const user = userEvent.setup();
+    const titleEl = screen.getByLabelText('Title');
+    await user.clear(titleEl);
+    await user.type(titleEl, 'Hello');
+    expect(titleEl).toHaveValue('Hello');
+
+    const descEl = screen.getByLabelText('Description');
+    await user.clear(descEl);
+    await user.type(descEl, 'World');
+    expect(descEl).toHaveValue('World');
   });
 
-  it('allows user to input text into the unit description field', async () => {
-    const textarea = screen.getByLabelText('Description');
-    await userEvent.type(textarea, 'This is a test description.');
-    expect(textarea).toHaveValue('This is a test description.');
+  it('toggles accordion on header click', async () => {
+    const user = userEvent.setup();
+    const headerBtn = screen.getByRole('button', { name: /Unit 1/ });
+
+    expect(screen.getByLabelText('Title')).toBeVisible();
+
+    await user.click(headerBtn);
+    expect(screen.queryByLabelText('Title')).toBeNull();
+
+    await user.click(headerBtn);
+    expect(screen.getByLabelText('Title')).toBeVisible();
   });
 
-  it('toggles unit visibility when clicking on the unit header', async () => {
-    const unitHeader = screen.getByText(/Unit 2/i);
+  it('hides the form on Save', async () => {
+    const user = userEvent.setup();
 
-    expect(screen.getByLabelText('Title')).toBeInTheDocument();
+    await user.type(screen.getByLabelText('Title'), 'T');
+    await user.type(screen.getByLabelText('Description'), 'D');
 
-    await userEvent.click(unitHeader);
-    expect(screen.queryByLabelText('Title')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /^Save$/i }));
 
-    await userEvent.click(unitHeader);
-    expect(screen.getByLabelText('Title')).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByLabelText('Title')).toBeNull());
+    expect(screen.getByTestId('preview')).toBeInTheDocument();
   });
 
-  it('allows user to click the Save button', async () => {
-    const saveButton = screen.getByRole('button', { name: /Save/i });
-    await userEvent.click(saveButton);
+  it('opens and cancels the Remove confirmation modal', async () => {
+    const user = userEvent.setup();
+    // Remove button present because there are 2 units
+    const removeBtn = screen.getByLabelText('Remove Unit');
+    await user.click(removeBtn);
+
     expect(
-      screen.queryByRole('button', { name: /Save/i }),
-    ).not.toBeInTheDocument();
-  });
-
-  it('allows user to click the Remove button and confirms removal', async () => {
-    const removeButton = screen.getByRole('button', { name: /Remove Unit/i });
-    await userEvent.click(removeButton);
-
-    expect(
-      screen.getByText(/Are you sure you want to remove this unit?/i),
+      screen.getByText(
+        /Are you sure you want to remove this unit\? This cannot be undone\./i,
+      ),
     ).toBeInTheDocument();
 
-    const confirmButtons = screen.getAllByRole('button', { name: /Remove/i });
-    await userEvent.click(confirmButtons[0]);
+    await user.click(screen.getByRole('button', { name: /^Cancel$/i }));
+
+    expect(
+      screen.queryByText(/Are you sure you want to remove this unit\?/i),
+    ).toBeNull();
+
+    expect(screen.getByLabelText('Title')).toBeInTheDocument();
+  });
+
+  it('confirms removal and hides the remove control only', async () => {
+    const user = userEvent.setup();
+
+    await user.click(screen.getByLabelText('Remove Unit'));
+
+    await user.click(screen.getByRole('button', { name: /^Remove$/i }));
 
     expect(
       screen.queryByText(
-        /Are you sure you want to remove this unit? This action cannot be undone./i,
+        /Are you sure you want to remove this unit\? This cannot be undone\./i,
       ),
-    ).not.toBeInTheDocument();
-  });
+    ).toBeNull();
 
-  it('allows user to cancel the removal', async () => {
-    const removeButton = screen.getByRole('button', { name: /Remove Unit/i });
-    await userEvent.click(removeButton);
+    expect(screen.queryByLabelText('Remove Unit')).toBeNull();
 
-    expect(
-      screen.getByText(/Are you sure you want to remove this unit?/i),
-    ).toBeInTheDocument();
-
-    const cancelButton = screen.getByRole('button', { name: /Cancel/i });
-    await userEvent.click(cancelButton);
-
-    expect(
-      screen.queryByText(/Are you sure you want to remove this unit?/i),
-    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Title')).toBeInTheDocument();
+    expect(screen.getByLabelText('Description')).toBeInTheDocument();
   });
 
   it('allows editing a unit after initial save', async () => {
-    // Step 1: Type title and description
-    const titleInput = screen.getByLabelText('Title');
-    const descriptionInput = screen.getByLabelText('Description');
-    await userEvent.type(titleInput, 'Initial Unit Title');
-    await userEvent.type(descriptionInput, 'Initial Unit Description');
+    const user = userEvent.setup();
+    // Step 1: Type values
+    await user.clear(screen.getByLabelText('Title'));
+    await user.type(screen.getByLabelText('Title'), 'Initial Unit Title');
+    await user.clear(screen.getByLabelText('Description'));
+    await user.type(
+      screen.getByLabelText('Description'),
+      'Initial Unit Description',
+    );
+    // Step 2: Save
+    await user.click(screen.getByRole('button', { name: /^Save$/i }));
 
-    // Step 2: Save the unit
-    const saveButton = screen.getByRole('button', { name: /Save/i });
-    await userEvent.click(saveButton);
-
-    // Step 3: Wait for preview to render with the updated title
+    // Step 3: Preview shows saved values
     await waitFor(() =>
       expect(screen.getByText('Initial Unit Title')).toBeInTheDocument(),
     );
     expect(screen.getByText('Initial Unit Description')).toBeInTheDocument();
 
-    // Step 4: Click Edit to return to the form
-    const editButton = screen.getByRole('button', { name: /Edit/i });
-    await userEvent.click(editButton);
+    // Step 4: Click Edit to return to form
+    await user.click(screen.getByRole('button', { name: /^Edit$/i }));
 
-    // Step 5: Update the title and description
+    // Step 5: Update values
     const updatedTitle = screen.getByLabelText('Title');
-    const updatedDescription = screen.getByLabelText('Description');
-    await userEvent.clear(updatedTitle);
-    await userEvent.type(updatedTitle, 'Updated Unit Title');
-    await userEvent.clear(updatedDescription);
-    await userEvent.type(updatedDescription, 'Updated Unit Description');
+    const updatedDesc = screen.getByLabelText('Description');
+    await user.clear(updatedTitle);
+    await user.type(updatedTitle, 'Updated Unit Title');
+    await user.clear(updatedDesc);
+    await user.type(updatedDesc, 'Updated Unit Description');
 
-    // Step 6: Save again
-    const secondSaveButton = screen.getByRole('button', { name: /Save/i });
-    await userEvent.click(secondSaveButton);
+    await user.click(screen.getByRole('button', { name: /^Save$/i }));
 
-    // Step 7: Confirm updated values are shown in preview
     await waitFor(() =>
       expect(screen.getByText('Updated Unit Title')).toBeInTheDocument(),
     );

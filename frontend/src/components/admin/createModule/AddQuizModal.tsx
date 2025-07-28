@@ -51,7 +51,7 @@ function AddQuizModal({
 
   const validateQuiz = () => {
     const newErrors: string[] = [];
-    const newQuestionErrors: Record<number, string[]> = [];
+    const newQuestionErrors: Record<number, string[]> = {};
 
     if (!data.title?.trim()) newErrors.push('Quiz title is required.');
     if (!data.content?.trim()) newErrors.push('Quiz description is required.');
@@ -66,8 +66,6 @@ function AddQuizModal({
     }
 
     const questions = data.questions || [];
-
-    let hasAtLeastOneCorrectAnswer = false;
 
     questions.forEach((q, index) => {
       const questionErrs: string[] = [];
@@ -87,8 +85,6 @@ function AddQuizModal({
         const hasCorrect = q.answers.some((a) => a.is_correct);
         if (!hasCorrect) {
           questionErrs.push('One correct answer must be selected.');
-        } else {
-          hasAtLeastOneCorrectAnswer = true;
         }
       }
 
@@ -97,18 +93,12 @@ function AddQuizModal({
       }
     });
 
-    if (
-      questions.length === 0 ||
-      Object.keys(newQuestionErrors).length === questions.length
-    ) {
-      newErrors.push('At least one valid question is required.');
-    }
-
-    if (!hasAtLeastOneCorrectAnswer) {
-      newErrors.push('At least one question must have a correct answer.');
-    }
-
     setQuestionErrors(newQuestionErrors);
+
+    if (Object.keys(newQuestionErrors).length > 0) {
+      newErrors.push('There are errors in some questions.');
+    }
+
     return newErrors;
   };
 

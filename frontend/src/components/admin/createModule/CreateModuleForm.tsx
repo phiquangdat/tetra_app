@@ -1,10 +1,13 @@
 import React, { useEffect, useState, useRef, type ChangeEvent } from 'react';
-import { useModuleContext } from '../../../context/admin/ModuleContext';
+import {
+  initialModuleState,
+  useModuleContext,
+} from '../../../context/admin/ModuleContext';
 import {
   isValidImageUrl,
   isImageUrlRenderable,
 } from '../../../utils/validators';
-import ModuleDetailsPreview from './ModuleDetailsPreview.tsx';
+import ModuleDetailsUI from '../ui/ModuleDetailsUI.tsx';
 
 type Props = {};
 
@@ -17,6 +20,7 @@ const CreateModuleForm: React.FC<Props> = () => {
     coverPicture,
     isSaving,
     error,
+    setModuleState,
     updateModuleField,
     markModuleAsDirty,
     saveModule,
@@ -31,6 +35,10 @@ const CreateModuleForm: React.FC<Props> = () => {
   const coverInputRef = useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = useState(true);
   const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setModuleState(initialModuleState);
+  }, [setModuleState]);
 
   useEffect(() => {
     let cancelled = false;
@@ -252,7 +260,7 @@ const CreateModuleForm: React.FC<Props> = () => {
       ) : null}
 
       {!isEditing ? (
-        <ModuleDetailsPreview onEdit={() => setIsEditing(true)} />
+        <ModuleDetailsUI onEdit={() => setIsEditing(true)} />
       ) : (
         <form className="space-y-6 max-w-110 mx-0 mb-11">
           <div>

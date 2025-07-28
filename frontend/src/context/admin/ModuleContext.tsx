@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  type ReactNode,
+  useMemo,
+  useCallback,
+} from 'react';
 import {
   createModule,
   updateModule,
@@ -26,7 +33,7 @@ interface ModuleContextValue extends ModuleContextProps {
   saveModule: () => Promise<void>;
 }
 
-const initialModuleState: ModuleContextProps = {
+export const initialModuleState: ModuleContextProps = {
   id: null,
   title: '',
   description: '',
@@ -93,9 +100,12 @@ export const ModuleContextProvider = ({
     }));
   };
 
-  const setModuleState = (newState: Partial<ModuleContextProps>) => {
-    setModule((prev) => ({ ...prev, ...newState }));
-  };
+  const setModuleState = useCallback(
+    (newState: Partial<ModuleContextProps>) => {
+      setModule((prev) => ({ ...prev, ...newState }));
+    },
+    [],
+  );
 
   const saveModule = async () => {
     if (!module.isDirty || module.isSaving) return;
@@ -144,16 +154,19 @@ export const ModuleContextProvider = ({
     }
   };
 
+  const contextValue = useMemo(
+    () => ({
+      ...module,
+      setModuleState,
+      updateModuleField,
+      markModuleAsDirty,
+      saveModule,
+    }),
+    [module, setModuleState, updateModuleField, markModuleAsDirty, saveModule],
+  );
+
   return (
-    <ModuleContext.Provider
-      value={{
-        ...module,
-        updateModuleField,
-        markModuleAsDirty,
-        setModuleState,
-        saveModule,
-      }}
-    >
+    <ModuleContext.Provider value={contextValue}>
       {children}
     </ModuleContext.Provider>
   );

@@ -2,6 +2,7 @@ package com.tetra.app.controller;
 
 import com.tetra.app.model.TrainingModule;
 import com.tetra.app.model.Unit;
+import com.tetra.app.repository.BlacklistedTokenRepository;
 import com.tetra.app.repository.TrainingModuleRepository;
 import com.tetra.app.repository.UnitRepository;
 import com.tetra.app.security.JwtUtil;
@@ -32,6 +33,9 @@ public class UnitControllerTest {
 
     @Mock
     private JwtUtil jwtUtil;
+
+    @Mock
+    private BlacklistedTokenRepository blacklistedTokenRepository;
 
     @InjectMocks
     private UnitController unitController;

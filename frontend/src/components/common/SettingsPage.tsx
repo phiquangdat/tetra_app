@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ChangePasswordModal from './ChangePasswordModal';
 import { useAuth } from '../../context/auth/AuthContext';
 import { getUserById } from '../../services/user/userApi';
+import { updateUserName, updateUserEmail } from '../../services/user/userApi';
 
 const SettingsPage: React.FC = () => {
   const { userId, authToken } = useAuth();
@@ -17,7 +18,7 @@ const SettingsPage: React.FC = () => {
   const [inputs, setInputs] = useState({
     name: fields.name,
     email: fields.email,
-  }); // Inputs used to store the original values
+  }); //
   const [isModalOpen, setIsModalOpen] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
@@ -65,7 +66,11 @@ const SettingsPage: React.FC = () => {
     setEdit((edit) => ({ ...edit, [field]: false }));
     if (inputs[field] !== fields[field]) {
       setFields((f) => ({ ...f, [field]: inputs[field] }));
-      console.log(inputs[field]);
+    }
+    if (field === 'name' && userId) {
+      updateUserName(userId, inputs.name);
+    } else if (field === 'email' && userId) {
+      updateUserEmail(userId, inputs.email);
     }
   };
 

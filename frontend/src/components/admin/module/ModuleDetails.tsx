@@ -3,7 +3,7 @@ import {
   fetchModuleById,
   type Module,
 } from '../../../services/module/moduleApi';
-import ModuleDetailsUI from '../ui/ModuleDetails';
+import ModuleDetailsUI from '../ui/ModuleDetailsUI.tsx';
 import { useModuleContext } from '../../../context/admin/ModuleContext';
 import { initialModuleState } from '../../../context/admin/ModuleContext';
 

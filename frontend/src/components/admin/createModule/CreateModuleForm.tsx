@@ -7,7 +7,7 @@ import {
   isValidImageUrl,
   isImageUrlRenderable,
 } from '../../../utils/validators';
-import ModuleDetails from '../ui/ModuleDetails.tsx';
+import ModuleDetailsUI from '../ui/ModuleDetailsUI.tsx';
 
 type Props = {};
 
@@ -260,7 +260,7 @@ const CreateModuleForm: React.FC<Props> = () => {
       ) : null}
 
       {!isEditing ? (
-        <ModuleDetails onEdit={() => setIsEditing(true)} />
+        <ModuleDetailsUI onEdit={() => setIsEditing(true)} />
       ) : (
         <form className="space-y-6 max-w-110 mx-0 mb-11">
           <div>

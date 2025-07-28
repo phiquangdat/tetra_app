@@ -16,6 +16,7 @@ public class BlacklistedTokenCleanupConfig {
     private BlacklistedTokenRepository blacklistedTokenRepository;
 
     @Scheduled(fixedDelay = 60 * 60 * 1000)
+    @org.springframework.transaction.annotation.Transactional
     public void cleanupOldTokens() {
         Date cutoff = Date.from(Instant.now().minus(Duration.ofHours(24)));
         blacklistedTokenRepository.deleteByBlacklistedAtBefore(cutoff);

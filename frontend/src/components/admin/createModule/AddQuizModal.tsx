@@ -86,6 +86,15 @@ function AddQuizModal({
         if (!hasCorrect) {
           questionErrs.push('One correct answer must be selected.');
         }
+
+        if (q.type === 'true/false') {
+          const correctCount = q.answers.filter((a) => a.is_correct).length;
+          if (correctCount !== 1) {
+            questionErrs.push(
+              'True/False questions must have exactly one correct answer.',
+            );
+          }
+        }
       }
 
       if (questionErrs.length > 0) {

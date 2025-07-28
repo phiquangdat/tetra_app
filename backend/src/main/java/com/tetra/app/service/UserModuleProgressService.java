@@ -40,4 +40,16 @@ public class UserModuleProgressService {
         progress.setStatus(status);
         return repository.save(progress);
     }
+
+    public Optional<UserModuleProgress> findByUserIdAndModuleId(UUID userId, UUID moduleId) {
+        return repository.findByUser_IdAndModule_Id(userId, moduleId);
+    }
+
+    public List<UserModuleProgress> findByUserId(UUID userId) {
+        return repository.findByUser_Id(userId);
+    }
+
+    public List<UserModuleProgress> findByModuleId(UUID moduleId) {
+        return repository.findByModule_Id(moduleId);
+    }
 }

@@ -58,8 +58,8 @@ export async function updateUser(
   data: Partial<{
     name: string;
     email: string;
+    password: string;
     oldPassword: string;
-    newPassword: string;
   }>,
 ): Promise<User> {
   try {
@@ -81,5 +81,5 @@ export const updateUserEmail = async (id: string, email: string) =>
 export const updateUserPassword = async (
   id: string,
   oldPassword: string,
-  newPassword: string,
-) => await updateUser(id, { oldPassword, newPassword });
+  password: string,
+) => await updateUser(id, { oldPassword, password });

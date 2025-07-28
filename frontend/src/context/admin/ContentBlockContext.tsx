@@ -114,7 +114,7 @@ export const ContentBlockContextProvider = ({
       try {
         switch (type) {
           case 'video': {
-            const { title, content, url } = contentBlock.data;
+            const { title, content, url, points } = contentBlock.data;
             const sort_order = contentBlock.sortOrder;
 
             if (!title || !content || !url) {
@@ -133,6 +133,7 @@ export const ContentBlockContextProvider = ({
               title: title as string,
               content: content as string,
               url: url as string,
+              points: points as number,
               sort_order,
             };
 

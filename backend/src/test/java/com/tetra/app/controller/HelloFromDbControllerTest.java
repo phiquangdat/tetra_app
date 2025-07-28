@@ -2,6 +2,7 @@ package com.tetra.app.controller;
 
 import com.tetra.app.service.HelloService;
 import com.tetra.app.config.SecurityConfig;
+import com.tetra.app.repository.BlacklistedTokenRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -26,6 +27,9 @@ class HelloFromDbControllerTest {
 
     @MockBean
     private HelloService helloService;
+
+    @MockBean
+    private BlacklistedTokenRepository blacklistedTokenRepository;
 
     @Test
     @WithMockUser

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useUnitContext } from '../../../context/admin/UnitContext';
 import {
   fetchVideoContentById,
   type Video,
@@ -7,7 +8,9 @@ import { validateVideoUrl } from '../../../utils/videoHelpers';
 import { UploadAltIcon } from '../../common/Icons';
 
 interface VideoBlockProps {
-  id: string;
+  unitNumber?: number;
+  blockIndex?: number;
+  id?: string;
 }
 
 const FallbackVideo = () => (
@@ -19,21 +22,33 @@ const FallbackVideo = () => (
   </div>
 );
 
-const VideoBlock: React.FC<VideoBlockProps> = ({ id }) => {
+const VideoBlock: React.FC<VideoBlockProps> = ({
+  unitNumber,
+  blockIndex,
+  id,
+}) => {
+  const fromContext = unitNumber != null && blockIndex != null;
+  const { getUnitState } = useUnitContext();
   const [video, setVideo] = useState<Video | null>(null);
 
   useEffect(() => {
-    fetchVideoContentById(id).then(setVideo).catch(console.error);
-  }, [id]);
+    if (!fromContext && id) {
+      fetchVideoContentById(id).then(setVideo).catch(console.error);
+    }
+  }, [fromContext, id]);
 
-  const { isValid, isYouTube, embedUrl } = validateVideoUrl(video?.url);
+  const data = fromContext
+    ? getUnitState(unitNumber!)?.content[blockIndex!].data
+    : { title: video?.title, content: video?.content, url: video?.url };
+
+  const { isValid, isYouTube, embedUrl } = validateVideoUrl(data?.url);
 
   return (
     <div className="px-6 pb-4 text-primary text-base">
       <div className="space-y-4 mt-4">
         <div>
           <p className="text-sm font-semibold">Video title</p>
-          <p>{video?.title || 'No title available'}</p>
+          <p>{data?.title || 'No title available'}</p>
         </div>
 
         <div className="max-w-2xl mx-auto aspect-video rounded-2xl overflow-hidden shadow">
@@ -41,15 +56,15 @@ const VideoBlock: React.FC<VideoBlockProps> = ({ id }) => {
             isYouTube ? (
               <iframe
                 className="w-full h-full"
-                src={embedUrl}
-                title={video?.title}
+                src={embedUrl!}
+                title={data?.title}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
             ) : (
               <video
                 className="w-full h-full object-cover"
-                src={embedUrl}
+                src={embedUrl!}
                 controls
               />
             )
@@ -60,7 +75,7 @@ const VideoBlock: React.FC<VideoBlockProps> = ({ id }) => {
 
         <div>
           <p className="text-sm font-semibold">About</p>
-          <p>{video?.content || 'No description provided'}</p>
+          <p>{data?.content || 'No description provided'}</p>
         </div>
 
         <div className="flex gap-4">

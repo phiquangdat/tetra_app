@@ -3,6 +3,7 @@ package com.tetra.app.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tetra.app.model.Unit;
 import com.tetra.app.model.UnitContent;
+import com.tetra.app.repository.BlacklistedTokenRepository;
 import com.tetra.app.repository.UnitContentRepository;
 import com.tetra.app.repository.UnitRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,6 +42,9 @@ public class UnitContentControllerTestPost {
 
     @MockBean
     private com.tetra.app.repository.AnswerRepository answerRepository;
+
+    @MockBean
+    private BlacklistedTokenRepository blacklistedTokenRepository;
 
     @Autowired
     private ObjectMapper objectMapper;

@@ -27,6 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.tetra.app.security.JwtUtil;
 import com.tetra.app.model.User;
+import com.tetra.app.repository.BlacklistedTokenRepository;
 import java.util.List;
 import java.util.UUID;
 
@@ -43,6 +44,9 @@ public class UserControllerTest {
 
     @MockBean
     private JwtUtil jwtUtil;
+
+    @MockBean
+    private BlacklistedTokenRepository blacklistedTokenRepository;
 
     @Autowired
     private ObjectMapper objectMapper;

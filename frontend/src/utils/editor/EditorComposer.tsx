@@ -19,7 +19,6 @@ import type { JSX } from 'react';
 interface EditorComposerProps {
   initialValue?: string;
   placeholder?: string;
-  minHeight?: string;
   className?: string;
   autoFocus?: boolean;
   onError?: (error: Error) => void;
@@ -91,22 +90,18 @@ const createEditorConfig = (
 });
 
 interface ContentEditableProps {
-  minHeight: string;
   className?: string;
 }
 
-function EditorContentEditable({
-  minHeight,
-  className = '',
-}: ContentEditableProps) {
-  const baseClasses = 'min-h-[300px] outline-none p-4';
+function EditorContentEditable({ className = '' }: ContentEditableProps) {
+  const baseClasses =
+    'h-[400px] overflow-y-auto outline-none p-4 rounded-md focus:outline-none';
 
   return (
     <ContentEditable
       role="textbox"
       aria-label="Article content"
       className={`${baseClasses} ${className}`}
-      style={{ minHeight }}
     />
   );
 }
@@ -134,7 +129,6 @@ function EditorErrorBoundary({ onError, children }: ErrorBoundaryProps) {
 
 export default function EditorComposer({
   initialValue,
-  minHeight = '300px',
   className = '',
   autoFocus = true,
   onError,
@@ -155,7 +149,7 @@ export default function EditorComposer({
         <ToolbarPlugin />
 
         <RichTextPlugin
-          contentEditable={<EditorContentEditable minHeight={minHeight} />}
+          contentEditable={<EditorContentEditable />}
           placeholder={<Placeholder />}
           ErrorBoundary={({ children }) => (
             <EditorErrorBoundary

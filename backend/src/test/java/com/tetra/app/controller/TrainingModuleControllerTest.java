@@ -5,6 +5,7 @@ import com.tetra.app.config.SecurityConfig;
 import com.tetra.app.model.TrainingModule;
 import com.tetra.app.repository.BlacklistedTokenRepository;
 import com.tetra.app.repository.TrainingModuleRepository;
+import com.tetra.app.security.JwtUtil;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -38,6 +39,9 @@ class TrainingModuleControllerTest {
 
     @MockBean
     private BlacklistedTokenRepository blacklistedTokenRepository;
+    
+    @MockBean
+    private JwtUtil jwtUtil;
 
     @Autowired
     private ObjectMapper objectMapper;

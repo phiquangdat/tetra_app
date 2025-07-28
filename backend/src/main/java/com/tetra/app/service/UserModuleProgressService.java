@@ -1,20 +1,19 @@
 package com.tetra.app.service;
 
+import com.tetra.app.model.UserModuleProgress;
+import com.tetra.app.model.ProgressStatus;
+import com.tetra.app.repository.UserModuleProgressRepository;
+import com.tetra.app.model.UnitContent;
+import com.tetra.app.model.Unit;
+import com.tetra.app.model.TrainingModule;
+import com.tetra.app.repository.UnitContentRepository;
+import com.tetra.app.repository.UnitRepository;
+import com.tetra.app.repository.TrainingModuleRepository;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import org.springframework.stereotype.Service;
-
-import com.tetra.app.model.ProgressStatus;
-import com.tetra.app.model.TrainingModule;
-import com.tetra.app.model.Unit;
-import com.tetra.app.model.UnitContent;
-import com.tetra.app.model.UserModuleProgress;
-import com.tetra.app.repository.TrainingModuleRepository;
-import com.tetra.app.repository.UnitContentRepository;
-import com.tetra.app.repository.UnitRepository;
-import com.tetra.app.repository.UserModuleProgressRepository;
 
 @Service
 public class UserModuleProgressService {

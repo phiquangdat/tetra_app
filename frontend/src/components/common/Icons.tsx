@@ -403,14 +403,20 @@ export const PuzzleIcon: React.FC<IconProps> = ({
   </svg>
 );
 
-export const QuestionIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
-  props,
-) => (
+export const QuestionIcon: React.FC<IconProps> = ({
+  width = 24,
+  height = 24,
+  color = '#998FC7',
+  className,
+  ...props
+}) => (
   <svg
-    className="w-6 h-6"
+    className={className}
+    height={height}
+    width={width}
     viewBox="0 0 73.9 73.9"
     xmlns="http://www.w3.org/2000/svg"
-    stroke="currentColor"
+    stroke={color}
     strokeWidth={2}
     {...props}
   >
@@ -420,7 +426,7 @@ export const QuestionIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
       transform="matrix(.7071 -.7071 .7071 .7071 2.9695 44.5346)"
     />
     <path d="m47.9 18.2-26.3 26.2v7.9h7.9l26.3-26.3z" fill="none" />
-    <g fill="currentColor">
+    <g fill={color}>
       <path d="m11.4 63.6h46.6c.6 0 1-.4 1-1v-26.4c0-.6-.4-1-1-1s-1 .4-1 1v25.4h-44.6v-44.6h25.4c.6 0 1-.4 1-1s-.4-1-1-1h-26.4c-.6 0-1 .4-1 1v46.6c0 .5.4 1 1 1z" />
       <path d="m47.2 16.1-27.3 27.2c-.2.2-.3.4-.3.7v9.3c0 .6.4 1 1 1h9.3c.3 0 .5-.1.7-.3l27.3-27.3 5.4-5.4c.4-.4.4-1 0-1.4l-9.3-9.3c-.4-.4-1-.4-1.4 0zm-17.7 36.2h-7.8v-7.9l26.3-26.3 7.8 7.8zm23.8-39.5 7.8 7.9-4 4-7.8-7.9z" />
     </g>

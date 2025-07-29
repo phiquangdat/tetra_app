@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../../services/auth/authApi';
+import { useAuth } from '../../context/auth/AuthContext';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   const emailInputRef = useRef<HTMLInputElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const { setAuth } = useAuth();
 
   const handleLogin = async (email: string, password: string) => {
     setError(null);
@@ -28,9 +30,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
         throw new Error('Invalid response from server');
       }
 
-      sessionStorage.setItem('jwt_token', response.token);
-      sessionStorage.setItem('user_id', response.id);
-      sessionStorage.setItem('user_role', response.role.toLowerCase());
+      setAuth(response.token, response.id, response.role.toLowerCase()); // Set auth state in context after successful login
 
       if (response.role.toLowerCase() === 'admin') {
         navigate('/admin/');

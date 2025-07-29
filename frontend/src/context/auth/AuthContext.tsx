@@ -12,6 +12,7 @@ interface AuthContextType {
   userId: string | null;
   userRole: string | null;
   logout: () => void;
+  setAuth: (token: string, userId: string, role: string) => void; // set authentication state to prevent renderring login buton after login->logout->login
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -43,6 +44,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
+  const setAuth = useCallback((token: string, userId: string, role: string) => {
+    sessionStorage.setItem('jwt_token', token);
+    sessionStorage.setItem('user_id', userId);
+    sessionStorage.setItem('user_role', role);
+    setAuthState({
+      authToken: token,
+      userId: userId,
+      userRole: role,
+    });
+  }, []);
+
   useEffect(() => {
     sessionStorage.setItem('jwt_token', authState.authToken || '');
     sessionStorage.setItem('user_id', authState.userId || '');
@@ -50,7 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [authState]);
 
   return (
-    <AuthContext.Provider value={{ ...authState, logout }}>
+    <AuthContext.Provider value={{ ...authState, logout, setAuth }}>
       {children}
     </AuthContext.Provider>
   );

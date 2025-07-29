@@ -4,9 +4,10 @@ import { X } from 'lucide-react';
 interface SignOutModalProps {
   open: boolean;
   onCancel: () => void;
+  onConfirm: () => void;
 }
 
-const SignOutModal = ({ open, onCancel }: SignOutModalProps) => {
+const SignOutModal = ({ open, onCancel, onConfirm }: SignOutModalProps) => {
   if (!open) return null;
 
   return createPortal(
@@ -37,7 +38,7 @@ const SignOutModal = ({ open, onCancel }: SignOutModalProps) => {
           </button>
           <button
             type="button"
-            onClick={onCancel}
+            onClick={onConfirm}
             className="bg-[#14248A] hover:bg-[#101e72] text-white px-5 py-2 rounded-lg text-sm font-medium transition"
           >
             Sign Out

@@ -71,9 +71,10 @@ type UnitContextType = {
   addContentBlock: (unitNumber: number, block: ContentBlock) => void;
   removeContentBlock: (unitNumber: number, blockIndex: number) => void;
   addUnit: () => void;
+  setUnitStatesRaw: (state: Record<number, UnitContextEntry>) => void;
 };
 
-const createDefaultUnitState = (): UnitContextEntry => ({
+export const initialUnitState = (): UnitContextEntry => ({
   id: null,
   title: '',
   description: '',
@@ -95,7 +96,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
   const updateUnitField = useCallback(
     (unitNumber: number, key: keyof UnitContextEntry, value: any) => {
       setUnitStates((prev) => {
-        const currentUnit = prev[unitNumber] || createDefaultUnitState();
+        const currentUnit = prev[unitNumber] || initialUnitState();
         return {
           ...prev,
           [unitNumber]: {
@@ -114,7 +115,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
 
   const markUnitAsDirty = useCallback((unitNumber: number) => {
     setUnitStates((prev) => {
-      const currentUnit = prev[unitNumber] || createDefaultUnitState();
+      const currentUnit = prev[unitNumber] || initialUnitState();
       return {
         ...prev,
         [unitNumber]: {
@@ -128,7 +129,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
   const setUnitState = useCallback(
     (unitNumber: number, newState: Partial<UnitContextEntry>) => {
       setUnitStates((prev) => {
-        const currentUnit = prev[unitNumber] || createDefaultUnitState();
+        const currentUnit = prev[unitNumber] || initialUnitState();
         return {
           ...prev,
           [unitNumber]: {
@@ -158,7 +159,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
       const next = Object.keys(prev).length
         ? Math.max(...Object.keys(prev).map(Number)) + 1
         : 1;
-      return { ...prev, [next]: createDefaultUnitState() };
+      return { ...prev, [next]: initialUnitState() };
     });
   }, []);
 
@@ -229,7 +230,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
   const addContentBlock = useCallback(
     (unitNumber: number, block: ContentBlock) => {
       setUnitStates((prev) => {
-        const currentUnit = prev[unitNumber] || createDefaultUnitState();
+        const currentUnit = prev[unitNumber] || initialUnitState();
         return {
           ...prev,
           [unitNumber]: {
@@ -266,6 +267,10 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     [],
   );
 
+  const setUnitStatesRaw = (newState: Record<number, UnitContextEntry>) => {
+    setUnitStates(newState);
+  };
+
   const contextValue: UnitContextType = {
     unitStates,
     updateUnitField,
@@ -278,6 +283,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     addContentBlock,
     removeContentBlock,
     addUnit,
+    setUnitStatesRaw,
   };
 
   return (

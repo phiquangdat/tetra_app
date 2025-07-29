@@ -1,5 +1,8 @@
 import { useEffect } from 'react';
-import { useUnitContext } from '../../../context/admin/UnitContext';
+import {
+  initialUnitState,
+  useUnitContext,
+} from '../../../context/admin/UnitContext';
 import CreateModuleForm from './CreateModuleForm';
 import UnitsBlock from '../ui/UnitsBlock.tsx';
 import { EditorStateProvider } from '../../../utils/editor/contexts/EditorStateContext';
@@ -26,29 +29,10 @@ const UnitsManager: React.FC = () => {
 };
 
 function CreateModulePageContent() {
-  const { unitStates, setUnitState, getNextUnitNumber } = useUnitContext();
-
-  const unitNumbers = Object.keys(unitStates)
-    .map(Number)
-    .sort((a, b) => a - b);
-
-  const handleAddUnit = () => {
-    const nextUnitNumber = getNextUnitNumber();
-    setUnitState(nextUnitNumber, {
-      id: null,
-      title: '',
-      description: '',
-      content: [],
-      isDirty: false,
-      isSaving: false,
-      error: null,
-    });
-  };
+  const { setUnitStatesRaw } = useUnitContext();
 
   useEffect(() => {
-    if (unitNumbers.length === 0) {
-      handleAddUnit();
-    }
+    setUnitStatesRaw({ 1: initialUnitState() });
   }, []);
 
   const handleSaveDraftModule = () => {};

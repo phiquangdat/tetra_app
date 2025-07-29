@@ -1,13 +1,10 @@
-import React, { useEffect, useState, type ReactNode } from 'react';
-import { fetchUnitById } from '../../../services/unit/unitApi';
+import React, { type ReactNode } from 'react';
 import Accordion from './Accordion';
 import ContentBlockList from '../module/ContentBlockList';
+import { useUnitContext } from '../../../context/admin/UnitContext';
 
-export interface UnitItemProps {
-  id: string;
-  unitNumber?: number;
-  title: string;
-  details?: UnitDetails;
+interface UnitItemProps {
+  unitNumber: number;
   index: number;
   isOpen: boolean;
   onToggle: () => void;
@@ -17,18 +14,8 @@ export interface UnitItemProps {
   onEdit?: () => void;
 }
 
-export interface UnitDetails {
-  id: string;
-  title: string;
-  description: string;
-  moduleId?: string;
-}
-
 const UnitItem: React.FC<UnitItemProps> = ({
-  id,
   unitNumber,
-  title,
-  details,
   index,
   isOpen,
   onToggle,
@@ -37,55 +24,47 @@ const UnitItem: React.FC<UnitItemProps> = ({
   onEdit,
   addContentComponent,
 }) => {
-  const [unitDetails, setUnitDetails] = useState<UnitDetails | null>(
-    details ?? null,
-  );
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const { getUnitState } = useUnitContext();
+  const unit = getUnitState(unitNumber);
 
-  useEffect(() => {
-    if (details) {
-      setUnitDetails(details);
-    }
-  }, [details]);
+  if (!unit) {
+    return (
+      <Accordion
+        header={`Unit ${index + 1}: Loading...`}
+        isOpen={false}
+        onToggle={() => {}}
+      >
+        <p className="text-sm text-gray-500">Loading unit state...</p>
+      </Accordion>
+    );
+  }
 
-  useEffect(() => {
-    if (isOpen && !details && !loading) {
-      setLoading(true);
-      fetchUnitById(id)
-        .then(setUnitDetails)
-        .catch(() => setError('Failed to fetch unit details'))
-        .finally(() => setLoading(false));
-    }
-  }, [isOpen, details]);
+  const { title, description, error } = unit;
 
   return (
     <Accordion
-      header={`Unit ${index + 1}: ${title}`}
+      header={`Unit ${unitNumber}: ${title}`}
       isOpen={isOpen}
       onToggle={onToggle}
     >
-      {loading && <p>Loading unit details…</p>}
+      {unit.isSaving && <p>Loading unit details…</p>}
       {error && <p className="text-error">{error}</p>}
 
-      {/* If we're in edit mode and were given a form, render it */}
       {isEditing && renderEdit ? (
         <>{renderEdit}</>
-      ) : unitDetails ? (
-        /* Otherwise render the normal preview: */
+      ) : (
         <>
           <div className="space-y-4 mt-4">
             <div>
               <p className="text-sm font-semibold">Unit title</p>
-              <p>{unitDetails.title}</p>
+              <p>{title}</p>
             </div>
             <div>
               <p className="text-sm font-semibold">Unit description</p>
-              <p>{unitDetails.description}</p>
+              <p>{description}</p>
             </div>
           </div>
 
-          {/* Optional “Edit” button in preview mode */}
           {onEdit && (
             <button
               onClick={onEdit}
@@ -95,15 +74,12 @@ const UnitItem: React.FC<UnitItemProps> = ({
             </button>
           )}
         </>
-      ) : (
-        <p className="text-sm text-gray-500 mt-2">Loading unit details…</p>
       )}
 
-      {/* Always render these two below, whether in edit or preview */}
       {addContentComponent}
 
       <div className="mt-6">
-        <ContentBlockList unitId={id} unitNumber={unitNumber ?? undefined} />
+        <ContentBlockList unitId={unit.id ?? ''} unitNumber={unitNumber} />
       </div>
     </Accordion>
   );

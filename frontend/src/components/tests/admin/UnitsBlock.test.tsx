@@ -3,6 +3,7 @@ import '@testing-library/jest-dom';
 import { describe, it, vi, beforeEach } from 'vitest';
 import UnitsBlock from '../../../components/admin/module/UnitsBlock';
 import * as unitApi from '../../../services/unit/unitApi';
+import { UnitContextProvider } from '../../../context/admin/UnitContext';
 
 vi.mock('../../../services/unit/unitApi', async () => {
   return {
@@ -26,7 +27,11 @@ describe('UnitsBlock Component', () => {
     >;
     mockFetch.mockResolvedValueOnce(mockedUnits);
 
-    render(<UnitsBlock moduleId="test-module-id" />);
+    render(
+      <UnitContextProvider>
+        <UnitsBlock moduleId="test-module-id" />
+      </UnitContextProvider>,
+    );
 
     await waitFor(() => {
       expect(
@@ -45,7 +50,11 @@ describe('UnitsBlock Component', () => {
     >;
     mockFetch.mockRejectedValueOnce(new Error('API failed'));
 
-    render(<UnitsBlock moduleId="test-module-id" />);
+    render(
+      <UnitContextProvider>
+        <UnitsBlock moduleId="test-module-id" />
+      </UnitContextProvider>,
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Failed to load units')).toBeInTheDocument();
@@ -53,7 +62,11 @@ describe('UnitsBlock Component', () => {
   });
 
   it('shows loading state initially', () => {
-    render(<UnitsBlock moduleId="test-module-id" />);
+    render(
+      <UnitContextProvider>
+        <UnitsBlock moduleId="test-module-id" />
+      </UnitContextProvider>,
+    );
     expect(screen.getByText(/loading units/i)).toBeInTheDocument();
   });
 });

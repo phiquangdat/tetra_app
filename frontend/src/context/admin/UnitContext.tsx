@@ -8,6 +8,7 @@ import {
 
 import {
   createUnit,
+  fetchUnitContentById,
   type UnitInput,
   updateUnit,
 } from '../../services/unit/unitApi';
@@ -72,6 +73,10 @@ type UnitContextType = {
   removeContentBlock: (unitNumber: number, blockIndex: number) => void;
   addUnit: () => void;
   setUnitStatesRaw: (state: Record<number, UnitContextEntry>) => void;
+  loadUnitContentIntoState: (
+    unitId: string,
+    unitNumber: number,
+  ) => Promise<void>;
 };
 
 export const initialUnitState = (): UnitContextEntry => ({
@@ -271,6 +276,29 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     setUnitStates(newState);
   };
 
+  // Add to UnitContext
+  const loadUnitContentIntoState = useCallback(
+    async (unitId: string, unitNumber: number) => {
+      try {
+        const fetched = await fetchUnitContentById(unitId);
+        const blocks: ContentBlock[] = fetched.map((u) => ({
+          id: u.id,
+          type: u.content_type as ContentBlock['type'],
+          data: { title: u.title },
+          sortOrder: u.sort_order,
+          unit_id: unitId,
+          isDirty: false,
+          isSaving: false,
+          error: null,
+        }));
+        setUnitState(unitNumber, { content: blocks });
+      } catch (err) {
+        console.error(`Failed to load unit ${unitId} content`, err);
+      }
+    },
+    [setUnitState],
+  );
+
   const contextValue: UnitContextType = {
     unitStates,
     updateUnitField,
@@ -284,6 +312,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     removeContentBlock,
     addUnit,
     setUnitStatesRaw,
+    loadUnitContentIntoState,
   };
 
   return (

@@ -1,4 +1,4 @@
-import React, { type ReactNode } from 'react';
+import React, { type ReactNode, useEffect } from 'react';
 import Accordion from './Accordion';
 import ContentBlockList from '../module/ContentBlockList';
 import { useUnitContext } from '../../../context/admin/UnitContext';
@@ -24,8 +24,18 @@ const UnitItem: React.FC<UnitItemProps> = ({
   onEdit,
   addContentComponent,
 }) => {
-  const { getUnitState } = useUnitContext();
+  const { getUnitState, loadUnitContentIntoState } = useUnitContext();
   const unit = getUnitState(unitNumber);
+
+  useEffect(() => {
+    const unitId = unit?.id;
+    if (!unit || !unitId || !unitNumber) return;
+
+    // Avoid re-fetching if content already exists
+    if (unit.content.length > 0) return;
+
+    void loadUnitContentIntoState(unitId, unitNumber);
+  }, [unitNumber, unit?.id, unit?.content.length]);
 
   if (!unit) {
     return (
@@ -79,7 +89,7 @@ const UnitItem: React.FC<UnitItemProps> = ({
       {addContentComponent}
 
       <div className="mt-6">
-        <ContentBlockList unitId={unit.id ?? ''} unitNumber={unitNumber} />
+        <ContentBlockList unitNumber={unitNumber} />
       </div>
     </Accordion>
   );

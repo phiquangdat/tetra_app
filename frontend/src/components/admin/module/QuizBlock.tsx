@@ -18,45 +18,50 @@ const QuizBlock: React.FC<QuizBlockProps> = ({
   blockIndex,
   id,
 }) => {
-  const fromContext = unitNumber != null && blockIndex != null;
   const { getUnitState } = useUnitContext();
+  const unitContent =
+    unitNumber != null && blockIndex != null
+      ? getUnitState(unitNumber)?.content[blockIndex]
+      : null;
+
+  const shouldUseContext = !!unitContent?.data?.questions;
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (fromContext) {
+    if (!shouldUseContext && id) {
+      const load = async () => {
+        try {
+          const [qz, qs] = await Promise.all([
+            fetchQuizById(id),
+            fetchQuizQuestionsByQuizId(id, true),
+          ]);
+          setQuiz(qz);
+          setQuestions(qs);
+        } catch {
+          setError('Failed to load quiz');
+        } finally {
+          setLoading(false);
+        }
+      };
+      load();
+    } else {
       setLoading(false);
-      return;
     }
-    const load = async () => {
-      try {
-        const [qz, qs] = await Promise.all([
-          fetchQuizById(id!),
-          fetchQuizQuestionsByQuizId(id!, true),
-        ]);
-        setQuiz(qz);
-        setQuestions(qs);
-      } catch {
-        setError('Failed to load quiz');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [fromContext, id]);
+  }, [shouldUseContext, id]);
 
   if (loading) return <p className="px-6 py-4">Loading quiz…</p>;
   if (error) return <p className="px-6 py-4 text-error">{error}</p>;
 
-  const data = fromContext
-    ? getUnitState(unitNumber!)?.content[blockIndex!].data
+  const data = shouldUseContext
+    ? unitContent!.data
     : {
         title: quiz?.title,
         content: quiz?.content,
         points: quiz?.points,
-        questions: questions,
+        questions,
       };
 
   return (

@@ -13,6 +13,9 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,13 +24,14 @@ import com.jayway.jsonpath.JsonPath;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UnitContentController.class)
 @org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc(addFilters = false)
+@Import(UnitContentControllerTestPost.UnitContentControllerTestConfig.class)
 public class UnitContentControllerTestPost {
-
     @Autowired
     private MockMvc mockMvc;
 
@@ -443,5 +447,33 @@ public class UnitContentControllerTestPost {
                     String msg = result.getResponse().getContentAsString();
                     if (!msg.contains("Unit not found")) throw new AssertionError("Unexpected error: " + msg);
                 });
+    }
+
+    @TestConfiguration
+    static class UnitContentControllerTestConfig {
+        @Bean
+        public com.tetra.app.repository.UnitRepository unitRepository() {
+            return mock(com.tetra.app.repository.UnitRepository.class);
+        }
+        @Bean
+        public com.tetra.app.repository.UnitContentRepository unitContentRepository() {
+            return mock(com.tetra.app.repository.UnitContentRepository.class);
+        }
+        @Bean
+        public com.tetra.app.repository.QuestionRepository questionRepository() {
+            return mock(com.tetra.app.repository.QuestionRepository.class);
+        }
+        @Bean
+        public com.tetra.app.repository.AnswerRepository answerRepository() {
+            return mock(com.tetra.app.repository.AnswerRepository.class);
+        }
+        @Bean
+        public com.tetra.app.repository.BlacklistedTokenRepository blacklistedTokenRepository() {
+            return mock(com.tetra.app.repository.BlacklistedTokenRepository.class);
+        }
+        @Bean
+        public com.tetra.app.security.JwtUtil jwtUtil() {
+            return mock(com.tetra.app.security.JwtUtil.class);
+        }
     }
 }

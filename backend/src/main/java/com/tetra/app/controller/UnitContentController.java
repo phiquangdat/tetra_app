@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import com.tetra.app.security.JwtUtil;
+import com.tetra.app.repository.BlacklistedTokenRepository;
 
 @RestController
 @RequestMapping("/api/unit_content")
@@ -33,17 +35,23 @@ public class UnitContentController {
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final com.tetra.app.repository.UnitRepository unitRepository;
+    private final JwtUtil jwtUtil;
+    private final BlacklistedTokenRepository blacklistedTokenRepository;
 
     public UnitContentController(
         UnitContentRepository unitContentRepository,
         QuestionRepository questionRepository,
         AnswerRepository answerRepository,
-        com.tetra.app.repository.UnitRepository unitRepository
+        com.tetra.app.repository.UnitRepository unitRepository,
+        JwtUtil jwtUtil,
+        BlacklistedTokenRepository blacklistedTokenRepository
     ) {
         this.unitContentRepository = unitContentRepository;
         this.questionRepository = questionRepository;
         this.answerRepository = answerRepository;
         this.unitRepository = unitRepository;
+        this.jwtUtil = jwtUtil;
+        this.blacklistedTokenRepository = blacklistedTokenRepository;
     }
 
     @GetMapping
@@ -466,5 +474,44 @@ public class UnitContentController {
             logger.error("Error creating video content", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUnitContent(
+        @PathVariable UUID id,
+        @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        if (blacklistedTokenRepository.existsByToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is blacklisted (logged out)");
+        }
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
+        if (!unitContentRepository.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Unit content not found with id: " + id);
+        }
+
+        UnitContent unitContent = unitContentRepository.findById(id).orElse(null);
+        if (unitContent != null && "quiz".equalsIgnoreCase(unitContent.getContentType())) {
+            // Delete all related answers and questions
+            List<Question> questions = questionRepository.findByUnitContent_Id(id);
+            for (Question q : questions) {
+                answerRepository.deleteAll(answerRepository.findByQuestion_Id(q.getId()));
+            }
+            questionRepository.deleteAll(questions);
+        }
+
+        unitContentRepository.deleteById(id);
+        return ResponseEntity.ok("Unit content deleted");
     }
 }

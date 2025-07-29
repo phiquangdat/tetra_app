@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import ChangePasswordModal from './ChangePasswordModal';
 import { useAuth } from '../../context/auth/AuthContext';
 import { getUserById } from '../../services/user/userApi';
@@ -54,6 +54,16 @@ const SettingsPage: React.FC = () => {
     setErrorField((prev) => ({ ...prev, [field]: null }));
   };
 
+  const validateField = (field: 'name' | 'email', value: string) => {
+    if (!value.trim()) {
+      return `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
+    }
+    if (field === 'email' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)) {
+      return 'Invalid email address';
+    }
+    return null;
+  };
+
   const handleSaveField = async (field: 'name' | 'email') => {
     setErrorField((prev) => ({ ...prev, [field]: null }));
     setSaving(field);
@@ -79,7 +89,11 @@ const SettingsPage: React.FC = () => {
 
   const handleInputChange = (field: 'name' | 'email', value: string) => {
     setInputs((i) => ({ ...i, [field]: value }));
-    setErrorField((prev) => ({ ...prev, [field]: null }));
+    // Validate and show error as user types
+    setErrorField((prev) => ({
+      ...prev,
+      [field]: validateField(field, value),
+    }));
   };
 
   const handleOpenModal = () => setIsModalOpen(true);

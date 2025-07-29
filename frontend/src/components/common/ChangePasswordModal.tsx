@@ -20,33 +20,6 @@ const ChangePasswordModal: React.FC<Props> = ({ onClose }) => {
     confirmPassword: '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const errors = validateForm(formData);
-    setErrors(errors);
-
-    try {
-      await updateUserPassword(
-        userId!,
-        formData.oldPassword,
-        formData.newPassword,
-      );
-      console.log('Password updated successfully');
-      onClose();
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('400')) {
-        setErrors((prev) => ({
-          ...prev,
-          oldPassword: 'Old password is incorrect',
-        }));
-      }
-    }
-  };
-
   const validateForm = (data: typeof formData) => {
     const errors: {
       oldPassword: string;
@@ -60,13 +33,47 @@ const ChangePasswordModal: React.FC<Props> = ({ onClose }) => {
     if (!data.oldPassword) {
       errors.oldPassword = 'Old password is required';
     }
-    if (data.newPassword !== data.confirmPassword) {
-      errors.confirmPassword = 'New passwords do not match';
-    }
     if (data.newPassword.length < 6) {
       errors.newPassword = 'Password must be at least 6 characters long';
     }
+    if (data.newPassword !== data.confirmPassword) {
+      errors.confirmPassword = 'New passwords do not match';
+    }
     return errors;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    setErrors((prev) => {
+      const newForm = { ...formData, [name]: value };
+      const validation = validateForm(newForm);
+      return { ...prev, [name]: validation[name as keyof typeof validation] };
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const errors = validateForm(formData);
+    setErrors(errors);
+    if (Object.values(errors).some(Boolean)) return;
+    try {
+      await updateUserPassword(
+        userId!,
+        formData.oldPassword,
+        formData.newPassword,
+      );
+      console.log('Password updated successfully');
+      onClose();
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('400')) {
+        setErrors((prev) => ({
+          ...prev,
+          oldPassword: 'Validation failed. Please check again.',
+        }));
+      }
+    }
   };
 
   return (

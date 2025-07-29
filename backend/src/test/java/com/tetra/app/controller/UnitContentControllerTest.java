@@ -21,6 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import java.util.*;
 
 import static org.mockito.Mockito.*;
@@ -32,8 +34,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 
 @WebMvcTest(UnitContentController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(SecurityConfig.class)
-@ExtendWith(MockitoExtension.class)
+@Import({SecurityConfig.class, UnitContentControllerTest.UnitContentControllerTestConfig.class})
 public class UnitContentControllerTest {
 
     @Autowired
@@ -245,5 +246,33 @@ public class UnitContentControllerTest {
 
         mockMvc.perform(get("/api/unit_content/article/" + articleId))
                 .andExpect(status().isNotFound());
+    }
+
+    @TestConfiguration
+    static class UnitContentControllerTestConfig {
+        @Bean
+        public com.tetra.app.repository.UnitRepository unitRepository() {
+            return mock(com.tetra.app.repository.UnitRepository.class);
+        }
+        @Bean
+        public com.tetra.app.repository.UnitContentRepository unitContentRepository() {
+            return mock(com.tetra.app.repository.UnitContentRepository.class);
+        }
+        @Bean
+        public com.tetra.app.repository.QuestionRepository questionRepository() {
+            return mock(com.tetra.app.repository.QuestionRepository.class);
+        }
+        @Bean
+        public com.tetra.app.repository.AnswerRepository answerRepository() {
+            return mock(com.tetra.app.repository.AnswerRepository.class);
+        }
+        @Bean
+        public com.tetra.app.repository.BlacklistedTokenRepository blacklistedTokenRepository() {
+            return mock(com.tetra.app.repository.BlacklistedTokenRepository.class);
+        }
+        @Bean
+        public com.tetra.app.security.JwtUtil jwtUtil() {
+            return mock(com.tetra.app.security.JwtUtil.class);
+        }
     }
 }

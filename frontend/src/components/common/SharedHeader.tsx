@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/auth/AuthContext';
 import Header, { type NavLink } from '../ui/Header';
 import SignOutModal from '../common/SignOutModal';
+import toast from 'react-hot-toast';
 
 const navLinks: NavLink[] = [
   { label: 'Home', href: '/' },
@@ -28,6 +29,7 @@ const SharedHeader = ({
     logout();
     setShowSignOutModal(false);
     navigate('/');
+    toast.success('You’ve been signed out.');
   };
 
   const handleLogin = () => {

@@ -1,18 +1,23 @@
 import React from 'react';
 import { StarIcon } from '../../common/Icons';
-
-const user = {
-  name: 'John',
-  points: 100,
-};
+import { useUser } from '../../../context/auth/UserContext';
 
 const DashboardHeader: React.FC = () => {
+  const { userName, points, userNameLoading } = useUser();
+
+  let greeting;
+  if (userNameLoading) {
+    greeting = 'Loading...';
+  } else if (userName) {
+    greeting = `Welcome back, ${userName}!`;
+  } else {
+    greeting = 'Welcome back!';
+  }
+
   return (
     <div className="rounded-2xl bg-cardBackground p-8 mb-8 flex flex-col gap-6 shadow-md">
       <div>
-        <h1 className="text-3xl font-bold text-primary mb-2">
-          Welcome back, {user.name}!
-        </h1>
+        <h1 className="text-3xl font-bold text-primary mb-2">{greeting}</h1>
         <p className="text-lg text-secondary">
           You're making great progress...
         </p>
@@ -22,7 +27,7 @@ const DashboardHeader: React.FC = () => {
           <StarIcon color="var(--color-accent)" />
           <div>
             <div className="text-sm">Points</div>
-            <div className="text-2xl font-bold text-surface">{user.points}</div>
+            <div className="text-2xl font-bold text-surface">{points}</div>
           </div>
         </div>
       </div>

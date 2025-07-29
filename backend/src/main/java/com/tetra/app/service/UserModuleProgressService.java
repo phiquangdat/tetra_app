@@ -3,6 +3,12 @@ package com.tetra.app.service;
 import com.tetra.app.model.UserModuleProgress;
 import com.tetra.app.model.ProgressStatus;
 import com.tetra.app.repository.UserModuleProgressRepository;
+import com.tetra.app.model.UnitContent;
+import com.tetra.app.model.Unit;
+import com.tetra.app.model.TrainingModule;
+import com.tetra.app.repository.UnitContentRepository;
+import com.tetra.app.repository.UnitRepository;
+import com.tetra.app.repository.TrainingModuleRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,9 +19,34 @@ import java.util.UUID;
 public class UserModuleProgressService {
 
     private final UserModuleProgressRepository repository;
+    private final UnitContentRepository unitContentRepository;
+    private final UnitRepository unitRepository;
+    private final TrainingModuleRepository trainingModuleRepository;
+
+    public UserModuleProgressService(
+        UserModuleProgressRepository repository,
+        UnitContentRepository unitContentRepository,
+        UnitRepository unitRepository,
+        TrainingModuleRepository trainingModuleRepository
+    ) {
+        this.repository = repository;
+        this.unitContentRepository = unitContentRepository;
+        this.unitRepository = unitRepository;
+        this.trainingModuleRepository = trainingModuleRepository;
+    }
+
+    public UserModuleProgressService() {
+        this.repository = null;
+        this.unitContentRepository = null;
+        this.unitRepository = null;
+        this.trainingModuleRepository = null;
+    }
 
     public UserModuleProgressService(UserModuleProgressRepository repository) {
         this.repository = repository;
+        this.unitContentRepository = null;
+        this.unitRepository = null;
+        this.trainingModuleRepository = null;
     }
 
     public List<UserModuleProgress> findAll() {
@@ -51,5 +82,15 @@ public class UserModuleProgressService {
 
     public List<UserModuleProgress> findByModuleId(UUID moduleId) {
         return repository.findByModule_Id(moduleId);
+    }
+
+    public boolean isContentBelongsToModuleAndUnit(UUID moduleId, UUID unitId, UUID contentId) {
+        if (moduleId == null || unitId == null || contentId == null) return false;
+        UnitContent content = unitContentRepository.findById(contentId).orElse(null);
+        if (content == null) return false;
+        Unit unit = content.getUnit();
+        if (unit == null || !unitId.equals(unit.getId())) return false;
+        TrainingModule module = unit.getModule();
+        return module != null && moduleId.equals(module.getId());
     }
 }

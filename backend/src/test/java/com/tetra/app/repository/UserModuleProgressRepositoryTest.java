@@ -50,7 +50,7 @@ public class UserModuleProgressRepositoryTest {
         UserModuleProgress progress = new UserModuleProgress();
         progress.setUser(user);
         progress.setModule(module);
-        progress.setStatus(ProgressStatus.NOT_STARTED);
+        progress.setStatus(ProgressStatus.IN_PROGRESS);
 
         UserModuleProgress saved = repository.save(progress);
         saved.setStatus(ProgressStatus.COMPLETED);
@@ -69,7 +69,7 @@ public class UserModuleProgressRepositoryTest {
         UserModuleProgress progress = new UserModuleProgress();
         progress.setUser(user);
         progress.setModule(module);
-        progress.setStatus(ProgressStatus.NOT_STARTED);
+        progress.setStatus(ProgressStatus.IN_PROGRESS);
 
         UserModuleProgress saved = repository.save(progress);
         UUID id = saved.getId();

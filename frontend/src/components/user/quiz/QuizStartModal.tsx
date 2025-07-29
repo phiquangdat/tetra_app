@@ -5,6 +5,7 @@ import { type Quiz, fetchQuizById } from '../../../services/quiz/quizApi.ts';
 import { useQuiz } from '../../../context/user/QuizContext.tsx';
 import { fetchQuizQuestionsByQuizId } from '../../../services/quiz/quizApi';
 import { QuestionIcon, StarIcon } from '../../common/Icons.tsx';
+import { X } from 'lucide-react';
 
 const isQuizValid = (quiz: Quiz): boolean => {
   return (
@@ -72,36 +73,37 @@ const QuizStartModal = () => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-white/30">
-      <div className="relative bg-white rounded-2xl p-12 shadow-lg w-full max-w-2xl flex flex-col items-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/30">
+      <div className="relative bg-background rounded-3xl p-8 md:p-12 shadow-2xl w-full max-w-2xl mx-4 flex flex-col items-center">
         {/* Close button */}
         <button
           onClick={closeModal}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-xl font-bold"
+          className="absolute top-4 right-4 p-2 text-primary hover:text-secondaryHover transition"
+          aria-label="Close"
         >
-          ×
+          <X size={20} />
         </button>
 
-        {error && <p className="text-red-500">{error}</p>}
+        {error && <p className="text-error">{error}</p>}
 
         {!error && isQuizValid(quizDetails) && (
           <>
             {/*Title*/}
-            <h2 className="text-4xl font-extrabold mb-6 text-center text-black">
+            <h2 className="text-4xl font-extrabold mb-6 text-center text-primary">
               {loading ? 'Loading title...' : quizDetails?.title}
             </h2>
 
             {/* Info row */}
-            <div className="flex flex-row gap-10 mb-6 items-center justify-center">
-              <div className="flex items-center gap-2 text-lg text-gray-700">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-10 mb-8 items-center justify-center">
+              <div className="flex items-center gap-3 px-4 py-2 text-lg text-primary rounded-full bg-cardBackground">
                 <span className="inline-flex items-center justify-center">
-                  <QuestionIcon />
+                  <QuestionIcon color="#ffa726" strokeWidth={3} />
                 </span>
                 {loading
                   ? 'Loading questions data...'
                   : `${quizDetails?.questions_number} questions`}
               </div>
-              <div className="flex items-center gap-2 text-lg text-gray-700">
+              <div className="flex items-center gap-3 px-4 py-2 text-lg text-primary rounded-full bg-cardBackground">
                 <span className="inline-flex items-center justify-center">
                   <StarIcon />
                 </span>
@@ -112,22 +114,22 @@ const QuizStartModal = () => {
             </div>
 
             {/* Description */}
-            <p className="text-center text-gray-700 mb-10 max-w-xl">
+            <p className="text-center text-primary opacity-90 mb-10 max-w-xl leading-relaxed">
               {loading ? 'Loading description...' : quizDetails?.content}
             </p>
           </>
         )}
 
         {/* Action buttons row */}
-        <div className="flex justify-center gap-4 mt-6">
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
           <button
             onClick={closeModal}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-full text-base transition-all"
+            className="bg-cardBackground hover:bg-highlight text-primary px-6 py-3 rounded-full text-base transition-all border border-highlight disabled:opacity-50 disabled:cursor-not-allowed font-medium"
           >
             ← Back
           </button>
           <button
-            className="bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold px-6 py-2 rounded-full text-base transition-all"
+            className="bg-surface hover:bg-surfaceHover text-background font-semibold px-6 py-3 rounded-full text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             onClick={handleStartQuiz}
           >
             Let's go

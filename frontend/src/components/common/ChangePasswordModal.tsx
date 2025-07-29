@@ -89,10 +89,14 @@ const ChangePasswordModal: React.FC<Props> = ({ onClose }) => {
         {/* Form */}
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label className="text-primary text-sm font-medium mb-1 block">
+            <label
+              htmlFor="oldPassword"
+              className="text-primary text-sm font-medium mb-1 block"
+            >
               Current password
             </label>
             <input
+              id="oldPassword"
               type="password"
               className="w-full bg-[#F9F5FF] border border-[#D4C2FC] rounded-lg p-2.5 text-primary focus:outline-none focus:ring-2 focus:ring-secondary"
               name="oldPassword"
@@ -105,10 +109,14 @@ const ChangePasswordModal: React.FC<Props> = ({ onClose }) => {
           </div>
 
           <div>
-            <label className="text-primary text-sm font-medium mb-1 block">
+            <label
+              htmlFor="newPassword"
+              className="text-primary text-sm font-medium mb-1 block"
+            >
               New password
             </label>
             <input
+              id="newPassword"
               type="password"
               className="w-full bg-[#F9F5FF] border border-highlight rounded-lg p-2.5 text-primary focus:outline-none focus:ring-2 focus:ring-secondary"
               name="newPassword"
@@ -121,10 +129,14 @@ const ChangePasswordModal: React.FC<Props> = ({ onClose }) => {
           </div>
 
           <div>
-            <label className="text-[#231942] text-sm font-medium mb-1 block">
+            <label
+              htmlFor="confirmPassword"
+              className="text-[#231942] text-sm font-medium mb-1 block"
+            >
               Confirm new password
             </label>
             <input
+              id="confirmPassword"
               type="password"
               className="w-full bg-[#F9F5FF] border border-highlight rounded-lg p-2.5 text-primary focus:outline-none focus:ring-2 focus:ring-secondary"
               name="confirmPassword"

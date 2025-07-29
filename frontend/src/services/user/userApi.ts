@@ -2,7 +2,7 @@ const envBaseUrl = import.meta.env.VITE_BACKEND_URL;
 const BASE_URL =
   envBaseUrl && envBaseUrl.trim() !== '' ? `${envBaseUrl}/api` : '/api';
 
-import { fetchWithAuth } from '../../utils/authHelpers';
+import { fetchWithAuth, getAuthToken } from '../../utils/authHelpers';
 
 export interface User {
   id: string;
@@ -18,14 +18,28 @@ export interface CreateUserRequest {
   role: string;
 }
 
-export async function createUser(userData: CreateUserRequest): Promise<User> {
+export async function createUser(userData: CreateUserRequest): Promise<any> {
   try {
-    return await fetchWithAuth(`${BASE_URL}/users`, {
+    const token = getAuthToken();
+    const response = await fetch(`${BASE_URL}/users`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(userData),
     });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || response.statusText);
+    }
+
+    return response.text();
   } catch (error) {
-    throw error instanceof Error ? error : new Error('Failed to create user');
+    console.error(error instanceof Error ? error.message : 'Unknown error');
+    throw error instanceof Error
+      ? error
+      : new Error('Unknown error occurred while creating user');
   }
 }
 

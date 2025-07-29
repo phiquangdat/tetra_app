@@ -31,7 +31,7 @@ public class UserModuleProgress {
 
     @Enumerated(EnumType.STRING)
     @NotNull
-    private ProgressStatus status = ProgressStatus.NOT_STARTED;
+    private ProgressStatus status = ProgressStatus.IN_PROGRESS;
 
     @Min(0)
     private int earnedPoints = 0;

@@ -125,13 +125,6 @@ paths:
         '404':
           description: Module not found
 
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
   /api/units:
     get:
       summary: Get units by module ID or all units

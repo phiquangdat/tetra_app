@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   initialUnitState,
   useUnitContext,
@@ -29,11 +29,23 @@ const UnitsManager: React.FC = () => {
 };
 
 function CreateModulePageContent() {
-  const { setUnitStatesRaw } = useUnitContext();
+  const { setUnitStatesRaw, unitStates } = useUnitContext();
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    // Clear all existing units
+    setUnitStatesRaw({});
+    // Then initialize unit 1
     setUnitStatesRaw({ 1: initialUnitState() });
+    setTimeout(() => {
+      setUnitStatesRaw({ 1: initialUnitState() });
+      setReady(true);
+    }, 0);
   }, []);
+
+  if (!ready || Object.keys(unitStates).length === 0) {
+    return <div>Initializing form...</div>;
+  }
 
   const handleSaveDraftModule = () => {};
 

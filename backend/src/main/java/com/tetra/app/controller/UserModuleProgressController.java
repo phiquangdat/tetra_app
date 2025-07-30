@@ -15,6 +15,8 @@ import com.tetra.app.security.JwtUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import com.tetra.app.dto.PatchUserModuleProgressRequest;
 
 import java.util.Map;
 import java.util.Optional;
@@ -185,85 +187,67 @@ public class UserModuleProgressController {
         }
     }
 
+
+
     @PatchMapping("/{id}")
     public ResponseEntity<?> patchUserModuleProgress(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @PathVariable("id") UUID progressId,
-            @RequestBody Map<String, String> updates
+            @RequestBody PatchUserModuleProgressRequest updates
     ) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
         }
-
         String token = authHeader.substring(7);
-        UUID userId;
+        String userIdStr;
         try {
-            userId = UUID.fromString(jwtUtil.extractUserId(token));
+            userIdStr = jwtUtil.extractUserId(token);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
-
-        Optional<UserModuleProgress> progressOpt = userModuleProgressRepository.findById(progressId);
-        if (progressOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Progress record not found");
+        UUID userId;
+        try {
+            userId = UUID.fromString(userIdStr);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid userId in token");
         }
 
-        UserModuleProgress progress = progressOpt.get();
+        UserModuleProgress progress = userModuleProgressRepository.findById(progressId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Progress not found"));
 
         if (!progress.getUser().getId().equals(userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not allowed to update this progress record");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
         }
 
-        String lastVisitedUnitIdStr = updates.get("last_visited_unit_id");
-        if (lastVisitedUnitIdStr != null) {
-            try {
-                UUID unitId = UUID.fromString(lastVisitedUnitIdStr);
-                Optional<Unit> unitOpt = unitRepository.findById(unitId);
-                if (unitOpt.isEmpty()) return ResponseEntity.badRequest().body("Unit not found");
-                if (!unitOpt.get().getModule().getId().equals(progress.getModule().getId())) {
-                    return ResponseEntity.badRequest().body("Unit does not belong to the same module");
-                }
-                progress.setLastVisitedUnit(unitOpt.get());
-            } catch (Exception e) {
-                return ResponseEntity.badRequest().body("Invalid last_visited_unit_id format");
+
+        if (updates.getLastVisitedUnitId() != null) {
+            Unit unit = unitRepository.findById(updates.getLastVisitedUnitId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid unit ID"));
+            if (!unit.getModule().getId().equals(progress.getModule().getId())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Unit does not belong to module");
             }
+            progress.setLastVisitedUnit(unit);
         }
 
-        String lastVisitedContentIdStr = updates.get("last_visited_content_id");
-        if (lastVisitedContentIdStr != null) {
-            try {
-                UUID contentId = UUID.fromString(lastVisitedContentIdStr);
-                Optional<UnitContent> contentOpt = unitContentRepository.findById(contentId);
-                if (contentOpt.isEmpty()) return ResponseEntity.badRequest().body("Content not found");
-
-                UnitContent content = contentOpt.get();
-                if (!content.getUnit().getModule().getId().equals(progress.getModule().getId())) {
-                    return ResponseEntity.badRequest().body("Content does not belong to the same module");
-                }
-                progress.setLastVisitedContent(content);
-            } catch (Exception e) {
-                return ResponseEntity.badRequest().body("Invalid last_visited_content_id format");
+        if (updates.getLastVisitedContentId() != null) {
+            UnitContent content = unitContentRepository.findById(updates.getLastVisitedContentId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid content ID"));
+            if (!content.getUnit().getModule().getId().equals(progress.getModule().getId())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Content does not belong to module");
             }
+            progress.setLastVisitedContent(content);
         }
 
-        String statusStr = updates.get("status");
-        if (statusStr != null) {
+        if (updates.getStatus() != null) {
             try {
-                ProgressStatus status = ProgressStatus.valueOf(statusStr.toUpperCase());
-                progress.setStatus(status);
+                progress.setStatus(ProgressStatus.valueOf(updates.getStatus()));
             } catch (IllegalArgumentException e) {
-                return ResponseEntity.badRequest().body("Invalid status value");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid status value");
             }
         }
 
-        String earnedPointsStr = updates.get("earned_points");
-        if (earnedPointsStr != null) {
-            try {
-                int earnedPoints = Integer.parseInt(earnedPointsStr);
-                progress.setEarnedPoints(earnedPoints);
-            } catch (NumberFormatException e) {
-                return ResponseEntity.badRequest().body("Invalid earned_points value");
-            }
+        if (updates.getEarnedPoints() != null) {
+            progress.setEarnedPoints(updates.getEarnedPoints());
         }
 
         try {

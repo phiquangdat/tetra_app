@@ -27,19 +27,28 @@ const VideoBlock: React.FC<VideoBlockProps> = ({
   blockIndex,
   id,
 }) => {
-  const fromContext = unitNumber != null && blockIndex != null;
   const { getUnitState } = useUnitContext();
+  const unitContent =
+    unitNumber != null && blockIndex != null
+      ? getUnitState(unitNumber)?.content[blockIndex]
+      : null;
+
+  const shouldUseContext = !!unitContent?.data?.content;
   const [video, setVideo] = useState<Video | null>(null);
 
   useEffect(() => {
-    if (!fromContext && id) {
+    if (!shouldUseContext && id) {
       fetchVideoContentById(id).then(setVideo).catch(console.error);
     }
-  }, [fromContext, id]);
+  }, [shouldUseContext, id]);
 
-  const data = fromContext
-    ? getUnitState(unitNumber!)?.content[blockIndex!].data
-    : { title: video?.title, content: video?.content, url: video?.url };
+  const data = shouldUseContext
+    ? unitContent!.data
+    : {
+        title: video?.title,
+        content: video?.content,
+        url: video?.url,
+      };
 
   const { isValid, isYouTube, embedUrl } = validateVideoUrl(data?.url);
 

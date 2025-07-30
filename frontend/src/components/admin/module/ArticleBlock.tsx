@@ -16,25 +16,31 @@ const ArticleBlock: React.FC<ArticleBlockProps> = ({
   blockIndex,
   id,
 }) => {
-  const fromContext = unitNumber != null && blockIndex != null;
+  // const fromContext = unitNumber != null && blockIndex != null;
   const { getUnitState } = useUnitContext();
   const [article, setArticle] = useState<Article | null>(null);
 
-  // only fetch from API if we’re _not_ in context mode:
+  const unitContent =
+    unitNumber != null && blockIndex != null
+      ? getUnitState(unitNumber)?.content[blockIndex]
+      : null;
+
+  const shouldUseContext = unitContent?.data?.content;
+
+  // Only fetch if context is NOT usable
   useEffect(() => {
-    if (!fromContext && id) {
+    if (!shouldUseContext && id) {
       fetchArticleContentById(id).then(setArticle).catch(console.error);
     }
-  }, [fromContext, id]);
+  }, [shouldUseContext, id]);
 
   // pick data
-  const title = fromContext
-    ? getUnitState(unitNumber!)?.content[blockIndex!].data.title
+  const title = shouldUseContext
+    ? unitContent!.data.title
     : (article?.title ?? 'No title available');
 
-  const contentHtml = fromContext
-    ? (getUnitState(unitNumber!)?.content[blockIndex!].data.content ??
-      '<p>No content</p>')
+  const contentHtml = shouldUseContext
+    ? (unitContent!.data.content ?? '<p>No content</p>')
     : (article?.content ?? '<p>No content available</p>');
 
   return (

@@ -1,19 +1,25 @@
-import { StateContentBlockList } from '../ui/StateContentBlockList.tsx';
-import { ApiContentBlockList } from '../ui/ApiContentBlockList.tsx';
+import React from 'react';
+import { StateContentBlockList } from '../ui/StateContentBlockList';
+import { useUnitContext } from '../../../context/admin/UnitContext';
+import { BaseContentBlockList } from '../ui/BaseContentBlockList';
 
 interface ContentBlockListProps {
-  unitId: string;
   unitNumber?: number;
 }
 
-const ContentBlockList: React.FC<ContentBlockListProps> = ({
-  unitId,
-  unitNumber,
-}) =>
-  unitNumber !== undefined ? (
-    <StateContentBlockList unitNumber={unitNumber} />
-  ) : (
-    <ApiContentBlockList unitId={unitId} />
-  );
+const ContentBlockList: React.FC<ContentBlockListProps> = ({ unitNumber }) => {
+  const { getUnitState } = useUnitContext();
+
+  // If context-based rendering
+  if (unitNumber !== undefined) {
+    const unit = getUnitState(unitNumber);
+    const content = unit?.content ?? [];
+
+    return <BaseContentBlockList blocks={content} unitNumber={unitNumber} />;
+  }
+
+  // Otherwise fallback to API fetch only
+  return <StateContentBlockList unitNumber={-1} />; // fallback (shouldn't really happen)
+};
 
 export default ContentBlockList;

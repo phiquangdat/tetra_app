@@ -29,14 +29,7 @@ const UnitContainer: React.FC<UnitContainerProps> = ({ unitNumber }) => {
   return (
     <>
       <UnitItem
-        id={unitId}
         unitNumber={unitNumber}
-        title={unitState?.title || ''}
-        details={{
-          id: unitId,
-          title: unitState?.title || '',
-          description: unitState?.description || '',
-        }}
         index={unitNumber - 1}
         isOpen={isOpen}
         onToggle={() => setIsOpen((open) => !open)}

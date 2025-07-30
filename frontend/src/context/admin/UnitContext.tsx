@@ -281,16 +281,18 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     async (unitId: string, unitNumber: number) => {
       try {
         const fetched = await fetchUnitContentById(unitId);
-        const blocks: ContentBlock[] = fetched.map((u) => ({
-          id: u.id,
-          type: u.content_type as ContentBlock['type'],
-          data: { title: u.title },
-          sortOrder: u.sort_order,
-          unit_id: unitId,
-          isDirty: false,
-          isSaving: false,
-          error: null,
-        }));
+        const blocks: ContentBlock[] = fetched
+          .map((u) => ({
+            id: u.id,
+            type: u.content_type as ContentBlock['type'],
+            data: { title: u.title },
+            sortOrder: u.sort_order,
+            unit_id: unitId,
+            isDirty: false,
+            isSaving: false,
+            error: null,
+          }))
+          .sort((a, b) => a.sortOrder - b.sortOrder);
         setUnitState(unitNumber, { content: blocks });
       } catch (err) {
         console.error(`Failed to load unit ${unitId} content`, err);

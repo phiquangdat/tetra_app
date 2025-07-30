@@ -31,11 +31,11 @@ const UnitItem: React.FC<UnitItemProps> = ({
     const unitId = unit?.id;
     if (!unit || !unitId || !unitNumber) return;
 
-    // Avoid re-fetching if content already exists
-    if (unit.content.length > 0) return;
-
-    void loadUnitContentIntoState(unitId, unitNumber);
-  }, [unitNumber, unit?.id, unit?.content.length]);
+    if (unit.content.length === 0) {
+      console.log(`[UnitItem] Loading content for unit ${unitNumber}`);
+      void loadUnitContentIntoState(unitId, unitNumber);
+    }
+  }, [unitNumber, unit?.id]);
 
   if (!unit) {
     return (
@@ -89,7 +89,11 @@ const UnitItem: React.FC<UnitItemProps> = ({
       {addContentComponent}
 
       <div className="mt-6">
-        <ContentBlockList unitNumber={unitNumber} />
+        {unit.content.length > 0 ? (
+          <ContentBlockList unitNumber={unitNumber} />
+        ) : (
+          <p className="text-sm text-gray-500">Loading content blocks…</p>
+        )}
       </div>
     </Accordion>
   );

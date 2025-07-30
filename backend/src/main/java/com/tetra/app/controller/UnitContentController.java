@@ -7,6 +7,8 @@ import com.tetra.app.model.Unit;
 import com.tetra.app.repository.UnitContentRepository;
 import com.tetra.app.repository.QuestionRepository;
 import com.tetra.app.repository.AnswerRepository;
+import com.tetra.app.security.JwtUtil;
+import com.tetra.app.repository.BlacklistedTokenRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -476,6 +478,70 @@ public class UnitContentController {
         }
     }
 
+    @PutMapping("/video/{id}")
+    public ResponseEntity<?> updateVideoContent(
+        @PathVariable UUID id,
+        @RequestBody Map<String, Object> body,
+        @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        if (blacklistedTokenRepository.existsByToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is blacklisted (logged out)");
+        }
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
+
+        Optional<UnitContent> optContent = unitContentRepository.findById(id);
+        if (optContent.isEmpty() || !"video".equalsIgnoreCase(optContent.get().getContentType())) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Video content not found");
+        }
+        UnitContent content = optContent.get();
+        if (body.containsKey("title")) content.setTitle(String.valueOf(body.get("title")));
+        if (body.containsKey("content")) content.setContent(String.valueOf(body.get("content")));
+        if (body.containsKey("url")) content.setUrl(String.valueOf(body.get("url")));
+        if (body.containsKey("sort_order")) {
+            Object sortOrderObj = body.get("sort_order");
+            try {
+                int sortOrder = (sortOrderObj instanceof Integer)
+                    ? (Integer) sortOrderObj
+                    : Integer.parseInt(sortOrderObj.toString());
+                content.setSortOrder(sortOrder);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("sort_order must be a number");
+            }
+        }
+        if (body.containsKey("points")) {
+            Object pointsObj = body.get("points");
+            try {
+                int points = (pointsObj instanceof Integer)
+                    ? (Integer) pointsObj
+                    : Integer.parseInt(pointsObj.toString());
+                content.setPoints(points);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("points must be a number");
+            }
+        }
+        unitContentRepository.saveAndFlush(content);
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", content.getId());
+        response.put("title", content.getTitle());
+        response.put("content", content.getContent());
+        response.put("url", content.getUrl());
+        response.put("sort_order", content.getSortOrder());
+        response.put("points", content.getPoints());
+        return ResponseEntity.ok(response);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUnitContent(
         @PathVariable UUID id,
@@ -510,7 +576,6 @@ public class UnitContentController {
             }
             questionRepository.deleteAll(questions);
         }
-
         unitContentRepository.deleteById(id);
         return ResponseEntity.ok("Unit content deleted");
     }

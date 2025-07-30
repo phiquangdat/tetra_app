@@ -18,6 +18,9 @@ const UnitsBlockUI: React.FC<UnitsBlockUIProps> = ({ moduleId }) => {
   const [unitNumbers, setUnitNumbers] = useState<number[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [expandedUnitNumber, setExpandedUnitNumber] = useState<number | null>(
+    null,
+  );
 
   useEffect(() => {
     const loadUnits = async () => {
@@ -58,11 +61,6 @@ const UnitsBlockUI: React.FC<UnitsBlockUIProps> = ({ moduleId }) => {
     loadUnits();
   }, [moduleId, setUnitState]);
 
-  // const [expandedId, setExpandedId] = useState<number | null>(null);
-  // const toggle = (id: number) => {
-  //   setExpandedId((prev) => (prev === id ? null : id));
-  // };
-
   if (loading) return <p>Loading units…</p>;
   if (error) return <p className="text-error">{error}</p>;
 
@@ -73,7 +71,12 @@ const UnitsBlockUI: React.FC<UnitsBlockUIProps> = ({ moduleId }) => {
           unitNumber={unitNumber}
           key={index}
           initialEditMode={false}
-          startOpen={false}
+          isOpen={expandedUnitNumber === unitNumber}
+          onToggle={() =>
+            setExpandedUnitNumber((prev) =>
+              prev === unitNumber ? null : unitNumber,
+            )
+          }
         />
       ))}
     </UnitsBlock>

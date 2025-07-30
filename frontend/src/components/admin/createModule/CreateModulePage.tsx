@@ -9,13 +9,25 @@ import UnitContainer from './UnitContainer';
 
 const UnitsManager: React.FC = () => {
   const { unitStates, addUnit } = useUnitContext();
+  const [expandedUnitNumber, setExpandedUnitNumber] = useState<number | null>(
+    1,
+  );
 
   return (
     <UnitsBlock>
       {Object.keys(unitStates).map((key) => {
         const num = parseInt(key, 10);
+        const isOpen = expandedUnitNumber === num;
         return (
-          <UnitContainer key={num} unitNumber={num} initialEditMode={true} />
+          <UnitContainer
+            key={num}
+            unitNumber={num}
+            initialEditMode={true}
+            isOpen={isOpen}
+            onToggle={() =>
+              setExpandedUnitNumber((prev) => (prev === num ? null : num))
+            }
+          />
         );
       })}
       <button

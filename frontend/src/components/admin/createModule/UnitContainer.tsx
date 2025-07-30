@@ -10,13 +10,15 @@ import AddQuizModal from './AddQuizModal';
 interface UnitContainerProps {
   unitNumber: number;
   initialEditMode?: boolean;
-  startOpen?: boolean;
+  isOpen: boolean;
+  onToggle: () => void;
 }
 
 const UnitContainer: React.FC<UnitContainerProps> = ({
   unitNumber,
   initialEditMode = true,
-  startOpen = true,
+  isOpen,
+  onToggle,
 }) => {
   const { getUnitState, setIsEditing } = useUnitContext();
   const unitState = getUnitState(unitNumber);
@@ -29,8 +31,6 @@ const UnitContainer: React.FC<UnitContainerProps> = ({
     }
   }, [unitState, initialEditMode, setIsEditing, unitNumber]);
 
-  // Accordion open/close
-  const [isOpen, setIsOpen] = useState(startOpen);
   const isEditing = unitState?.isEditing;
 
   // Content‐block modal flags
@@ -44,7 +44,7 @@ const UnitContainer: React.FC<UnitContainerProps> = ({
         unitNumber={unitNumber}
         index={unitNumber - 1}
         isOpen={isOpen}
-        onToggle={() => setIsOpen((open) => !open)}
+        onToggle={onToggle}
         isEditing={isEditing}
         renderEdit={
           <UnitForm

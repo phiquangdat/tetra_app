@@ -6,8 +6,8 @@ import {
   type UnitDetailsResponse,
 } from '../../../services/unit/unitApi';
 import UnitsBlock from '../ui/UnitsBlock';
-import UnitItem from '../ui/UnitItem';
 import { useUnitContext } from '../../../context/admin/UnitContext';
+import UnitContainer from '../createModule/UnitContainer.tsx';
 
 interface UnitsBlockUIProps {
   moduleId: string;
@@ -58,10 +58,10 @@ const UnitsBlockUI: React.FC<UnitsBlockUIProps> = ({ moduleId }) => {
     loadUnits();
   }, [moduleId, setUnitState]);
 
-  const [expandedId, setExpandedId] = useState<number | null>(null);
-  const toggle = (id: number) => {
-    setExpandedId((prev) => (prev === id ? null : id));
-  };
+  // const [expandedId, setExpandedId] = useState<number | null>(null);
+  // const toggle = (id: number) => {
+  //   setExpandedId((prev) => (prev === id ? null : id));
+  // };
 
   if (loading) return <p>Loading units…</p>;
   if (error) return <p className="text-error">{error}</p>;
@@ -69,12 +69,11 @@ const UnitsBlockUI: React.FC<UnitsBlockUIProps> = ({ moduleId }) => {
   return (
     <UnitsBlock>
       {unitNumbers.map((unitNumber, index) => (
-        <UnitItem
-          key={unitNumber}
-          index={index}
+        <UnitContainer
           unitNumber={unitNumber}
-          isOpen={expandedId === unitNumber}
-          onToggle={() => toggle(unitNumber)}
+          key={index}
+          initialEditMode={false}
+          startOpen={false}
         />
       ))}
     </UnitsBlock>

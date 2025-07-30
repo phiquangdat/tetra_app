@@ -5,7 +5,6 @@ import {
 } from '../../../context/admin/UnitContext';
 import CreateModuleForm from './CreateModuleForm';
 import UnitsBlock from '../ui/UnitsBlock.tsx';
-import { EditorStateProvider } from '../../../utils/editor/contexts/EditorStateContext';
 import UnitContainer from './UnitContainer';
 
 const UnitsManager: React.FC = () => {
@@ -15,7 +14,9 @@ const UnitsManager: React.FC = () => {
     <UnitsBlock>
       {Object.keys(unitStates).map((key) => {
         const num = parseInt(key, 10);
-        return <UnitContainer key={num} unitNumber={num} />;
+        return (
+          <UnitContainer key={num} unitNumber={num} initialEditMode={true} />
+        );
       })}
       <button
         type="button"
@@ -82,11 +83,7 @@ function CreateModulePageContent() {
 }
 
 function CreateModulePage() {
-  return (
-    <EditorStateProvider>
-      <CreateModulePageContent />
-    </EditorStateProvider>
-  );
+  return <CreateModulePageContent />;
 }
 
 export default CreateModulePage;

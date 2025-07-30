@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useUnitContext } from '../../../context/admin/UnitContext';
 import UnitItem from '../ui/UnitItem';
 import UnitForm from './UnitForm';
@@ -9,17 +9,29 @@ import AddQuizModal from './AddQuizModal';
 
 interface UnitContainerProps {
   unitNumber: number;
+  initialEditMode?: boolean;
+  startOpen?: boolean;
 }
 
-const UnitContainer: React.FC<UnitContainerProps> = ({ unitNumber }) => {
-  const { getUnitState } = useUnitContext();
+const UnitContainer: React.FC<UnitContainerProps> = ({
+  unitNumber,
+  initialEditMode = true,
+  startOpen = true,
+}) => {
+  const { getUnitState, setIsEditing } = useUnitContext();
   const unitState = getUnitState(unitNumber);
   const unitId = unitState?.id ?? '';
 
+  // Set editing state on initial mount only if undefined
+  useEffect(() => {
+    if (unitState && typeof unitState.isEditing === 'undefined') {
+      setIsEditing(unitNumber, initialEditMode);
+    }
+  }, [unitState, initialEditMode, setIsEditing, unitNumber]);
+
   // Accordion open/close
-  const [isOpen, setIsOpen] = useState(true);
-  // Toggle between edit form and preview
-  const [isEditing, setIsEditing] = useState(true);
+  const [isOpen, setIsOpen] = useState(startOpen);
+  const isEditing = unitState?.isEditing;
 
   // Content‐block modal flags
   const [showArticleModal, setShowArticleModal] = useState(false);
@@ -37,10 +49,10 @@ const UnitContainer: React.FC<UnitContainerProps> = ({ unitNumber }) => {
         renderEdit={
           <UnitForm
             unitNumber={unitNumber}
-            onSaved={() => setIsEditing(false)}
+            onSaved={() => setIsEditing(unitNumber, false)}
           />
         }
-        onEdit={() => setIsEditing(true)}
+        onEdit={() => setIsEditing(unitNumber, true)}
         addContentComponent={
           <AddContentDropdown
             unitNumber={unitNumber}

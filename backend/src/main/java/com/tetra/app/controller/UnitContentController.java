@@ -482,7 +482,7 @@ public class UnitContentController {
         @RequestBody Map<String, Object> body,
         @RequestHeader(value = "Authorization", required = false) String authHeader
     ) {
-        // --- JWT authentication and ADMIN role check ---
+        
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
         }
@@ -499,8 +499,7 @@ public class UnitContentController {
         if (!"ADMIN".equals(role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
         }
-        // --- end JWT/role check ---
-
+        
         Optional<UnitContent> optContent = unitContentRepository.findById(id);
         if (optContent.isEmpty() || !"video".equalsIgnoreCase(optContent.get().getContentType())) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Video content not found");

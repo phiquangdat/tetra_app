@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useModuleContext } from '../../../context/admin/ModuleContext';
-import { useUnitContext } from '../../../context/admin/UnitContext';
+import { useModuleContext } from '../../../context/admin/ModuleContext.tsx';
+import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
 
 interface UnitFormProps {
   unitNumber: number;

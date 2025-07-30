@@ -5,7 +5,7 @@ import {
 } from '../../../context/admin/UnitContext';
 import CreateModuleForm from './CreateModuleForm';
 import UnitsBlock from '../ui/UnitsBlock.tsx';
-import UnitContainer from './UnitContainer';
+import UnitContainer from '../ui/UnitContainer.tsx';
 
 const UnitsManager: React.FC = () => {
   const { unitStates, addUnit, getNextUnitNumber } = useUnitContext();

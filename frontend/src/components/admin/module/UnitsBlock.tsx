@@ -7,7 +7,7 @@ import {
 } from '../../../services/unit/unitApi';
 import UnitsBlock from '../ui/UnitsBlock';
 import { useUnitContext } from '../../../context/admin/UnitContext';
-import UnitContainer from '../createModule/UnitContainer.tsx';
+import UnitContainer from '../ui/UnitContainer.tsx';
 
 interface UnitsBlockUIProps {
   moduleId: string;

@@ -5,7 +5,7 @@ import {
 } from '../../../context/admin/ModuleContext';
 import ModuleDetailsUI from '../ui/ModuleDetailsUI';
 import ModuleFormFields from './ModuleFormFields';
-import SaveButton from './SaveButton';
+import SaveButton from '../ui/SaveButton.tsx';
 import { useModuleSave } from '../../../hooks/useModuleSave';
 
 const CreateModuleForm: React.FC = () => {

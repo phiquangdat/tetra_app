@@ -4,7 +4,7 @@ import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 
-import UnitForm from '../admin/createModule/UnitForm';
+import UnitForm from '../admin/ui/UnitForm';
 import {
   ModuleContextProvider,
   useModuleContext,

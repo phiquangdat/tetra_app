@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useUnitContext } from '../../../context/admin/UnitContext';
-import UnitItem from '../ui/UnitItem';
-import UnitForm from './UnitForm';
-import AddContentDropdown from './AddContentDropdown';
-import AddArticleModal from './AddArticleModal';
-import AddVideoModal from './AddVideoModal';
-import AddQuizModal from './AddQuizModal';
+import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
+import UnitItem from './UnitItem.tsx';
+import UnitForm from './UnitForm.tsx';
+import AddContentDropdown from '../createModule/AddContentDropdown.tsx';
+import AddArticleModal from '../createModule/AddArticleModal.tsx';
+import AddVideoModal from '../createModule/AddVideoModal.tsx';
+import AddQuizModal from '../createModule/AddQuizModal.tsx';
 
 interface UnitContainerProps {
   unitNumber: number;

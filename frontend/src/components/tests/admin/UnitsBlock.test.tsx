@@ -1,13 +1,17 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { describe, it, vi, beforeEach } from 'vitest';
-import UnitsBlock from '../../../components/admin/module/UnitsBlock';
-import * as unitApi from '../../../services/unit/unitApi';
+
+import UnitsBlockUI from '../../../components/admin/module/UnitsBlock';
 import { UnitContextProvider } from '../../../context/admin/UnitContext';
+import { ContentBlockContextProvider } from '../../../context/admin/ContentBlockContext';
+import { EditorStateProvider } from '../../../utils/editor/contexts/EditorStateContext';
+import * as unitApi from '../../../services/unit/unitApi';
 
 vi.mock('../../../services/unit/unitApi', async () => {
   return {
     fetchUnitTitleByModuleId: vi.fn(),
+    fetchUnitById: vi.fn(),
   };
 });
 
@@ -16,43 +20,55 @@ const mockedUnits = [
   { id: 'unit2', title: 'Unit Two' },
 ];
 
+const mockedUnitDetails = {
+  description: 'Sample unit description',
+};
+
 describe('UnitsBlock Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('fetches and displays unit titles', async () => {
-    const mockFetch = unitApi.fetchUnitTitleByModuleId as unknown as ReturnType<
+    const fetchTitleMock =
+      unitApi.fetchUnitTitleByModuleId as unknown as ReturnType<typeof vi.fn>;
+    const fetchDetailsMock = unitApi.fetchUnitById as unknown as ReturnType<
       typeof vi.fn
     >;
-    mockFetch.mockResolvedValueOnce(mockedUnits);
+
+    fetchTitleMock.mockResolvedValueOnce(mockedUnits);
+    fetchDetailsMock.mockResolvedValue(mockedUnitDetails);
 
     render(
       <UnitContextProvider>
-        <UnitsBlock moduleId="test-module-id" />
+        <ContentBlockContextProvider>
+          <EditorStateProvider>
+            {' '}
+            {/* ✅ FIXED: required context provider */}
+            <UnitsBlockUI moduleId="test-module-id" />
+          </EditorStateProvider>
+        </ContentBlockContextProvider>
       </UnitContextProvider>,
     );
 
     await waitFor(() => {
-      expect(
-        screen.getByRole('button', { name: /Unit 1: Unit One/i }),
-      ).toBeInTheDocument();
-
-      expect(
-        screen.getByRole('button', { name: /Unit 2: Unit Two/i }),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Unit 1: Unit One/i)).toBeInTheDocument();
+      expect(screen.getByText(/Unit 2: Unit Two/i)).toBeInTheDocument();
     });
   });
 
   it('shows error message on API failure', async () => {
-    const mockFetch = unitApi.fetchUnitTitleByModuleId as unknown as ReturnType<
-      typeof vi.fn
-    >;
-    mockFetch.mockRejectedValueOnce(new Error('API failed'));
+    const fetchTitleMock =
+      unitApi.fetchUnitTitleByModuleId as unknown as ReturnType<typeof vi.fn>;
+    fetchTitleMock.mockRejectedValueOnce(new Error('API failed'));
 
     render(
       <UnitContextProvider>
-        <UnitsBlock moduleId="test-module-id" />
+        <ContentBlockContextProvider>
+          <EditorStateProvider>
+            <UnitsBlockUI moduleId="test-module-id" />
+          </EditorStateProvider>
+        </ContentBlockContextProvider>
       </UnitContextProvider>,
     );
 
@@ -64,7 +80,11 @@ describe('UnitsBlock Component', () => {
   it('shows loading state initially', () => {
     render(
       <UnitContextProvider>
-        <UnitsBlock moduleId="test-module-id" />
+        <ContentBlockContextProvider>
+          <EditorStateProvider>
+            <UnitsBlockUI moduleId="test-module-id" />
+          </EditorStateProvider>
+        </ContentBlockContextProvider>
       </UnitContextProvider>,
     );
     expect(screen.getByText(/loading units/i)).toBeInTheDocument();

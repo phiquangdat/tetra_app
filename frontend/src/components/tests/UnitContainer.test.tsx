@@ -57,7 +57,7 @@ const renderUnitContainer = () => {
         <InitUnitState />
         <ContentBlockContextProvider>
           <EditorStateProvider>
-            <UnitContainer unitNumber={1} />
+            <UnitContainer unitNumber={1} isOpen={true} onToggle={() => {}} />
           </EditorStateProvider>
         </ContentBlockContextProvider>
       </UnitContextProvider>

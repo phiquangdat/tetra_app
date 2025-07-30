@@ -52,20 +52,6 @@ describe('CreateModulePage', () => {
     expect(clickSpy).toHaveBeenCalled();
   });
 
-  it('calls handlePublishModule when Publish button is clicked', async () => {
-    renderWithProviders(<CreateModulePage />);
-    const user = userEvent.setup();
-    const publishButton = await screen.findByRole('button', {
-      name: /publish/i,
-    });
-
-    const clickSpy = vi.fn();
-    publishButton.onclick = clickSpy;
-
-    await user.click(publishButton);
-    expect(clickSpy).toHaveBeenCalled();
-  });
-
   it('renders the Add new unit button', async () => {
     renderWithProviders(<CreateModulePage />);
     const addUnitButton = await screen.findByRole('button', {

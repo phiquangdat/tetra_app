@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAuth } from '../../context/auth/AuthContext';
 
 import HeroImage1 from '../../../src/assets/images/hero_option1.png';
 import HeroImage2 from '../../../src/assets/images/hero_option2.png';
@@ -8,6 +9,9 @@ import HeroImage4 from '../../../src/assets/images/hero_option4.png';
 const heroImages = [HeroImage1, HeroImage2, HeroImage3, HeroImage4];
 
 const Hero: React.FC<{ onGetStarted?: () => void }> = ({ onGetStarted }) => {
+  const { authToken } = useAuth();
+  const isLoggedIn = Boolean(authToken);
+
   // Pick random image on each render
   const randomImage = heroImages[Math.floor(Math.random() * heroImages.length)];
 
@@ -28,12 +32,22 @@ const Hero: React.FC<{ onGetStarted?: () => void }> = ({ onGetStarted }) => {
             Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed do
             eiusmod tempor.
           </p>
-          <button
-            className="px-8 py-3 bg-surface text-white font-semibold rounded-full shadow-lg hover:bg-surfaceHover transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-opacity-75"
-            onClick={onGetStarted}
-          >
-            Get Started
-          </button>
+          {!isLoggedIn && (
+            <button
+              className="px-8 py-3 bg-surface text-white font-semibold rounded-full shadow-lg hover:bg-surfaceHover transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-opacity-75"
+              onClick={onGetStarted}
+            >
+              Get Started
+            </button>
+          )}
+          {!isLoggedIn && (
+            <button
+              className="px-8 py-3 bg-surface text-white font-semibold rounded-full shadow-lg hover:bg-surfaceHover transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-opacity-75"
+              onClick={onGetStarted}
+            >
+              Get Started
+            </button>
+          )}
         </div>
         {/* Right: Visual element */}
         <div className="lg:w-1/2 flex justify-center items-center p-6 lg:p-0">

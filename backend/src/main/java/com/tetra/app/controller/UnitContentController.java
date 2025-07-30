@@ -482,7 +482,6 @@ public class UnitContentController {
         @RequestBody Map<String, Object> body,
         @RequestHeader(value = "Authorization", required = false) String authHeader
     ) {
-        
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
         }
@@ -499,13 +498,12 @@ public class UnitContentController {
         if (!"ADMIN".equals(role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
         }
-        
+
         Optional<UnitContent> optContent = unitContentRepository.findById(id);
         if (optContent.isEmpty() || !"video".equalsIgnoreCase(optContent.get().getContentType())) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Video content not found");
         }
         UnitContent content = optContent.get();
-
         if (body.containsKey("title")) content.setTitle(String.valueOf(body.get("title")));
         if (body.containsKey("content")) content.setContent(String.valueOf(body.get("content")));
         if (body.containsKey("url")) content.setUrl(String.valueOf(body.get("url")));
@@ -532,7 +530,6 @@ public class UnitContentController {
             }
         }
         unitContentRepository.saveAndFlush(content);
-
         Map<String, Object> response = new HashMap<>();
         response.put("id", content.getId());
         response.put("title", content.getTitle());
@@ -541,5 +538,43 @@ public class UnitContentController {
         response.put("sort_order", content.getSortOrder());
         response.put("points", content.getPoints());
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUnitContent(
+        @PathVariable UUID id,
+        @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        if (blacklistedTokenRepository.existsByToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is blacklisted (logged out)");
+        }
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
+
+        if (!unitContentRepository.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Unit content not found with id: " + id);
+        }
+        UnitContent unitContent = unitContentRepository.findById(id).orElse(null);
+        if (unitContent != null && "quiz".equalsIgnoreCase(unitContent.getContentType())) {
+            // Delete all related answers and questions
+            List<Question> questions = questionRepository.findByUnitContent_Id(id);
+            for (Question q : questions) {
+                answerRepository.deleteAll(answerRepository.findByQuestion_Id(q.getId()));
+            }
+            questionRepository.deleteAll(questions);
+        }
+        unitContentRepository.deleteById(id);
+        return ResponseEntity.ok("Unit content deleted");
     }
 }

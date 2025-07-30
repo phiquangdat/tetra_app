@@ -14,7 +14,7 @@ interface UnitsBlockUIProps {
 }
 
 const UnitsBlockUI: React.FC<UnitsBlockUIProps> = ({ moduleId }) => {
-  const { setUnitState } = useUnitContext();
+  const { setUnitState, setUnitStatesRaw } = useUnitContext();
   const [unitNumbers, setUnitNumbers] = useState<number[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -23,7 +23,7 @@ const UnitsBlockUI: React.FC<UnitsBlockUIProps> = ({ moduleId }) => {
     const loadUnits = async () => {
       try {
         // Reset context by clearing existing states
-        setUnitState(0, {}); // Use 0 as trigger for full reset (optional)
+        setUnitStatesRaw({});
         const previews = await fetchUnitTitleByModuleId(moduleId);
 
         const detailedUnits = await Promise.all(

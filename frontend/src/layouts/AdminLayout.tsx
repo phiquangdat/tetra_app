@@ -7,6 +7,7 @@ import { ModuleContextProvider } from '../context/admin/ModuleContext.tsx';
 import { UnitContextProvider } from '../context/admin/UnitContext.tsx';
 import { ContentBlockContextProvider } from '../context/admin/ContentBlockContext.tsx';
 import { AuthProvider } from '../context/auth/AuthContext.tsx';
+import { UserProvider } from '../context/auth/UserContext.tsx';
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -15,38 +16,40 @@ const AdminLayout = () => {
 
   return (
     <AuthProvider>
-      <ModuleContextProvider>
-        <UnitContextProvider>
-          <ContentBlockContextProvider>
-            <div className="min-h-screen flex flex-col">
-              <SharedHeader
-                onHamburgerClick={toggleSidebar}
-                isSidebarOpen={sidebarOpen}
-              />
-              <div className="flex flex-1 relative">
-                <div
-                  className={`
+      <UserProvider>
+        <ModuleContextProvider>
+          <UnitContextProvider>
+            <ContentBlockContextProvider>
+              <div className="min-h-screen flex flex-col">
+                <SharedHeader
+                  onHamburgerClick={toggleSidebar}
+                  isSidebarOpen={sidebarOpen}
+                />
+                <div className="flex flex-1 relative">
+                  <div
+                    className={`
               absolute z-50 h-full
               transform transition-transform duration-300 ease-in-out
               ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
             `}
-                >
-                  <AdminSidebar />
-                </div>
-                <main
-                  className={`
+                  >
+                    <AdminSidebar />
+                  </div>
+                  <main
+                    className={`
               flex-1 transition-all duration-300 ease-in-out
               ${sidebarOpen ? 'ml-64' : ''}
             `}
-                >
-                  <Outlet />
-                </main>
+                  >
+                    <Outlet />
+                  </main>
+                </div>
+                <Footer />
               </div>
-              <Footer />
-            </div>
-          </ContentBlockContextProvider>
-        </UnitContextProvider>
-      </ModuleContextProvider>
+            </ContentBlockContextProvider>
+          </UnitContextProvider>
+        </ModuleContextProvider>
+      </UserProvider>
     </AuthProvider>
   );
 };

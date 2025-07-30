@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/auth/AuthContext';
 import SignOutModal from '../common/SignOutModal';
+import toast from 'react-hot-toast';
 
 export type SidebarItem = {
   label: string;
@@ -31,6 +32,13 @@ const Sidebar: React.FC<SidebarProps> = ({
     } else {
       navigate(item.path);
     }
+  };
+
+  const handleConfirmLogout = () => {
+    logout();
+    setShowModal(false);
+    navigate('/');
+    toast.success('You’ve been signed out.');
   };
 
   const renderItem = (item: SidebarItem) => {
@@ -65,11 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       <SignOutModal
         open={showModal}
         onCancel={() => setShowModal(false)}
-        onConfirm={() => {
-          setShowModal(false);
-          logout();
-          navigate('/');
-        }}
+        onConfirm={handleConfirmLogout}
       />
     </aside>
   );

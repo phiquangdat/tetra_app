@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/auth/AuthContext';
 import SignOutModal from '../common/SignOutModal';
+import toast from 'react-hot-toast';
 
 export type SidebarItem = {
   label: string;
@@ -21,7 +23,23 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
   const [showModal, setShowModal] = useState(false);
+
+  const handleItemClick = (item: SidebarItem) => {
+    if (item.label === 'Log out') {
+      setShowModal(true);
+    } else {
+      navigate(item.path);
+    }
+  };
+
+  const handleConfirmLogout = () => {
+    logout();
+    setShowModal(false);
+    navigate('/');
+    toast.success('You’ve been signed out.');
+  };
 
   const renderItem = (item: SidebarItem) => {
     const isActive = location.pathname === item.path;
@@ -43,14 +61,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     );
   };
 
-  const handleItemClick = (item: SidebarItem) => {
-    if (item.label === 'Log out') {
-      setShowModal(true);
-    } else {
-      navigate(item.path);
-    }
-  };
-
   return (
     <aside
       className={`flex flex-col justify-between h-full w-64 border-r border-highlight py-6 bg-surface ${className || ''}`}
@@ -59,7 +69,12 @@ const Sidebar: React.FC<SidebarProps> = ({
       <nav className="flex flex-col gap-2 mt-8">
         {bottomItems.map(renderItem)}
       </nav>
-      <SignOutModal open={showModal} onCancel={() => setShowModal(false)} />
+
+      <SignOutModal
+        open={showModal}
+        onCancel={() => setShowModal(false)}
+        onConfirm={handleConfirmLogout}
+      />
     </aside>
   );
 };

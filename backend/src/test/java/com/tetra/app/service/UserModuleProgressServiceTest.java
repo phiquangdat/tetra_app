@@ -64,7 +64,7 @@ class UserModuleProgressServiceTest {
     void testUpdateStatus() {
         UUID id = UUID.randomUUID();
         UserModuleProgress progress = new UserModuleProgress();
-        progress.setStatus(ProgressStatus.NOT_STARTED);
+        progress.setStatus(ProgressStatus.IN_PROGRESS);
 
         when(repository.findById(id)).thenReturn(Optional.of(progress));
         when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));

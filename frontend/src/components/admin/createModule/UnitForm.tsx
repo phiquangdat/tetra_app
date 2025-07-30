@@ -33,6 +33,11 @@ const UnitForm: React.FC<UnitFormProps> = ({ unitNumber, onSaved }) => {
   const handleSave = async () => {
     if (!unitState || unitState.isSaving || localSaving) return;
 
+    if (!moduleId) {
+      updateUnitField(unitNumber, 'error', 'Please save the module first.');
+      return;
+    }
+
     // If nothing changed, just exit edit mode
     if (!unitState.isDirty) {
       onSaved();

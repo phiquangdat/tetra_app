@@ -1,11 +1,81 @@
 import React from 'react';
 import { X } from 'lucide-react';
-
+import { useState } from 'react';
+import { updateUserPassword } from '../../services/user/userApi';
+import { useAuth } from '../../context/auth/AuthContext';
 interface Props {
   onClose: () => void;
 }
 
 const ChangePasswordModal: React.FC<Props> = ({ onClose }) => {
+  const { userId } = useAuth();
+  const [formData, setFormData] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [errors, setErrors] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+
+  const validateForm = (data: typeof formData) => {
+    const errors: {
+      oldPassword: string;
+      newPassword: string;
+      confirmPassword: string;
+    } = {
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    };
+    if (!data.oldPassword) {
+      errors.oldPassword = 'Old password is required';
+    }
+    if (data.newPassword.length < 6) {
+      errors.newPassword = 'Password must be at least 6 characters long';
+    }
+    if (data.newPassword !== data.confirmPassword) {
+      errors.confirmPassword = 'New passwords do not match';
+    }
+    return errors;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    setErrors((prev) => {
+      const newForm = { ...formData, [name]: value };
+      const validation = validateForm(newForm);
+      return { ...prev, [name]: validation[name as keyof typeof validation] };
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const errors = validateForm(formData);
+    setErrors(errors);
+    if (Object.values(errors).some(Boolean)) return;
+    try {
+      await updateUserPassword(
+        userId!,
+        formData.oldPassword,
+        formData.newPassword,
+      );
+      console.log('Password updated successfully');
+      onClose();
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('400')) {
+        setErrors((prev) => ({
+          ...prev,
+          oldPassword: 'Validation failed. Please check again.',
+        }));
+      }
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl w-full max-w-md p-6 relative shadow-xl">
@@ -24,35 +94,67 @@ const ChangePasswordModal: React.FC<Props> = ({ onClose }) => {
         </h2>
 
         {/* Form */}
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label className="text-primary text-sm font-medium mb-1 block">
+            <label
+              htmlFor="oldPassword"
+              className="text-primary text-sm font-medium mb-1 block"
+            >
               Current password
             </label>
             <input
+              id="oldPassword"
               type="password"
               className="w-full bg-[#F9F5FF] border border-[#D4C2FC] rounded-lg p-2.5 text-primary focus:outline-none focus:ring-2 focus:ring-secondary"
+              name="oldPassword"
+              value={formData.oldPassword}
+              onChange={handleChange}
             />
+            {errors.oldPassword && (
+              <p className="text-error text-sm mt-1">{errors.oldPassword}</p>
+            )}
           </div>
 
           <div>
-            <label className="text-primary text-sm font-medium mb-1 block">
+            <label
+              htmlFor="newPassword"
+              className="text-primary text-sm font-medium mb-1 block"
+            >
               New password
             </label>
             <input
+              id="newPassword"
               type="password"
               className="w-full bg-[#F9F5FF] border border-highlight rounded-lg p-2.5 text-primary focus:outline-none focus:ring-2 focus:ring-secondary"
+              name="newPassword"
+              value={formData.newPassword}
+              onChange={handleChange}
             />
+            {errors.newPassword && (
+              <p className="text-error text-sm mt-1">{errors.newPassword}</p>
+            )}
           </div>
 
           <div>
-            <label className="text-[#231942] text-sm font-medium mb-1 block">
+            <label
+              htmlFor="confirmPassword"
+              className="text-[#231942] text-sm font-medium mb-1 block"
+            >
               Confirm new password
             </label>
             <input
+              id="confirmPassword"
               type="password"
               className="w-full bg-[#F9F5FF] border border-highlight rounded-lg p-2.5 text-primary focus:outline-none focus:ring-2 focus:ring-secondary"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
             />
+            {errors.confirmPassword && (
+              <p className="text-error text-sm mt-1">
+                {errors.confirmPassword}
+              </p>
+            )}
           </div>
 
           {/* Action Buttons */}

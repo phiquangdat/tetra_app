@@ -22,6 +22,7 @@ interface ModuleContextProps {
   coverPicture: string | null;
   isDirty: boolean;
   isSaving: boolean;
+  isEditing: boolean;
   error: string | null;
   status: string; // <-- Add this line with a default value where the object is created, e.g., status: 'draft'
 }
@@ -31,6 +32,7 @@ interface ModuleContextValue extends ModuleContextProps {
   markModuleAsDirty: () => void;
   setModuleState: (newState: Partial<ModuleContextProps>) => void;
   saveModule: () => Promise<void>;
+  setIsEditing: (editing: boolean) => void;
 }
 
 export const initialModuleState: ModuleContextProps = {
@@ -42,6 +44,7 @@ export const initialModuleState: ModuleContextProps = {
   coverPicture: null,
   isDirty: false,
   isSaving: false,
+  isEditing: true,
   error: null,
   status: 'draft', // <-- Provide a default value here
 };
@@ -64,6 +67,7 @@ export const ModuleContextProvider = ({
   children: ReactNode;
 }) => {
   const [module, setModule] = useState<ModuleContextProps>(initialModuleState);
+  const [isEditing, setIsEditing] = useState(true);
 
   const markModuleAsDirty = () => {
     setModule((prev) => ({ ...prev, isDirty: true }));
@@ -157,6 +161,8 @@ export const ModuleContextProvider = ({
   const contextValue = useMemo(
     () => ({
       ...module,
+      isEditing,
+      setIsEditing,
       setModuleState,
       updateModuleField,
       markModuleAsDirty,

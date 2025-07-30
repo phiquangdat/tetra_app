@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import com.tetra.app.security.JwtUtil;
+import com.tetra.app.repository.BlacklistedTokenRepository;
 
 @RestController
 @RequestMapping("/api/unit_content")
@@ -561,10 +563,10 @@ public class UnitContentController {
         if (!"ADMIN".equals(role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
         }
-
         if (!unitContentRepository.existsById(id)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Unit content not found with id: " + id);
         }
+
         UnitContent unitContent = unitContentRepository.findById(id).orElse(null);
         if (unitContent != null && "quiz".equalsIgnoreCase(unitContent.getContentType())) {
             // Delete all related answers and questions

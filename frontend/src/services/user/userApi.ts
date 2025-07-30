@@ -47,7 +47,7 @@ export async function getUsers(): Promise<User[]> {
   try {
     return await fetchWithAuth(`${BASE_URL}/users`);
   } catch (error) {
-    throw error instanceof Error ? error : new Error('Failed to fetch users');
+    throw error instanceof Error ? error : new Error('Failed to get users');
   }
 }
 
@@ -58,14 +58,42 @@ export async function getUserById(
   try {
     return await fetchWithAuth(`${BASE_URL}/users/${id}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     });
   } catch (error) {
     throw error instanceof Error
       ? error
-      : new Error('Failed to fetch user by ID');
+      : new Error('Failed to get user by id');
   }
 }
+
+export async function updateUser(
+  id: string,
+  data: Partial<{
+    name: string;
+    email: string;
+    password: string;
+    oldPassword: string;
+  }>,
+): Promise<User> {
+  try {
+    return await fetchWithAuth(`${BASE_URL}/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  } catch (error) {
+    throw error instanceof Error ? error : new Error('Failed to update user');
+  }
+}
+
+export const updateUserName = async (id: string, name: string) =>
+  await updateUser(id, { name });
+
+export const updateUserEmail = async (id: string, email: string) =>
+  await updateUser(id, { email });
+
+export const updateUserPassword = async (
+  id: string,
+  oldPassword: string,
+  password: string,
+) => await updateUser(id, { oldPassword, password });

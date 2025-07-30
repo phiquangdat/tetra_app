@@ -12,9 +12,10 @@ type Props = {
 };
 
 function QuestionOption({ questionIndex, answerIndex }: Props) {
-  const { data, updateAnswer } = useContentBlockContext();
+  const { data, updateAnswer, updateQuestion } = useContentBlockContext();
 
-  const answer = data.questions?.[questionIndex]?.answers?.[answerIndex] ?? {
+  const question = data.questions?.[questionIndex];
+  const answer = question?.answers?.[answerIndex] ?? {
     title: '',
     is_correct: false,
     sort_order: answerIndex,
@@ -22,6 +23,7 @@ function QuestionOption({ questionIndex, answerIndex }: Props) {
 
   const [answerText, setAnswerText] = useState(answer.title || '');
   const [isCorrect, setIsCorrect] = useState(answer.is_correct || false);
+  const isTrueFalse = question?.type === 'true/false';
 
   // Keep local state in sync if context changes (e.g., undo or reset)
   useEffect(() => {
@@ -34,12 +36,24 @@ function QuestionOption({ questionIndex, answerIndex }: Props) {
   };
 
   const applyUpdate = (isCorrectFlag: boolean) => {
-    updateAnswer(questionIndex, answerIndex, {
-      title: answerText,
-      is_correct: isCorrectFlag,
-      sort_order: answerIndex,
-    });
-    setIsCorrect(isCorrectFlag);
+    if (isTrueFalse && isCorrectFlag) {
+      const updatedAnswers = question.answers.map((a, i) => ({
+        ...a,
+        is_correct: i === answerIndex,
+      }));
+      updateQuestion(questionIndex, {
+        ...question,
+        answers: updatedAnswers,
+      });
+      setIsCorrect(true);
+    } else {
+      updateAnswer(questionIndex, answerIndex, {
+        title: answerText,
+        is_correct: isCorrectFlag,
+        sort_order: answerIndex,
+      });
+      setIsCorrect(isCorrectFlag);
+    }
   };
 
   const handleBlur = () => {

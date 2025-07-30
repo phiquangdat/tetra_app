@@ -8,10 +8,16 @@ import UnitsBlock from '../ui/UnitsBlock.tsx';
 import UnitContainer from './UnitContainer';
 
 const UnitsManager: React.FC = () => {
-  const { unitStates, addUnit } = useUnitContext();
+  const { unitStates, addUnit, getNextUnitNumber } = useUnitContext();
   const [expandedUnitNumber, setExpandedUnitNumber] = useState<number | null>(
     1,
   );
+
+  const handleAddUnit = () => {
+    const newUnitNumber = getNextUnitNumber();
+    addUnit();
+    setExpandedUnitNumber(newUnitNumber);
+  };
 
   return (
     <UnitsBlock>
@@ -32,7 +38,7 @@ const UnitsManager: React.FC = () => {
       })}
       <button
         type="button"
-        onClick={addUnit}
+        onClick={handleAddUnit}
         className="mt-4 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition"
       >
         Add new unit

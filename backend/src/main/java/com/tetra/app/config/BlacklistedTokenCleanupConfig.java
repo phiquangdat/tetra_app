@@ -1,14 +1,12 @@
 package com.tetra.app.config;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Date;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.Scheduled;
-
 import com.tetra.app.repository.BlacklistedTokenRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.context.annotation.Configuration;
+import java.time.Instant;
+import java.time.Duration;
+import java.util.Date;
 
 @Configuration
 @org.springframework.scheduling.annotation.EnableScheduling

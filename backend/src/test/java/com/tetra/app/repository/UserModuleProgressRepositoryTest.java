@@ -1,16 +1,16 @@
 package com.tetra.app.repository;
 
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import com.tetra.app.model.UserModuleProgress;
+import com.tetra.app.model.ProgressStatus;
+import com.tetra.app.model.User;
+import com.tetra.app.model.TrainingModule;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
-import com.tetra.app.model.ProgressStatus;
-import com.tetra.app.model.TrainingModule;
-import com.tetra.app.model.User;
-import com.tetra.app.model.UserModuleProgress;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 public class UserModuleProgressRepositoryTest {

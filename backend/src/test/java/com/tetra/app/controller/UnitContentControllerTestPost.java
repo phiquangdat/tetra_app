@@ -46,6 +46,9 @@ public class UnitContentControllerTestPost {
     @MockBean
     private BlacklistedTokenRepository blacklistedTokenRepository;
 
+    @MockBean
+    private com.tetra.app.security.JwtUtil jwtUtil;
+
     @Autowired
     private ObjectMapper objectMapper;
 

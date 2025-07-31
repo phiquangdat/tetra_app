@@ -15,6 +15,8 @@ import com.tetra.app.security.JwtUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import com.tetra.app.dto.PatchUserModuleProgressRequest;
 
 import java.util.Map;
 import java.util.Optional;
@@ -102,19 +104,16 @@ public class UserModuleProgressController {
                 UUID lastVisitedUnitId = UUID.fromString(lastVisitedUnitIdStr);
                 lastVisitedUnit = unitRepository.findById(lastVisitedUnitId).orElse(null);
                 if (lastVisitedUnit == null) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body("lastVisitedUnit not found");
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("lastVisitedUnit not found");
                 }
             } catch (Exception ignored) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Invalid lastVisitedUnitId format");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid lastVisitedUnitId format");
             }
         }
         if (lastVisitedUnit == null) {
             var units = unitRepository.findByModule_Id(moduleId).stream()
-                .sorted((u1, u2) -> u1.getId().compareTo(u2.getId()))
-                .toList();
-            lastVisitedUnit = null;
+                    .sorted((u1, u2) -> u1.getId().compareTo(u2.getId()))
+                    .toList();
             for (Unit u : units) {
                 var contents = unitContentRepository.findByUnit_Id(u.getId());
                 if (!contents.isEmpty()) {
@@ -137,8 +136,7 @@ public class UserModuleProgressController {
                 UUID lastVisitedContentId = UUID.fromString(lastVisitedContentIdStr);
                 lastVisitedContent = unitContentRepository.findById(lastVisitedContentId).orElse(null);
                 if (lastVisitedContent == null) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body("lastVisitedContent not found");
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("lastVisitedContent not found");
                 }
                 if (lastVisitedContent.getUnit() == null ||
                     !lastVisitedContent.getUnit().getId().equals(lastVisitedUnit.getId())) {
@@ -151,8 +149,7 @@ public class UserModuleProgressController {
                             .body("lastVisitedContent does not belong to the specified module");
                 }
             } catch (Exception e) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Invalid lastVisitedContent format");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid lastVisitedContent format");
             }
         }
         if (lastVisitedContent == null) {
@@ -166,8 +163,7 @@ public class UserModuleProgressController {
                         Integer so1 = c1.getSortOrder() != null ? c1.getSortOrder() : 0;
                         Integer so2 = c2.getSortOrder() != null ? c2.getSortOrder() : 0;
                         int cmp = so1.compareTo(so2);
-                        if (cmp != 0) return cmp;
-                        return c1.getId().compareTo(c2.getId());
+                        return cmp != 0 ? cmp : c1.getId().compareTo(c2.getId());
                     })
                     .findFirst()
                     .orElse(null);
@@ -189,8 +185,7 @@ public class UserModuleProgressController {
             UserModuleProgress saved = userModuleProgressRepository.save(progress);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Database error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Database error: " + e.getMessage());
         }
     }
 
@@ -229,5 +224,73 @@ public class UserModuleProgressController {
         );
         return ResponseEntity.ok(response);
     }
-}
 
+    @PatchMapping("/{id}")
+    public ResponseEntity<?> patchUserModuleProgress(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @PathVariable("id") UUID progressId,
+            @RequestBody PatchUserModuleProgressRequest updates
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String userIdStr;
+        try {
+            userIdStr = jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        UUID userId;
+        try {
+            userId = UUID.fromString(userIdStr);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid userId in token");
+        }
+
+        UserModuleProgress progress = userModuleProgressRepository.findById(progressId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Progress not found"));
+
+        if (!progress.getUser().getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
+
+        if (updates.getLastVisitedUnitId() != null) {
+            Unit unit = unitRepository.findById(updates.getLastVisitedUnitId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid unit ID"));
+            if (!unit.getModule().getId().equals(progress.getModule().getId())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Unit does not belong to module");
+            }
+            progress.setLastVisitedUnit(unit);
+        }
+
+        if (updates.getLastVisitedContentId() != null) {
+            UnitContent content = unitContentRepository.findById(updates.getLastVisitedContentId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid content ID"));
+            if (!content.getUnit().getModule().getId().equals(progress.getModule().getId())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Content does not belong to module");
+            }
+            progress.setLastVisitedContent(content);
+        }
+
+        if (updates.getStatus() != null) {
+            try {
+                progress.setStatus(ProgressStatus.valueOf(updates.getStatus()));
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid status value");
+            }
+        }
+
+        if (updates.getEarnedPoints() != null) {
+            progress.setEarnedPoints(updates.getEarnedPoints());
+        }
+
+        try {
+            UserModuleProgress saved = userModuleProgressRepository.save(progress);
+            return ResponseEntity.ok(saved);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to update progress: " + e.getMessage());
+        }
+    }
+}

@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import UnitContainer from '../admin/createModule/UnitContainer';
+import UnitContainer from '../admin/ui/UnitContainer';
 import {
   ModuleContextProvider,
   useModuleContext,
@@ -57,7 +57,7 @@ const renderUnitContainer = () => {
         <InitUnitState />
         <ContentBlockContextProvider>
           <EditorStateProvider>
-            <UnitContainer unitNumber={1} />
+            <UnitContainer unitNumber={1} isOpen={true} onToggle={() => {}} />
           </EditorStateProvider>
         </ContentBlockContextProvider>
       </UnitContextProvider>

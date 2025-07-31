@@ -7,7 +7,7 @@ import { ModuleContextProvider } from '../context/admin/ModuleContext.tsx';
 import { UnitContextProvider } from '../context/admin/UnitContext.tsx';
 import { ContentBlockContextProvider } from '../context/admin/ContentBlockContext.tsx';
 import { AuthProvider } from '../context/auth/AuthContext.tsx';
-import { UserProvider } from '../context/auth/UserContext.tsx';
+import { EditorStateProvider } from '../utils/editor/contexts/EditorStateContext.tsx';
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -16,10 +16,10 @@ const AdminLayout = () => {
 
   return (
     <AuthProvider>
-      <UserProvider>
-        <ModuleContextProvider>
-          <UnitContextProvider>
-            <ContentBlockContextProvider>
+      <ModuleContextProvider>
+        <UnitContextProvider>
+          <ContentBlockContextProvider>
+            <EditorStateProvider>
               <div className="min-h-screen flex flex-col">
                 <SharedHeader
                   onHamburgerClick={toggleSidebar}
@@ -46,10 +46,10 @@ const AdminLayout = () => {
                 </div>
                 <Footer />
               </div>
-            </ContentBlockContextProvider>
-          </UnitContextProvider>
-        </ModuleContextProvider>
-      </UserProvider>
+            </EditorStateProvider>
+          </ContentBlockContextProvider>
+        </UnitContextProvider>
+      </ModuleContextProvider>
     </AuthProvider>
   );
 };

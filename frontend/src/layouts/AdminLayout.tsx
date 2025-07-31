@@ -7,7 +7,6 @@ import { ModuleContextProvider } from '../context/admin/ModuleContext.tsx';
 import { UnitContextProvider } from '../context/admin/UnitContext.tsx';
 import { ContentBlockContextProvider } from '../context/admin/ContentBlockContext.tsx';
 import { AuthProvider } from '../context/auth/AuthContext.tsx';
-import { UserProvider } from '../context/auth/UserContext.tsx';
 import { EditorStateProvider } from '../utils/editor/contexts/EditorStateContext.tsx';
 
 const AdminLayout = () => {
@@ -17,7 +16,6 @@ const AdminLayout = () => {
 
   return (
     <AuthProvider>
-      <UserProvider>
         <ModuleContextProvider>
           <UnitContextProvider>
             <ContentBlockContextProvider>
@@ -52,7 +50,6 @@ const AdminLayout = () => {
             </ContentBlockContextProvider>
           </UnitContextProvider>
         </ModuleContextProvider>
-      </UserProvider>
     </AuthProvider>
   );
 };

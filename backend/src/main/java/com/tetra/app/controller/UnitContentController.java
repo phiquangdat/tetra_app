@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.Set;
+import java.util.HashSet;
 import com.tetra.app.security.JwtUtil;
 import com.tetra.app.repository.BlacklistedTokenRepository;
 
@@ -542,6 +544,201 @@ public class UnitContentController {
         return ResponseEntity.ok(response);
     }
 
+    @PutMapping("/quiz/{id}")
+    @Transactional
+    public ResponseEntity<?> updateQuizContent(
+        @PathVariable UUID id,
+        @RequestBody Map<String, Object> body,
+        @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        if (blacklistedTokenRepository.existsByToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is blacklisted (logged out)");
+        }
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
+
+        Optional<UnitContent> optContent = unitContentRepository.findById(id);
+        if (optContent.isEmpty() || !"quiz".equalsIgnoreCase(optContent.get().getContentType())) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Quiz content not found");
+        }
+        UnitContent quiz = optContent.get();
+
+        
+        if (body.containsKey("title")) quiz.setTitle(String.valueOf(body.get("title")));
+        if (body.containsKey("content")) quiz.setContent(String.valueOf(body.get("content")));
+        if (body.containsKey("sort_order")) {
+            Object sortOrderObj = body.get("sort_order");
+            try {
+                int sortOrder = (sortOrderObj instanceof Integer)
+                    ? (Integer) sortOrderObj
+                    : Integer.parseInt(sortOrderObj.toString());
+                quiz.setSortOrder(sortOrder);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("sort_order must be a number");
+            }
+        }
+        if (body.containsKey("points")) {
+            Object pointsObj = body.get("points");
+            try {
+                int points = (pointsObj instanceof Integer)
+                    ? (Integer) pointsObj
+                    : Integer.parseInt(pointsObj.toString());
+                quiz.setPoints(points);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("points must be a number");
+            }
+        }
+        if (body.containsKey("questions_number")) {
+            Object qnObj = body.get("questions_number");
+            try {
+                int qn = (qnObj instanceof Integer)
+                    ? (Integer) qnObj
+                    : Integer.parseInt(qnObj.toString());
+                quiz.setQuestionsNumber(qn);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("questions_number must be a number");
+            }
+        }
+        unitContentRepository.saveAndFlush(quiz);
+
+        List<Map<String, Object>> questionsData = (List<Map<String, Object>>) body.get("questions");
+        if (questionsData != null) {
+            List<Question> existingQuestions = questionRepository.findByUnitContent_Id(id);
+            Map<UUID, Question> existingQuestionMap = existingQuestions.stream()
+                .filter(q -> q.getId() != null)
+                .collect(Collectors.toMap(Question::getId, q -> q));
+
+            Set<UUID> updatedQuestionIds = new java.util.HashSet<>();
+
+            for (Map<String, Object> questionData : questionsData) {
+                UUID questionId = null;
+                if (questionData.get("id") != null) {
+                    try {
+                        questionId = UUID.fromString(questionData.get("id").toString());
+                    } catch (Exception ignore) {}
+                }
+                String questionTitle = (String) questionData.get("title");
+                String questionType = (String) questionData.get("type");
+                Integer questionSortOrder = questionData.get("sort_order") instanceof Integer
+                        ? (Integer) questionData.get("sort_order")
+                        : Integer.parseInt(questionData.get("sort_order").toString());
+
+                Question question;
+                if (questionId != null && existingQuestionMap.containsKey(questionId)) {
+                    question = existingQuestionMap.get(questionId);
+                    question.setTitle(questionTitle);
+                    if (questionType != null) question.setType(questionType);
+                    question.setSortOrder(questionSortOrder);
+                } else {
+                    question = new Question();
+                    question.setUnitContent(quiz);
+                    question.setTitle(questionTitle);
+                    question.setType(questionType);
+                    question.setSortOrder(questionSortOrder);
+                }
+                question = questionRepository.saveAndFlush(question);
+                if (question.getId() != null) updatedQuestionIds.add(question.getId());
+
+                List<Map<String, Object>> answersData = (List<Map<String, Object>>) questionData.get("answers");
+                List<Answer> existingAnswers = answerRepository.findByQuestion_Id(question.getId());
+                Map<UUID, Answer> existingAnswerMap = existingAnswers.stream()
+                    .filter(a -> a.getId() != null)
+                    .collect(Collectors.toMap(Answer::getId, a -> a));
+                Set<UUID> updatedAnswerIds = new java.util.HashSet<>();
+
+                if (answersData != null) {
+                    for (Map<String, Object> answerData : answersData) {
+                        UUID answerId = null;
+                        if (answerData.get("id") != null) {
+                            try {
+                                answerId = UUID.fromString(answerData.get("id").toString());
+                            } catch (Exception ignore) {}
+                        }
+                        String answerTitle = (String) answerData.get("title");
+                        Boolean isCorrect = answerData.get("is_correct") instanceof Boolean
+                                ? (Boolean) answerData.get("is_correct")
+                                : Boolean.parseBoolean(answerData.get("is_correct").toString());
+                        Integer answerSortOrder = answerData.get("sort_order") instanceof Integer
+                                ? (Integer) answerData.get("sort_order")
+                                : Integer.parseInt(answerData.get("sort_order").toString());
+
+                        Answer answer;
+                        if (answerId != null && existingAnswerMap.containsKey(answerId)) {
+                            answer = existingAnswerMap.get(answerId);
+                            answer.setTitle(answerTitle);
+                            answer.setIsCorrect(isCorrect);
+                            answer.setSortOrder(answerSortOrder);
+                        } else {
+                            answer = new Answer();
+                            answer.setQuestion(question);
+                            answer.setTitle(answerTitle);
+                            answer.setIsCorrect(isCorrect);
+                            answer.setSortOrder(answerSortOrder);
+                        }
+                        answer = answerRepository.saveAndFlush(answer);
+                        if (answer.getId() != null) updatedAnswerIds.add(answer.getId());
+                    }
+                }
+                for (Answer a : existingAnswers) {
+                    if (!updatedAnswerIds.contains(a.getId())) {
+                        answerRepository.delete(a);
+                    }
+                }
+            }
+            for (Question q : existingQuestions) {
+                if (!updatedQuestionIds.contains(q.getId())) {
+                    List<Answer> answersToDelete = answerRepository.findByQuestion_Id(q.getId());
+                    answerRepository.deleteAll(answersToDelete);
+                    questionRepository.delete(q);
+                }
+            }
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", quiz.getId());
+        result.put("unit_id", quiz.getUnitId());
+        result.put("content_type", quiz.getContentType());
+        result.put("title", quiz.getTitle());
+        result.put("content", quiz.getContent());
+        result.put("sort_order", quiz.getSortOrder());
+        result.put("points", quiz.getPoints());
+        result.put("questions_number", quiz.getQuestionsNumber());
+
+        List<Question> questions = questionRepository.findByUnitContent_Id(quiz.getId());
+        List<Map<String, Object>> questionsList = questions.stream().map(q -> {
+            Map<String, Object> qMap = new HashMap<>();
+            qMap.put("id", q.getId());
+            qMap.put("title", q.getTitle());
+            qMap.put("type", q.getType());
+            qMap.put("sort_order", q.getSortOrder());
+            List<Answer> answers = answerRepository.findByQuestion_Id(q.getId());
+            List<Map<String, Object>> answersList = answers.stream().map(a -> {
+                Map<String, Object> aMap = new HashMap<>();
+                aMap.put("id", a.getId());
+                aMap.put("title", a.getTitle());
+                aMap.put("is_correct", a.getIsCorrect());
+                aMap.put("sort_order", a.getSortOrder());
+                return aMap;
+            }).collect(Collectors.toList());
+            qMap.put("answers", answersList);
+            return qMap;
+        }).collect(Collectors.toList());
+        result.put("questions", questionsList);
+
+        return ResponseEntity.ok(result);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUnitContent(
         @PathVariable UUID id,
@@ -569,7 +766,6 @@ public class UnitContentController {
 
         UnitContent unitContent = unitContentRepository.findById(id).orElse(null);
         if (unitContent != null && "quiz".equalsIgnoreCase(unitContent.getContentType())) {
-            // Delete all related answers and questions
             List<Question> questions = questionRepository.findByUnitContent_Id(id);
             for (Question q : questions) {
                 answerRepository.deleteAll(answerRepository.findByQuestion_Id(q.getId()));

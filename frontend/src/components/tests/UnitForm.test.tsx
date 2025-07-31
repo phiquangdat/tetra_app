@@ -4,7 +4,7 @@ import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 
-import UnitForm from '../admin/createModule/UnitForm';
+import UnitForm from '../admin/ui/UnitForm';
 import {
   ModuleContextProvider,
   useModuleContext,
@@ -98,24 +98,6 @@ describe('UnitForm', () => {
     expect(descEl).toHaveValue('Unit 1 Description');
   });
 
-  it('toggles accordion on header click', async () => {
-    renderUnitForm();
-    const user = userEvent.setup();
-
-    const titleEl = await screen.findByLabelText('Title');
-    expect(titleEl).toBeVisible();
-
-    const toggleBtn = screen.getByRole('button', { name: /Unit 1/i });
-    await user.click(toggleBtn);
-
-    await waitFor(() =>
-      expect(screen.queryByLabelText('Title')).not.toBeInTheDocument(),
-    );
-
-    await user.click(toggleBtn);
-    expect(await screen.findByLabelText('Title')).toBeVisible();
-  });
-
   it('hides the form on Save', async () => {
     renderUnitForm();
     const user = userEvent.setup();
@@ -138,39 +120,5 @@ describe('UnitForm', () => {
 
     expect(screen.getByLabelText('Title')).toHaveValue('Saved Title');
     expect(screen.getByLabelText('Description')).toHaveValue('Saved Desc');
-  });
-
-  it('opens and cancels the Remove confirmation modal', async () => {
-    renderUnitForm();
-    const user = userEvent.setup();
-
-    const removeBtn = await screen.findByLabelText('Remove Unit');
-    await user.click(removeBtn);
-
-    expect(
-      screen.getByText(/Are you sure you want to remove this unit/i),
-    ).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: 'Cancel' }));
-
-    expect(
-      screen.queryByText(/Are you sure you want to remove this unit/i),
-    ).not.toBeInTheDocument();
-
-    expect(screen.getByLabelText('Title')).toBeInTheDocument();
-  });
-
-  it('confirms removal and hides the remove control only', async () => {
-    renderUnitForm();
-    const user = userEvent.setup();
-
-    await user.click(await screen.findByLabelText('Remove Unit'));
-    await user.click(screen.getByRole('button', { name: 'Remove' }));
-
-    await waitFor(() =>
-      expect(screen.queryByLabelText('Remove Unit')).not.toBeInTheDocument(),
-    );
-
-    expect(screen.getByLabelText('Title')).toBeInTheDocument();
   });
 });

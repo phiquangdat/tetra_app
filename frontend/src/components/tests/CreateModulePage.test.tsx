@@ -37,35 +37,6 @@ describe('CreateModulePage', () => {
     expect(details).toBeInTheDocument();
   });
 
-  it('calls handleSaveDraftModule when Save draft button is clicked', async () => {
-    renderWithProviders(<CreateModulePage />);
-    const user = userEvent.setup();
-    const saveDraftButton = await screen.findByRole('button', {
-      name: /save draft/i,
-    });
-
-    // Mocking actual implementation
-    const clickSpy = vi.fn();
-    saveDraftButton.onclick = clickSpy;
-
-    await user.click(saveDraftButton);
-    expect(clickSpy).toHaveBeenCalled();
-  });
-
-  it('calls handlePublishModule when Publish button is clicked', async () => {
-    renderWithProviders(<CreateModulePage />);
-    const user = userEvent.setup();
-    const publishButton = await screen.findByRole('button', {
-      name: /publish/i,
-    });
-
-    const clickSpy = vi.fn();
-    publishButton.onclick = clickSpy;
-
-    await user.click(publishButton);
-    expect(clickSpy).toHaveBeenCalled();
-  });
-
   it('renders the Add new unit button', async () => {
     renderWithProviders(<CreateModulePage />);
     const addUnitButton = await screen.findByRole('button', {

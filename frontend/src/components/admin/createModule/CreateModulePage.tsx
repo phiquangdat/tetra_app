@@ -5,21 +5,40 @@ import {
 } from '../../../context/admin/UnitContext';
 import CreateModuleForm from './CreateModuleForm';
 import UnitsBlock from '../ui/UnitsBlock.tsx';
-import { EditorStateProvider } from '../../../utils/editor/contexts/EditorStateContext';
-import UnitContainer from './UnitContainer';
+import UnitContainer from '../ui/UnitContainer.tsx';
 
 const UnitsManager: React.FC = () => {
-  const { unitStates, addUnit } = useUnitContext();
+  const { unitStates, addUnit, getNextUnitNumber } = useUnitContext();
+  const [expandedUnitNumber, setExpandedUnitNumber] = useState<number | null>(
+    1,
+  );
+
+  const handleAddUnit = () => {
+    const newUnitNumber = getNextUnitNumber();
+    addUnit();
+    setExpandedUnitNumber(newUnitNumber);
+  };
 
   return (
     <UnitsBlock>
       {Object.keys(unitStates).map((key) => {
         const num = parseInt(key, 10);
-        return <UnitContainer key={num} unitNumber={num} />;
+        const isOpen = expandedUnitNumber === num;
+        return (
+          <UnitContainer
+            key={num}
+            unitNumber={num}
+            initialEditMode={true}
+            isOpen={isOpen}
+            onToggle={() =>
+              setExpandedUnitNumber((prev) => (prev === num ? null : num))
+            }
+          />
+        );
       })}
       <button
         type="button"
-        onClick={addUnit}
+        onClick={handleAddUnit}
         className="mt-4 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition"
       >
         Add new unit
@@ -82,11 +101,7 @@ function CreateModulePageContent() {
 }
 
 function CreateModulePage() {
-  return (
-    <EditorStateProvider>
-      <CreateModulePageContent />
-    </EditorStateProvider>
-  );
+  return <CreateModulePageContent />;
 }
 
 export default CreateModulePage;

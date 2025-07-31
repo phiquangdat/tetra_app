@@ -224,9 +224,6 @@ public class UserModuleProgressController {
         );
         return ResponseEntity.ok(response);
     }
-}
-
-
 
     @PatchMapping("/{id}")
     public ResponseEntity<?> patchUserModuleProgress(
@@ -257,7 +254,6 @@ public class UserModuleProgressController {
         if (!progress.getUser().getId().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
         }
-
 
         if (updates.getLastVisitedUnitId() != null) {
             Unit unit = unitRepository.findById(updates.getLastVisitedUnitId())

@@ -7,6 +7,10 @@ import {
   fetchUnitContentById,
   fetchUnitTitleByModuleId,
 } from '../../../services/unit/unitApi';
+import {
+  getModuleProgress,
+  type UserProgress,
+} from '../../../services/userProgress/userProgressApi';
 import Syllabus from './syllabus/Syllabus';
 import { useNavigate } from 'react-router-dom';
 import { OpenBooksIcon, PuzzleIcon, StarIcon } from '../../common/Icons';
@@ -29,6 +33,9 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   const { setUnitId, setUnits: setModuleUnits } = useModuleProgress();
   const { setUnitContent } = useUnitContent();
   const [module, setModule] = useState<Module | null>(null);
+  const [moduleProgress, setModuleProgress] = useState<UserProgress | null>(
+    null,
+  );
   const [units, setUnits] = useState<Unit[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -46,6 +53,18 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
         setModule(data);
         setUnits(units);
         setModuleUnits(units);
+
+        try {
+          const progress = await getModuleProgress(id);
+          setModuleProgress(progress);
+          console.log('User Module Progress:', progress);
+        } catch (err) {
+          if (err instanceof Error && err.message.includes('404')) {
+            setModuleProgress(null);
+          } else {
+            throw err;
+          }
+        }
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);
@@ -115,13 +134,22 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
         <h1 className="text-2xl md:text-3xl font-extrabold text-[#231942] tracking-tight">
           {module.title}
         </h1>
-        <button
-          className="bg-[#14248A] text-white font-semibold px-16 py-3 rounded-full text-lg shadow-md hover:bg-[#1A2F9C] focus:outline-none focus:ring-2 focus:ring-[#998FC7] transition w-fit"
-          type="button"
-          onClick={handleStart}
-        >
-          Start
-        </button>
+        {moduleProgress ? (
+          <button
+            className="bg-secondary text-white font-semibold px-14 py-3 rounded-full text-lg shadow-md hover:bg-secondaryHover focus:outline-none focus:ring-2 focus:ring-surface transition w-fit"
+            type="button"
+          >
+            Continue
+          </button>
+        ) : (
+          <button
+            className="bg-surface text-white font-semibold px-16 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition w-fit"
+            type="button"
+            onClick={handleStart}
+          >
+            Start
+          </button>
+        )}
       </div>
 
       <h2 className="text-xl font-bold ml-4 mb-4 text-[#231942]">

@@ -16,40 +16,40 @@ const AdminLayout = () => {
 
   return (
     <AuthProvider>
-        <ModuleContextProvider>
-          <UnitContextProvider>
-            <ContentBlockContextProvider>
-              <EditorStateProvider>
-                <div className="min-h-screen flex flex-col">
-                  <SharedHeader
-                    onHamburgerClick={toggleSidebar}
-                    isSidebarOpen={sidebarOpen}
-                  />
-                  <div className="flex flex-1 relative">
-                    <div
-                      className={`
+      <ModuleContextProvider>
+        <UnitContextProvider>
+          <ContentBlockContextProvider>
+            <EditorStateProvider>
+              <div className="min-h-screen flex flex-col">
+                <SharedHeader
+                  onHamburgerClick={toggleSidebar}
+                  isSidebarOpen={sidebarOpen}
+                />
+                <div className="flex flex-1 relative">
+                  <div
+                    className={`
               absolute z-50 h-full
               transform transition-transform duration-300 ease-in-out
               ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
             `}
-                    >
-                      <AdminSidebar />
-                    </div>
-                    <main
-                      className={`
+                  >
+                    <AdminSidebar />
+                  </div>
+                  <main
+                    className={`
               flex-1 transition-all duration-300 ease-in-out
               ${sidebarOpen ? 'ml-64' : ''}
             `}
-                    >
-                      <Outlet />
-                    </main>
-                  </div>
-                  <Footer />
+                  >
+                    <Outlet />
+                  </main>
                 </div>
-              </EditorStateProvider>
-            </ContentBlockContextProvider>
-          </UnitContextProvider>
-        </ModuleContextProvider>
+                <Footer />
+              </div>
+            </EditorStateProvider>
+          </ContentBlockContextProvider>
+        </UnitContextProvider>
+      </ModuleContextProvider>
     </AuthProvider>
   );
 };

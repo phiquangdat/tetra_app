@@ -24,7 +24,9 @@ const QuizBlock: React.FC<QuizBlockProps> = ({
       ? getUnitState(unitNumber)?.content[blockIndex]
       : null;
 
-  const shouldUseContext = !!unitContent?.data?.questions;
+  const shouldUseContext =
+    Array.isArray(unitContent?.data?.questions) &&
+    unitContent.data?.questions.length > 0;
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [error, setError] = useState('');

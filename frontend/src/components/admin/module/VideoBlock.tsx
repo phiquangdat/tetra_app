@@ -33,7 +33,8 @@ const VideoBlock: React.FC<VideoBlockProps> = ({
       ? getUnitState(unitNumber)?.content[blockIndex]
       : null;
 
-  const shouldUseContext = !!unitContent?.data?.content;
+  const shouldUseContext =
+    !!unitContent?.data?.url && !!unitContent?.data?.content;
   const [video, setVideo] = useState<Video | null>(null);
 
   useEffect(() => {

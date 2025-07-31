@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.annotation.processing.Generated;
+
 @RestController
 @RequestMapping("/api/user-module-progress")
 public class UserModuleProgressController {
@@ -186,6 +188,43 @@ public class UserModuleProgressController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Database error: " + e.getMessage());
         }
     }
+
+    @GetMapping("/{moduleId}")
+    public ResponseEntity<?> getCurrentUserModuleProgressByModuleId(
+            @PathVariable UUID moduleId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String userIdStr;
+        try {
+            userIdStr = jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        UUID userId;
+        try {
+            userId = UUID.fromString(userIdStr);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid userId in token");
+        }
+
+        var progressOpt = userModuleProgressRepository.findByUser_IdAndModule_Id(userId, moduleId);
+        if (progressOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User module progress not found");
+        }
+        UserModuleProgress progress = progressOpt.get();
+        var response = Map.of(
+            "status", progress.getStatus(),
+            "last_visited_unit_id", progress.getLastVisitedUnit() != null ? progress.getLastVisitedUnit().getId() : null,
+            "last_visited_content_id", progress.getLastVisitedContent() != null ? progress.getLastVisitedContent().getId() : null,
+            "earned_points", progress.getEarnedPoints()
+        );
+        return ResponseEntity.ok(response);
+    }
+}
 
 
 

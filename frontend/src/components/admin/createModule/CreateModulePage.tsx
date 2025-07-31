@@ -1,5 +1,8 @@
-import { useEffect } from 'react';
-import { useUnitContext } from '../../../context/admin/UnitContext';
+import { useEffect, useState } from 'react';
+import {
+  initialUnitState,
+  useUnitContext,
+} from '../../../context/admin/UnitContext';
 import CreateModuleForm from './CreateModuleForm';
 import UnitsBlock from '../ui/UnitsBlock.tsx';
 import { EditorStateProvider } from '../../../utils/editor/contexts/EditorStateContext';
@@ -26,30 +29,23 @@ const UnitsManager: React.FC = () => {
 };
 
 function CreateModulePageContent() {
-  const { unitStates, setUnitState, getNextUnitNumber } = useUnitContext();
-
-  const unitNumbers = Object.keys(unitStates)
-    .map(Number)
-    .sort((a, b) => a - b);
-
-  const handleAddUnit = () => {
-    const nextUnitNumber = getNextUnitNumber();
-    setUnitState(nextUnitNumber, {
-      id: null,
-      title: '',
-      description: '',
-      content: [],
-      isDirty: false,
-      isSaving: false,
-      error: null,
-    });
-  };
+  const { setUnitStatesRaw, unitStates } = useUnitContext();
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (unitNumbers.length === 0) {
-      handleAddUnit();
-    }
+    // Clear all existing units
+    setUnitStatesRaw({});
+    // Then initialize unit 1
+    setUnitStatesRaw({ 1: initialUnitState() });
+    setTimeout(() => {
+      setUnitStatesRaw({ 1: initialUnitState() });
+      setReady(true);
+    }, 0);
   }, []);
+
+  if (!ready || Object.keys(unitStates).length === 0) {
+    return <div>Initializing form...</div>;
+  }
 
   const handleSaveDraftModule = () => {};
 

@@ -1,30 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import {
-  type UnitContent,
-  type UnitDetailsResponse,
   fetchUnitById,
   fetchUnitTitleByModuleId,
+  type UnitContent,
+  type UnitDetailsResponse,
 } from '../../../services/unit/unitApi';
 import UnitsBlock from '../ui/UnitsBlock';
 import UnitItem from '../ui/UnitItem';
+import { useUnitContext } from '../../../context/admin/UnitContext';
 
 interface UnitsBlockUIProps {
   moduleId: string;
 }
 
 const UnitsBlockUI: React.FC<UnitsBlockUIProps> = ({ moduleId }) => {
-  const [units, setUnits] = useState<
-    { id: string; title: string; description?: string }[]
-  >([]);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const { setUnitState, setUnitStatesRaw } = useUnitContext();
+  const [unitNumbers, setUnitNumbers] = useState<number[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadUnits = async () => {
       try {
+        // Reset context by clearing existing states
+        setUnitStatesRaw({});
         const previews = await fetchUnitTitleByModuleId(moduleId);
-        const detailed = await Promise.all(
+
+        const detailedUnits = await Promise.all(
           previews.map(async (u: UnitContent) => {
             try {
               const d: UnitDetailsResponse = await fetchUnitById(u.id);
@@ -34,17 +36,30 @@ const UnitsBlockUI: React.FC<UnitsBlockUIProps> = ({ moduleId }) => {
             }
           }),
         );
-        setUnits(detailed);
-      } catch {
+
+        // Store in context
+        detailedUnits.forEach((u, i) => {
+          setUnitState(i + 1, {
+            id: u.id,
+            title: u.title,
+            description: u.description ?? '',
+          });
+        });
+
+        setUnitNumbers(detailedUnits.map((_, i) => i + 1));
+      } catch (err) {
+        console.error(err);
         setError('Failed to load units');
       } finally {
         setLoading(false);
       }
     };
-    loadUnits();
-  }, [moduleId]);
 
-  const toggle = (id: string) => {
+    loadUnits();
+  }, [moduleId, setUnitState]);
+
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const toggle = (id: number) => {
     setExpandedId((prev) => (prev === id ? null : id));
   };
 
@@ -53,22 +68,13 @@ const UnitsBlockUI: React.FC<UnitsBlockUIProps> = ({ moduleId }) => {
 
   return (
     <UnitsBlock>
-      {units.map((u, i) => (
+      {unitNumbers.map((unitNumber, index) => (
         <UnitItem
-          key={u.id}
-          index={i}
-          id={u.id}
-          title={u.title}
-          details={{
-            id: u.id,
-            title: u.title,
-            description: u.description || '',
-          }}
-          isOpen={expandedId === u.id}
-          onToggle={() => toggle(u.id)}
-          onEdit={() => {
-            /* optional edit hook */
-          }}
+          key={unitNumber}
+          index={index}
+          unitNumber={unitNumber}
+          isOpen={expandedId === unitNumber}
+          onToggle={() => toggle(unitNumber)}
         />
       ))}
     </UnitsBlock>

@@ -1,47 +1,104 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+// src/components/tests/admin/ContentBlockItem.test.tsx
+import React, { useEffect } from 'react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import ContentBlockList from '../../../components/admin/module/ContentBlockList';
-import { fetchUnitContentById } from '../../../services/unit/unitApi';
-import { describe, it, vi, beforeEach } from 'vitest';
+import { describe, it, vi } from 'vitest';
 
-vi.mock('../../../services/unit/unitApi', () => ({
-  fetchUnitContentById: vi.fn(),
+import ContentBlockItem from '../../../components/admin/module/ContentBlockItem';
+import {
+  UnitContextProvider,
+  useUnitContext,
+} from '../../../context/admin/UnitContext';
+
+// Mock implementations of the block components
+vi.mock('../../../components/admin/module/VideoBlock', () => ({
+  __esModule: true,
+  default: () => <div>Mock Video Block</div>,
 }));
 
-vi.mock('../../../components/admin/module/ContentBlockItem', () => ({
-  default: ({ id }: { id: string }) => <div>Mocked ContentBlockItem {id}</div>,
+vi.mock('../../../components/admin/module/ArticleBlock', () => ({
+  __esModule: true,
+  default: () => <div>Mock Article Block</div>,
 }));
 
-describe('ContentBlockList', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+vi.mock('../../../components/admin/module/QuizBlock', () => ({
+  __esModule: true,
+  default: () => <div>Mock Quiz Block</div>,
+}));
+
+// Helper component to inject unit context before test
+const SetupUnitContext: React.FC = () => {
+  const { setUnitStatesRaw } = useUnitContext();
+  useEffect(() => {
+    setUnitStatesRaw({
+      1: {
+        id: 'unit1',
+        title: 'Title',
+        description: 'Description',
+        isDirty: false,
+        isSaving: false,
+        error: null,
+        content: [
+          {
+            id: 'block1',
+            type: 'video',
+            sortOrder: 1,
+            unit_id: 'unit1',
+            isDirty: false,
+            isSaving: false,
+            error: null,
+            data: { content: 'some content' },
+          },
+        ],
+      },
+    });
+  }, []);
+  return null;
+};
+
+const renderWithContext = (component: React.ReactNode) => {
+  return render(
+    <UnitContextProvider>
+      <SetupUnitContext />
+      {component}
+    </UnitContextProvider>,
+  );
+};
+
+describe('ContentBlockItem', () => {
+  it('returns null when closed', () => {
+    const { container } = renderWithContext(
+      <ContentBlockItem
+        type="video"
+        isOpen={false}
+        unitNumber={1}
+        blockIndex={0}
+      />,
+    );
+    expect(container.firstChild).toBeNull();
   });
 
-  const mockBlocks = [
-    { id: '1', title: 'Intro Video', content_type: 'video' },
-    { id: '2', title: 'Read Article', content_type: 'article' },
-  ];
-
-  it('displays message when no content blocks', async () => {
-    (fetchUnitContentById as any).mockResolvedValueOnce([]);
-    render(<ContentBlockList unitId="unit1" />);
-    await waitFor(() => {
-      expect(screen.getByText(/no content blocks/i)).toBeInTheDocument();
-    });
+  it('renders video block when open and type is video', () => {
+    renderWithContext(
+      <ContentBlockItem
+        type="video"
+        isOpen={true}
+        unitNumber={1}
+        blockIndex={0}
+      />,
+    );
+    expect(screen.getByText('Mock Video Block')).toBeInTheDocument();
   });
 
-  it('renders content blocks and toggles open/close', async () => {
-    (fetchUnitContentById as any).mockResolvedValueOnce(mockBlocks);
-    render(<ContentBlockList unitId="unit1" />);
+  it('renders article block when type is article', () => {
+    renderWithContext(
+      <ContentBlockItem type="article" isOpen={true} id="a1" />,
+    );
+    expect(screen.getByText('Mock Article Block')).toBeInTheDocument();
+  });
 
-    await waitFor(() => {
-      expect(screen.getByText('Intro Video')).toBeInTheDocument();
-      expect(screen.getByText('Read Article')).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByText('Intro Video'));
-    expect(
-      await screen.findByText('Mocked ContentBlockItem 1'),
-    ).toBeInTheDocument();
+  it('renders fallback for unsupported type', () => {
+    renderWithContext(<ContentBlockItem type="unsupported" isOpen={true} />);
+    expect(screen.getByText('Unsupported content type')).toBeInTheDocument();
   });
 });

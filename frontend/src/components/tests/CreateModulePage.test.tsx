@@ -1,4 +1,3 @@
-// src/components/tests/CreateModulePage.test.tsx
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
@@ -23,42 +22,55 @@ function renderWithProviders(ui: React.ReactElement) {
 }
 
 describe('CreateModulePage', () => {
-  it('renders the Create New Module heading', () => {
+  it('renders the Create New Module heading', async () => {
     renderWithProviders(<CreateModulePage />);
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-      'Create New Module',
-    );
+    const heading = await screen.findByRole('heading', {
+      level: 1,
+      name: /create new module/i,
+    });
+    expect(heading).toBeInTheDocument();
   });
 
-  it('renders the Module Details section', () => {
+  it('renders the Module Details section', async () => {
     renderWithProviders(<CreateModulePage />);
-    expect(screen.getByText('Module Details')).toBeInTheDocument();
+    const details = await screen.findByText(/module details/i);
+    expect(details).toBeInTheDocument();
   });
 
   it('calls handleSaveDraftModule when Save draft button is clicked', async () => {
     renderWithProviders(<CreateModulePage />);
     const user = userEvent.setup();
-    const saveDraftButton = screen.getByRole('button', { name: /save draft/i });
-    const handler = vi.fn();
-    saveDraftButton.onclick = handler;
+    const saveDraftButton = await screen.findByRole('button', {
+      name: /save draft/i,
+    });
+
+    // Mocking actual implementation
+    const clickSpy = vi.fn();
+    saveDraftButton.onclick = clickSpy;
+
     await user.click(saveDraftButton);
-    expect(handler).toHaveBeenCalled();
+    expect(clickSpy).toHaveBeenCalled();
   });
 
   it('calls handlePublishModule when Publish button is clicked', async () => {
     renderWithProviders(<CreateModulePage />);
     const user = userEvent.setup();
-    const publishButton = screen.getByRole('button', { name: /publish/i });
-    const handler = vi.fn();
-    publishButton.onclick = handler;
+    const publishButton = await screen.findByRole('button', {
+      name: /publish/i,
+    });
+
+    const clickSpy = vi.fn();
+    publishButton.onclick = clickSpy;
+
     await user.click(publishButton);
-    expect(handler).toHaveBeenCalled();
+    expect(clickSpy).toHaveBeenCalled();
   });
 
-  it('renders the Add new unit button', () => {
+  it('renders the Add new unit button', async () => {
     renderWithProviders(<CreateModulePage />);
-    expect(
-      screen.getByRole('button', { name: /add new unit/i }),
-    ).toBeInTheDocument();
+    const addUnitButton = await screen.findByRole('button', {
+      name: /add new unit/i,
+    });
+    expect(addUnitButton).toBeInTheDocument();
   });
 });

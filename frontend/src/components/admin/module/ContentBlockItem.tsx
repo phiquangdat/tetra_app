@@ -1,5 +1,8 @@
 import React from 'react';
-import type { ContentBlock } from '../../../context/admin/UnitContext';
+import {
+  type ContentBlock,
+  useUnitContext,
+} from '../../../context/admin/UnitContext';
 import VideoBlock from './VideoBlock';
 import ArticleBlock from './ArticleBlock';
 import QuizBlock from './QuizBlock';
@@ -20,14 +23,22 @@ const ContentBlockItem: React.FC<ContentBlockItemProps> = ({
   isOpen,
 }) => {
   if (!isOpen) return null;
+  const { getUnitState } = useUnitContext();
 
   const fromContext = unitNumber != null && blockIndex != null;
+  const isContentInContext =
+    fromContext && unitNumber != null && blockIndex != null;
+  const unitContent = isContentInContext
+    ? getUnitState(unitNumber!)?.content[blockIndex!]
+    : null;
+
+  const shouldUseContext = unitContent && unitContent.data?.content;
 
   switch (type) {
     case 'video':
       return (
         <VideoBlock
-          id={fromContext ? undefined : id!}
+          id={shouldUseContext ? undefined : id!}
           unitNumber={unitNumber}
           blockIndex={blockIndex}
         />
@@ -35,7 +46,7 @@ const ContentBlockItem: React.FC<ContentBlockItemProps> = ({
     case 'article':
       return (
         <ArticleBlock
-          id={fromContext ? undefined : id!}
+          id={shouldUseContext ? undefined : id!}
           unitNumber={unitNumber}
           blockIndex={blockIndex}
         />
@@ -43,7 +54,7 @@ const ContentBlockItem: React.FC<ContentBlockItemProps> = ({
     case 'quiz':
       return (
         <QuizBlock
-          id={fromContext ? undefined : id!}
+          id={shouldUseContext ? undefined : id!}
           unitNumber={unitNumber}
           blockIndex={blockIndex}
         />

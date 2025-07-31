@@ -42,18 +42,16 @@ public class UnitContentControllerTest {
 
     @MockBean
     private UnitContentRepository unitContentRepository;
-
     @MockBean
-    private UnitRepository unitRepository;
-
+    private com.tetra.app.repository.QuestionRepository questionRepository;
     @MockBean
-    private QuestionRepository questionRepository;
-
+    private com.tetra.app.repository.AnswerRepository answerRepository;
     @MockBean
-    private AnswerRepository answerRepository;
-
+    private com.tetra.app.repository.UnitRepository unitRepository;
     @MockBean
-    private BlacklistedTokenRepository blacklistedTokenRepository;
+    private com.tetra.app.security.JwtUtil jwtUtil;
+    @MockBean
+    private com.tetra.app.repository.BlacklistedTokenRepository blacklistedTokenRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -276,3 +274,4 @@ public class UnitContentControllerTest {
         }
     }
 }
+

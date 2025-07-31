@@ -52,6 +52,7 @@ export type UnitContextEntry = {
   isSaving: boolean;
   error: string | null;
   isEditing: boolean | undefined;
+  wasJustCreated?: boolean;
 };
 
 type UnitContextType = {
@@ -90,6 +91,7 @@ export const initialUnitState = (): UnitContextEntry => ({
   isSaving: false,
   error: null,
   isEditing: undefined,
+  wasJustCreated: false,
 });
 
 export const UnitContext = createContext<UnitContextType | undefined>(
@@ -167,7 +169,10 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
       const next = Object.keys(prev).length
         ? Math.max(...Object.keys(prev).map(Number)) + 1
         : 1;
-      return { ...prev, [next]: initialUnitState() };
+      return {
+        ...prev,
+        [next]: { ...initialUnitState(), wasJustCreated: true },
+      };
     });
   }, []);
 
@@ -245,6 +250,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
             ...currentUnit,
             content: [...currentUnit.content, block],
             isDirty: true,
+            wasJustCreated: false,
           },
         };
       });

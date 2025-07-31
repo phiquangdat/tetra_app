@@ -55,9 +55,9 @@ function CreateModulePageContent() {
     // Clear all existing units
     setUnitStatesRaw({});
     // Then initialize unit 1
-    setUnitStatesRaw({ 1: initialUnitState() });
+    setUnitStatesRaw({ 1: { ...initialUnitState(), wasJustCreated: true } });
     setTimeout(() => {
-      setUnitStatesRaw({ 1: initialUnitState() });
+      setUnitStatesRaw({ 1: { ...initialUnitState(), wasJustCreated: true } });
       setReady(true);
     }, 0);
   }, []);

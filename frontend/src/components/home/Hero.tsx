@@ -40,14 +40,6 @@ const Hero: React.FC<{ onGetStarted?: () => void }> = ({ onGetStarted }) => {
               Get Started
             </button>
           )}
-          {!isLoggedIn && (
-            <button
-              className="px-8 py-3 bg-surface text-white font-semibold rounded-full shadow-lg hover:bg-surfaceHover transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-opacity-75"
-              onClick={onGetStarted}
-            >
-              Get Started
-            </button>
-          )}
         </div>
         {/* Right: Visual element */}
         <div className="lg:w-1/2 flex justify-center items-center p-6 lg:p-0">

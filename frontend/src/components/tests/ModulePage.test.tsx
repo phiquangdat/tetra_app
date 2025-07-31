@@ -1,9 +1,10 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import ModulePage from '../user/module/ModulePage';
 import * as moduleApi from '../../services/module/moduleApi';
 import * as unitApi from '../../services/unit/unitApi';
-import { QuizModalProvider } from '../../context/user/QuizModalContext.tsx';
+import * as userProgressApi from '../../services/userProgress/userProgressApi';
+import { QuizModalProvider } from '../../context/user/QuizModalContext';
 import { ModuleProgressProvider } from '../../context/user/ModuleContext';
 import { UnitContentProvider } from '../../context/user/UnitContentContext';
 import { UnitCompletionModalProvider } from '../../context/user/UnitCompletionModalContext';
@@ -41,6 +42,25 @@ describe('ModulePage', () => {
     { id: 'unit2', title: 'Unit 2: Advanced', content: [] },
   ];
 
+  const mockUserProgress = {
+    status: 'IN_PROGRESS',
+    last_visited_unit_id: 'cfae7218-9602-4468-a884-4ebf9f7dc5ae',
+    last_visited_content_id: '171ddada-d917-4090-a711-3e2b6891eef4',
+    earned_points: 0,
+  };
+
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.spyOn(moduleApi, 'fetchModuleById').mockResolvedValue(mockModule);
+    vi.spyOn(unitApi, 'fetchUnitTitleByModuleId').mockResolvedValue(mockUnits);
+    vi.spyOn(userProgressApi, 'getModuleProgress').mockResolvedValue(
+      mockUserProgress,
+    );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
   it('renders without crashing and shows loading state', () => {
     vi.spyOn(moduleApi, 'fetchModuleById').mockImplementation(
       () => new Promise(() => {}),
@@ -52,7 +72,7 @@ describe('ModulePage', () => {
     expect(screen.getByText(/loading module/i)).toBeInTheDocument();
   });
 
-  it('displays error message if fetch fails', async () => {
+  it('displays error message on fetch failure', async () => {
     vi.spyOn(moduleApi, 'fetchModuleById').mockRejectedValue(
       new Error('Network error'),
     );
@@ -63,8 +83,6 @@ describe('ModulePage', () => {
 
   it('logs fetched data to console', async () => {
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    vi.spyOn(moduleApi, 'fetchModuleById').mockResolvedValue(mockModule);
-    vi.spyOn(unitApi, 'fetchUnitTitleByModuleId').mockResolvedValue(mockUnits);
     renderWithProvider('123');
     await waitFor(() => {
       expect(consoleSpy).toHaveBeenCalledWith('Fetched module:', mockModule);
@@ -87,9 +105,10 @@ describe('ModulePage', () => {
     });
   });
 
-  it('renders the module title and Start button', async () => {
-    vi.spyOn(moduleApi, 'fetchModuleById').mockResolvedValue(mockModule);
-    vi.spyOn(unitApi, 'fetchUnitTitleByModuleId').mockResolvedValue(mockUnits);
+  it('renders module title and Start button when no progress', async () => {
+    vi.spyOn(userProgressApi, 'getModuleProgress').mockRejectedValue(
+      new Error('404'),
+    );
     renderWithProvider('123');
     await waitFor(() => {
       expect(
@@ -101,22 +120,33 @@ describe('ModulePage', () => {
     });
   });
 
-  it('renders the About section with description and points', async () => {
-    vi.spyOn(moduleApi, 'fetchModuleById').mockResolvedValue(mockModule);
-    vi.spyOn(unitApi, 'fetchUnitTitleByModuleId').mockResolvedValue(mockUnits);
+  it('renders module title and Continue button when progress exists', async () => {
     renderWithProvider('123');
-    expect(await screen.findByText(/about this module/i)).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        /a beginner-friendly course covering python fundamentals/i,
-      ),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/points available/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: /intro to python/i }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /continue/i }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('renders the About section with description and points', async () => {
+    renderWithProvider('123');
+    await waitFor(() => {
+      expect(screen.getByText(/about this module/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          /a beginner-friendly course covering python fundamentals/i,
+        ),
+      ).toBeInTheDocument();
+      expect(screen.getByText(/points available/i)).toBeInTheDocument();
+      expect(screen.getByText('50')).toBeInTheDocument();
+    });
   });
 
   it('renders the Syllabus component with heading', async () => {
-    vi.spyOn(moduleApi, 'fetchModuleById').mockResolvedValue(mockModule);
-    vi.spyOn(unitApi, 'fetchUnitTitleByModuleId').mockResolvedValue(mockUnits);
     renderWithProvider('123');
     expect(
       await screen.findByRole('heading', { name: /syllabus/i }),

@@ -4,11 +4,15 @@ import { X } from 'lucide-react';
 interface Props {
   onCancel: () => void;
   onConfirm: () => void;
+  title?: string;
+  description?: string;
 }
 
 export default function DeleteConfirmationModal({
   onCancel,
   onConfirm,
+  title = 'Remove Item',
+  description = 'Are you sure you want to remove this item? This cannot be undone.',
 }: Props) {
   return createPortal(
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
@@ -25,14 +29,14 @@ export default function DeleteConfirmationModal({
           id="delete-modal-title"
           className="text-surface text-2xl font-semibold mb-4 text-center"
         >
-          Remove Module
+          {title}
         </h2>
 
         <p
           id="delete-modal-desc"
           className="text-primary text-center mb-8 leading-relaxed"
         >
-          Are you sure you want to remove this module? This cannot be undone.
+          {description}
         </p>
 
         <div className="flex justify-center gap-4">

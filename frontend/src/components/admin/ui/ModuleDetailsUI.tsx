@@ -81,6 +81,8 @@ const ModuleDetailsUI: React.FC<ModuleDetailsProps> = ({ onEdit }) => {
         <DeleteConfirmationModal
           onCancel={() => setShowDeleteModal(false)}
           onConfirm={removeModule}
+          title="Remove Module"
+          description="Are you sure you want to remove this module? This cannot be undone."
         />
       )}
     </div>

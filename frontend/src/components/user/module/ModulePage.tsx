@@ -9,6 +9,7 @@ import {
 } from '../../../services/unit/unitApi';
 import {
   getModuleProgress,
+  createModuleProgress,
   type UserProgress,
 } from '../../../services/userProgress/userProgressApi';
 import Syllabus from './syllabus/Syllabus';
@@ -30,7 +31,12 @@ export type Unit = {
 };
 
 const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
-  const { setUnitId, setUnits: setModuleUnits } = useModuleProgress();
+  const {
+    setUnitId,
+    setUnits: setModuleUnits,
+    progressStatus,
+    setProgressStatus,
+  } = useModuleProgress();
   const { setUnitContent } = useUnitContent();
   const [module, setModule] = useState<Module | null>(null);
   const [moduleProgress, setModuleProgress] = useState<UserProgress | null>(
@@ -57,10 +63,12 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
         try {
           const progress = await getModuleProgress(id);
           setModuleProgress(progress);
+          setProgressStatus(progress.status);
           console.log('User Module Progress:', progress);
         } catch (err) {
           if (err instanceof Error && err.message.includes('404')) {
             setModuleProgress(null);
+            setProgressStatus('not_started');
           } else {
             throw err;
           }
@@ -82,6 +90,23 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   const handleStart = async () => {
     try {
       const units = await fetchUnitTitleByModuleId(id);
+
+      if (progressStatus === 'not_started') {
+        const response = await createModuleProgress(id, {
+          lastVisitedContent: moduleProgress?.last_visited_content_id,
+          lastVisitedUnit: moduleProgress?.last_visited_unit_id,
+        });
+
+        const progress = {
+          status: response.status,
+          last_visited_unit_id: response.lastVisitedUnit.id || '',
+          last_visited_content_id: response.lastVisitedContent.id || '',
+          earned_points: response.earnedPoints || 0,
+        };
+
+        setModuleProgress(progress);
+        setProgressStatus('in_progress');
+      }
 
       if (units && units.length > 0) {
         const firstUnitId = units[0].id;
@@ -106,11 +131,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
         setError('This module has no units.');
       }
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Cannot start module.');
-      }
+      setError(err instanceof Error ? err.message : 'Cannot start module.');
     }
   };
 

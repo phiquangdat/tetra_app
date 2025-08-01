@@ -82,7 +82,7 @@ const QuizQuestionPage = () => {
             // Invisible placeholder to keep layout
             <div className="px-8 py-2 invisible">Previous</div>
           )}
-          
+
           <button
             onClick={handleNext}
             className={`text-background font-semibold px-8 py-2 rounded-lg text-base transition-all duration-200 ${

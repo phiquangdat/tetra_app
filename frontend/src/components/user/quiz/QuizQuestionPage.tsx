@@ -38,23 +38,23 @@ const QuizQuestionPage = () => {
     return <div className="text-center">Loading question...</div>;
 
   return (
-    <div className="mx-auto px-4 py-12 flex flex-col items-center justify-center bg-gray-50">
+    <div className="mx-auto px-4 py-12 flex flex-col items-center justify-center bg-background">
       <div className="w-full max-w-3xl">
-        <div className="mb-8 text-gray-500 text-xl tracking-wide">
+        <div className="mb-8 text-secondary font-medium text-xl tracking-wide">
           Question {currentIndex + 1} of {questions.length}
         </div>
-        <div className="bg-white rounded-2xl shadow-md p-8 w-full">
-          <div className="text-lg font-semibold mb-6 text-gray-800">
+        <div className="bg-cardBackground rounded-2xl shadow-md p-8 w-full">
+          <div className="text-lg font-semibold mb-8 text-primary">
             {currentQuestion.title}
           </div>
           <form className="flex flex-col gap-4">
             {currentQuestion.answers.map((answer, idx) => (
               <label
                 key={answer.id}
-                className={`flex items-center rounded-lg border transition-colors px-4 py-3 cursor-pointer text-gray-700 ${
+                className={`flex items-center rounded-lg border transition-colors px-4 py-3 cursor-pointer text-primary ${
                   selected === idx
                     ? 'bg-blue-50 border-blue-400'
-                    : 'bg-white border-gray-300 hover:bg-gray-100'
+                    : 'bg-background border-secondary hover:bg-secondaryHover/20'
                 }`}
               >
                 <input
@@ -62,7 +62,7 @@ const QuizQuestionPage = () => {
                   name="quiz"
                   checked={selected === idx}
                   onChange={() => setSelected(idx)}
-                  className="form-radio h-5 w-5 text-blue-600 mr-4 focus:ring-blue-400"
+                  className="form-radio h-5 w-5 text-secondary border-secondary focus:ring-secondary/30 mr-4"
                 />
                 <span className="text-base leading-snug">{answer.title}</span>
               </label>
@@ -73,7 +73,7 @@ const QuizQuestionPage = () => {
           {currentIndex > 0 ? (
             <button
               onClick={() => navigate(-1)}
-              className="bg-gray-200 text-gray-700 font-semibold px-8 py-2 rounded-lg text-base shadow-sm"
+              className="bg-secondary hover:bg-secondaryHover text-background font-medium px-8 py-2 rounded-lg text-base transition-colors duration-200"
               type="button"
             >
               Previous
@@ -82,12 +82,13 @@ const QuizQuestionPage = () => {
             // Invisible placeholder to keep layout
             <div className="px-8 py-2 invisible">Previous</div>
           )}
+          
           <button
             onClick={handleNext}
-            className={`bg-blue-500 text-white font-semibold px-8 py-2 rounded-lg text-base shadow-md ${
+            className={`text-background font-semibold px-8 py-2 rounded-lg text-base transition-all duration-200 ${
               selected !== null
-                ? 'bg-blue-500 text-white hover:bg-blue-600'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ? 'bg-surface  hover:bg-surfaceHover'
+                : 'bg-surface/20 cursor-not-allowed'
             }`}
             type="button"
             disabled={selected === null}

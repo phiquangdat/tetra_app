@@ -5,25 +5,66 @@ import {
 } from '../../../context/admin/UnitContext';
 import CreateModuleForm from './CreateModuleForm';
 import UnitsBlock from '../ui/UnitsBlock.tsx';
-import { EditorStateProvider } from '../../../utils/editor/contexts/EditorStateContext';
-import UnitContainer from './UnitContainer';
+import UnitContainer from '../ui/UnitContainer.tsx';
 
 const UnitsManager: React.FC = () => {
-  const { unitStates, addUnit } = useUnitContext();
+  const { unitStates, addUnit, getNextUnitNumber } = useUnitContext();
+  const [expandedUnitNumber, setExpandedUnitNumber] = useState<number | null>(
+    1,
+  );
+
+  const unitNumbers = Object.keys(unitStates)
+    .map(Number)
+    .sort((a, b) => a - b);
+  const lastUnitNumber = unitNumbers[unitNumbers.length - 1];
+  const lastUnit = unitStates[lastUnitNumber];
+  const canAddUnit = !!lastUnit?.id; // must be saved (have an ID)
+
+  const handleAddUnit = () => {
+    const newUnitNumber = getNextUnitNumber();
+    addUnit();
+    setExpandedUnitNumber(newUnitNumber);
+  };
 
   return (
     <UnitsBlock>
       {Object.keys(unitStates).map((key) => {
         const num = parseInt(key, 10);
-        return <UnitContainer key={num} unitNumber={num} />;
+        const isOpen = expandedUnitNumber === num;
+        return (
+          <UnitContainer
+            key={num}
+            unitNumber={num}
+            initialEditMode={true}
+            isOpen={isOpen}
+            onToggle={() =>
+              setExpandedUnitNumber((prev) => (prev === num ? null : num))
+            }
+          />
+        );
       })}
-      <button
-        type="button"
-        onClick={addUnit}
-        className="mt-4 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition"
-      >
-        Add new unit
-      </button>
+      <div className="flex justify-center mt-4">
+        <div className="relative group inline-block">
+          <button
+            type="button"
+            onClick={handleAddUnit}
+            disabled={!canAddUnit}
+            className={`px-4 py-2 rounded-lg transition ${
+              canAddUnit
+                ? 'bg-indigo-500 text-white hover:bg-indigo-600'
+                : 'bg-highlight text-primary opacity-50 cursor-not-allowed'
+            }`}
+          >
+            Add new unit
+          </button>
+
+          {!canAddUnit && (
+            <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-max px-3 py-2 bg-error/10 text-error text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+              Please save the current unit before adding a new one.
+            </div>
+          )}
+        </div>
+      </div>
     </UnitsBlock>
   );
 };
@@ -82,11 +123,7 @@ function CreateModulePageContent() {
 }
 
 function CreateModulePage() {
-  return (
-    <EditorStateProvider>
-      <CreateModulePageContent />
-    </EditorStateProvider>
-  );
+  return <CreateModulePageContent />;
 }
 
 export default CreateModulePage;

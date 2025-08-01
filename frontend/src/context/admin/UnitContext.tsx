@@ -51,6 +51,7 @@ export type UnitContextEntry = {
   isDirty: boolean;
   isSaving: boolean;
   error: string | null;
+  isEditing: boolean | undefined;
 };
 
 type UnitContextType = {
@@ -77,6 +78,7 @@ type UnitContextType = {
     unitId: string,
     unitNumber: number,
   ) => Promise<void>;
+  setIsEditing: (unitNumber: number, editing: boolean) => void;
 };
 
 export const initialUnitState = (): UnitContextEntry => ({
@@ -87,6 +89,7 @@ export const initialUnitState = (): UnitContextEntry => ({
   isDirty: false,
   isSaving: false,
   error: null,
+  isEditing: undefined,
 });
 
 export const UnitContext = createContext<UnitContextType | undefined>(
@@ -301,6 +304,19 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     [setUnitState],
   );
 
+  const setIsEditing = useCallback((unitNumber: number, editing: boolean) => {
+    setUnitStates((prev) => {
+      const currentUnit = prev[unitNumber] || initialUnitState();
+      return {
+        ...prev,
+        [unitNumber]: {
+          ...currentUnit,
+          isEditing: editing,
+        },
+      };
+    });
+  }, []);
+
   const contextValue: UnitContextType = {
     unitStates,
     updateUnitField,
@@ -315,6 +331,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     addUnit,
     setUnitStatesRaw,
     loadUnitContentIntoState,
+    setIsEditing,
   };
 
   return (

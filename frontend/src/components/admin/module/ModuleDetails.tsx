@@ -9,7 +9,7 @@ import {
 } from '../../../context/admin/ModuleContext';
 import ModuleDetailsUI from '../ui/ModuleDetailsUI';
 import ModuleFormFields from '../createModule/ModuleFormFields';
-import SaveButton from '../createModule/SaveButton';
+import SaveButton from '../ui/SaveButton.tsx';
 import { useModuleSave } from '../../../hooks/useModuleSave';
 
 interface ModuleDetailsProps {

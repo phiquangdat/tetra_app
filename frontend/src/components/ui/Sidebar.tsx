@@ -38,6 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     logout();
     setShowModal(false);
     navigate('/');
+    window.location.reload();
     toast.success('You’ve been signed out.');
   };
 

@@ -739,6 +739,81 @@ public class UnitContentController {
         return ResponseEntity.ok(result);
     }
 
+    @PutMapping("/article/{id}")
+    public ResponseEntity<?> updateArticleContent(
+            @PathVariable UUID id,
+            @RequestBody Map<String, Object> body,
+            @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        if (blacklistedTokenRepository.existsByToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is blacklisted (logged out)");
+        }
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
+
+        Optional<UnitContent> optContent = unitContentRepository.findById(id);
+        if (optContent.isEmpty() || !"article".equalsIgnoreCase(optContent.get().getContentType())) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Article content not found");
+        }
+
+        UnitContent content = optContent.get();
+
+        if (body.containsKey("title")) {
+            content.setTitle(String.valueOf(body.get("title")));
+        }
+
+        if (body.containsKey("content")) {
+            content.setContent(String.valueOf(body.get("content")));
+        }
+
+        if (body.containsKey("sort_order")) {
+            Object sortOrderObj = body.get("sort_order");
+            try {
+                int sortOrder = (sortOrderObj instanceof Integer)
+                        ? (Integer) sortOrderObj
+                        : Integer.parseInt(sortOrderObj.toString());
+
+                if (sortOrder < 0) {
+                    return ResponseEntity.badRequest().body("sort_order must be a non-negative integer");
+                }
+
+                boolean sortOrderExists = unitContentRepository.findByUnit_Id(content.getUnitId())
+                        .stream()
+                        .anyMatch(uc -> !uc.getId().equals(id) &&
+                                uc.getSortOrder() != null &&
+                                uc.getSortOrder().equals(sortOrder));
+
+                if (sortOrderExists) {
+                    return ResponseEntity.badRequest().body("sort_order already exists for this unit");
+                }
+
+                content.setSortOrder(sortOrder);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("sort_order must be a number");
+            }
+        }
+
+        unitContentRepository.saveAndFlush(content);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", content.getId());
+        response.put("title", content.getTitle());
+        response.put("content", content.getContent());
+        response.put("sort_order", content.getSortOrder());
+        return ResponseEntity.ok(response);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUnitContent(
         @PathVariable UUID id,
@@ -766,6 +841,7 @@ public class UnitContentController {
 
         UnitContent unitContent = unitContentRepository.findById(id).orElse(null);
         if (unitContent != null && "quiz".equalsIgnoreCase(unitContent.getContentType())) {
+            // Delete all related answers and questions
             List<Question> questions = questionRepository.findByUnitContent_Id(id);
             for (Question q : questions) {
                 answerRepository.deleteAll(answerRepository.findByQuestion_Id(q.getId()));

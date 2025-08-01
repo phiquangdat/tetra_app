@@ -35,7 +35,7 @@ interface ModuleContextValue extends ModuleContextProps {
   setModuleState: (newState: Partial<ModuleContextProps>) => void;
   saveModule: () => Promise<void>;
   setIsEditing: (editing: boolean) => void;
-  removeModule: () => void;
+  removeModule: () => Promise<boolean>;
 }
 
 export const initialModuleState: ModuleContextProps = {
@@ -161,15 +161,17 @@ export const ModuleContextProvider = ({
     }
   };
 
-  const removeModule = async () => {
-    if (!module.id) return;
+  const removeModule = async (): Promise<boolean> => {
+    if (!module.id) return false;
 
     try {
       const message = await deleteModule(module.id);
       toast.success(message);
+      return true;
     } catch (err) {
       console.error('Failed to delete module (unknown error):', err);
-      toast.error('Delete failed: Unknown error');
+      toast.error('Failed to delete module. Please try again later.');
+      return false;
     }
   };
 

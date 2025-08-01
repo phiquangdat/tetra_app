@@ -24,9 +24,12 @@ const ModuleDetailsUI: React.FC<ModuleDetailsProps> = ({ onEdit }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleConfirmDelete = async () => {
-    await removeModule();
-    setUnitStatesRaw({}); // clear all units
-    navigate('/admin/modules');
+    const success: boolean = await removeModule();
+
+    if (success) {
+      setUnitStatesRaw({}); // clear all units
+      navigate('/admin/modules');
+    }
   };
 
   return (

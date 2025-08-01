@@ -1,4 +1,4 @@
-import { fetchWithAuth } from '../../utils/authHelpers.ts';
+import { getAuthToken } from '../../utils/authHelpers.ts';
 
 const envBaseUrl = import.meta.env.VITE_BACKEND_URL;
 const BASE_URL =
@@ -150,11 +150,19 @@ export async function updateModule(
 }
 
 export async function deleteModule(id: string): Promise<string> {
+  const token = getAuthToken();
   const url = `${BASE_URL}/modules/${id}`;
   console.log('[deleteModule] DELETE:', url);
 
   try {
-    const response = await fetchWithAuth(url, { method: 'DELETE' });
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+
     console.log(`[deleteModule] Response status: ${response.status}`);
     console.log(
       `[deleteModule] Response headers:`,

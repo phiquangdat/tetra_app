@@ -41,3 +41,30 @@ export async function loginUser(loginData: LoginProps): Promise<LoginResponse> {
     throw error instanceof Error ? error : new Error('Unknown error occurred');
   }
 }
+
+export async function logoutUser(token: string): Promise<void> {
+  const url = `${BASE_URL}/auth/logout`;
+  console.log(`[logout] Sending logout request to: ${url}`);
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: '*/*',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Logout failed: ${response.statusText}`);
+    }
+
+    console.log('Logout successful');
+  } catch (error) {
+    console.error(
+      'Logout Error:',
+      error instanceof Error ? error.message : 'Unknown error',
+    );
+    throw error instanceof Error ? error : new Error('Unknown error occurred');
+  }
+}

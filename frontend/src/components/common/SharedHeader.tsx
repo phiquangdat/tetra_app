@@ -25,12 +25,17 @@ const SharedHeader = ({
   const [showSignOutModal, setShowSignOutModal] = useState(false);
   const navigate = useNavigate();
 
-  const handleConfirmLogout = () => {
-    logout();
-    setShowSignOutModal(false);
-    navigate('/');
-    window.location.reload();
-    toast.success('You’ve been signed out.');
+  const handleConfirmLogout = async () => {
+    try {
+      logout();
+      toast.success('You’ve been signed out.');
+    } catch (error) {
+      toast.error('Something went wrong during logout.');
+    } finally {
+      setShowSignOutModal(false);
+      navigate('/');
+      window.location.reload();
+    }
   };
 
   const handleLogin = () => {

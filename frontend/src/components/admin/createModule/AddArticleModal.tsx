@@ -48,6 +48,7 @@ function AddArticleModal({
 
   useEffect(() => {
     if (isOpen) {
+      clearContent();
       // Set unit_id in context and add temp block
       setContentState({
         unit_id: unitId,

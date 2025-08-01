@@ -1,17 +1,40 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useModuleContext } from '../../../context/admin/ModuleContext.tsx';
+import DeleteConfirmationModal from '../createModule/DeleteConfirmationModal.tsx';
+import { RemoveIcon } from '../../common/Icons.tsx';
 
 interface ModuleDetailsProps {
   onEdit?: () => void;
 }
 
 const ModuleDetailsUI: React.FC<ModuleDetailsProps> = ({ onEdit }) => {
-  const { title, status, coverPicture, description, topic, pointsAwarded } =
-    useModuleContext();
+  const {
+    title,
+    status,
+    coverPicture,
+    description,
+    topic,
+    pointsAwarded,
+    removeModule,
+  } = useModuleContext();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   return (
     <div className="bg-[#F9F5FF] border border-highlight rounded-3xl p-6 shadow-md text-primary w-full">
-      <h1 className="text-2xl font-extrabold">{title}</h1>
+      <div className="flex items-start justify-between">
+        <h1 className="text-2xl font-extrabold">{title}</h1>
+        <span
+          role="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowDeleteModal(true);
+          }}
+          aria-label="Remove Module"
+          className="cursor-pointer p-1 hover:text-red-600 transition-colors"
+        >
+          <RemoveIcon />
+        </span>
+      </div>
 
       <p className="text-sm text-secondary mb-4">
         <span className="font-semibold">{status}</span>
@@ -52,6 +75,13 @@ const ModuleDetailsUI: React.FC<ModuleDetailsProps> = ({ onEdit }) => {
             Edit
           </button>
         </div>
+      )}
+
+      {showDeleteModal && (
+        <DeleteConfirmationModal
+          onCancel={() => setShowDeleteModal(false)}
+          onConfirm={removeModule}
+        />
       )}
     </div>
   );

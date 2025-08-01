@@ -1,11 +1,20 @@
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
-export default function DeleteConfirmationModal() {
+interface Props {
+  onCancel: () => void;
+  onConfirm: () => void;
+}
+
+export default function DeleteConfirmationModal({
+  onCancel,
+  onConfirm,
+}: Props) {
   return createPortal(
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
       <div className="bg-background rounded-2xl p-8 max-w-sm w-full relative shadow-xl">
         <button
+          onClick={onCancel}
           className="absolute top-4 right-4 text-primary hover:text-secondaryHover transition p-1"
           aria-label="Close"
         >
@@ -27,10 +36,16 @@ export default function DeleteConfirmationModal() {
         </p>
 
         <div className="flex justify-center gap-4">
-          <button className="bg-secondary hover:bg-secondaryHover text-background px-6 py-2.5 rounded-lg text-sm font-medium transition duration-200">
+          <button
+            onClick={onCancel}
+            className="bg-secondary hover:bg-secondaryHover text-background px-6 py-2.5 rounded-lg text-sm font-medium transition duration-200"
+          >
             Cancel
           </button>
-          <button className="bg-error hover:bg-errorHover text-background px-6 py-2.5 rounded-lg text-sm font-medium transition duration-200">
+          <button
+            onClick={onConfirm}
+            className="bg-error hover:bg-errorHover text-background px-6 py-2.5 rounded-lg text-sm font-medium transition duration-200"
+          >
             Remove
           </button>
         </div>

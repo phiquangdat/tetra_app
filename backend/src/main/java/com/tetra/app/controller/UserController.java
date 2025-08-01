@@ -202,35 +202,4 @@ public class UserController {
         );
         return ResponseEntity.ok(response);
     }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(
-        @PathVariable UUID id,
-        @RequestHeader(value = "Authorization", required = false) String authHeader
-    ) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
-        }
-        String token = authHeader.substring(7);
-        if (blacklistedTokenRepository.existsByToken(token)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is blacklisted (logged out)");
-        }
-        String role;
-        try {
-            role = jwtUtil.extractRole(token);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
-        }
-        if (!"ADMIN".equals(role)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
-        }
-        try {
-            userService.deleteUserAndAssociatedData(id);
-            return ResponseEntity.ok("User and associated data deleted");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete user: " + e.getMessage());
-        }
-    }
 }

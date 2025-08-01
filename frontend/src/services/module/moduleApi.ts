@@ -1,3 +1,5 @@
+import { fetchWithAuth } from '../../utils/authHelpers.ts';
+
 const envBaseUrl = import.meta.env.VITE_BACKEND_URL;
 const BASE_URL =
   envBaseUrl && envBaseUrl.trim() !== '' ? `${envBaseUrl}/api` : '/api';
@@ -143,6 +145,32 @@ export async function updateModule(
     return data;
   } catch (error) {
     console.error(`[update] Exception:`, error);
+    throw error;
+  }
+}
+
+export async function deleteModule(id: string): Promise<string> {
+  const url = `${BASE_URL}/modules/${id}`;
+  console.log('[deleteModule] DELETE:', url);
+
+  try {
+    const response = await fetchWithAuth(url, { method: 'DELETE' });
+    console.log(`[deleteModule] Response status: ${response.status}`);
+    console.log(
+      `[deleteModule] Response headers:`,
+      Object.fromEntries(response.headers.entries()),
+    );
+
+    const text = await response.text();
+
+    if (!response.ok) {
+      console.error(`[deleteModule] Error response body:`, text);
+      throw new Error('Failed to delete module');
+    }
+
+    return text;
+  } catch (error) {
+    console.error(`[deleteModule] Exception:`, error);
     throw error;
   }
 }

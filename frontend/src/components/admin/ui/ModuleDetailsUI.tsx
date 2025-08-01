@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useModuleContext } from '../../../context/admin/ModuleContext.tsx';
 import DeleteConfirmationModal from '../createModule/DeleteConfirmationModal.tsx';
 import { RemoveIcon } from '../../common/Icons.tsx';
+import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
+import { useNavigate } from 'react-router-dom';
 
 interface ModuleDetailsProps {
   onEdit?: () => void;
@@ -17,7 +19,15 @@ const ModuleDetailsUI: React.FC<ModuleDetailsProps> = ({ onEdit }) => {
     pointsAwarded,
     removeModule,
   } = useModuleContext();
+  const { setUnitStatesRaw } = useUnitContext();
+  const navigate = useNavigate();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const handleConfirmDelete = async () => {
+    await removeModule();
+    setUnitStatesRaw({}); // clear all units
+    navigate('/admin/modules');
+  };
 
   return (
     <div className="bg-[#F9F5FF] border border-highlight rounded-3xl p-6 shadow-md text-primary w-full">
@@ -80,7 +90,7 @@ const ModuleDetailsUI: React.FC<ModuleDetailsProps> = ({ onEdit }) => {
       {showDeleteModal && (
         <DeleteConfirmationModal
           onCancel={() => setShowDeleteModal(false)}
-          onConfirm={removeModule}
+          onConfirm={handleConfirmDelete}
           title="Remove Module"
           description="Are you sure you want to remove this module? This cannot be undone."
         />

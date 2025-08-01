@@ -29,6 +29,7 @@ const SharedHeader = ({
     logout();
     setShowSignOutModal(false);
     navigate('/');
+    window.location.reload();
     toast.success('You’ve been signed out.');
   };
 

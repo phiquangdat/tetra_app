@@ -38,13 +38,13 @@ function AddArticleModal({
     !isSaving;
 
   useEffect(() => {
-    if (editorContent !== data.content) {
+    if (isOpen && editorContent !== data.content) {
       updateContentField('data', {
         ...data,
         content: editorContent,
       });
     }
-  }, [editorContent]);
+  }, [editorContent, isOpen]);
 
   useEffect(() => {
     if (isOpen) {

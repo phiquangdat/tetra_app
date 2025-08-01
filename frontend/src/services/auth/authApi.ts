@@ -58,8 +58,6 @@ export async function logoutUser(token: string): Promise<void> {
     if (!response.ok) {
       throw new Error(`Logout failed: ${response.statusText}`);
     }
-
-    console.log('Logout successful');
   } catch (error) {
     console.error(
       'Logout Error:',

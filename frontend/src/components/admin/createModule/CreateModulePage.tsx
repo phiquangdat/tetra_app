@@ -1,8 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  initialUnitState,
-  useUnitContext,
-} from '../../../context/admin/UnitContext';
+import { useUnitContext } from '../../../context/admin/UnitContext';
 import CreateModuleForm from './CreateModuleForm';
 import UnitsBlock from '../ui/UnitsBlock.tsx';
 import UnitContainer from '../ui/UnitContainer.tsx';
@@ -18,7 +15,7 @@ const UnitsManager: React.FC = () => {
     .sort((a, b) => a - b);
   const lastUnitNumber = unitNumbers[unitNumbers.length - 1];
   const lastUnit = unitStates[lastUnitNumber];
-  const canAddUnit = !!lastUnit?.id; // must be saved (have an ID)
+  const canAddUnit = unitNumbers.length === 0 || !!lastUnit?.id; // must be saved (have an ID) if not the first
 
   const handleAddUnit = () => {
     const newUnitNumber = getNextUnitNumber();
@@ -27,7 +24,7 @@ const UnitsManager: React.FC = () => {
   };
 
   return (
-    <UnitsBlock>
+    <UnitsBlock unitCount={unitNumbers.length}>
       {Object.keys(unitStates).map((key) => {
         const num = parseInt(key, 10);
         const isOpen = expandedUnitNumber === num;
@@ -70,21 +67,15 @@ const UnitsManager: React.FC = () => {
 };
 
 function CreateModulePageContent() {
-  const { setUnitStatesRaw, unitStates } = useUnitContext();
+  const { setUnitStatesRaw } = useUnitContext();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // Clear all existing units
     setUnitStatesRaw({});
-    // Then initialize unit 1
-    setUnitStatesRaw({ 1: initialUnitState() });
-    setTimeout(() => {
-      setUnitStatesRaw({ 1: initialUnitState() });
-      setReady(true);
-    }, 0);
+    setReady(true);
   }, []);
 
-  if (!ready || Object.keys(unitStates).length === 0) {
+  if (!ready) {
     return <div>Initializing form...</div>;
   }
 

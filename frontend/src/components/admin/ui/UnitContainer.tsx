@@ -38,6 +38,8 @@ const UnitContainer: React.FC<UnitContainerProps> = ({
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [showQuizModal, setShowQuizModal] = useState(false);
 
+  if (!unitState) return null;
+
   return (
     <>
       <UnitItem

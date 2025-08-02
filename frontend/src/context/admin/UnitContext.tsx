@@ -215,7 +215,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
   const removeUnit = useCallback(
     async (unitNumber: number): Promise<boolean> => {
       const unit = unitStates[unitNumber];
-      if (!unit || Object.keys(unitStates).length <= 1) return false;
+      if (!unit) return false;
 
       if (unit.id) {
         try {

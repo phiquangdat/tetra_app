@@ -26,10 +26,9 @@ const UnitItem: React.FC<UnitItemProps> = ({
   onEdit,
   addContentComponent,
 }) => {
-  const { unitStates, getUnitState, loadUnitContentIntoState, removeUnit } =
+  const { getUnitState, loadUnitContentIntoState, removeUnit } =
     useUnitContext();
   const unit = getUnitState(unitNumber);
-  const canRemove = Object.keys(unitStates).length > 1;
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
 
   useEffect(() => {
@@ -73,19 +72,17 @@ const UnitItem: React.FC<UnitItemProps> = ({
           <h3 className="text-xl font-semibold text-gray-700">
             Unit {unitNumber}: {title}
           </h3>
-          {canRemove && (
-            <span
-              role="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowRemoveConfirm(true);
-              }}
-              aria-label="Remove Unit"
-              className="cursor-pointer p-1"
-            >
-              <RemoveIcon />
-            </span>
-          )}
+          <span
+            role="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowRemoveConfirm(true);
+            }}
+            aria-label="Remove Unit"
+            className="cursor-pointer p-1"
+          >
+            <RemoveIcon />
+          </span>
         </div>
       }
       isOpen={isOpen}

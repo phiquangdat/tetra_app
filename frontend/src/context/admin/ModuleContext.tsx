@@ -10,8 +10,10 @@ import {
   createModule,
   updateModule,
   type ModuleInput,
+  deleteModule,
 } from '../../services/module/moduleApi';
 import { isValidImageUrl, isImageUrlRenderable } from '../../utils/validators';
+import toast from 'react-hot-toast';
 
 interface ModuleContextProps {
   id: string | null;
@@ -33,6 +35,7 @@ interface ModuleContextValue extends ModuleContextProps {
   setModuleState: (newState: Partial<ModuleContextProps>) => void;
   saveModule: () => Promise<void>;
   setIsEditing: (editing: boolean) => void;
+  removeModule: () => Promise<boolean>;
 }
 
 export const initialModuleState: ModuleContextProps = {
@@ -158,6 +161,20 @@ export const ModuleContextProvider = ({
     }
   };
 
+  const removeModule = async (): Promise<boolean> => {
+    if (!module.id) return false;
+
+    try {
+      const message = await deleteModule(module.id);
+      toast.success(message);
+      return true;
+    } catch (err) {
+      console.error('Failed to delete module (unknown error):', err);
+      toast.error('Failed to delete module. Please try again later.');
+      return false;
+    }
+  };
+
   const contextValue = useMemo(
     () => ({
       ...module,
@@ -167,6 +184,7 @@ export const ModuleContextProvider = ({
       updateModuleField,
       markModuleAsDirty,
       saveModule,
+      removeModule,
     }),
     [module, setModuleState, updateModuleField, markModuleAsDirty, saveModule],
   );

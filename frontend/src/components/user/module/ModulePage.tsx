@@ -54,6 +54,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
           fetchModuleById(id),
           fetchUnitTitleByModuleId(id),
         ]);
+
         console.log('Fetched module:', data); // Temporary log
         console.log('Fetched units:', units);
         setModule(data);
@@ -62,8 +63,9 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
 
         try {
           const progress = await getModuleProgress(id);
+
           setModuleProgress(progress);
-          setProgressStatus(progress.status);
+          setProgressStatus(progress.status.toLowerCase());
           console.log('User Module Progress:', progress);
         } catch (err) {
           if (err instanceof Error && err.message.includes('404')) {
@@ -74,11 +76,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
           }
         }
       } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('Unknown error: ');
-        }
+        setError(err instanceof Error ? err.message : 'Unknown error: ' + err);
       } finally {
         setLoading(false);
       }
@@ -142,20 +140,21 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   return (
     <div className="mx-auto px-8 py-8 min-h-screen bg-[#FFFFFF] text-left">
       <div className="mb-6">
-        <a
+        <button
           onClick={() => navigate('/user/modules')}
           className="inline-flex items-center text-[#998FC7] hover:text-[#231942] px-3 py-1 rounded-lg hover:bg-[#F9F5FF] hover:border hover:border-[#D4C2FC] active:bg-[#D4C2FC] transition-all cursor-pointer"
+          type="button"
         >
           <span className="mr-2 text-xl">←</span>
           Back to Modules
-        </a>
+        </button>
       </div>
 
       <div className="flex flex-col gap-4 py-8 mb-6">
         <h1 className="text-2xl md:text-3xl font-extrabold text-[#231942] tracking-tight">
           {module.title}
         </h1>
-        {moduleProgress ? (
+        {progressStatus === 'in_progress' ? (
           <button
             className="bg-secondary text-white font-semibold px-14 py-3 rounded-full text-lg shadow-md hover:bg-secondaryHover focus:outline-none focus:ring-2 focus:ring-surface transition w-fit"
             type="button"

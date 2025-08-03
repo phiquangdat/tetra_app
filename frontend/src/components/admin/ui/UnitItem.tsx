@@ -109,18 +109,20 @@ const UnitItem: React.FC<UnitItemProps> = ({
             </div>
           </div>
 
-          {onEdit && (
-            <button
-              onClick={onEdit}
-              className="mt-2 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover text-sm"
-            >
-              Edit
-            </button>
-          )}
+          <div className="mt-4 flex flex-wrap items-center gap-4">
+            {onEdit && (
+              <button
+                onClick={onEdit}
+                className="px-4 py-2 rounded-lg text-sm text-white bg-secondary hover:bg-secondaryHover"
+              >
+                Edit
+              </button>
+            )}
+
+            {addContentComponent}
+          </div>
         </>
       )}
-
-      {addContentComponent}
 
       <div className="mt-6">
         {unit.content.length > 0 ? (

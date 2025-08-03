@@ -2,22 +2,25 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import CreateModulePage from '../admin/createModule/CreateModulePage';
 import { ModuleContextProvider } from '../../context/admin/ModuleContext';
 import { UnitContextProvider } from '../../context/admin/UnitContext';
 import { ContentBlockContextProvider } from '../../context/admin/ContentBlockContext';
 import { EditorStateProvider } from '../../utils/editor/contexts/EditorStateContext';
+import { MemoryRouter } from 'react-router-dom';
 
 function renderWithProviders(ui: React.ReactElement) {
   return render(
-    <ModuleContextProvider>
-      <UnitContextProvider>
-        <ContentBlockContextProvider>
-          <EditorStateProvider>{ui}</EditorStateProvider>
-        </ContentBlockContextProvider>
-      </UnitContextProvider>
-    </ModuleContextProvider>,
+    <MemoryRouter>
+      <ModuleContextProvider>
+        <UnitContextProvider>
+          <ContentBlockContextProvider>
+            <EditorStateProvider>{ui}</EditorStateProvider>
+          </ContentBlockContextProvider>
+        </UnitContextProvider>
+      </ModuleContextProvider>
+    </MemoryRouter>,
   );
 }
 

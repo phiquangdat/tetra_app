@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useModuleContext } from '../../../context/admin/ModuleContext.tsx';
-import DeleteConfirmationModal from '../createModule/DeleteConfirmationModal.tsx';
+import ConfirmationModal from '../createModule/ConfirmationModal.tsx';
 import { RemoveIcon } from '../../common/Icons.tsx';
 import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
 import { useNavigate } from 'react-router-dom';
@@ -91,7 +91,7 @@ const ModuleDetailsUI: React.FC<ModuleDetailsProps> = ({ onEdit }) => {
       )}
 
       {showDeleteModal && (
-        <DeleteConfirmationModal
+        <ConfirmationModal
           onCancel={() => setShowDeleteModal(false)}
           onConfirm={handleConfirmDelete}
           title="Remove Module"

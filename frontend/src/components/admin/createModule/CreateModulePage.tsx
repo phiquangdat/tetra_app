@@ -6,6 +6,7 @@ import {
 import CreateModuleForm from './CreateModuleForm';
 import UnitsBlock from '../ui/UnitsBlock.tsx';
 import UnitContainer from '../ui/UnitContainer.tsx';
+import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
 
 const UnitsManager: React.FC = () => {
   const { unitStates, addUnit, getNextUnitNumber } = useUnitContext();
@@ -72,14 +73,16 @@ const UnitsManager: React.FC = () => {
 function CreateModulePageContent() {
   const { setUnitStatesRaw, unitStates } = useUnitContext();
   const [ready, setReady] = useState(false);
+  const { clearContent } = useContentBlockContext();
 
   useEffect(() => {
     // Clear all existing units
     setUnitStatesRaw({});
     // Then initialize unit 1
-    setUnitStatesRaw({ 1: initialUnitState() });
+    setUnitStatesRaw({ 1: { ...initialUnitState(), wasJustCreated: true } });
+    clearContent();
     setTimeout(() => {
-      setUnitStatesRaw({ 1: initialUnitState() });
+      setUnitStatesRaw({ 1: { ...initialUnitState(), wasJustCreated: true } });
       setReady(true);
     }, 0);
   }, []);

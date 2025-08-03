@@ -38,16 +38,17 @@ function AddArticleModal({
     !isSaving;
 
   useEffect(() => {
-    if (editorContent !== data.content) {
+    if (isOpen && editorContent !== data.content) {
       updateContentField('data', {
         ...data,
         content: editorContent,
       });
     }
-  }, [editorContent]);
+  }, [editorContent, isOpen]);
 
   useEffect(() => {
     if (isOpen) {
+      clearContent();
       // Set unit_id in context and add temp block
       setContentState({
         unit_id: unitId,

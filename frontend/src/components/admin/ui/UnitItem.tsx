@@ -35,11 +35,11 @@ const UnitItem: React.FC<UnitItemProps> = ({
     const unitId = unit?.id;
     if (!unit || !unitId || !unitNumber) return;
 
-    if (unit.content.length === 0) {
+    if (unit.content.length === 0 && !unit.wasJustCreated) {
       console.log(`[UnitItem] Loading content for unit ${unitNumber}`);
       void loadUnitContentIntoState(unitId, unitNumber);
     }
-  }, [unitNumber, unit?.id]);
+  }, [unitNumber, unit?.id, unit?.wasJustCreated]);
 
   if (!unit) {
     return (

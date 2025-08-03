@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useModuleContext } from '../../../context/admin/ModuleContext.tsx';
 import DeleteConfirmationModal from '../createModule/DeleteConfirmationModal.tsx';
-import { RemoveIcon } from '../../common/Icons.tsx';
 import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
 import { useNavigate } from 'react-router-dom';
 
@@ -36,17 +35,6 @@ const ModuleDetailsUI: React.FC<ModuleDetailsProps> = ({ onEdit }) => {
     <div className="bg-[#F9F5FF] border border-highlight rounded-3xl p-6 shadow-md text-primary w-full">
       <div className="flex items-start justify-between">
         <h1 className="text-2xl font-extrabold">{title}</h1>
-        <span
-          role="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowDeleteModal(true);
-          }}
-          aria-label="Remove Module"
-          className="cursor-pointer p-1 hover:text-red-600 transition-colors"
-        >
-          <RemoveIcon />
-        </span>
       </div>
 
       <p className="text-sm text-secondary mb-4">
@@ -86,6 +74,17 @@ const ModuleDetailsUI: React.FC<ModuleDetailsProps> = ({ onEdit }) => {
             className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover"
           >
             Edit
+          </button>
+          <button
+            role="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowDeleteModal(true);
+            }}
+            aria-label="Remove Module"
+            className="px-4 py-2 bg-error text-white rounded-lg hover:bg-errorHover text-sm"
+          >
+            Delete
           </button>
         </div>
       )}

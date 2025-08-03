@@ -58,7 +58,6 @@ const UnitContainer: React.FC<UnitContainerProps> = ({
         addContentComponent={
           <AddContentDropdown
             unitNumber={unitNumber}
-            disabled={!unitId || Boolean(unitState?.isSaving)}
             onOpenArticle={() => setShowArticleModal(true)}
             onOpenVideo={() => setShowVideoModal(true)}
             onOpenQuiz={() => setShowQuizModal(true)}

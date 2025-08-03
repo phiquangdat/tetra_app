@@ -25,7 +25,7 @@ const ArticleBlock: React.FC<ArticleBlockProps> = ({
       ? getUnitState(unitNumber)?.content[blockIndex]
       : null;
 
-  const shouldUseContext = unitContent?.data?.content;
+  const shouldUseContext = !!unitContent?.data?.content;
 
   // Only fetch if context is NOT usable
   useEffect(() => {

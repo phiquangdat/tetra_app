@@ -33,6 +33,7 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
 
   useEffect(() => {
     if (isOpen) {
+      clearContent();
       setContentState({
         unit_id: unitId,
         type: 'video',

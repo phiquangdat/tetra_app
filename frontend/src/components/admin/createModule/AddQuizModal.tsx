@@ -38,6 +38,7 @@ function AddQuizModal({
 
   useEffect(() => {
     if (isOpen) {
+      clearContent();
       setContentState({
         unit_id: unitId,
         type: 'quiz',

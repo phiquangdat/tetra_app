@@ -1,8 +1,8 @@
 import React from 'react';
+import { ChevronDownIcon } from 'lucide-react';
 
 export type AddContentDropdownProps = {
   unitNumber: number;
-  disabled: boolean;
   onOpenArticle: () => void;
   onOpenVideo: () => void;
   onOpenQuiz: () => void;
@@ -10,7 +10,6 @@ export type AddContentDropdownProps = {
 
 const AddContentDropdown: React.FC<AddContentDropdownProps> = ({
   unitNumber,
-  disabled,
   onOpenArticle,
   onOpenVideo,
   onOpenQuiz,
@@ -32,18 +31,11 @@ const AddContentDropdown: React.FC<AddContentDropdownProps> = ({
   };
 
   return (
-    <div className="mt-6">
-      <label
-        htmlFor={`contentBlocks-${unitNumber}`}
-        className="block mb-2 font-medium"
-      >
-        Add Content Block
-      </label>
+    <div className="relative w-[190px]">
       <select
         id={`contentBlocks-${unitNumber}`}
         onChange={handleChange}
-        className="w-full border-gray-300 border rounded p-2 focus:outline-none focus:border-blue-500"
-        disabled={disabled}
+        className="appearance-none w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm bg-secondary hover:bg-secondaryHover text-white transition"
         defaultValue=""
       >
         <option value="" disabled>
@@ -53,11 +45,8 @@ const AddContentDropdown: React.FC<AddContentDropdownProps> = ({
         <option value="addArticle">Add article</option>
         <option value="addQuiz">Add quiz</option>
       </select>
-      {disabled && (
-        <p className="text-sm text-gray-500 mt-2">
-          Save the unit first to add content blocks.
-        </p>
-      )}
+
+      <ChevronDownIcon className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-white" />
     </div>
   );
 };

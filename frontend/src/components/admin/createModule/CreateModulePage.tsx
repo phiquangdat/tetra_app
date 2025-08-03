@@ -3,6 +3,7 @@ import { useUnitContext } from '../../../context/admin/UnitContext';
 import CreateModuleForm from './CreateModuleForm';
 import UnitsBlock from '../ui/UnitsBlock.tsx';
 import UnitContainer from '../ui/UnitContainer.tsx';
+import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
 
 const UnitsManager: React.FC = () => {
   const { unitStates, addUnit, getNextUnitNumber } = useUnitContext();
@@ -69,9 +70,11 @@ const UnitsManager: React.FC = () => {
 function CreateModulePageContent() {
   const { setUnitStatesRaw } = useUnitContext();
   const [ready, setReady] = useState(false);
+  const { clearContent } = useContentBlockContext();
 
   useEffect(() => {
     setUnitStatesRaw({});
+    clearContent();
     setReady(true);
   }, []);
 

@@ -8,10 +8,12 @@ import {
 
 import {
   createUnit,
+  deleteUnit,
   fetchUnitContentById,
   type UnitInput,
   updateUnit,
 } from '../../services/unit/unitApi';
+import toast from 'react-hot-toast';
 
 export type QuizQuestionAnswer = {
   title: string;
@@ -70,7 +72,7 @@ type UnitContextType = {
   getUnitState: (unitNumber: number) => UnitContextEntry | undefined;
   getNextUnitNumber: () => number;
   saveUnit: (unitNumber: number, moduleId: string) => Promise<void>;
-  removeUnit: (unitNumber: number) => void;
+  removeUnit: (unitNumber: number) => Promise<boolean>;
   addContentBlock: (unitNumber: number, block: ContentBlock) => void;
   removeContentBlock: (unitNumber: number, blockIndex: number) => void;
   addUnit: () => void;
@@ -216,26 +218,37 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const removeUnit = useCallback(
-    (unitNumber: number) => {
-      if (!unitStates[unitNumber]) return;
-      if (Object.keys(unitStates).length <= 1) return;
+    async (unitNumber: number): Promise<boolean> => {
+      const unit = unitStates[unitNumber];
+      if (!unit) return false;
 
+      if (unit.id) {
+        try {
+          await deleteUnit(unit.id);
+          toast.success('Unit deleted successfully');
+        } catch (err) {
+          console.error('Failed to delete unit:', err);
+          toast.error('Failed to delete unit. Please try again later.');
+          return false;
+        }
+      }
+
+      // Reindex state
       setUnitStates((prev) => {
-        const sortedUnitNumbers = Object.keys(prev)
+        const sorted = Object.keys(prev)
           .map(Number)
           .sort((a, b) => a - b);
-        const newStates: Record<number, UnitContextEntry> = {};
-
-        let newUnitNumber = 1;
-        for (const oldUnitNumber of sortedUnitNumbers) {
-          if (oldUnitNumber !== unitNumber) {
-            newStates[newUnitNumber] = prev[oldUnitNumber];
-            newUnitNumber++;
+        const newState: Record<number, UnitContextEntry> = {};
+        let newNum = 1;
+        for (const oldNum of sorted) {
+          if (oldNum !== unitNumber) {
+            newState[newNum++] = prev[oldNum];
           }
         }
-
-        return newStates;
+        return newState;
       });
+
+      return true;
     },
     [unitStates],
   );

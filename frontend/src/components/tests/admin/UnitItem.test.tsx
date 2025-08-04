@@ -1,7 +1,15 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 
 import UnitItem from '../../admin/ui/UnitItem';
 import {
@@ -11,6 +19,7 @@ import {
 import { ModuleContextProvider } from '../../../context/admin/ModuleContext';
 import { ContentBlockContextProvider } from '../../../context/admin/ContentBlockContext';
 import { EditorStateProvider } from '../../../utils/editor/contexts/EditorStateContext';
+import * as UnitContextModule from '../../../context/admin/UnitContext'; // used for mocking removeUnit
 
 const InitUnitState: React.FC = () => {
   const { setUnitState } = useUnitContext();
@@ -59,7 +68,22 @@ const renderUnitItem = (props = {}) => {
 };
 
 describe('UnitItem', () => {
-  afterEach(() => vi.clearAllMocks());
+  beforeAll(() => {
+    const modalRoot = document.createElement('div');
+    modalRoot.setAttribute('id', 'modal-root');
+    document.body.appendChild(modalRoot);
+  });
+
+  afterAll(() => {
+    const modalRoot = document.getElementById('modal-root');
+    if (modalRoot) {
+      document.body.removeChild(modalRoot);
+    }
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('renders unit title and description', async () => {
     renderUnitItem();
@@ -89,10 +113,22 @@ describe('UnitItem', () => {
 
   it('confirms removal and closes modal', async () => {
     const user = userEvent.setup();
+    const mockRemove = vi.fn().mockResolvedValue(true);
+
+    // Mock only the specific method — not the whole hook
+    const originalUseUnitContext = UnitContextModule.useUnitContext;
+
+    vi.spyOn(UnitContextModule, 'useUnitContext').mockImplementation(() => {
+      const context = originalUseUnitContext();
+      return {
+        ...context,
+        removeUnit: mockRemove,
+      };
+    });
+
     renderUnitItem();
 
     await user.click(await screen.findByLabelText('Remove Unit'));
-
     await user.click(screen.getByRole('button', { name: 'Remove' }));
 
     await waitFor(() =>
@@ -100,6 +136,8 @@ describe('UnitItem', () => {
         screen.queryByText(/Are you sure you want to remove this unit/i),
       ).not.toBeInTheDocument(),
     );
+
+    expect(mockRemove).toHaveBeenCalledWith(1);
   });
 
   it('calls onToggle when clicking accordion header', async () => {

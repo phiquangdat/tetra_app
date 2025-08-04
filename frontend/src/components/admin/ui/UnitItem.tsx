@@ -3,6 +3,7 @@ import Accordion from './Accordion';
 import ContentBlockList from '../module/ContentBlockList';
 import { useUnitContext } from '../../../context/admin/UnitContext';
 import { RemoveIcon } from '../../common/Icons.tsx';
+import DeleteConfirmationModal from '../createModule/DeleteConfirmationModal.tsx';
 
 interface UnitItemProps {
   unitNumber: number;
@@ -25,10 +26,9 @@ const UnitItem: React.FC<UnitItemProps> = ({
   onEdit,
   addContentComponent,
 }) => {
-  const { unitStates, getUnitState, loadUnitContentIntoState } =
+  const { getUnitState, loadUnitContentIntoState, removeUnit } =
     useUnitContext();
   const unit = getUnitState(unitNumber);
-  const canRemove = Object.keys(unitStates).length > 1;
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
 
   useEffect(() => {
@@ -53,12 +53,11 @@ const UnitItem: React.FC<UnitItemProps> = ({
     );
   }
 
-  const handleRemove = () => {
-    setShowRemoveConfirm(true);
-  };
-
-  const confirmRemove = () => {
-    setShowRemoveConfirm(false);
+  const handleConfirmDelete = async () => {
+    const success = await removeUnit(unitNumber);
+    if (success) {
+      setShowRemoveConfirm(false);
+    }
   };
   const cancelRemove = () => {
     setShowRemoveConfirm(false);
@@ -73,19 +72,17 @@ const UnitItem: React.FC<UnitItemProps> = ({
           <h3 className="text-xl font-semibold text-gray-700">
             Unit {unitNumber}: {title}
           </h3>
-          {canRemove && (
-            <span
-              role="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRemove();
-              }}
-              aria-label="Remove Unit"
-              className="cursor-pointer p-1"
-            >
-              <RemoveIcon />
-            </span>
-          )}
+          <span
+            role="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowRemoveConfirm(true);
+            }}
+            aria-label="Remove Unit"
+            className="cursor-pointer p-1"
+          >
+            <RemoveIcon />
+          </span>
         </div>
       }
       isOpen={isOpen}
@@ -133,30 +130,12 @@ const UnitItem: React.FC<UnitItemProps> = ({
       </div>
       {/* Remove Confirmation Modal */}
       {showRemoveConfirm && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-lg max-w-sm w-full">
-            <h4 className="text-lg font-semibold mb-4">
-              Remove Unit {unitNumber}
-            </h4>
-            <p className="mb-6">
-              Are you sure you want to remove this unit? This cannot be undone.
-            </p>
-            <div className="flex justify-end gap-4">
-              <button
-                onClick={cancelRemove}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmRemove}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                Remove
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeleteConfirmationModal
+          title={`Remove Unit ${unitNumber}`}
+          description="Are you sure you want to remove this unit? This cannot be undone."
+          onCancel={cancelRemove}
+          onConfirm={handleConfirmDelete}
+        />
       )}
     </Accordion>
   );

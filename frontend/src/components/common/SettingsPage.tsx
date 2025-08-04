@@ -3,6 +3,7 @@ import ChangePasswordModal from './ChangePasswordModal';
 import { useAuth } from '../../context/auth/AuthContext';
 import { getUserById } from '../../services/user/userApi';
 import { updateUserName, updateUserEmail } from '../../services/user/userApi';
+import toast from 'react-hot-toast';
 
 const SettingsPage: React.FC = () => {
   const { userId, authToken } = useAuth();
@@ -75,6 +76,7 @@ const SettingsPage: React.FC = () => {
         await updateUserEmail(userId, inputs.email);
         setFields((f) => ({ ...f, email: inputs.email }));
       }
+      toast.success('Changes saved successfully!');
       setEdit((edit) => ({ ...edit, [field]: false }));
     } catch (error: any) {
       setErrorField((prev) => ({
@@ -82,6 +84,7 @@ const SettingsPage: React.FC = () => {
         [field]:
           error instanceof Error ? 'Email already exists' : 'Failed to update',
       }));
+      toast.error('Failed to save changes. Please try again.');
     } finally {
       setSaving(null);
     }

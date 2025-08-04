@@ -6,6 +6,7 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
+import { logoutUser } from '../../services/auth/authApi';
 
 interface AuthContextType {
   authToken: string | null;
@@ -32,7 +33,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     userRole: sessionStorage.getItem('user_role') || null,
   });
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async (): Promise<void> => {
+    const token = sessionStorage.getItem('jwt_token');
+
+    try {
+      if (token) {
+        await logoutUser(token);
+      }
+    } catch (error) {
+      console.warn('Logout failed or token expired');
+    }
+
     sessionStorage.removeItem('jwt_token');
     sessionStorage.removeItem('user_id');
     sessionStorage.removeItem('user_role');

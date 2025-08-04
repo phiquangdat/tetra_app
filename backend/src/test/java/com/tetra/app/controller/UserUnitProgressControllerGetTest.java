@@ -93,7 +93,6 @@ public class UserUnitProgressControllerGetTest {
         UUID userId = UUID.randomUUID();
         UserUnitProgress progress = new UserUnitProgress();
         progress.setId(UUID.randomUUID());
-        // ...set other fields as needed...
         Mockito.when(jwtUtil.extractUserId(anyString())).thenReturn(userId.toString());
         Mockito.when(userUnitProgressRepository.findByUser_IdAndUnit_Id(userId, unitId))
                 .thenReturn(Optional.of(progress));

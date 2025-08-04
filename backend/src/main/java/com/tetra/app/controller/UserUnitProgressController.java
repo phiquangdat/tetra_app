@@ -112,4 +112,35 @@ public class UserUnitProgressController {
         UserUnitProgressDto responseDto = UserUnitProgressMapper.toDto(saved);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
+
+    @GetMapping("/{unitId}")
+    public ResponseEntity<?> getCurrentUserUnitProgressByUnitId(
+            @PathVariable UUID unitId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String userIdStr;
+        try {
+            userIdStr = jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        UUID userId;
+        try {
+            userId = UUID.fromString(userIdStr);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid userId in token");
+        }
+
+        var progressOpt = userUnitProgressRepository.findByUser_IdAndUnit_Id(userId, unitId);
+        if (progressOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User unit progress not found");
+        }
+        UserUnitProgress progress = progressOpt.get();
+        var responseDto = UserUnitProgressMapper.toDto(progress);
+        return ResponseEntity.ok(responseDto);
+    }
 }

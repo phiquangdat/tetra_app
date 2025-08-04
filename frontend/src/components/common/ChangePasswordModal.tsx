@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { useState } from 'react';
 import { updateUserPassword } from '../../services/user/userApi';
 import { useAuth } from '../../context/auth/AuthContext';
+import toast from 'react-hot-toast';
 interface Props {
   onClose: () => void;
 }
@@ -57,21 +58,30 @@ const ChangePasswordModal: React.FC<Props> = ({ onClose }) => {
     e.preventDefault();
     const errors = validateForm(formData);
     setErrors(errors);
-    if (Object.values(errors).some(Boolean)) return;
+    if (Object.values(errors).some(Boolean)) {
+      toast.error(
+        'Failed to update password. Please check your inputs and try again later.',
+      );
+      return;
+    } // If there is validation error, the function exit & not proceed with API call
+
     try {
       await updateUserPassword(
         userId!,
         formData.oldPassword,
         formData.newPassword,
       );
-      console.log('Password updated successfully');
+      toast.success('Password updated successfully');
       onClose();
     } catch (error) {
       if (error instanceof Error && error.message.includes('400')) {
         setErrors((prev) => ({
           ...prev,
           oldPassword: 'Validation failed. Please check again.',
-        }));
+        })); // The old password is incorrect
+        toast.error(
+          'Failed to update password. Please check your inputs and try again later.',
+        );
       }
     }
   };

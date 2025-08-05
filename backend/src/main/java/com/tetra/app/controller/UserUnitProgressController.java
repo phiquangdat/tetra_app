@@ -143,4 +143,80 @@ public class UserUnitProgressController {
         var responseDto = UserUnitProgressMapper.toDto(progress);
         return ResponseEntity.ok(responseDto);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUserUnitProgress(
+            @PathVariable UUID id,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody Map<String, Object> body
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String userIdStr;
+        try {
+            userIdStr = jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        UUID userId;
+        try {
+            userId = UUID.fromString(userIdStr);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid userId in token");
+        }
+
+        Optional<UserUnitProgress> progressOpt = userUnitProgressRepository.findById(id);
+        if (progressOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User unit progress not found");
+        }
+        UserUnitProgress progress = progressOpt.get();
+        if (progress.getUser() == null || !progress.getUser().getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
+
+        if (body.containsKey("status")) {
+            Object statusObj = body.get("status");
+            if (statusObj != null) {
+                progress.setStatus(String.valueOf(statusObj));
+            }
+        }
+
+        if (body.containsKey("module_id")) {
+            Object moduleIdObj = body.get("module_id");
+            if (moduleIdObj != null) {
+                try {
+                    UUID moduleId = UUID.fromString(moduleIdObj.toString());
+                    Optional<TrainingModule> moduleOpt = trainingModuleRepository.findById(moduleId);
+                    if (moduleOpt.isEmpty()) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid module_id");
+                    }
+                    progress.setModule(moduleOpt.get());
+                } catch (Exception e) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid module_id format");
+                }
+            }
+        }
+
+        if (body.containsKey("unit_id")) {
+            Object unitIdObj = body.get("unit_id");
+            if (unitIdObj != null) {
+                try {
+                    UUID unitId = UUID.fromString(unitIdObj.toString());
+                    Optional<Unit> unitOpt = unitRepository.findById(unitId);
+                    if (unitOpt.isEmpty()) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid unit_id");
+                    }
+                    progress.setUnit(unitOpt.get());
+                } catch (Exception e) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid unit_id format");
+                }
+            }
+        }
+
+        UserUnitProgress saved = userUnitProgressRepository.save(progress);
+        UserUnitProgressDto responseDto = UserUnitProgressMapper.toDto(saved);
+        return ResponseEntity.ok(responseDto);
+    }
 }

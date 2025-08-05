@@ -15,6 +15,10 @@ import {
   VideoIcon,
   CheckIcon,
 } from '../../common/Icons.tsx';
+import {
+  getUnitProgress,
+  createUnitProgress,
+} from '../../../services/userProgress/userProgressApi.tsx';
 
 interface UnitPageProps {
   id: string;
@@ -61,7 +65,7 @@ async function fetchUnitDetails(id: string) {
 }
 
 const UnitPage = ({ id }: UnitPageProps) => {
-  const { setUnitId, setModuleId } = useModuleProgress();
+  const { setUnitId, setModuleId, setUnitProgressStatus } = useModuleProgress();
   const [checkedIndex, setCheckedIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -94,6 +98,22 @@ const UnitPage = ({ id }: UnitPageProps) => {
         const content = await fetchUnitContentById(id);
         setUnitContent(details.id, content);
         setUnitContentList(content);
+
+        try {
+          const unitProgress = await getUnitProgress(id);
+          setUnitProgressStatus(unitProgress?.status);
+        } catch (getError) {
+          if (getError instanceof Error && getError.message.includes('404')) {
+            try {
+              const response = await createUnitProgress(id, details.moduleId); // POST unit progress if only it doesn't exist (404 error)
+              console.log('[createUnitProgress] response', response);
+              setUnitProgressStatus(response.status.toLowerCase());
+            } catch (createError) {
+              console.error('Failed to create unit progress:', createError);
+              setError('Failed to create unit progress');
+            }
+          }
+        }
       } catch (error) {
         console.error('Failed to load unit details:', error);
         setError('Failed to load unit details');

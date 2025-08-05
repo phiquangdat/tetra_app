@@ -1343,3 +1343,57 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+
+  
+  /api/user-module-progress/{id}:
+    delete:
+      summary: Delete a user module progress record
+      description: Deletes a user module progress record. Only the owner or an ADMIN can delete.
+      tags:
+        - UserModuleProgress
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The UUID of the user module progress record to delete
+      responses:
+        '200':
+          description: User module progress deleted
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: User module progress deleted
+        '400':
+          description: Invalid userId in token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Invalid userId in token
+        '401':
+          description: Unauthorized or invalid token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Missing or invalid Authorization header
+        '403':
+          description: Access denied (not owner or admin)
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Access denied
+        '404':
+          description: User module progress not found
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: User module progress not found

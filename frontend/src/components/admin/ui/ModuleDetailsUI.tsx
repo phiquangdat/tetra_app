@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useModuleContext } from '../../../context/admin/ModuleContext.tsx';
 import ConfirmationModal from '../createModule/ConfirmationModal.tsx';
-import { RemoveIcon } from '../../common/Icons.tsx';
 import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
 import { useNavigate } from 'react-router-dom';
 

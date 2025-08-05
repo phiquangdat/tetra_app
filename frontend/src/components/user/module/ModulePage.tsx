@@ -10,7 +10,7 @@ import {
 import {
   getModuleProgress,
   createModuleProgress,
-  type UserProgress,
+  type ModuleProgress,
 } from '../../../services/userProgress/userProgressApi';
 import Syllabus from './syllabus/Syllabus';
 import { useNavigate } from 'react-router-dom';
@@ -39,7 +39,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   } = useModuleProgress();
   const { setUnitContent } = useUnitContent();
   const [module, setModule] = useState<Module | null>(null);
-  const [moduleProgress, setModuleProgress] = useState<UserProgress | null>(
+  const [moduleProgress, setModuleProgress] = useState<ModuleProgress | null>(
     null,
   );
   const [units, setUnits] = useState<Unit[]>([]);

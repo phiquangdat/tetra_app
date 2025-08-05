@@ -23,8 +23,7 @@ const AdminLayout = () => {
               <div className="min-h-screen flex flex-col">
                 <SharedHeader
                   onHamburgerClick={toggleSidebar}
-                  isSidebarOpen={sidebarOpen}
-                />
+                  isSidebarOpen={sidebarOpen} showHamburger={false}                />
                 <div className="flex flex-1 relative">
                   <div
                     className={`

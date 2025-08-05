@@ -2,6 +2,7 @@ package com.tetra.app.mapper;
 
 import com.tetra.app.model.UserContentProgress;
 import com.tetra.app.dto.UserContentProgressDto;
+import com.tetra.app.mapper.UserContentProgressPointsMapper;
 
 public class UserContentProgressMapper {
     public static UserContentProgressDto toDto(UserContentProgress entity) {
@@ -11,7 +12,7 @@ public class UserContentProgressMapper {
         dto.unitId = entity.getUnit().getId();
         dto.unitContentId = entity.getUnitContent().getId();
         dto.status = entity.getStatus();
-        dto.points = entity.getPoints();
+        dto.points = UserContentProgressPointsMapper.getAvailablePoints(entity);
         return dto;
     }
 }

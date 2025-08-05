@@ -16,6 +16,8 @@ const Home = () => {
   const { authToken, userRole } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const toggleSidebar = () => setSidebarOpen((prev) => !prev);
+
   // Modal is open if route is /login
   const isLoginOpen = location.pathname === '/login';
 
@@ -41,7 +43,7 @@ const Home = () => {
       <SharedHeader
         showHamburger={!!authToken}
         isSidebarOpen={sidebarOpen}
-        onHamburgerClick={() => setSidebarOpen((prev) => !prev)}
+        onHamburgerClick={toggleSidebar}
       />
 
       {sidebarOpen && (

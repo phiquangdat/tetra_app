@@ -1,15 +1,20 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import HomeHeader from './HomeHeader';
+import SharedHeader from '../common/SharedHeader';
 import Hero from './Hero';
 import About from './About';
 import Features from './Features';
 import Footer from '../ui/Footer';
 import LoginModal from './LoginModal';
+import UserSidebar from '../user/layout/UserSidebar';
+import AdminSidebar from '../admin/layout/AdminSidebar';
+import { useAuth } from '../../context/auth/AuthContext';
 
 const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { authToken, userRole } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Modal is open if route is /login
   const isLoginOpen = location.pathname === '/login';
@@ -33,12 +38,29 @@ const Home = () => {
 
   return (
     <main>
-      <HomeHeader onLoginClick={openLogin} />
-      <Hero onGetStarted={openLogin} />
-      <LoginModal isOpen={isLoginOpen} onClose={closeLogin} />
-      <About />
-      <Features />
-      <Footer />
+      <SharedHeader
+        showHamburger={!!authToken}
+        isSidebarOpen={sidebarOpen}
+        onHamburgerClick={() => setSidebarOpen((prev) => !prev)}
+      />
+
+      {sidebarOpen && (
+        <div className="fixed top-0 left-0 h-full z-40">
+          {userRole === 'admin' ? (
+            <AdminSidebar />
+          ) : userRole === 'user' ? (
+            <UserSidebar />
+          ) : null}
+        </div>
+      )}
+
+      <div className={`${sidebarOpen ? 'ml-64' : ''} transition-all`}>
+        <Hero onGetStarted={openLogin} />
+        <LoginModal isOpen={isLoginOpen} onClose={closeLogin} />
+        <About />
+        <Features />
+        <Footer />
+      </div>
     </main>
   );
 };

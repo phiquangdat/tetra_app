@@ -47,7 +47,7 @@ const Home = () => {
       />
 
       {sidebarOpen && (
-        <div className="fixed top-0 left-0 h-full z-40">
+        <div className="fixed top-16 left-0 w-64 h-[calc(100%-4rem)] bg-gray-800 z-40">
           {userRole === 'admin' ? (
             <AdminSidebar />
           ) : userRole === 'user' ? (

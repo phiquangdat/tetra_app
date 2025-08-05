@@ -44,6 +44,12 @@ public class UserContentProgress {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    public Integer getPoints() { return points; }
+    public Integer getPoints() { 
+        
+        if ("IN_PROGRESS".equals(this.status)) {
+            return 0;
+        }
+        return points; 
+    }
     public void setPoints(Integer points) { this.points = points; }
 }

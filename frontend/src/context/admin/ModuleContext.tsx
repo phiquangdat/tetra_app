@@ -36,6 +36,7 @@ interface ModuleContextValue extends ModuleContextProps {
   saveModule: () => Promise<void>;
   setIsEditing: (editing: boolean) => void;
   removeModule: () => Promise<boolean>;
+  publishModule: () => Promise<void>;
 }
 
 export const initialModuleState: ModuleContextProps = {
@@ -175,6 +176,43 @@ export const ModuleContextProvider = ({
     }
   };
 
+  const publishModule = async () => {
+    if (!module.id) return;
+
+    setModule((prev) => ({ ...prev, isSaving: true, error: null }));
+
+    try {
+      const moduleInput: ModuleInput = {
+        title: module.title,
+        description: module.description,
+        topic: module.topic,
+        points: module.pointsAwarded,
+        coverUrl: module.coverPicture ?? '',
+        status: 'published',
+      };
+
+      const updated = await updateModule(module.id, moduleInput);
+
+      setModule((prev) => ({
+        ...prev,
+        status: updated.status,
+        isSaving: false,
+        isDirty: false,
+      }));
+
+      toast.success('Module published');
+    } catch (err) {
+      console.error('[publishModule] Failed:', err);
+      setModule((prev) => ({
+        ...prev,
+        isSaving: false,
+        error: 'Failed to publish module. Please try again later.',
+      }));
+
+      toast.error('Failed to publish module. Please try again later.');
+    }
+  };
+
   const contextValue = useMemo(
     () => ({
       ...module,
@@ -185,6 +223,7 @@ export const ModuleContextProvider = ({
       markModuleAsDirty,
       saveModule,
       removeModule,
+      publishModule,
     }),
     [module, setModuleState, updateModuleField, markModuleAsDirty, saveModule],
   );

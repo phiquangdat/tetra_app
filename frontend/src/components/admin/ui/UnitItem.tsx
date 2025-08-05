@@ -2,7 +2,7 @@ import React, { type ReactNode, useEffect, useState } from 'react';
 import Accordion from './Accordion';
 import ContentBlockList from '../module/ContentBlockList';
 import { useUnitContext } from '../../../context/admin/UnitContext';
-import DeleteConfirmationModal from '../createModule/DeleteConfirmationModal.tsx';
+import DeleteConfirmationModal from '../createModule/ConfirmationModal.tsx';
 
 interface UnitItemProps {
   unitNumber: number;

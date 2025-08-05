@@ -6,13 +6,15 @@ interface Props {
   onConfirm: () => void;
   title?: string;
   description?: string;
+  confirmText?: string;
 }
 
-export default function DeleteConfirmationModal({
+export default function ConfirmationModal({
   onCancel,
   onConfirm,
   title = 'Remove Item',
   description = 'Are you sure you want to remove this item? This cannot be undone.',
+  confirmText = 'Remove',
 }: Props) {
   return createPortal(
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
@@ -50,7 +52,7 @@ export default function DeleteConfirmationModal({
             onClick={onConfirm}
             className="bg-error hover:bg-errorHover text-background px-6 py-2.5 rounded-lg text-sm font-medium transition duration-200"
           >
-            Remove
+            {confirmText}
           </button>
         </div>
       </div>

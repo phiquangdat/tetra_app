@@ -2,7 +2,6 @@ import React, { type ReactNode, useEffect, useState } from 'react';
 import Accordion from './Accordion';
 import ContentBlockList from '../module/ContentBlockList';
 import { useUnitContext } from '../../../context/admin/UnitContext';
-import { RemoveIcon } from '../../common/Icons.tsx';
 import DeleteConfirmationModal from '../createModule/DeleteConfirmationModal.tsx';
 
 interface UnitItemProps {
@@ -72,17 +71,6 @@ const UnitItem: React.FC<UnitItemProps> = ({
           <h3 className="text-xl font-semibold text-gray-700">
             Unit {unitNumber}: {title}
           </h3>
-          <span
-            role="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowRemoveConfirm(true);
-            }}
-            aria-label="Remove Unit"
-            className="cursor-pointer p-1"
-          >
-            <RemoveIcon />
-          </span>
         </div>
       }
       isOpen={isOpen}
@@ -117,6 +105,17 @@ const UnitItem: React.FC<UnitItemProps> = ({
             )}
 
             {addContentComponent}
+            <button
+              role="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowRemoveConfirm(true);
+              }}
+              aria-label="Remove Unit"
+              className="px-4 py-2 bg-error text-white rounded-lg hover:bg-errorHover text-sm"
+            >
+              Delete
+            </button>
           </div>
         </>
       )}

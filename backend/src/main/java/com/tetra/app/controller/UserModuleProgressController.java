@@ -293,4 +293,43 @@ public class UserModuleProgressController {
                     .body("Failed to update progress: " + e.getMessage());
         }
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUserModuleProgress(
+            @PathVariable("id") UUID progressId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String userIdStr;
+        String role;
+        try {
+            userIdStr = jwtUtil.extractUserId(token);
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        UUID userId;
+        try {
+            userId = UUID.fromString(userIdStr);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid userId in token");
+        }
+
+        Optional<UserModuleProgress> progressOpt = userModuleProgressRepository.findById(progressId);
+        if (progressOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User module progress not found");
+        }
+        UserModuleProgress progress = progressOpt.get();
+
+        // Only the owner or ADMIN can delete
+        if (!"ADMIN".equals(role) && !progress.getUser().getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
+
+        userModuleProgressRepository.deleteById(progressId);
+        return ResponseEntity.ok("User module progress deleted");
+    }
 }

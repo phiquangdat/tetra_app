@@ -65,7 +65,7 @@ const UnitsBlockUI: React.FC<UnitsBlockUIProps> = ({ moduleId }) => {
   if (error) return <p className="text-error">{error}</p>;
 
   return (
-    <UnitsBlock>
+    <UnitsBlock unitCount={unitNumbers.length}>
       {unitNumbers.map((unitNumber, index) => (
         <UnitContainer
           unitNumber={unitNumber}

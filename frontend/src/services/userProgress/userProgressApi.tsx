@@ -11,6 +11,11 @@ export interface UserProgress {
   earned_points: number;
 }
 
+export interface CreateModuleProgressRequest {
+  lastVisitedContent?: string;
+  lastVisitedUnit?: string;
+}
+
 export async function getModuleProgress(
   moduleId: string,
 ): Promise<UserProgress> {
@@ -20,5 +25,21 @@ export async function getModuleProgress(
     throw error instanceof Error
       ? error
       : new Error('Failed to get module progress');
+  }
+}
+
+export async function createModuleProgress(
+  moduleId: string,
+  data: CreateModuleProgressRequest,
+): Promise<any> {
+  try {
+    return await fetchWithAuth(`${BASE_URL}/user-module-progress`, {
+      method: 'POST',
+      body: JSON.stringify({ moduleId, ...data }),
+    });
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to create module progress');
   }
 }

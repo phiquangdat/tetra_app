@@ -1,3 +1,5 @@
+import { getAuthToken } from '../../utils/authHelpers.ts';
+
 const envBaseUrl = import.meta.env.VITE_BACKEND_URL;
 const BASE_URL =
   envBaseUrl && envBaseUrl.trim() !== '' ? `${envBaseUrl}/api` : '/api';
@@ -173,6 +175,40 @@ export async function updateUnit(id: string, unit: UnitInput): Promise<Unit> {
     return data;
   } catch (error) {
     console.error(`[updateUnit] Exception:`, error);
+    throw error;
+  }
+}
+
+export async function deleteUnit(id: string): Promise<string> {
+  const token = getAuthToken();
+  const url = `${BASE_URL}/units/${id}`;
+  console.log('[deleteUnit] DELETE:', url);
+
+  try {
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+
+    console.log(`[deleteUnit] Response status: ${response.status}`);
+    console.log(
+      `[deleteUnit] Response headers:`,
+      Object.fromEntries(response.headers.entries()),
+    );
+
+    const text = await response.text();
+
+    if (!response.ok) {
+      console.error(`[deleteUnit] Error response body:`, text);
+      throw new Error('Failed to delete unit');
+    }
+
+    return text;
+  } catch (error) {
+    console.error(`[deleteUnit] Exception:`, error);
     throw error;
   }
 }

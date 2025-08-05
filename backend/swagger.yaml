@@ -859,6 +859,55 @@ paths:
                 type: string
                 example: "Missing or invalid Authorization header"
 
+  /api/user-unit-progress:
+    post:
+      summary: Create user unit progress
+      description: |
+        Creates a new user unit progress record for the authenticated user.
+        Requires Authorization header with a valid JWT.
+        The request body must include `moduleId`, `unitId`, and `status`.
+        Returns 409 if progress already exists for this user and unit.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        description: User unit progress creation payload.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                moduleId:
+                  type: string
+                  format: uuid
+                  description: Module UUID.
+                unitId:
+                  type: string
+                  format: uuid
+                  description: Unit UUID.
+                status:
+                  type: string
+                  description: Progress status (e.g., IN_PROGRESS, COMPLETED).
+              required:
+                - moduleId
+                - unitId
+                - status
+      responses:
+        '201':
+          description: User unit progress created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserUnitProgress'
+        '400':
+          description: Bad request (missing or invalid fields).
+        '401':
+          description: Missing or invalid Authorization header.
+        '404':
+          description: User, module, or unit not found.
+        '409':
+          description: Progress already exists for this user and unit.
+
 components:
   schemas:
     Module:
@@ -1268,6 +1317,26 @@ components:
         oldPassword:
           type: string
           description: Required if password is being changed
+
+    UserUnitProgress:
+      type: object
+      description: Represents a user's progress for a specific unit.
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        moduleId:
+          type: string
+          format: uuid
+        unitId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          description: Progress status (e.g., IN_PROGRESS, COMPLETED)
 
   securitySchemes:
     bearerAuth:

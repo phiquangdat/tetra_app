@@ -27,7 +27,7 @@ const VideoBlock: React.FC<VideoBlockProps> = ({
   blockIndex,
   id,
 }) => {
-  const { getUnitState } = useUnitContext();
+  const { getUnitState, setUnitState, setEditingBlock } = useUnitContext();
   const unitContent =
     unitNumber != null && blockIndex != null
       ? getUnitState(unitNumber)?.content[blockIndex]
@@ -39,7 +39,33 @@ const VideoBlock: React.FC<VideoBlockProps> = ({
 
   useEffect(() => {
     if (!shouldUseContext && id) {
-      fetchVideoContentById(id).then(setVideo).catch(console.error);
+      fetchVideoContentById(id)
+        .then((fetched) => {
+          setVideo(fetched);
+
+          // Inject content into unit content
+          if (unitNumber != null && blockIndex != null) {
+            const unit = getUnitState(unitNumber);
+            if (!unit) return;
+
+            const updatedBlock = {
+              ...unit.content[blockIndex],
+              data: {
+                ...unit.content[blockIndex].data,
+                content: fetched.content,
+              },
+            };
+
+            const updatedContent = [...unit.content];
+            updatedContent[blockIndex] = updatedBlock;
+
+            // Update context
+            setUnitState(unitNumber, {
+              content: updatedContent,
+            });
+          }
+        })
+        .catch(console.error);
     }
   }, [shouldUseContext, id]);
 
@@ -89,7 +115,14 @@ const VideoBlock: React.FC<VideoBlockProps> = ({
         </div>
 
         <div className="flex gap-4">
-          <button className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover text-sm">
+          <button
+            className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover text-sm"
+            onClick={() => {
+              if (unitNumber != null && blockIndex != null) {
+                setEditingBlock({ unitNumber, blockIndex, type: 'video' });
+              }
+            }}
+          >
             Edit
           </button>
           <button className="px-4 py-2 bg-error text-white rounded-lg hover:bg-errorHover text-sm">

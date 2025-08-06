@@ -20,7 +20,8 @@ const UnitContainer: React.FC<UnitContainerProps> = ({
   isOpen,
   onToggle,
 }) => {
-  const { getUnitState, setIsEditing } = useUnitContext();
+  const { getUnitState, setIsEditing, editingBlock, setEditingBlock } =
+    useUnitContext();
   const unitState = getUnitState(unitNumber);
   const unitId = unitState?.id ?? '';
 
@@ -30,6 +31,22 @@ const UnitContainer: React.FC<UnitContainerProps> = ({
       setIsEditing(unitNumber, initialEditMode);
     }
   }, [unitState, initialEditMode, setIsEditing, unitNumber]);
+
+  useEffect(() => {
+    if (!editingBlock || editingBlock.unitNumber !== unitNumber) return;
+
+    switch (editingBlock.type) {
+      case 'article':
+        setShowArticleModal(true);
+        break;
+      case 'video':
+        setShowVideoModal(true);
+        break;
+      case 'quiz':
+        setShowQuizModal(true);
+        break;
+    }
+  }, [editingBlock, unitNumber]);
 
   const isEditing = unitState?.isEditing;
 
@@ -68,7 +85,10 @@ const UnitContainer: React.FC<UnitContainerProps> = ({
       {/* Article Modal */}
       <AddArticleModal
         isOpen={showArticleModal}
-        onClose={() => setShowArticleModal(false)}
+        onClose={() => {
+          setShowArticleModal(false);
+          setEditingBlock(null);
+        }}
         unitId={unitId}
         unitNumber={unitNumber}
       />
@@ -76,7 +96,10 @@ const UnitContainer: React.FC<UnitContainerProps> = ({
       {/* Video Modal */}
       <AddVideoModal
         isOpen={showVideoModal}
-        onClose={() => setShowVideoModal(false)}
+        onClose={() => {
+          setShowVideoModal(false);
+          setEditingBlock(null);
+        }}
         unitId={unitId}
         unitNumber={unitNumber}
       />
@@ -84,7 +107,10 @@ const UnitContainer: React.FC<UnitContainerProps> = ({
       {/* Quiz Modal */}
       <AddQuizModal
         isOpen={showQuizModal}
-        onClose={() => setShowQuizModal(false)}
+        onClose={() => {
+          setShowQuizModal(false);
+          setEditingBlock(null);
+        }}
         unitId={unitId}
         unitNumber={unitNumber}
       />

@@ -1,6 +1,10 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { UnitContent } from '../../services/unit/unitApi';
+import {
+  type UnitContent,
+  fetchUnitContentById,
+  fetchUnitTitleByModuleId,
+} from '../../services/unit/unitApi';
 import { useUnitContent } from './UnitContentContext';
 import { useQuizModal } from './QuizModalContext.tsx';
 import { useUnitCompletionModal } from './UnitCompletionModalContext';
@@ -24,6 +28,8 @@ interface ModuleProgressContextProps {
   setProgressStatus: (status: string) => void;
   unitProgressStatus: string;
   setUnitProgressStatus: (status: string) => void;
+  goToStart: () => Promise<void>;
+  goToLastVisited: (lastUnitId: string, lastContentId: string) => void;
 }
 
 const ModuleProgressContext = createContext<
@@ -44,7 +50,7 @@ export const ModuleProgressProvider = ({
 }: {
   children: ReactNode;
 }) => {
-  const { contentList } = useUnitContent();
+  const { contentList, setUnitContent } = useUnitContent();
   const { openModal } = useQuizModal();
   const { open: openUnitCompletionModal } = useUnitCompletionModal();
   const [units, setUnitsState] = useState<Unit[]>([]);
@@ -105,6 +111,57 @@ export const ModuleProgressProvider = ({
     return false;
   };
 
+  const goToStart = async () => {
+    const units = await fetchUnitTitleByModuleId(moduleId);
+
+    if (units && units.length > 0) {
+      const firstUnitId = units[0].id;
+      const firstUnitContent = await fetchUnitContentById(firstUnitId);
+
+      if (firstUnitContent && firstUnitContent.length > 0) {
+        const firstContent = firstUnitContent[0];
+
+        setUnits(units);
+
+        setUnitId(firstUnitId);
+
+        setUnitContent(firstUnitId, firstUnitContent);
+
+        navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
+          state: { unitId: firstUnitId },
+        });
+      } else {
+        throw new Error('This module has no content to start.');
+      }
+    } else {
+      throw new Error('This module has no units.');
+    }
+  };
+
+  const goToLastVisited = (lastUnitId: string, lastContentId: string) => {
+    const lastVisitedUnit = units.find((u) => u.id === lastUnitId);
+    if (lastVisitedUnit) {
+      setUnitId(lastVisitedUnit.id);
+
+      const lastVisitedContent = contentList.find(
+        (c) => c.id === lastContentId,
+      );
+      if (lastVisitedContent) {
+        setUnitContent(lastVisitedUnit.id, contentList);
+        navigate(
+          `/user/${lastVisitedContent.content_type}/${lastVisitedContent.id}`,
+          {
+            state: { unitId: lastVisitedUnit.id },
+          },
+        );
+      } else {
+        throw new Error('Last visited content not found.');
+      }
+    } else {
+      throw new Error('Last visited unit not found.');
+    }
+  };
+
   return (
     <ModuleProgressContext.Provider
       value={{
@@ -120,6 +177,8 @@ export const ModuleProgressProvider = ({
         setProgressStatus,
         unitProgressStatus,
         setUnitProgressStatus,
+        goToStart,
+        goToLastVisited,
       }}
     >
       {children}

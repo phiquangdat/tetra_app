@@ -3,10 +3,7 @@ import {
   fetchModuleById,
   type Module,
 } from '../../../services/module/moduleApi';
-import {
-  fetchUnitContentById,
-  fetchUnitTitleByModuleId,
-} from '../../../services/unit/unitApi';
+import { fetchUnitTitleByModuleId } from '../../../services/unit/unitApi';
 import {
   getModuleProgress,
   createModuleProgress,
@@ -19,7 +16,6 @@ interface ModulePageProps {
   id: string;
 }
 import { useModuleProgress } from '../../../context/user/ModuleContext';
-import { useUnitContent } from '../../../context/user/UnitContentContext.tsx';
 
 export type Unit = {
   id: string;
@@ -32,12 +28,12 @@ export type Unit = {
 
 const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   const {
-    setUnitId,
     setUnits: setModuleUnits,
     progressStatus,
     setProgressStatus,
+    goToStart,
+    goToLastVisited,
   } = useModuleProgress();
-  const { setUnitContent } = useUnitContent();
   const [module, setModule] = useState<Module | null>(null);
   const [moduleProgress, setModuleProgress] = useState<ModuleProgress | null>(
     null,
@@ -87,8 +83,6 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
 
   const handleStart = async () => {
     try {
-      const units = await fetchUnitTitleByModuleId(id);
-
       if (progressStatus === 'not_started') {
         const response = await createModuleProgress(id, {
           lastVisitedContent: moduleProgress?.last_visited_content_id,
@@ -104,32 +98,35 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
 
         setModuleProgress(progress);
         setProgressStatus('in_progress');
-      }
 
-      if (units && units.length > 0) {
-        const firstUnitId = units[0].id;
-        const firstUnitContent = await fetchUnitContentById(firstUnitId);
-
-        if (firstUnitContent && firstUnitContent.length > 0) {
-          const firstContent = firstUnitContent[0];
-
-          setModuleUnits(units);
-
-          setUnitId(firstUnitId);
-
-          setUnitContent(firstUnitId, firstUnitContent);
-
-          navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
-            state: { unitId: firstUnitId },
-          });
-        } else {
-          setError('This module has no content to start.');
-        }
-      } else {
-        setError('This module has no units.');
+        await goToStart();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Cannot start module.');
+      err instanceof Error
+        ? console.error(err.message)
+        : setError('Cannot start module.');
+    }
+  };
+
+  const handleContinue = async () => {
+    try {
+      if (
+        moduleProgress?.last_visited_content_id &&
+        moduleProgress?.last_visited_unit_id
+      ) {
+        goToLastVisited(
+          moduleProgress.last_visited_unit_id,
+          moduleProgress.last_visited_content_id,
+        );
+      } else {
+        throw new Error(
+          'Cannot continue module: last visited content or unit id not provided.',
+        );
+      }
+    } catch (err) {
+      err instanceof Error
+        ? console.error(err.message)
+        : setError('Cannot continue module.');
     }
   };
 
@@ -158,6 +155,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
           <button
             className="bg-secondary text-white font-semibold px-14 py-3 rounded-full text-lg shadow-md hover:bg-secondaryHover focus:outline-none focus:ring-2 focus:ring-surface transition w-fit"
             type="button"
+            onClick={handleContinue}
           >
             Continue
           </button>

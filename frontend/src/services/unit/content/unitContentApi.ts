@@ -1,3 +1,5 @@
+import { getAuthToken } from '../../../utils/authHelpers.ts';
+
 const envBaseUrl = import.meta.env.VITE_BACKEND_URL;
 const BASE_URL =
   envBaseUrl && envBaseUrl.trim() !== '' ? `${envBaseUrl}/api` : '/api';
@@ -132,6 +134,46 @@ export async function saveQuizContent(
   } catch (error) {
     console.error(
       'Error saving quiz content:',
+      error instanceof Error ? error.message : 'Unknown error',
+    );
+    throw error instanceof Error ? error : new Error('Unknown error occurred');
+  }
+}
+
+export async function updateArticleContent(
+  id: string,
+  article: SaveArticleRequest,
+): Promise<{ id: string }> {
+  const token = getAuthToken();
+  const url = `${BASE_URL}/unit_content/article/${id}`;
+  console.log('[updateArticle] UPDATE:', url);
+  try {
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify(article),
+    });
+
+    console.log(`[updateArticle] Response status: ${response.status}`);
+    console.log(
+      `[updateArticle] Response headers:`,
+      Object.fromEntries(response.headers.entries()),
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to update article content: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(
+      'Error updating article content:',
       error instanceof Error ? error.message : 'Unknown error',
     );
     throw error instanceof Error ? error : new Error('Unknown error occurred');

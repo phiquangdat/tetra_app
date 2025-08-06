@@ -17,7 +17,7 @@ const ArticleBlock: React.FC<ArticleBlockProps> = ({
   id,
 }) => {
   // const fromContext = unitNumber != null && blockIndex != null;
-  const { getUnitState } = useUnitContext();
+  const { getUnitState, setUnitState, setEditingBlock } = useUnitContext();
   const [article, setArticle] = useState<Article | null>(null);
 
   const unitContent =
@@ -30,7 +30,33 @@ const ArticleBlock: React.FC<ArticleBlockProps> = ({
   // Only fetch if context is NOT usable
   useEffect(() => {
     if (!shouldUseContext && id) {
-      fetchArticleContentById(id).then(setArticle).catch(console.error);
+      fetchArticleContentById(id)
+        .then((fetched) => {
+          setArticle(fetched);
+
+          // 💡 Inject content into unit context
+          if (unitNumber != null && blockIndex != null) {
+            const unit = getUnitState(unitNumber);
+            if (!unit) return;
+
+            const updatedBlock = {
+              ...unit.content[blockIndex],
+              data: {
+                ...unit.content[blockIndex].data,
+                content: fetched.content,
+              },
+            };
+
+            const updatedContent = [...unit.content];
+            updatedContent[blockIndex] = updatedBlock;
+
+            // Update context
+            setUnitState(unitNumber, {
+              content: updatedContent,
+            });
+          }
+        })
+        .catch(console.error);
     }
   }, [shouldUseContext, id]);
 
@@ -54,7 +80,14 @@ const ArticleBlock: React.FC<ArticleBlockProps> = ({
           <div dangerouslySetInnerHTML={{ __html: contentHtml }} />
         </div>
         <div className="flex gap-4">
-          <button className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover text-sm">
+          <button
+            className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover text-sm"
+            onClick={() => {
+              if (unitNumber != null && blockIndex != null) {
+                setEditingBlock({ unitNumber, blockIndex, type: 'article' });
+              }
+            }}
+          >
             Edit
           </button>
           <button className="px-4 py-2 bg-error text-white rounded-lg hover:bg-errorHover text-sm">

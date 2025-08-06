@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   CloseIcon,
   VideoHeaderIcon,
@@ -19,20 +19,57 @@ const YOUTUBE_REGEX =
 
 function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
   const {
-    data,
     updateContentField,
     saveContent,
-    isSaving,
     clearContent,
     setContentState,
+    getContentState,
     isDirty,
   } = useContentBlockContext();
-  const { addContentBlock, removeContentBlock } = useUnitContext();
+  const {
+    addContentBlock,
+    removeContentBlock,
+    getUnitState,
+    updateUnitField,
+    editingBlock,
+    setEditingBlock,
+  } = useUnitContext();
+
+  const contentBlock = getContentState();
+  const { data, isSaving, error } = contentBlock;
+
+  const [canSave, setCanSave] = useState(false);
 
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isOpen) {
+    setCanSave(
+      Boolean(
+        data?.title?.trim() &&
+          data?.url?.trim() &&
+          data?.content?.trim() &&
+          isValidUrl &&
+          !isSaving,
+      ),
+    );
+  }, [data]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const block =
+      editingBlock?.unitNumber === unitNumber && editingBlock.blockIndex != null
+        ? getUnitState(unitNumber)?.content[editingBlock.blockIndex]
+        : null;
+
+    if (block && block.type === 'video') {
+      setContentState({
+        ...block,
+        isDirty: false,
+        isSaving: false,
+        error: null,
+      });
+    } else {
       clearContent();
       setContentState({
         unit_id: unitId,
@@ -56,40 +93,33 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
 
   const isValidUrl =
     data.url && (data.url.endsWith('.mp4') || isYouTubeUrl(data.url));
-  const canSave =
-    data.title.trim() !== '' &&
-    (data.content?.trim() ?? '') !== '' &&
-    isValidUrl &&
-    !isSaving;
 
   const handleSave = async () => {
     if (!canSave) return;
     try {
-      await saveContent('video');
+      const savedBlock = await saveContent('video');
+      if (!savedBlock) return;
 
-      addContentBlock(unitNumber, {
-        type: 'video',
-        data: {
-          title: data.title.trim(),
-          content: data.content?.trim() ?? '',
-          url: data.url?.trim() ?? '',
-        },
-        sortOrder: 0,
-        unit_id: unitId,
-        isDirty: false,
-        isSaving: false,
-        error: null,
-      });
+      if (editingBlock) {
+        const currentContent = getUnitState(unitNumber)?.content ?? [];
+        const newBlocks = [...currentContent];
+        newBlocks[editingBlock.blockIndex] = savedBlock;
+        updateUnitField(unitNumber, 'content', newBlocks);
+      } else {
+        addContentBlock(unitNumber, savedBlock);
+      }
 
       clearContent();
+      setEditingBlock(null);
       onClose();
     } catch (error) {
-      console.error('Error saving video:', error);
+      console.error('[AddVideoModal] Save failed:', error);
     }
   };
 
   const handleClose = () => {
-    if (isDirty && !isSaving) {
+    const wasSaved = !!getContentState().id;
+    if (!wasSaved && isDirty && !isSaving) {
       removeContentBlock(unitNumber, -1);
     }
     clearContent();
@@ -111,7 +141,7 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
         <input
           type="url"
           placeholder="https://example.com/video.mp4 or YouTube URL"
-          value={data.url}
+          value={data.url ?? ''}
           onChange={(e) =>
             updateContentField('data', {
               ...data,
@@ -246,6 +276,8 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
                 disabled={isSaving}
               />
             </div>
+
+            {error && <p className="text-error text-sm">{error}</p>}
 
             <div className="flex justify-end p-6 pt-0">
               <button

@@ -36,14 +36,13 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const handleConfirmLogout = async () => {
     try {
-      logout();
+      await logout();
       toast.success('You’ve been signed out.');
     } catch (error) {
       toast.error('Something went wrong during logout.');
     } finally {
       setShowModal(false);
       navigate('/');
-      window.location.reload();
     }
   };
 

@@ -4,6 +4,9 @@ import CreateModuleForm from './CreateModuleForm';
 import UnitsBlock from '../ui/UnitsBlock.tsx';
 import UnitContainer from '../ui/UnitContainer.tsx';
 import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
+import { useModuleContext } from '../../../context/admin/ModuleContext.tsx';
+import ConfirmationModal from './ConfirmationModal.tsx';
+import { useNavigate } from 'react-router-dom';
 
 const UnitsManager: React.FC = () => {
   const { unitStates, addUnit, getNextUnitNumber } = useUnitContext();
@@ -71,6 +74,9 @@ function CreateModulePageContent() {
   const { setUnitStatesRaw } = useUnitContext();
   const [ready, setReady] = useState(false);
   const { clearContent } = useContentBlockContext();
+  const { publishModule, status } = useModuleContext();
+  const [showPublishConfirm, setShowPublishConfirm] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setUnitStatesRaw({});
@@ -82,9 +88,10 @@ function CreateModulePageContent() {
     return <div>Initializing form...</div>;
   }
 
-  const handleSaveDraftModule = () => {};
-
-  const handlePublishModule = () => {};
+  const handleConfirmPublish = async () => {
+    await publishModule();
+    navigate('/admin/modules');
+  };
 
   return (
     <div className="m-0 px-4 py-4 max-w-5xl">
@@ -96,22 +103,33 @@ function CreateModulePageContent() {
         style={{ backgroundColor: '#F2EAEA' }}
       >
         <div className="mx-auto my-6 flex justify-center gap-2">
-          <button
-            type="button"
-            onClick={handleSaveDraftModule}
-            className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors duration-200 mr-4 w-32 h-10"
-          >
-            Save draft
-          </button>
-          <button
-            type="button"
-            onClick={handlePublishModule}
-            className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors duration-200 mr-4 w-32 h-10"
-          >
-            Publish
-          </button>
+          {status !== 'published' && (
+            <div
+              className="max-w-5xl px-16 py-9 my-6 rounded-3xl"
+              style={{ backgroundColor: '#F2EAEA' }}
+            >
+              <div className="mx-auto my-6 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setShowPublishConfirm(true)}
+                  className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors duration-200 w-32 h-10"
+                >
+                  Publish
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+      {showPublishConfirm && (
+        <ConfirmationModal
+          title="Publish Module"
+          description="Are you sure you want to publish this module? Once published, it will be visible to users."
+          onCancel={() => setShowPublishConfirm(false)}
+          onConfirm={handleConfirmPublish}
+          confirmText="Publish"
+        />
+      )}
     </div>
   );
 }

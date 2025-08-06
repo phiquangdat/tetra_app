@@ -4,11 +4,19 @@ const BASE_URL =
 
 import { fetchWithAuth } from '../../utils/authHelpers';
 
-export interface UserProgress {
+export interface ModuleProgress {
   status: string;
   last_visited_unit_id: string;
   last_visited_content_id: string;
   earned_points: number;
+}
+
+export interface UnitProgress {
+  id: string;
+  userId: string;
+  moduleId: string;
+  unitId: string;
+  status: string;
 }
 
 export interface CreateModuleProgressRequest {
@@ -18,7 +26,7 @@ export interface CreateModuleProgressRequest {
 
 export async function getModuleProgress(
   moduleId: string,
-): Promise<UserProgress> {
+): Promise<ModuleProgress> {
   try {
     return await fetchWithAuth(`${BASE_URL}/user-module-progress/${moduleId}`);
   } catch (error) {
@@ -41,5 +49,31 @@ export async function createModuleProgress(
     throw error instanceof Error
       ? error
       : new Error('Failed to create module progress');
+  }
+}
+
+export async function getUnitProgress(unitId: string): Promise<UnitProgress> {
+  try {
+    return await fetchWithAuth(`${BASE_URL}/user-unit-progress/${unitId}`);
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to get unit progress');
+  }
+}
+
+export async function createUnitProgress(
+  unitId: string,
+  moduleId: string,
+): Promise<UnitProgress> {
+  try {
+    return await fetchWithAuth(`${BASE_URL}/user-unit-progress`, {
+      method: 'POST',
+      body: JSON.stringify({ unitId, moduleId, status: 'IN_PROGRESS' }),
+    });
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to create unit progress');
   }
 }

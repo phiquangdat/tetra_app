@@ -53,6 +53,8 @@ const VideoBlock: React.FC<VideoBlockProps> = ({
               data: {
                 ...unit.content[blockIndex].data,
                 content: fetched.content,
+                title: fetched.title,
+                url: fetched.url,
               },
             };
 

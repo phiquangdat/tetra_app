@@ -50,7 +50,7 @@ const Home = () => {
         <div className="fixed top-16 left-0 w-64 h-[calc(100%-4rem)] bg-gray-800 z-40">
           {userRole === 'admin' ? (
             <AdminSidebar />
-          ) : userRole === 'user' ? (
+          ) : userRole === 'learner' ? (
             <UserSidebar />
           ) : null}
         </div>

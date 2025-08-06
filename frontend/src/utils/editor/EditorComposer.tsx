@@ -1,38 +1,36 @@
-import { LexicalComposer } from '@lexical/react/LexicalComposer';
+import {
+  LexicalComposer,
+  type InitialConfigType,
+} from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
-import { TextNode, ParagraphNode, type EditorThemeClasses } from 'lexical';
 import { HeadingNode } from '@lexical/rich-text';
 import { ListNode, ListItemNode } from '@lexical/list';
-import { ListPlugin } from '@lexical/react/LexicalListPlugin';
-import { TabIndentationPlugin } from '@lexical/react/LexicalTabIndentationPlugin';
+import { $generateNodesFromDOM } from '@lexical/html';
+import { $getRoot, $insertNodes } from 'lexical';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { useEffect } from 'react';
 
+import { TextNode, ParagraphNode, type EditorThemeClasses } from 'lexical';
+// import { useEditorStateContext } from './contexts/EditorStateContext';
 import { ImageNode } from './nodes/ImageNode';
 import ToolbarPlugin from './plugins/ToolbarPlugin';
 import OnChangePlugin from './plugins/OnChangePlugin';
 import Placeholder from './PlaceHolder';
-import type { JSX } from 'react';
+import { ListPlugin } from '@lexical/react/LexicalListPlugin';
+import { TabIndentationPlugin } from '@lexical/react/LexicalTabIndentationPlugin';
 
 interface EditorComposerProps {
-  initialValue?: string;
+  initialHTML?: string;
   placeholder?: string;
   className?: string;
   autoFocus?: boolean;
   onError?: (error: Error) => void;
 }
 
-interface EditorConfig {
-  namespace: string;
-  onError: (error: Error) => void;
-  nodes: Array<any>;
-  theme: EditorThemeClasses;
-  editorState?: string;
-}
-
-// Theme configuration
 const createEditorTheme = (): EditorThemeClasses => ({
   paragraph: 'mb-2',
   list: {
@@ -62,7 +60,6 @@ const createEditorTheme = (): EditorThemeClasses => ({
   },
 });
 
-// Node configuration
 const getEditorNodes = () => [
   TextNode,
   ParagraphNode,
@@ -72,103 +69,60 @@ const getEditorNodes = () => [
   ImageNode,
 ];
 
-const defaultErrorHandler = (error: Error) => {
-  console.error('Editor error:', error);
-  throw error;
-};
+function LoadInitialContent({ initialHTML }: { initialHTML?: string }) {
+  const [editor] = useLexicalComposerContext();
 
-// Create editor configuration
-const createEditorConfig = (
-  onError?: (error: Error) => void,
-  initialValue?: string,
-): EditorConfig => ({
-  namespace: 'ArticleEditor',
-  onError: onError || defaultErrorHandler,
-  nodes: getEditorNodes(),
-  theme: createEditorTheme(),
-  editorState: initialValue,
-});
+  useEffect(() => {
+    if (!initialHTML) return;
 
-interface ContentEditableProps {
-  className?: string;
-}
+    editor.update(() => {
+      const parser = new DOMParser();
+      const dom = parser.parseFromString(initialHTML, 'text/html');
+      const nodes = $generateNodesFromDOM(editor, dom);
+      const root = $getRoot();
+      root.clear();
+      $insertNodes(nodes);
+    });
+  }, [editor, initialHTML]);
 
-function EditorContentEditable({ className = '' }: ContentEditableProps) {
-  const baseClasses =
-    'h-[400px] overflow-y-auto outline-none p-4 rounded-md focus:outline-none';
-
-  return (
-    <ContentEditable
-      role="textbox"
-      aria-label="Article content"
-      className={`${baseClasses} ${className}`}
-    />
-  );
-}
-
-interface ErrorBoundaryProps {
-  onError?: (error: Error) => void;
-  children: JSX.Element;
-}
-
-function EditorErrorBoundary({ onError, children }: ErrorBoundaryProps) {
-  const handleError = (error: Error) => {
-    if (onError) {
-      onError(error);
-    } else {
-      defaultErrorHandler(error);
-    }
-  };
-
-  return (
-    <LexicalErrorBoundary onError={handleError}>
-      {children}
-    </LexicalErrorBoundary>
-  );
+  return null;
 }
 
 export default function EditorComposer({
-  initialValue,
+  initialHTML = '<p></p>',
   className = '',
   autoFocus = true,
   onError,
-}: EditorComposerProps = {}) {
-  const editorConfig = createEditorConfig(onError, initialValue);
-
-  const containerClasses = `
-    border 
-    border-gray-400 
-    rounded-lg 
-    p-2
-    ${className}
-  `.trim();
+}: EditorComposerProps) {
+  const editorConfig: InitialConfigType = {
+    namespace: 'ArticleEditor',
+    onError:
+      onError ||
+      ((e) => {
+        throw e;
+      }),
+    nodes: getEditorNodes(),
+    theme: createEditorTheme(),
+  };
 
   return (
-    <div className={containerClasses}>
+    <div className={`border border-gray-400 rounded-lg p-2 ${className}`}>
       <LexicalComposer initialConfig={editorConfig}>
         <ToolbarPlugin />
-
         <RichTextPlugin
-          contentEditable={<EditorContentEditable />}
+          contentEditable={
+            <ContentEditable className="h-[400px] overflow-y-auto outline-none p-4 rounded-md" />
+          }
           placeholder={<Placeholder />}
-          ErrorBoundary={({ children }) => (
-            <EditorErrorBoundary
-              onError={onError}
-              children={children as JSX.Element}
-            />
-          )}
+          ErrorBoundary={LexicalErrorBoundary}
         />
-
         <OnChangePlugin />
         <HistoryPlugin />
         <ListPlugin />
         <TabIndentationPlugin />
-
         {autoFocus && <AutoFocusPlugin />}
+        <LoadInitialContent initialHTML={initialHTML} />
       </LexicalComposer>
     </div>
   );
 }
-
-export { createEditorConfig, createEditorTheme, getEditorNodes };
-export type { EditorComposerProps, EditorConfig };

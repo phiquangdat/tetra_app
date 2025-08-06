@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { ModuleProgressProvider } from '../context/user/ModuleContext.tsx';
+import { ModuleProgressProvider } from '../context/user/ModuleProgressContext.tsx';
 import { QuizModalProvider } from '../context/user/QuizModalContext.tsx';
 import QuizStartModal from '../components/user/quiz/QuizStartModal.tsx';
 import { UnitContentProvider } from '../context/user/UnitContentContext';

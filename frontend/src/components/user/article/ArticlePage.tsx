@@ -4,7 +4,7 @@ import {
   fetchArticleContentById,
   type Article,
 } from '../../../services/unit/unitApi';
-import { useModuleProgress } from '../../../context/user/ModuleContext';
+import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
 
 interface ArticlePageProps {
   id: string;

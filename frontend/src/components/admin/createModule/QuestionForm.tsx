@@ -1,6 +1,7 @@
 import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
 import QuestionOption from './QuestionOption';
 import { CloseIcon } from '../../common/Icons';
+import { useEffect } from 'react';
 
 type Props = {
   questionNumber: number;
@@ -22,16 +23,18 @@ function QuestionForm({
 
   if (!question) return null;
 
-  if (questionType === 'multiple' && question.answers.length === 0) {
-    const defaultAnswers = [
-      { title: '', is_correct: false, sort_order: 0 },
-      { title: '', is_correct: false, sort_order: 1 },
-    ];
-    updateQuestion(questionIndex, {
-      ...question,
-      answers: defaultAnswers,
-    });
-  }
+  useEffect(() => {
+    if (questionType === 'multiple' && question.answers.length === 0) {
+      const defaultAnswers = [
+        { title: '', is_correct: false, sort_order: 0 },
+        { title: '', is_correct: false, sort_order: 1 },
+      ];
+      updateQuestion(questionIndex, {
+        ...question,
+        answers: defaultAnswers,
+      });
+    }
+  }, [questionType, question.answers.length]);
 
   const handleClose = () => {
     onClose();

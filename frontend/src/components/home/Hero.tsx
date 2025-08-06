@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/auth/AuthContext';
 
 import HeroImage1 from '../../../src/assets/images/hero_option1.png';
@@ -10,7 +10,13 @@ const heroImages = [HeroImage1, HeroImage2, HeroImage3, HeroImage4];
 
 const Hero: React.FC<{ onGetStarted?: () => void }> = ({ onGetStarted }) => {
   const { authToken } = useAuth();
-  const isLoggedIn = Boolean(authToken);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const sessionToken = sessionStorage.getItem('jwt_token');
+    const resolvedToken = sessionToken === '' ? '' : (authToken ?? '');
+    setIsLoggedIn(Boolean(resolvedToken));
+  }, [authToken]);
 
   // Pick random image on each render
   const randomImage = heroImages[Math.floor(Math.random() * heroImages.length)];

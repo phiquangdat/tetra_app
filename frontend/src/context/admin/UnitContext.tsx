@@ -15,6 +15,12 @@ import {
 } from '../../services/unit/unitApi';
 import toast from 'react-hot-toast';
 
+export type EditingBlock = {
+  unitNumber: number;
+  blockIndex: number;
+  type: ContentBlock['type'];
+};
+
 export type QuizQuestionAnswer = {
   title: string;
   is_correct: boolean;
@@ -82,6 +88,8 @@ type UnitContextType = {
     unitNumber: number,
   ) => Promise<void>;
   setIsEditing: (unitNumber: number, editing: boolean) => void;
+  editingBlock: EditingBlock | null;
+  setEditingBlock: (block: EditingBlock | null) => void;
 };
 
 export const initialUnitState = (): UnitContextEntry => ({
@@ -104,6 +112,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
   const [unitStates, setUnitStates] = useState<
     Record<number, UnitContextEntry>
   >({});
+  const [editingBlock, setEditingBlock] = useState<EditingBlock | null>(null);
 
   const updateUnitField = useCallback(
     (unitNumber: number, key: keyof UnitContextEntry, value: any) => {
@@ -351,6 +360,8 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     setUnitStatesRaw,
     loadUnitContentIntoState,
     setIsEditing,
+    editingBlock,
+    setEditingBlock,
   };
 
   return (

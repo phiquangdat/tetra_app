@@ -31,6 +31,8 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
     setUnits: setModuleUnits,
     progressStatus,
     setProgressStatus,
+    goToStart,
+    goToLastVisited,
   } = useModuleProgress();
   const [module, setModule] = useState<Module | null>(null);
   const [moduleProgress, setModuleProgress] = useState<ModuleProgress | null>(
@@ -96,9 +98,35 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
 
         setModuleProgress(progress);
         setProgressStatus('in_progress');
+
+        await goToStart();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Cannot start module.');
+      err instanceof Error
+        ? console.error(err.message)
+        : setError('Cannot start module.');
+    }
+  };
+
+  const handleContinue = async () => {
+    try {
+      if (
+        moduleProgress?.last_visited_content_id &&
+        moduleProgress?.last_visited_unit_id
+      ) {
+        goToLastVisited(
+          moduleProgress.last_visited_unit_id,
+          moduleProgress.last_visited_content_id,
+        );
+      } else {
+        throw new Error(
+          'Cannot continue module: last visited content or unit id not provided.',
+        );
+      }
+    } catch (err) {
+      err instanceof Error
+        ? console.error(err.message)
+        : setError('Cannot continue module.');
     }
   };
 
@@ -127,6 +155,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
           <button
             className="bg-secondary text-white font-semibold px-14 py-3 rounded-full text-lg shadow-md hover:bg-secondaryHover focus:outline-none focus:ring-2 focus:ring-surface transition w-fit"
             type="button"
+            onClick={handleContinue}
           >
             Continue
           </button>

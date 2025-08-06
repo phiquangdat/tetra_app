@@ -138,27 +138,22 @@ export const ModuleProgressProvider = ({
     }
   };
 
-  const goToLastVisited = (lastUnitId: string, lastContentId: string) => {
-    const lastVisitedUnit = units.find((u) => u.id === lastUnitId);
-    if (lastVisitedUnit) {
-      setUnitId(lastVisitedUnit.id);
+  const goToLastVisited = async (lastUnitId: string, lastContentId: string) => {
+    setUnitId(lastUnitId);
 
-      const lastVisitedContent = contentList.find(
-        (c) => c.id === lastContentId,
-      );
-      if (lastVisitedContent) {
-        setUnitContent(lastVisitedUnit.id, contentList);
-        navigate(
-          `/user/${lastVisitedContent.content_type}/${lastVisitedContent.id}`,
-          {
-            state: { unitId: lastVisitedUnit.id },
-          },
-        );
-      } else {
-        throw new Error('Last visited content not found.');
-      }
+    const lastContentList = await fetchUnitContentById(lastUnitId);
+
+    const lastContent = lastContentList.find(
+      (content) => content.id === lastContentId,
+    );
+
+    if (lastContent) {
+      setUnitContent(lastContent.id, lastContentList);
+      navigate(`/user/${lastContent.content_type}/${lastContentId}`, {
+        state: { unitId: lastUnitId },
+      });
     } else {
-      throw new Error('Last visited unit not found.');
+      throw new Error('Last visited content not found.');
     }
   };
 

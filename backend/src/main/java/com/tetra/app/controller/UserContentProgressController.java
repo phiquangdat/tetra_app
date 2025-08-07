@@ -1,6 +1,7 @@
 package com.tetra.app.controller;
 
 import com.tetra.app.mapper.UserContentProgressMapper;
+import com.tetra.app.mapper.UserContentProgressMapper;
 import com.tetra.app.mapper.UserContentProgressPointsMapper;
 import com.tetra.app.model.UserContentProgress;
 import com.tetra.app.model.User;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;

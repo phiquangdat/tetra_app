@@ -24,6 +24,7 @@ const AdminLayout = () => {
                 <SharedHeader
                   onHamburgerClick={toggleSidebar}
                   isSidebarOpen={sidebarOpen}
+                  showHamburger={true}
                 />
                 <div className="flex flex-1 relative">
                   <div

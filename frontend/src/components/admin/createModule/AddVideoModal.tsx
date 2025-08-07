@@ -28,7 +28,7 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
   } = useContentBlockContext();
   const {
     addContentBlock,
-    removeContentBlock,
+    removeContentBlockFromContext,
     getUnitState,
     updateUnitField,
     editingBlock,
@@ -120,7 +120,7 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
   const handleClose = () => {
     const wasSaved = !!getContentState().id;
     if (!wasSaved && isDirty && !isSaving) {
-      removeContentBlock(unitNumber, -1);
+      removeContentBlockFromContext(unitNumber, -1);
     }
     clearContent();
     onClose();

@@ -30,7 +30,7 @@ function AddArticleModal({
   } = useContentBlockContext();
   const {
     addContentBlock,
-    removeContentBlock,
+    removeContentBlockFromContext,
     editingBlock,
     setEditingBlock,
     getUnitState,
@@ -110,7 +110,7 @@ function AddArticleModal({
   const handleClose = () => {
     const wasSaved = !!getContentState().id;
     if (!wasSaved && isDirty && !isSaving) {
-      removeContentBlock(unitNumber, -1);
+      removeContentBlockFromContext(unitNumber, -1);
     }
     clearContent();
     onClose();

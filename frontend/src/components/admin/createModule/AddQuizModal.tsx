@@ -34,7 +34,7 @@ function AddQuizModal({
     setEditingBlock,
     getUnitState,
     updateUnitField,
-    removeContentBlock,
+    removeContentBlockFromContext,
   } = useUnitContext();
 
   const [selectedOption, setSelectedOption] = useState('');
@@ -210,7 +210,7 @@ function AddQuizModal({
   const handleClose = () => {
     const wasSaved = !!getContentState().id;
     if (!wasSaved && isDirty && !isSaving) {
-      removeContentBlock(unitNumber, -1);
+      removeContentBlockFromContext(unitNumber, -1);
     }
     setErrors([]);
     setQuestionErrors({});

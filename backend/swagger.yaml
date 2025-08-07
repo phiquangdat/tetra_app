@@ -1397,3 +1397,78 @@ components:
               schema:
                 type: string
                 example: User module progress not found
+      
+  
+  /api/users-content-progress/{unitContentId}:
+    get:
+      tags:
+        - UserContentProgress
+      summary: Get user content progress for a specific UnitContent
+      description: |
+        Retrieves the progress of the currently authenticated user for the specified UnitContent.
+      parameters:
+        - name: unitContentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID of the UnitContent
+        - name: Authorization
+          in: header
+          required: true
+          description: Bearer token for authentication (e.g., `Bearer eyJhbGciOi...`)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Progress found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  user_id:
+                    type: string
+                    format: uuid
+                  unit_id:
+                    type: string
+                    format: uuid
+                  unit_content_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    enum: [IN_PROGRESS, COMPLETED]
+                  points:
+                    type: integer
+        '401':
+          description: Unauthorized - Missing or invalid Authorization header
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Bad Request - Invalid userId format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: Progress not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string

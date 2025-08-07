@@ -19,6 +19,7 @@ import {
   type SaveQuizRequest,
   updateArticleContent,
   updateVideoContent,
+  updateQuizContent,
 } from '../../services/unit/content/unitContentApi.ts';
 
 interface ContextBlockType extends ContentBlock {
@@ -268,11 +269,39 @@ export const ContentBlockContextProvider = ({
               questions: questions as QuizQuestion[],
             };
 
-            const result = await saveQuizContent(payload);
-            setContentState({ id: result.id });
-            console.log(
-              `[saveContent] Quiz content saved successfully, ID: ${result.id}`,
-            );
+            let result: { id: string };
+
+            try {
+              if (contentBlock.id) {
+                result = await updateQuizContent(contentBlock.id, payload);
+              } else {
+                result = await saveQuizContent(payload);
+              }
+              console.log(
+                `[saveContent] Quiz created successfully, ID: ${result.id}`,
+              );
+
+              const updatedBlock: ContentBlock = {
+                ...contentBlock,
+                id: result.id,
+                data: {
+                  ...contentBlock.data,
+                  content: content,
+                },
+                isDirty: false,
+                isSaving: false,
+                error: null,
+              };
+
+              setContentState(updatedBlock);
+              return updatedBlock;
+            } catch (err) {
+              const error =
+                err instanceof Error ? err.message : 'Unknown error occurred';
+              console.error('[saveContent] Failed to save article:', error);
+              setContentState({ error });
+              return;
+            }
             break;
           }
           default:

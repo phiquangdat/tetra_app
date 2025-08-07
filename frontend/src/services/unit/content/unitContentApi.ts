@@ -220,6 +220,46 @@ export async function updateVideoContent(
   }
 }
 
+export async function updateQuizContent(
+  id: string,
+  quiz: SaveQuizRequest,
+): Promise<{ id: string }> {
+  const token = getAuthToken();
+  const url = `${BASE_URL}/unit_content/quiz/${id}`;
+  console.log('[updateQuiz] UPDATE:', url);
+  try {
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify(quiz),
+    });
+
+    console.log(`[updateQuiz] Response status: ${response.status}`);
+    console.log(
+      `[updateQuiz] Response headers:`,
+      Object.fromEntries(response.headers.entries()),
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to update video content: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(
+      'Error updating video content:',
+      error instanceof Error ? error.message : 'Unknown error',
+    );
+    throw error instanceof Error ? error : new Error('Unknown error occurred');
+  }
+}
+
 export async function deleteUnitContent(id: string): Promise<string> {
   const token = getAuthToken();
   const url = `${BASE_URL}/units/${id}`;

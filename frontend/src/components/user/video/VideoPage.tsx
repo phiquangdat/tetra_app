@@ -5,7 +5,7 @@ import {
   fetchVideoContentById,
   type Video,
 } from '../../../services/unit/unitApi';
-import { useModuleProgress } from '../../../context/user/ModuleContext.tsx';
+import { useModuleProgress } from '../../../context/user/ModuleProgressContext.tsx';
 import { UploadAltIcon } from '../../common/Icons';
 
 const FallbackVideo = () => (

@@ -314,7 +314,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
   const removeUnitContent = useCallback(
     async (unitNumber: number, blockIndex: number): Promise<boolean> => {
       const unit = unitStates[unitNumber];
-      if (!unit) return false;
+      if (!unit || !unit.content[blockIndex]) return false;
 
       const block = unit.content[blockIndex];
       if (!block) return false;

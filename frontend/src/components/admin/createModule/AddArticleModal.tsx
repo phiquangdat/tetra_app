@@ -1,10 +1,9 @@
-import { EditIcon } from '../../common/Icons';
+import { EditIcon, CloseIcon } from '../../common/Icons';
 import { useEffect, useRef } from 'react';
 import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
 import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
 import EditorComposer from '../../../utils/editor/EditorComposer.tsx';
 import { useEditorStateContext } from '../../../utils/editor/contexts/EditorStateContext.tsx';
-import { X } from 'lucide-react';
 interface ArticleModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -138,11 +137,13 @@ function AddArticleModal({
             </h2>
           </div>
           <button
+            type="button"
             onClick={handleClose}
-            className="p-2 text-secondary hover:text-primary hover:bg-white/60 rounded-xl transition-all duration-200 hover:shadow-sm"
+            className="text-primary hover:text-secondaryHover transition-colors p-2 rounded-lg hover:bg-cardBackground"
+            disabled={isSaving}
             aria-label="Close"
           >
-            <X size={20} />
+            <CloseIcon />
           </button>
         </div>
 

@@ -188,7 +188,7 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur flex items-center justify-center z-50 p-4">
       <div
         ref={modalRef}
         className="bg-background rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
@@ -204,9 +204,11 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
             </h2>
           </div>
           <button
+            type="button"
             onClick={handleClose}
-            className="text-secondary hover:text-primary transition-colors p-2 rounded-lg hover:bg-cardBackground"
+            className="text-primary hover:text-secondaryHover transition-colors p-2 rounded-lg hover:bg-cardBackground"
             disabled={isSaving}
+            aria-label="Close"
           >
             <CloseIcon />
           </button>

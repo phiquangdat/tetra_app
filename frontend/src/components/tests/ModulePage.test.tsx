@@ -5,7 +5,7 @@ import * as moduleApi from '../../services/module/moduleApi';
 import * as unitApi from '../../services/unit/unitApi';
 import * as userProgressApi from '../../services/userProgress/userProgressApi';
 import { QuizModalProvider } from '../../context/user/QuizModalContext';
-import { ModuleProgressProvider } from '../../context/user/ModuleContext';
+import { ModuleProgressProvider } from '../../context/user/ModuleProgressContext';
 import { UnitContentProvider } from '../../context/user/UnitContentContext';
 import { UnitCompletionModalProvider } from '../../context/user/UnitCompletionModalContext';
 

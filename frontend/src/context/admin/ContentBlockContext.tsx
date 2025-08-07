@@ -18,6 +18,7 @@ import {
   saveQuizContent,
   type SaveQuizRequest,
   updateArticleContent,
+  updateVideoContent,
 } from '../../services/unit/content/unitContentApi.ts';
 
 interface ContextBlockType extends ContentBlock {
@@ -120,8 +121,8 @@ export const ContentBlockContextProvider = ({
       }
 
       const savedContent = contentBlock.data.content?.trim() ?? '';
-      const newContent = editorContent?.trim() ?? '';
-      const isContentDirty = savedContent !== newContent;
+      const newArticleContent = editorContent?.trim() ?? '';
+      const isContentDirty = savedContent !== newArticleContent;
 
       if ((!isContentDirty && !contentBlock.isDirty) || contentBlock.isSaving) {
         console.log('[saveContent] Skipped: Not dirty or already saving');
@@ -160,16 +161,44 @@ export const ContentBlockContextProvider = ({
               sort_order,
             };
 
-            const result = await saveVideoContent(payload);
-            setContentState({ id: result.id });
-            console.log(
-              `[saveContent] Video content saved successfully, ID: ${result.id}`,
-            );
+            let result: { id: string };
+
+            try {
+              if (contentBlock.id) {
+                result = await updateVideoContent(contentBlock.id, payload);
+              } else {
+                result = await saveVideoContent(payload);
+              }
+              console.log(
+                `[saveContent] Video created successfully, ID: ${result.id}`,
+              );
+
+              const updatedBlock: ContentBlock = {
+                ...contentBlock,
+                id: result.id,
+                data: {
+                  ...contentBlock.data,
+                  content: content,
+                },
+                isDirty: false,
+                isSaving: false,
+                error: null,
+              };
+
+              setContentState(updatedBlock);
+              return updatedBlock;
+            } catch (err) {
+              const error =
+                err instanceof Error ? err.message : 'Unknown error occurred';
+              console.error('[saveContent] Failed to save article:', error);
+              setContentState({ error });
+              return;
+            }
             break;
           }
           case 'article': {
             const title = contentBlock.data.title;
-            const content = newContent;
+            const content = newArticleContent;
             const sort_order = contentBlock.sortOrder;
 
             if (!title || !content) {

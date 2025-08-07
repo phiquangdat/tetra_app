@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -220,6 +221,42 @@ public class UserContentProgressController {
 
         UserContentProgress saved = userContentProgressRepository.save(progress);
         return ResponseEntity.ok(saved);
+    }
+
+    @GetMapping("")
+    public ResponseEntity<?> getUserContentProgressByUnitId(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @RequestParam(value = "unitId", required = false) String unitIdStr
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String userIdStr;
+        try {
+            userIdStr = jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        UUID userId;
+        UUID unitId;
+        try {
+            userId = UUID.fromString(userIdStr);
+            unitId = UUID.fromString(unitIdStr);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid userId or unitId format");
+        }
+
+        List<UserContentProgress> progressList = userContentProgressRepository.findByUser_IdAndUnit_Id(userId, unitId);
+        if (progressList == null || progressList.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No progress found for this unit");
+        }
+
+        List<Object> result = progressList.stream()
+            .map(UserContentProgressMapper::toDto)
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
     }
 
     private int getPoints(UserContentProgress userContentProgress) {

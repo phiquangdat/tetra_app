@@ -15,11 +15,13 @@ const navLinks: NavLink[] = [
 interface SharedHeaderProps {
   onHamburgerClick: () => void;
   isSidebarOpen: boolean;
+  showHamburger: boolean;
 }
 
 const SharedHeader = ({
   onHamburgerClick,
   isSidebarOpen,
+  showHamburger = true,
 }: SharedHeaderProps) => {
   const { authToken, logout } = useAuth();
   const [showSignOutModal, setShowSignOutModal] = useState(false);
@@ -38,15 +40,14 @@ const SharedHeader = ({
   };
 
   const handleLogin = () => {
-    const loginEvent = new CustomEvent('open-login-modal');
-    window.dispatchEvent(loginEvent);
+    navigate('/login');
   };
 
   return (
     <>
       <Header
         navLinks={navLinks}
-        showHamburger
+        showHamburger={showHamburger}
         onHamburgerClick={onHamburgerClick}
         isSidebarOpen={isSidebarOpen}
         ctaButton={{

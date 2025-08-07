@@ -15,7 +15,7 @@ import { OpenBooksIcon, PuzzleIcon, StarIcon } from '../../common/Icons';
 interface ModulePageProps {
   id: string;
 }
-import { useModuleProgress } from '../../../context/user/ModuleContext';
+import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
 
 export type Unit = {
   id: string;
@@ -29,8 +29,8 @@ export type Unit = {
 const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   const {
     setUnits: setModuleUnits,
-    progressStatus,
-    setProgressStatus,
+    moduleProgressStatus,
+    setModuleProgressStatus,
     goToStart,
     goToLastVisited,
   } = useModuleProgress();
@@ -61,12 +61,12 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
           const progress = await getModuleProgress(id);
 
           setModuleProgress(progress);
-          setProgressStatus(progress.status.toLowerCase());
+          setModuleProgressStatus(progress.status.toLowerCase());
           console.log('User Module Progress:', progress);
         } catch (err) {
           if (err instanceof Error && err.message.includes('404')) {
             setModuleProgress(null);
-            setProgressStatus('not_started');
+            setModuleProgressStatus('not_started');
           } else {
             throw err;
           }
@@ -83,7 +83,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
 
   const handleStart = async () => {
     try {
-      if (progressStatus === 'not_started') {
+      if (moduleProgressStatus === 'not_started') {
         const response = await createModuleProgress(id, {
           lastVisitedContent: moduleProgress?.last_visited_content_id,
           lastVisitedUnit: moduleProgress?.last_visited_unit_id,
@@ -97,7 +97,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
         };
 
         setModuleProgress(progress);
-        setProgressStatus('in_progress');
+        setModuleProgressStatus('in_progress');
 
         await goToStart();
       }
@@ -151,7 +151,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
         <h1 className="text-2xl md:text-3xl font-extrabold text-[#231942] tracking-tight">
           {module.title}
         </h1>
-        {progressStatus === 'in_progress' ? (
+        {moduleProgressStatus === 'in_progress' ? (
           <button
             className="bg-secondary text-white font-semibold px-14 py-3 rounded-full text-lg shadow-md hover:bg-secondaryHover focus:outline-none focus:ring-2 focus:ring-surface transition w-fit"
             type="button"

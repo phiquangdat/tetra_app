@@ -24,8 +24,8 @@ interface ModuleProgressContextProps {
   setUnitId: (id: string) => void;
   moduleId: string;
   setModuleId: (id: string) => void;
-  progressStatus: string;
-  setProgressStatus: (status: string) => void;
+  moduleProgressStatus: string;
+  setModuleProgressStatus: (status: string) => void;
   unitProgressStatus: string;
   setUnitProgressStatus: (status: string) => void;
   goToStart: () => Promise<void>;
@@ -56,7 +56,8 @@ export const ModuleProgressProvider = ({
   const [units, setUnitsState] = useState<Unit[]>([]);
   const [unitId, setUnitId] = useState<string>('');
   const [moduleId, setModuleId] = useState<string>('');
-  const [progressStatus, setProgressStatus] = useState<string>('not_started');
+  const [moduleProgressStatus, setModuleProgressStatus] =
+    useState<string>('not_started');
   const [unitProgressStatus, setUnitProgressStatus] =
     useState<string>('not_started');
   const navigate = useNavigate();
@@ -168,8 +169,8 @@ export const ModuleProgressProvider = ({
         setUnitId,
         moduleId,
         setModuleId,
-        progressStatus,
-        setProgressStatus,
+        moduleProgressStatus,
+        setModuleProgressStatus,
         unitProgressStatus,
         setUnitProgressStatus,
         goToStart,

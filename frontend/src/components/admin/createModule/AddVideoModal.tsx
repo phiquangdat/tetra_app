@@ -24,15 +24,14 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
     clearContent,
     setContentState,
     getContentState,
-    isDirty,
   } = useContentBlockContext();
   const {
     addContentBlock,
-    removeContentBlockFromContext,
     getUnitState,
     updateUnitField,
     editingBlock,
     setEditingBlock,
+    getNextSortOrder,
   } = useUnitContext();
 
   const contentBlock = getContentState();
@@ -70,11 +69,12 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
         error: null,
       });
     } else {
+      const nextSortOrder = getNextSortOrder(unitNumber);
       clearContent();
       setContentState({
         unit_id: unitId,
         type: 'video',
-        sortOrder: 0,
+        sortOrder: nextSortOrder,
         isDirty: true,
         isSaving: false,
         error: null,
@@ -118,10 +118,6 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
   };
 
   const handleClose = () => {
-    const wasSaved = !!getContentState().id;
-    if (!wasSaved && isDirty && !isSaving) {
-      removeContentBlockFromContext(unitNumber, -1);
-    }
     clearContent();
     onClose();
   };

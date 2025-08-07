@@ -98,6 +98,7 @@ type UnitContextType = {
   setIsEditing: (unitNumber: number, editing: boolean) => void;
   editingBlock: EditingBlock | null;
   setEditingBlock: (block: EditingBlock | null) => void;
+  getNextSortOrder: (unitNumber: number) => number;
 };
 
 export const initialUnitState = (): UnitContextEntry => ({
@@ -378,6 +379,13 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
+  const getNextSortOrder = (unitNumber: number): number => {
+    const unit = getUnitState(unitNumber);
+    if (!unit || unit.content.length === 0) return 0;
+    const maxOrder = Math.max(...unit.content.map((b) => b.sortOrder || 0));
+    return maxOrder + 10;
+  };
+
   const contextValue: UnitContextType = {
     unitStates,
     updateUnitField,
@@ -396,6 +404,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     setIsEditing,
     editingBlock,
     setEditingBlock,
+    getNextSortOrder,
   };
 
   return (

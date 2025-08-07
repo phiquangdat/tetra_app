@@ -30,6 +30,7 @@ interface ModuleProgressContextProps {
   setUnitProgressStatus: (status: string) => void;
   goToStart: () => Promise<void>;
   goToLastVisited: (lastUnitId: string, lastContentId: string) => void;
+  goToFirstContent: () => Promise<void>;
 }
 
 const ModuleProgressContext = createContext<
@@ -158,6 +159,19 @@ export const ModuleProgressProvider = ({
     }
   };
 
+  const goToFirstContent = async () => {
+    const contentList = await fetchUnitContentById(unitId);
+    if (contentList && contentList.length > 0) {
+      const firstContent = contentList[0];
+      setUnitContent(unitId, contentList);
+      navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
+        state: { unitId },
+      });
+    } else {
+      throw new Error('This unit has no content to start.');
+    }
+  };
+
   return (
     <ModuleProgressContext.Provider
       value={{
@@ -175,6 +189,7 @@ export const ModuleProgressProvider = ({
         setUnitProgressStatus,
         goToStart,
         goToLastVisited,
+        goToFirstContent,
       }}
     >
       {children}

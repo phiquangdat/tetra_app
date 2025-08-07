@@ -25,8 +25,6 @@ function AddArticleModal({
     isSaving,
     clearContent,
     setContentState,
-    getContentState,
-    isDirty,
   } = useContentBlockContext();
   const {
     addContentBlock,
@@ -35,6 +33,7 @@ function AddArticleModal({
     setEditingBlock,
     getUnitState,
     updateUnitField,
+    getNextSortOrder,
   } = useUnitContext();
   const { editorContent } = useEditorStateContext();
 
@@ -62,11 +61,12 @@ function AddArticleModal({
         error: null,
       });
     } else {
+      const nextSortOrder = getNextSortOrder(unitNumber);
       clearContent();
       setContentState({
         unit_id: unitId,
         type: 'article',
-        sortOrder: 0,
+        sortOrder: nextSortOrder,
         isDirty: true,
         isSaving: false,
         error: null,

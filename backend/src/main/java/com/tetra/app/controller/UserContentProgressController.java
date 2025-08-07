@@ -1,6 +1,7 @@
 package com.tetra.app.controller;
 
 import com.tetra.app.mapper.UserContentProgressMapper;
+import com.tetra.app.mapper.UserContentProgressMapper;
 import com.tetra.app.mapper.UserContentProgressPointsMapper;
 import com.tetra.app.model.UserContentProgress;
 import com.tetra.app.model.User;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users-content-progress")
@@ -125,7 +127,7 @@ public class UserContentProgressController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
-
+    
     @GetMapping("")
     public ResponseEntity<?> getUserContentProgressByUnitId(
         @RequestHeader(value = "Authorization", required = false) String authHeader,
@@ -160,6 +162,66 @@ public class UserContentProgressController {
             .collect(Collectors.toList());
 
         return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUserContentProgress(
+        @PathVariable UUID id,
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @RequestBody Map<String, Object> body
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String userIdStr;
+        try {
+            userIdStr = jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        UUID userId;
+        try {
+            userId = UUID.fromString(userIdStr);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid userId in token");
+        }
+
+        Optional<UserContentProgress> progressOpt = userContentProgressRepository.findById(id);
+        if (progressOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Progress not found");
+        }
+        UserContentProgress progress = progressOpt.get();
+        if (!progress.getUser().getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Progress not found for this user");
+        }
+
+        boolean updated = false;
+        if (body.containsKey("status")) {
+            String status = body.get("status").toString();
+            if (!("IN_PROGRESS".equalsIgnoreCase(status) || "COMPLETED".equalsIgnoreCase(status))) {
+                return ResponseEntity.badRequest().body("Invalid status value. Allowed: IN_PROGRESS, COMPLETED");
+            }
+            progress.setStatus(status);
+            updated = true;
+        }
+        if (body.containsKey("points")) {
+            try {
+                Integer points = (body.get("points") instanceof Integer)
+                    ? (Integer) body.get("points")
+                    : Integer.parseInt(body.get("points").toString());
+                progress.setPoints(points);
+                updated = true;
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("Invalid points format");
+            }
+        }
+        if (!updated) {
+            return ResponseEntity.badRequest().body("No updatable fields provided");
+        }
+
+        UserContentProgress saved = userContentProgressRepository.save(progress);
+        return ResponseEntity.ok(saved);
     }
 
     private int getPoints(UserContentProgress userContentProgress) {

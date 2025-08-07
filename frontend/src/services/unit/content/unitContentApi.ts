@@ -179,3 +179,43 @@ export async function updateArticleContent(
     throw error instanceof Error ? error : new Error('Unknown error occurred');
   }
 }
+
+export async function updateVideoContent(
+  id: string,
+  video: SaveVideoRequest,
+): Promise<{ id: string }> {
+  const token = getAuthToken();
+  const url = `${BASE_URL}/unit_content/video/${id}`;
+  console.log('[updateVideo] UPDATE:', url);
+  try {
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify(video),
+    });
+
+    console.log(`[updateVideo] Response status: ${response.status}`);
+    console.log(
+      `[updateVideo] Response headers:`,
+      Object.fromEntries(response.headers.entries()),
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to update video content: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(
+      'Error updating video content:',
+      error instanceof Error ? error.message : 'Unknown error',
+    );
+    throw error instanceof Error ? error : new Error('Unknown error occurred');
+  }
+}

@@ -25,14 +25,16 @@ function AddArticleModal({
     isSaving,
     clearContent,
     setContentState,
+    getContentState,
+    isDirty,
   } = useContentBlockContext();
   const {
     addContentBlock,
+    removeContentBlock,
     editingBlock,
     setEditingBlock,
     getUnitState,
     updateUnitField,
-    getNextSortOrder,
   } = useUnitContext();
   const { editorContent } = useEditorStateContext();
 
@@ -60,12 +62,11 @@ function AddArticleModal({
         error: null,
       });
     } else {
-      const nextSortOrder = getNextSortOrder(unitNumber);
       clearContent();
       setContentState({
         unit_id: unitId,
         type: 'article',
-        sortOrder: nextSortOrder,
+        sortOrder: 0,
         isDirty: true,
         isSaving: false,
         error: null,
@@ -107,6 +108,10 @@ function AddArticleModal({
   };
 
   const handleClose = () => {
+    const wasSaved = !!getContentState().id;
+    if (!wasSaved && isDirty && !isSaving) {
+      removeContentBlock(unitNumber, -1);
+    }
     clearContent();
     onClose();
   };

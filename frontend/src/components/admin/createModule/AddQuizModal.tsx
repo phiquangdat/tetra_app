@@ -22,8 +22,10 @@ function AddQuizModal({
     updateContentField,
     saveContent,
     isSaving,
+    isDirty,
     clearContent,
     setContentState,
+    getContentState,
   } = useContentBlockContext();
 
   const {
@@ -32,7 +34,7 @@ function AddQuizModal({
     setEditingBlock,
     getUnitState,
     updateUnitField,
-    getNextSortOrder,
+    removeContentBlock,
   } = useUnitContext();
 
   const [selectedOption, setSelectedOption] = useState('');
@@ -59,12 +61,11 @@ function AddQuizModal({
         error: null,
       });
     } else {
-      const nextSortOrder = getNextSortOrder(unitNumber);
       clearContent();
       setContentState({
         unit_id: unitId,
         type: 'quiz',
-        sortOrder: nextSortOrder,
+        sortOrder: 0,
         isDirty: true,
         isSaving: false,
         error: null,
@@ -207,6 +208,10 @@ function AddQuizModal({
   };
 
   const handleClose = () => {
+    const wasSaved = !!getContentState().id;
+    if (!wasSaved && isDirty && !isSaving) {
+      removeContentBlock(unitNumber, -1);
+    }
     setErrors([]);
     setQuestionErrors({});
     clearContent();

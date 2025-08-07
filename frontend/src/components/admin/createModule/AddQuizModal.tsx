@@ -245,24 +245,26 @@ function AddQuizModal({
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center z-50 p-4"
-      style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+      className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/60 backdrop-blur-sm"
       onClick={handleBackdropClick}
     >
       <div
         ref={modalRef}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+        className="bg-background rounded-2xl shadow-2xl w-1/2 max-w-4xl overflow-hidden"
       >
-        <div className="flex items-center justify-between p-6 pb-0">
+        <div className="flex items-center justify-between bg-cardBackground px-8 py-4 border-b border-highlight/50">
           <div className="flex items-center gap-3">
-            <div className="text-gray-600">
-              <QuizIcon />
+            <div className="p-2 bg-background rounded-2xl shadow-sm border border-highlight/30">
+              <QuizIcon color="var(--color-surface)" />
             </div>
-            <h2 className="text-lg font-medium text-gray-900">Quiz</h2>
+            <h2 className="text-xl font-semibold text-primary">Add New Quiz</h2>
           </div>
           <button
+            type="button"
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+            className="text-primary hover:text-secondaryHover transition-colors p-2 rounded-lg hover:bg-cardBackground"
+            disabled={isSaving}
+            aria-label="Close"
           >
             <CloseIcon />
           </button>
@@ -278,29 +280,30 @@ function AddQuizModal({
           </div>
         )}
 
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full max-h-[70vh] overflow-hidden">
           <div className="mb-6 max-w-110 p-6 pb-0 flex-1 overflow-y-auto">
             <label
               htmlFor="quizTitle"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-base font-semibold text-primary mb-2 flex items-center gap-2"
             >
               Title
             </label>
             <input
               type="text"
-              id="quiz-title"
+              id="quizTitle"
+              placeholder="Enter quiz title"
               value={data.title || ''}
               onChange={(e) =>
                 updateContentField('data', { ...data, title: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+              className="w-full px-4 py-3 border border-primary/50 rounded-lg text-primary placeholder:text-primary/40 focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200"
               required
             />
 
             <div className="max-w-110 mt-4">
               <label
                 htmlFor="quizDescription"
-                className="block text-sm font-medium text-gray-700 mt-4 mb-2"
+                className="block text-base font-semibold text-primary mb-2 flex items-center gap-2"
               >
                 Description
               </label>
@@ -308,7 +311,7 @@ function AddQuizModal({
                 id="quizDescription"
                 value={data.content || ''}
                 onChange={handleChangeDescription}
-                className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none"
+                className="w-full px-4 py-3 border border-primary/50 rounded-lg text-primary placeholder:text-primary/40 focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200"
                 placeholder="Enter quiz description"
                 aria-label="quiz description"
                 required
@@ -319,7 +322,7 @@ function AddQuizModal({
             <div className="max-w-28 mt-4">
               <label
                 htmlFor="points"
-                className="block mb-2 font-sm text-gray-700"
+                className="block text-base font-semibold text-primary mb-2 flex items-center gap-2"
               >
                 Points
               </label>
@@ -332,7 +335,7 @@ function AddQuizModal({
                 }
                 onChange={handleChangePoints}
                 required
-                className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
+                className="w-full px-4 py-3 border border-primary/50 rounded-lg text-primary placeholder:text-primary/40 focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200"
                 aria-label="points"
               />
             </div>
@@ -347,7 +350,7 @@ function AddQuizModal({
                   setSelectedOption('');
                   handleAddQuestion(selectedType);
                 }}
-                className="w-full bg-white border-gray-400 border-2 rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors"
+                className="w-full bg-background border-primary/50 border-2 rounded-xl p-2 focus:outline-none focus:border-2 focus:border-surface/70 transition-colors"
               >
                 <option value="" disabled>
                   + Add Question
@@ -369,18 +372,25 @@ function AddQuizModal({
               ))}
             </div>
           </div>
-
-          <div className="p-6 pt-0 flex justify-end gap-4">
-            <button
-              type="button"
-              aria-label="Save Quiz"
-              onClick={handleSave}
-              disabled={isSaving}
-              className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-200 mr-4 w-24 h-10"
-            >
-              {isSaving ? 'Saving...' : 'Save'}
-            </button>
-          </div>
+        </div>
+        <div className="flex items-center justify-end gap-4 px-8 py-4 border-t border-highlight bg-cardBackground">
+          <button
+            type="button"
+            onClick={handleClose}
+            className="bg-secondary hover:bg-secondaryHover text-background px-6 py-2.5 rounded-lg text-sm font-medium transition duration-200"
+            disabled={isSaving}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            aria-label="Save Quiz"
+            onClick={handleSave}
+            className="bg-surface hover:bg-surfaceHover text-background px-6 py-2.5 rounded-lg text-sm font-medium transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isSaving}
+          >
+            {isSaving ? 'Saving...' : 'Save'}
+          </button>
         </div>
       </div>
     </div>

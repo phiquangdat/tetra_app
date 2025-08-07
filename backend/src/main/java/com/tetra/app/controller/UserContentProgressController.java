@@ -1,34 +1,27 @@
 package com.tetra.app.controller;
 
+import com.tetra.app.mapper.UserContentProgressMapper;
+import com.tetra.app.mapper.UserContentProgressMapper;
+import com.tetra.app.mapper.UserContentProgressPointsMapper;
+import com.tetra.app.model.UserContentProgress;
+import com.tetra.app.model.User;
+import com.tetra.app.model.Unit;
+import com.tetra.app.model.UnitContent;
+import com.tetra.app.repository.UserContentProgressRepository;
+import com.tetra.app.repository.UserRepository;
+import com.tetra.app.repository.UnitRepository;
+import com.tetra.app.repository.UnitContentRepository;
+import com.tetra.app.security.JwtUtil;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.tetra.app.mapper.UserContentProgressMapper;
-import com.tetra.app.mapper.UserContentProgressPointsMapper;
-import com.tetra.app.model.Unit;
-import com.tetra.app.model.UnitContent;
-import com.tetra.app.model.User;
-import com.tetra.app.model.UserContentProgress;
-import com.tetra.app.repository.UnitContentRepository;
-import com.tetra.app.repository.UnitRepository;
-import com.tetra.app.repository.UserContentProgressRepository;
-import com.tetra.app.repository.UserRepository;
-import com.tetra.app.security.JwtUtil;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users-content-progress")

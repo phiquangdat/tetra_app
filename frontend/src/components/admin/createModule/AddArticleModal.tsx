@@ -131,9 +131,9 @@ function AddArticleModal({
         <div className="flex items-center justify-between bg-cardBackground px-8 py-4 border-b border-highlight/50">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white rounded-2xl shadow-sm border border-highlight/30">
-              <EditIcon />
+              <EditIcon color="var(--color-surface)" />
             </div>
-            <h2 className="text-xl font-medium text-primary">
+            <h2 className="text-xl font-semibold text-primary">
               Add New Article
             </h2>
           </div>

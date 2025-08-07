@@ -262,7 +262,7 @@ export async function updateQuizContent(
 
 export async function deleteUnitContent(id: string): Promise<string> {
   const token = getAuthToken();
-  const url = `${BASE_URL}/units/${id}`;
+  const url = `${BASE_URL}/unit_content/${id}`;
   console.log('[deleteUnitContent] DELETE:', url);
 
   try {

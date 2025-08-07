@@ -32,7 +32,6 @@ function AddQuizModal({
     setEditingBlock,
     getUnitState,
     updateUnitField,
-    removeContentBlockFromContext,
     getNextSortOrder,
   } = useUnitContext();
 

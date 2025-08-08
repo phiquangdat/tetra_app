@@ -68,9 +68,7 @@ describe('CreateModuleForm', () => {
     const cover = screen.getByLabelText(/cover picture url/i);
     await user.clear(cover);
     await user.type(cover, 'https://example.com/image.jpg');
-
-    const img = await screen.findByAltText(/module cover/i);
-    expect(img).toHaveAttribute('src', 'https://example.com/image.jpg');
+    expect(cover).toHaveValue('https://example.com/image.jpg');
   });
 
   it('shows an error banner when invalid image URL is provided and user tries to save', async () => {

@@ -25,11 +25,11 @@ function renderWithProviders(ui: React.ReactElement) {
 }
 
 describe('CreateModulePage', () => {
-  it('renders the Create New Module heading', async () => {
+  it('renders the Create Module heading', async () => {
     renderWithProviders(<CreateModulePage />);
     const heading = await screen.findByRole('heading', {
       level: 1,
-      name: /create new module/i,
+      name: /create module/i,
     });
     expect(heading).toBeInTheDocument();
   });

@@ -9,6 +9,7 @@ import {
   type Quiz,
   type Question,
 } from '../../../services/quiz/quizApi';
+import ConfirmationModal from '../createModule/ConfirmationModal.tsx';
 
 interface QuizBlockProps {
   unitNumber?: number;
@@ -21,11 +22,13 @@ const QuizBlock: React.FC<QuizBlockProps> = ({
   blockIndex,
   id,
 }) => {
-  const { getUnitState, setUnitState, setEditingBlock } = useUnitContext();
+  const { getUnitState, setUnitState, setEditingBlock, removeUnitContent } =
+    useUnitContext();
   const unitContent =
     unitNumber != null && blockIndex != null
       ? getUnitState(unitNumber)?.content[blockIndex]
       : null;
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const shouldUseContext =
     Array.isArray(unitContent?.data?.questions) &&
@@ -108,6 +111,15 @@ const QuizBlock: React.FC<QuizBlockProps> = ({
         questions,
       };
 
+  const handleConfirmDelete = async () => {
+    if (unitNumber != null && blockIndex != null) {
+      const success = await removeUnitContent(unitNumber, blockIndex);
+      if (success) {
+        setShowDeleteConfirm(false);
+      }
+    }
+  };
+
   return (
     <div className="px-6 pb-4 text-primary text-base">
       <div className="space-y-4 mt-4">
@@ -162,11 +174,24 @@ const QuizBlock: React.FC<QuizBlockProps> = ({
           >
             Edit
           </button>
-          <button className="px-4 py-2 bg-error text-white rounded-lg hover:bg-errorHover text-sm">
+          <button
+            className="px-4 py-2 bg-error text-white rounded-lg hover:bg-errorHover text-sm"
+            onClick={() => setShowDeleteConfirm(true)}
+          >
             Delete
           </button>
         </div>
       </div>
+
+      {showDeleteConfirm && (
+        <ConfirmationModal
+          onCancel={() => setShowDeleteConfirm(false)}
+          onConfirm={handleConfirmDelete}
+          title="Delete Quiz"
+          description="Are you sure you want to delete this quiz? This action cannot be undone."
+          confirmText="Delete"
+        />
+      )}
     </div>
   );
 };

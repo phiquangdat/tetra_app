@@ -43,6 +43,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     } finally {
       setShowModal(false);
       navigate('/');
+      window.scrollTo(0, 0);
     }
   };
 

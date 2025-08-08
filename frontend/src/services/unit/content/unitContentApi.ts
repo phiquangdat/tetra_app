@@ -259,3 +259,37 @@ export async function updateQuizContent(
     throw error instanceof Error ? error : new Error('Unknown error occurred');
   }
 }
+
+export async function deleteUnitContent(id: string): Promise<string> {
+  const token = getAuthToken();
+  const url = `${BASE_URL}/unit_content/${id}`;
+  console.log('[deleteUnitContent] DELETE:', url);
+
+  try {
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+
+    console.log(`[deleteUnitContent] Response status: ${response.status}`);
+    console.log(
+      `[deleteUnitContent] Response headers:`,
+      Object.fromEntries(response.headers.entries()),
+    );
+
+    const text = await response.text();
+
+    if (!response.ok) {
+      console.error(`[deleteUnitContent] Error response body:`, text);
+      throw new Error('Failed to delete unit');
+    }
+
+    return text;
+  } catch (error) {
+    console.error(`[deleteUnitContent] Exception:`, error);
+    throw error;
+  }
+}

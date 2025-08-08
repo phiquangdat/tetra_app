@@ -38,7 +38,7 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => {
     <UnitContext.Provider
       value={{
         addContentBlock: mockAddContentBlock,
-        removeContentBlock: mockRemoveContentBlock,
+        removeContentBlockFromContext: mockRemoveContentBlock,
         unitStates: {},
         updateUnitField: vi.fn(),
         markUnitAsDirty: vi.fn(),

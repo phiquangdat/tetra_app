@@ -81,7 +81,7 @@ const ModuleFormFields: React.FC = () => {
   };
 
   const inputBase =
-    'w-full rounded-lg p-2 text-primary bg-cardBackground border-2 border-highlight focus:outline-none focus:border-surface transition-colors duration-200';
+    'w-full max-w-lg rounded-lg p-2 text-primary bg-cardBackground border-2 border-highlight focus:outline-none focus:border-surface transition-colors duration-200';
   const labelBase = 'block mb-2 font-medium text-primary';
 
   const renderCoverPicture = () => {
@@ -98,10 +98,7 @@ const ModuleFormFields: React.FC = () => {
           </div>
         )}
 
-        <label
-          htmlFor="coverPictureUrl"
-          className="block text-sm font-medium text-primary"
-        >
+        <label htmlFor="coverPictureUrl" className={labelBase}>
           Cover Picture URL
         </label>
         <input
@@ -121,14 +118,9 @@ const ModuleFormFields: React.FC = () => {
   return (
     <>
       <div>
-        <div className="mb-8">
-          <label htmlFor="moduleCoverPicture" className={labelBase}>
-            Module Cover Picture
-          </label>
-          {renderCoverPicture()}
-        </div>
+        <div className="mb-8">{renderCoverPicture()}</div>
 
-        <div className="max-w-90 mb-11">
+        <div className="mb-8">
           <label htmlFor="moduleTitle" className={labelBase}>
             Module Title
           </label>
@@ -143,7 +135,7 @@ const ModuleFormFields: React.FC = () => {
           />
         </div>
 
-        <div className="w-full mb-11">
+        <div className="mb-8">
           <label htmlFor="moduleDescription" className={labelBase}>
             Module Description
           </label>
@@ -159,7 +151,7 @@ const ModuleFormFields: React.FC = () => {
           />
         </div>
 
-        <div className="max-w-90 mb-11">
+        <div className="mb-8">
           <label htmlFor="moduleTopic" className={labelBase}>
             Module Topic
           </label>
@@ -183,7 +175,7 @@ const ModuleFormFields: React.FC = () => {
           </select>
         </div>
 
-        <div className="max-w-48">
+        <div className="mb-2">
           <label
             htmlFor="pointsAwarded"
             className="block mb-0 font-medium text-primary"

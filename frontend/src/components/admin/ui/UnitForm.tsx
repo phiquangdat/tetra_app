@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useModuleContext } from '../../../context/admin/ModuleContext.tsx';
 import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
+import SaveButton from './SaveButton.tsx';
 
 interface UnitFormProps {
   unitNumber: number;
@@ -65,7 +66,7 @@ const UnitForm: React.FC<UnitFormProps> = ({ unitNumber, onSaved }) => {
   };
 
   const inputBase =
-    'w-full rounded-lg p-2 text-primary bg-cardBackground border-2 border-highlight focus:outline-none focus:border-surface transition-colors duration-200';
+    'w-full max-w-lg rounded-lg p-2 text-primary bg-cardBackground border-2 border-highlight focus:outline-none focus:border-surface transition-colors duration-200';
   const labelBase = 'block mb-1 font-medium text-primary';
 
   return (
@@ -112,20 +113,11 @@ const UnitForm: React.FC<UnitFormProps> = ({ unitNumber, onSaved }) => {
 
       {/* Save Button */}
       <div className="flex items-center gap-4">
-        <button
-          type="button"
+        <SaveButton
           onClick={handleSave}
           disabled={unitState?.isSaving || localSaving}
-          className={`px-4 py-2 rounded-lg transition ${
-            unitState?.isSaving || localSaving
-              ? 'bg-highlight text-primary/60 opacity-60 cursor-not-allowed'
-              : unitState?.isDirty
-                ? 'bg-surface text-white hover:bg-surfaceHover border border-highlight'
-                : 'bg-highlight text-primary hover:bg-highlight/80'
-          }`}
-        >
-          {unitState?.isSaving || localSaving ? 'Saving...' : 'Save'}
-        </button>
+          isDirty={!!unitState?.isDirty}
+        />
       </div>
     </form>
   );

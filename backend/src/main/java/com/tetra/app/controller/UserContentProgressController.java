@@ -1,7 +1,6 @@
 package com.tetra.app.controller;
 
 import com.tetra.app.mapper.UserContentProgressMapper;
-import com.tetra.app.mapper.UserContentProgressMapper;
 import com.tetra.app.mapper.UserContentProgressPointsMapper;
 import com.tetra.app.model.UserContentProgress;
 import com.tetra.app.model.User;
@@ -12,20 +11,25 @@ import com.tetra.app.repository.UserRepository;
 import com.tetra.app.repository.UnitRepository;
 import com.tetra.app.repository.UnitContentRepository;
 import com.tetra.app.security.JwtUtil;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/users-content-progress")
 public class UserContentProgressController {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserContentProgressController.class);
 
     private final UserContentProgressRepository userContentProgressRepository;
     private final UserRepository userRepository;
@@ -222,6 +226,52 @@ public class UserContentProgressController {
 
         UserContentProgress saved = userContentProgressRepository.save(progress);
         return ResponseEntity.ok(saved);
+    }
+
+    @GetMapping("/{unitContentId}")
+    public ResponseEntity<?> getCurrentUserContentProgress(
+        @PathVariable UUID unitContentId,
+        @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", "Missing or invalid Authorization header"));
+        }
+        String token = authHeader.substring(7);
+        String userIdStr;
+        try {
+            userIdStr = jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", "Invalid token"));
+        }
+        UUID userId;
+        try {
+            userId = UUID.fromString(userIdStr);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", "Invalid userId in token"));
+        }
+
+        logger.info("Querying UserContentProgress for user_id={} and unit_content_id={}", userId, unitContentId);
+
+        Optional<UserContentProgress> progressOpt = userContentProgressRepository.findByUser_IdAndUnitContent_Id(userId, unitContentId);
+        if (progressOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of(
+                    "message", "User content progress not found"
+                ));
+        }
+        UserContentProgress progress = progressOpt.get();
+        var response = Map.of(
+            "id", progress.getId(),
+            "user_id", progress.getUser().getId(),
+            "unit_id", progress.getUnit().getId(),
+            "unit_content_id", progress.getUnitContent().getId(),
+            "status", progress.getStatus(),
+            "points", progress.getPoints()
+        );
+        return ResponseEntity.ok(response);
     }
 
     private int getPoints(UserContentProgress userContentProgress) {

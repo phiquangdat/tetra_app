@@ -1,6 +1,7 @@
 package com.tetra.app.repository;
 
 import com.tetra.app.model.UserModuleProgress;
+import com.tetra.app.model.ProgressStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,4 +14,5 @@ public interface UserModuleProgressRepository extends JpaRepository<UserModulePr
     Optional<UserModuleProgress> findByUser_IdAndModule_Id(UUID userId, UUID moduleId);
     List<UserModuleProgress> findByUser_Id(UUID userId);
     List<UserModuleProgress> findByModule_Id(UUID moduleId);
+    List<UserModuleProgress> findByUser_IdAndStatus(UUID userId, ProgressStatus status);
 }

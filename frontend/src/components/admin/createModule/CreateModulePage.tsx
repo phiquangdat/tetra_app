@@ -100,10 +100,7 @@ function CreateModulePageContent() {
       </h1>
       <CreateModuleForm />
       <UnitsManager />
-      <div
-        className="max-w-5xl px-6 sm:px-10 py-8 my-6 rounded-3xl"
-        // style={{ backgroundColor: '#F2EAEA' }}
-      >
+      <div className="max-w-5xl px-6 sm:px-10 py-8 my-6 rounded-3xl">
         <div className="mx-auto my-2 flex justify-center">
           {status !== 'published' && (
             <div className="mx-auto my-2 flex justify-center">

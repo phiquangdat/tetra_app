@@ -88,29 +88,19 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    // Add method to delete user and associated data
     public void deleteUserAndAssociatedData(UUID userId) {
         Optional<User> userOpt = userRepository.findById(userId);
         if (userOpt.isEmpty()) {
             throw new IllegalArgumentException("User not found");
         }
-        // Delete associated data if repositories are available
+        
         if (userModuleProgressRepository != null) {
             userModuleProgressRepository.findByUser_Id(userId)
                 .forEach(progress -> userModuleProgressRepository.deleteById(progress.getId()));
         }
-        // If you have authored/owned content, delete here (example for UnitContent)
-        if (unitContentRepository != null) {
-            unitContentRepository.findAll().stream()
-                .filter(uc -> userId.equals(uc.getCreatedBy())) // assuming UnitContent has createdBy
-                .forEach(uc -> unitContentRepository.deleteById(uc.getId()));
-        }
-        // Delete blacklisted tokens for this user if you store user info in tokens
         if (blacklistedTokenRepository != null) {
-            // If BlacklistedToken has a userId field, delete by userId
-            // Otherwise, skip or implement as needed
+
         }
-        // Finally, delete the user
         userRepository.deleteById(userId);
     }
 }

@@ -94,29 +94,35 @@ function CreateModulePageContent() {
   };
 
   return (
-    <div className="m-0 px-4 py-4 max-w-5xl">
-      <h1 className="font-extrabold text-[28px] pb-4">Create New Module</h1>
+    <div className="mx-auto max-w-5xl min-h-screen bg-background px-4 py-6 text-left">
+      <h1 className="font-extrabold text-[28px] pb-4 text-primary">
+        Create New Module
+      </h1>
       <CreateModuleForm />
       <UnitsManager />
       <div
-        className="max-w-5xl px-16 py-9 my-6 rounded-3xl"
-        style={{ backgroundColor: '#F2EAEA' }}
+        className="max-w-5xl px-6 sm:px-10 py-8 my-6 rounded-3xl"
+        // style={{ backgroundColor: '#F2EAEA' }}
       >
-        <div className="mx-auto my-6 flex justify-center gap-2">
+        <div className="mx-auto my-2 flex justify-center">
           {status !== 'published' && (
-            <div
-              className="max-w-5xl px-16 py-9 my-6 rounded-3xl"
-              style={{ backgroundColor: '#F2EAEA' }}
-            >
-              <div className="mx-auto my-6 flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => setShowPublishConfirm(true)}
-                  className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors duration-200 w-32 h-10"
-                >
-                  Publish
-                </button>
-              </div>
+            <div className="mx-auto my-2 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setShowPublishConfirm(true)}
+                className="
+                    inline-flex items-center justify-center
+                    bg-surface text-white
+                    border border-highlight
+                    text-sm px-4 py-2 rounded-lg
+                    cursor-pointer
+                    hover:bg-surfaceHover
+                    focus:outline-none focus:ring-2 focus:ring-highlight/60 focus:ring-offset-2 focus:ring-offset-background
+                    transition-colors duration-200 w-36 h-10
+                  "
+              >
+                Publish
+              </button>
             </div>
           )}
         </div>

@@ -3,6 +3,9 @@ package com.tetra.app.service;
 import com.tetra.app.model.User;
 import com.tetra.app.model.Role;
 import com.tetra.app.repository.UserRepository;
+import com.tetra.app.repository.BlacklistedTokenRepository;
+import com.tetra.app.repository.UserModuleProgressRepository;
+import com.tetra.app.repository.UnitContentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -14,6 +17,13 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordHashingService passwordHashingService;
+    // Add repositories for associated data
+    @Autowired(required = false)
+    private BlacklistedTokenRepository blacklistedTokenRepository;
+    @Autowired(required = false)
+    private UserModuleProgressRepository userModuleProgressRepository;
+    @Autowired(required = false)
+    private UnitContentRepository unitContentRepository;
 
     @Autowired
     public UserService(UserRepository userRepository, PasswordHashingService passwordHashingService) {
@@ -76,5 +86,21 @@ public class UserService {
             user.setPassword(passwordHashingService.hashPassword(newPassword));
         }
         return userRepository.save(user);
+    }
+
+    public void deleteUserAndAssociatedData(UUID userId) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            throw new IllegalArgumentException("User not found");
+        }
+        
+        if (userModuleProgressRepository != null) {
+            userModuleProgressRepository.findByUser_Id(userId)
+                .forEach(progress -> userModuleProgressRepository.deleteById(progress.getId()));
+        }
+        if (blacklistedTokenRepository != null) {
+
+        }
+        userRepository.deleteById(userId);
     }
 }

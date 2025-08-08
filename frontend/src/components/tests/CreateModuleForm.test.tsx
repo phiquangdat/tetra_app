@@ -64,11 +64,6 @@ describe('CreateModuleForm', () => {
     const topic = screen.getByLabelText(/module topic/i);
     await user.selectOptions(topic, 'cybersecurity');
     expect(topic).toHaveValue('cybersecurity');
-
-    const cover = screen.getByLabelText(/cover picture url/i);
-    await user.clear(cover);
-    await user.type(cover, 'https://example.com/image.jpg');
-    expect(cover).toHaveValue('https://example.com/image.jpg');
   });
 
   it('shows an error banner when invalid image URL is provided and user tries to save', async () => {

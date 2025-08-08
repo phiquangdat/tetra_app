@@ -25,6 +25,9 @@ public class Unit {
     @Column(name = "description", nullable = false)
     private String description;
 
+    @OneToMany(mappedBy = "unit", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<UnitContent> unitContent;
+
     public Unit() {}
 
     public Unit(TrainingModule module, String title, String description) {
@@ -67,5 +70,13 @@ public class Unit {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public java.util.List<UnitContent> getUnitContent() {
+        return unitContent;
+    }
+
+    public void setUnitContent(java.util.List<UnitContent> unitContent) {
+        this.unitContent = unitContent;
     }
 }

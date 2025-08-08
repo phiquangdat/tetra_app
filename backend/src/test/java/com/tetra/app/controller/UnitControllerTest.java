@@ -5,6 +5,9 @@ import com.tetra.app.model.Unit;
 import com.tetra.app.repository.BlacklistedTokenRepository;
 import com.tetra.app.repository.TrainingModuleRepository;
 import com.tetra.app.repository.UnitRepository;
+import com.tetra.app.repository.UnitContentRepository;
+import com.tetra.app.repository.QuestionRepository;
+import com.tetra.app.repository.AnswerRepository;
 import com.tetra.app.security.JwtUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +39,15 @@ public class UnitControllerTest {
 
     @Mock
     private BlacklistedTokenRepository blacklistedTokenRepository;
+
+    @Mock
+    private UnitContentRepository unitContentRepository;
+
+    @Mock
+    private QuestionRepository questionRepository;
+
+    @Mock
+    private AnswerRepository answerRepository;
 
     @InjectMocks
     private UnitController unitController;
@@ -254,6 +266,9 @@ public class UnitControllerTest {
 
         when(jwtUtil.extractRole(token)).thenReturn("ADMIN");
         when(unitRepository.existsById(unitId)).thenReturn(true);
+
+        // Mock cascade delete dependencies to return empty lists
+        when(unitContentRepository.findByUnit_Id(unitId)).thenReturn(java.util.Collections.emptyList());
 
         ResponseEntity<?> response = unitController.deleteUnit(unitId, authHeader);
 

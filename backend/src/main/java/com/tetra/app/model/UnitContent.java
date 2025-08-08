@@ -139,4 +139,15 @@ public class UnitContent {
     public void setQuestionsNumber(Integer questionsNumber) {
         this.questionsNumber = questionsNumber;
     }
+
+    @OneToMany(mappedBy = "unitContent", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<Question> questions;
+
+    public java.util.List<Question> getQuestions() {
+        return questions;
+    }
+
+    public void setQuestions(java.util.List<Question> questions) {
+        this.questions = questions;
+    }
 }

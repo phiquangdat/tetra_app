@@ -14,7 +14,7 @@ export default function OnChangePlugin() {
         setEditorContent(html);
       });
     });
-  }, [editor]);
+  }, [editor, setEditorContent]);
 
   return null;
 }

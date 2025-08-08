@@ -6,6 +6,7 @@ import {
 } from '../../../services/unit/unitApi';
 import { validateVideoUrl } from '../../../utils/videoHelpers';
 import { UploadAltIcon } from '../../common/Icons';
+import ConfirmationModal from '../createModule/ConfirmationModal.tsx';
 
 interface VideoBlockProps {
   unitNumber?: number;
@@ -27,11 +28,13 @@ const VideoBlock: React.FC<VideoBlockProps> = ({
   blockIndex,
   id,
 }) => {
-  const { getUnitState } = useUnitContext();
+  const { getUnitState, setUnitState, setEditingBlock, removeUnitContent } =
+    useUnitContext();
   const unitContent =
     unitNumber != null && blockIndex != null
       ? getUnitState(unitNumber)?.content[blockIndex]
       : null;
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const shouldUseContext =
     !!unitContent?.data?.url && !!unitContent?.data?.content;
@@ -39,7 +42,35 @@ const VideoBlock: React.FC<VideoBlockProps> = ({
 
   useEffect(() => {
     if (!shouldUseContext && id) {
-      fetchVideoContentById(id).then(setVideo).catch(console.error);
+      fetchVideoContentById(id)
+        .then((fetched) => {
+          setVideo(fetched);
+
+          // Inject content into unit content
+          if (unitNumber != null && blockIndex != null) {
+            const unit = getUnitState(unitNumber);
+            if (!unit) return;
+
+            const updatedBlock = {
+              ...unit.content[blockIndex],
+              data: {
+                ...unit.content[blockIndex].data,
+                content: fetched.content,
+                title: fetched.title,
+                url: fetched.url,
+              },
+            };
+
+            const updatedContent = [...unit.content];
+            updatedContent[blockIndex] = updatedBlock;
+
+            // Update context
+            setUnitState(unitNumber, {
+              content: updatedContent,
+            });
+          }
+        })
+        .catch(console.error);
     }
   }, [shouldUseContext, id]);
 
@@ -52,6 +83,15 @@ const VideoBlock: React.FC<VideoBlockProps> = ({
       };
 
   const { isValid, isYouTube, embedUrl } = validateVideoUrl(data?.url);
+
+  const handleConfirmDelete = async () => {
+    if (unitNumber != null && blockIndex != null) {
+      const success = await removeUnitContent(unitNumber, blockIndex);
+      if (success) {
+        setShowDeleteConfirm(false);
+      }
+    }
+  };
 
   return (
     <div className="px-6 pb-4 text-primary text-base">
@@ -89,14 +129,34 @@ const VideoBlock: React.FC<VideoBlockProps> = ({
         </div>
 
         <div className="flex gap-4">
-          <button className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover text-sm">
+          <button
+            className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover text-sm"
+            onClick={() => {
+              if (unitNumber != null && blockIndex != null) {
+                setEditingBlock({ unitNumber, blockIndex, type: 'video' });
+              }
+            }}
+          >
             Edit
           </button>
-          <button className="px-4 py-2 bg-error text-white rounded-lg hover:bg-errorHover text-sm">
+          <button
+            className="px-4 py-2 bg-error text-white rounded-lg hover:bg-errorHover text-sm"
+            onClick={() => setShowDeleteConfirm(true)}
+          >
             Delete
           </button>
         </div>
       </div>
+
+      {showDeleteConfirm && (
+        <ConfirmationModal
+          onCancel={() => setShowDeleteConfirm(false)}
+          onConfirm={handleConfirmDelete}
+          title="Delete Video"
+          description="Are you sure you want to delete this video? This action cannot be undone."
+          confirmText="Delete"
+        />
+      )}
     </div>
   );
 };

@@ -1,6 +1,10 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { UnitContent } from '../../services/unit/unitApi';
+import {
+  type UnitContent,
+  fetchUnitContentById,
+  fetchUnitTitleByModuleId,
+} from '../../services/unit/unitApi';
 import { useUnitContent } from './UnitContentContext';
 import { useQuizModal } from './QuizModalContext.tsx';
 import { useUnitCompletionModal } from './UnitCompletionModalContext';
@@ -20,10 +24,13 @@ interface ModuleProgressContextProps {
   setUnitId: (id: string) => void;
   moduleId: string;
   setModuleId: (id: string) => void;
-  progressStatus: string;
-  setProgressStatus: (status: string) => void;
+  moduleProgressStatus: string;
+  setModuleProgressStatus: (status: string) => void;
   unitProgressStatus: string;
   setUnitProgressStatus: (status: string) => void;
+  goToStart: () => Promise<void>;
+  goToLastVisited: (lastUnitId: string, lastContentId: string) => void;
+  goToFirstContent: () => Promise<void>;
 }
 
 const ModuleProgressContext = createContext<
@@ -44,13 +51,14 @@ export const ModuleProgressProvider = ({
 }: {
   children: ReactNode;
 }) => {
-  const { contentList } = useUnitContent();
+  const { contentList, setUnitContent } = useUnitContent();
   const { openModal } = useQuizModal();
   const { open: openUnitCompletionModal } = useUnitCompletionModal();
   const [units, setUnitsState] = useState<Unit[]>([]);
   const [unitId, setUnitId] = useState<string>('');
   const [moduleId, setModuleId] = useState<string>('');
-  const [progressStatus, setProgressStatus] = useState<string>('not_started');
+  const [moduleProgressStatus, setModuleProgressStatus] =
+    useState<string>('not_started');
   const [unitProgressStatus, setUnitProgressStatus] =
     useState<string>('not_started');
   const navigate = useNavigate();
@@ -105,6 +113,65 @@ export const ModuleProgressProvider = ({
     return false;
   };
 
+  const goToStart = async () => {
+    const units = await fetchUnitTitleByModuleId(moduleId);
+
+    if (units && units.length > 0) {
+      const firstUnitId = units[0].id;
+      const firstUnitContent = await fetchUnitContentById(firstUnitId);
+
+      if (firstUnitContent && firstUnitContent.length > 0) {
+        const firstContent = firstUnitContent[0];
+
+        setUnits(units);
+
+        setUnitId(firstUnitId);
+
+        setUnitContent(firstUnitId, firstUnitContent);
+
+        navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
+          state: { unitId: firstUnitId },
+        });
+      } else {
+        throw new Error('This module has no content to start.');
+      }
+    } else {
+      throw new Error('This module has no units.');
+    }
+  };
+
+  const goToLastVisited = async (lastUnitId: string, lastContentId: string) => {
+    setUnitId(lastUnitId);
+
+    const lastContentList = await fetchUnitContentById(lastUnitId);
+
+    const lastContent = lastContentList.find(
+      (content) => content.id === lastContentId,
+    );
+
+    if (lastContent) {
+      setUnitContent(lastContent.id, lastContentList);
+      navigate(`/user/${lastContent.content_type}/${lastContentId}`, {
+        state: { unitId: lastUnitId },
+      });
+    } else {
+      throw new Error('Last visited content not found.');
+    }
+  };
+
+  const goToFirstContent = async () => {
+    const contentList = await fetchUnitContentById(unitId);
+    if (contentList && contentList.length > 0) {
+      const firstContent = contentList[0];
+      setUnitContent(unitId, contentList);
+      navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
+        state: { unitId },
+      });
+    } else {
+      throw new Error('This unit has no content to start.');
+    }
+  };
+
   return (
     <ModuleProgressContext.Provider
       value={{
@@ -116,10 +183,13 @@ export const ModuleProgressProvider = ({
         setUnitId,
         moduleId,
         setModuleId,
-        progressStatus,
-        setProgressStatus,
+        moduleProgressStatus,
+        setModuleProgressStatus,
         unitProgressStatus,
         setUnitProgressStatus,
+        goToStart,
+        goToLastVisited,
+        goToFirstContent,
       }}
     >
       {children}

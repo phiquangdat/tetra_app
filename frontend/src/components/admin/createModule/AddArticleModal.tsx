@@ -1,9 +1,9 @@
 import { EditIcon, CloseIcon } from '../../common/Icons';
 import { useEffect, useRef } from 'react';
-import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
-import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
-import EditorComposer from '../../../utils/editor/EditorComposer.tsx';
-import { useEditorStateContext } from '../../../utils/editor/contexts/EditorStateContext.tsx';
+import { useContentBlockContext } from '../../../context/admin/ContentBlockContext';
+import { useUnitContext } from '../../../context/admin/UnitContext';
+import EditorComposer from '../../../utils/editor/EditorComposer';
+import { useEditorStateContext } from '../../../utils/editor/contexts/EditorStateContext';
 
 interface ArticleModalProps {
   isOpen: boolean;
@@ -25,70 +25,81 @@ function AddArticleModal({
     isSaving,
     clearContent,
     setContentState,
-    isDirty,
   } = useContentBlockContext();
-  const { addContentBlock, removeContentBlock } = useUnitContext();
+  const {
+    addContentBlock,
+    editingBlock,
+    setEditingBlock,
+    getUnitState,
+    updateUnitField,
+    getNextSortOrder,
+  } = useUnitContext();
   const { editorContent } = useEditorStateContext();
 
   const modalRef = useRef<HTMLDivElement>(null);
 
   const canSave =
     data.title.trim() !== '' &&
-    (data.content?.trim() ?? '') !== '' &&
+    (editorContent?.trim() ?? '') !== '' &&
     !isSaving;
 
   useEffect(() => {
-    if (isOpen && editorContent !== data.content) {
-      updateContentField('data', {
-        ...data,
-        content: editorContent,
-      });
-    }
-  }, [editorContent, isOpen]);
+    if (!isOpen) return;
 
-  useEffect(() => {
-    if (isOpen) {
+    const block =
+      editingBlock?.unitNumber === unitNumber && editingBlock.blockIndex != null
+        ? getUnitState(unitNumber)?.content[editingBlock.blockIndex]
+        : null;
+
+    if (block && block.type === 'article') {
+      console.log('[AddArticleModal] Loaded block ID:', block.id);
+      setContentState({
+        ...block,
+        isDirty: false,
+        isSaving: false,
+        error: null,
+      });
+    } else {
+      const nextSortOrder = getNextSortOrder(unitNumber);
       clearContent();
-      // Set unit_id in context and add temp block
       setContentState({
         unit_id: unitId,
         type: 'article',
-        sortOrder: 0,
+        sortOrder: nextSortOrder,
         isDirty: true,
         isSaving: false,
         error: null,
       });
     }
-  }, [isOpen]);
+  }, [isOpen, editingBlock, getUnitState, unitId, unitNumber]);
 
   const handleSave = async () => {
-    console.log('editorContent:', editorContent);
-
     if (!canSave) return;
 
-    updateContentField('data', {
-      ...data,
-      content: editorContent,
-    });
-
     try {
-      await saveContent('article');
+      updateContentField('isDirty', true);
+      // Save the article to backend
+      const savedBlock = await saveContent('article', editorContent);
 
-      // Update content in unit context
-      addContentBlock(unitNumber, {
-        type: 'article',
-        data: {
-          title: data.title.trim(),
-          content: editorContent,
-        },
-        sortOrder: 0,
-        unit_id: unitId,
-        isDirty: false,
-        isSaving: false,
-        error: null,
-      });
+      if (!savedBlock) {
+        console.error('Error: Failed to save content block');
+        return;
+      }
 
+      if (editingBlock) {
+        // Update existing block in unit context
+        const currentContent = getUnitState(unitNumber)?.content ?? [];
+        const newBlocks = [...currentContent];
+        newBlocks[editingBlock.blockIndex] = savedBlock;
+        updateUnitField(unitNumber, 'content', newBlocks);
+      } else {
+        // Add new block to unit context (including the saved `id`)
+        addContentBlock(unitNumber, savedBlock);
+      }
+
+      // Step 5: Cleanup
       clearContent();
+      setEditingBlock(null);
       onClose();
     } catch (error) {
       console.error('Error saving article:', error);
@@ -96,10 +107,6 @@ function AddArticleModal({
   };
 
   const handleClose = () => {
-    // If block is unsaved, remove from unit context
-    if (isDirty && !isSaving) {
-      removeContentBlock(unitNumber, -1); // remove last (temp) block
-    }
     clearContent();
     onClose();
   };
@@ -151,26 +158,26 @@ function AddArticleModal({
                 id="title"
                 name="title"
                 value={data.title}
-                onChange={(e) =>
+                onChange={(e) => {
                   updateContentField('data', {
                     ...data,
                     title: e.target.value,
-                  })
-                }
+                  });
+                  updateContentField('isDirty', true);
+                }}
                 className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                 required
               />
             </div>
 
             <div className="mb-6">
-              <EditorComposer />
+              <EditorComposer initialHTML={data.content || '<p></p>'} />
             </div>
           </div>
 
           <div className="flex justify-end p-6">
             <button
               type="button"
-              aria-label="Save Article"
               onClick={handleSave}
               disabled={!canSave}
               className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-200 mr-4 w-24 h-10"

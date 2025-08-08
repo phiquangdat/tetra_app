@@ -12,7 +12,7 @@ import UnitPage from '../user/unit/UnitPage';
 import { fetchUnitById } from '../../services/unit/unitApi';
 import { QuizModalProvider } from '../../context/user/QuizModalContext';
 import { UnitContentProvider } from '../../context/user/UnitContentContext.tsx';
-import { ModuleProgressProvider } from '../../context/user/ModuleContext';
+import { ModuleProgressProvider } from '../../context/user/ModuleProgressContext';
 import { UnitCompletionModalProvider } from '../../context/user/UnitCompletionModalContext';
 
 vi.mock('../../services/unit/unitApi', () => ({

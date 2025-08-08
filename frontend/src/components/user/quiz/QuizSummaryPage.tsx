@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import { useUnitContent } from '../../../context/user/UnitContentContext.tsx';
-import { useModuleProgress } from '../../../context/user/ModuleContext';
+import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
 import { CircularProgressIcon } from '../../common/Icons';
 
 const mockedQuestions = [

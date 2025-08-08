@@ -17,6 +17,9 @@ import {
   type SaveArticleRequest,
   saveQuizContent,
   type SaveQuizRequest,
+  updateArticleContent,
+  updateVideoContent,
+  updateQuizContent,
 } from '../../services/unit/content/unitContentApi.ts';
 
 interface ContextBlockType extends ContentBlock {
@@ -24,7 +27,10 @@ interface ContextBlockType extends ContentBlock {
   markContentAsDirty: () => void;
   setContentState: (newState: Partial<ContentBlock>) => void;
   getContentState: () => ContentBlock;
-  saveContent: (type: 'article' | 'video' | 'quiz') => Promise<void>;
+  saveContent: (
+    type: 'article' | 'video' | 'quiz',
+    editorContent?: string,
+  ) => Promise<ContentBlock | undefined>;
   clearContent: () => void;
 
   updateQuestion: (index: number, question: QuizQuestion) => void;
@@ -66,15 +72,28 @@ export const ContentBlockContextProvider = ({
 
   const updateContentField = useCallback(
     (key: keyof ContentBlock, value: any) => {
-      setContentBlock((prev) => ({
-        ...prev,
-        [key]: value,
-        isDirty:
-          key !== 'isDirty' && key !== 'isSaving' && key !== 'error'
-            ? true
-            : prev.isDirty,
-      }));
-      console.log('updateContentField', updateContentField);
+      setContentBlock((prev) => {
+        let isDirty = prev.isDirty;
+
+        if (
+          key === 'data' &&
+          value &&
+          typeof value === 'object' &&
+          'title' in value &&
+          'content' in value
+        ) {
+          const titleChanged = value.title?.trim() !== prev.data.title?.trim();
+          const contentChanged =
+            value.content?.trim() !== prev.data.content?.trim();
+          isDirty = titleChanged || contentChanged;
+        }
+
+        return {
+          ...prev,
+          [key]: value,
+          isDirty,
+        };
+      });
     },
     [],
   );
@@ -92,14 +111,21 @@ export const ContentBlockContextProvider = ({
   }, [contentBlock]);
 
   const saveContent = useCallback(
-    async (type: 'article' | 'video' | 'quiz') => {
+    async (
+      type: 'article' | 'video' | 'quiz',
+      editorContent?: string,
+    ): Promise<ContentBlock | undefined> => {
       const unitId = contentBlock.unit_id;
       if (!unitId) {
         console.warn('[saveContent] Missing unit_id in contentBlock');
         return;
       }
 
-      if (!contentBlock.isDirty || contentBlock.isSaving) {
+      const savedContent = contentBlock.data.content?.trim() ?? '';
+      const newArticleContent = editorContent?.trim() ?? '';
+      const isContentDirty = savedContent !== newArticleContent;
+
+      if ((!isContentDirty && !contentBlock.isDirty) || contentBlock.isSaving) {
         console.log('[saveContent] Skipped: Not dirty or already saving');
         return;
       }
@@ -107,7 +133,6 @@ export const ContentBlockContextProvider = ({
       console.log(
         `[saveContent] Saving content block to unit ${unitId}, type: ${type}`,
       );
-      console.log('[saveContent] Data:', contentBlock.data);
 
       setContentState({ isSaving: true, error: null });
 
@@ -137,15 +162,44 @@ export const ContentBlockContextProvider = ({
               sort_order,
             };
 
-            const result = await saveVideoContent(payload);
-            setContentState({ id: result.id });
-            console.log(
-              `[saveContent] Video content saved successfully, ID: ${result.id}`,
-            );
+            let result: { id: string };
+
+            try {
+              if (contentBlock.id) {
+                result = await updateVideoContent(contentBlock.id, payload);
+              } else {
+                result = await saveVideoContent(payload);
+              }
+              console.log(
+                `[saveContent] Video created successfully, ID: ${result.id}`,
+              );
+
+              const updatedBlock: ContentBlock = {
+                ...contentBlock,
+                id: result.id,
+                data: {
+                  ...contentBlock.data,
+                  content: content,
+                },
+                isDirty: false,
+                isSaving: false,
+                error: null,
+              };
+
+              setContentState(updatedBlock);
+              return updatedBlock;
+            } catch (err) {
+              const error =
+                err instanceof Error ? err.message : 'Unknown error occurred';
+              console.error('[saveContent] Failed to save article:', error);
+              setContentState({ error });
+              return;
+            }
             break;
           }
           case 'article': {
-            const { title, content } = contentBlock.data;
+            const title = contentBlock.data.title;
+            const content = newArticleContent;
             const sort_order = contentBlock.sortOrder;
 
             if (!title || !content) {
@@ -160,11 +214,38 @@ export const ContentBlockContextProvider = ({
               sort_order,
             };
 
-            const result = await saveArticleContent(payload);
-            setContentState({ id: result.id });
-            console.log(
-              `[saveContent] Article content saved successfully, ID: ${result.id}`,
-            );
+            let result: { id: string };
+            try {
+              if (contentBlock.id) {
+                result = await updateArticleContent(contentBlock.id, payload);
+              } else {
+                result = await saveArticleContent(payload);
+              }
+              console.log(
+                `[saveContent] Article created successfully, ID: ${result.id}`,
+              );
+
+              const updatedBlock: ContentBlock = {
+                ...contentBlock,
+                id: result.id,
+                data: {
+                  ...contentBlock.data,
+                  content: content,
+                },
+                isDirty: false,
+                isSaving: false,
+                error: null,
+              };
+
+              setContentState(updatedBlock);
+              return updatedBlock;
+            } catch (err) {
+              const error =
+                err instanceof Error ? err.message : 'Unknown error occurred';
+              console.error('[saveContent] Failed to save article:', error);
+              setContentState({ error });
+              return;
+            }
             break;
           }
           case 'quiz': {
@@ -188,11 +269,39 @@ export const ContentBlockContextProvider = ({
               questions: questions as QuizQuestion[],
             };
 
-            const result = await saveQuizContent(payload);
-            setContentState({ id: result.id });
-            console.log(
-              `[saveContent] Quiz content saved successfully, ID: ${result.id}`,
-            );
+            let result: { id: string };
+
+            try {
+              if (contentBlock.id) {
+                result = await updateQuizContent(contentBlock.id, payload);
+              } else {
+                result = await saveQuizContent(payload);
+              }
+              console.log(
+                `[saveContent] Quiz created successfully, ID: ${result.id}`,
+              );
+
+              const updatedBlock: ContentBlock = {
+                ...contentBlock,
+                id: result.id,
+                data: {
+                  ...contentBlock.data,
+                  content: content,
+                },
+                isDirty: false,
+                isSaving: false,
+                error: null,
+              };
+
+              setContentState(updatedBlock);
+              return updatedBlock;
+            } catch (err) {
+              const error =
+                err instanceof Error ? err.message : 'Unknown error occurred';
+              console.error('[saveContent] Failed to save article:', error);
+              setContentState({ error });
+              return;
+            }
             break;
           }
           default:

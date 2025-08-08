@@ -36,7 +36,7 @@ describe('AddQuizModal', () => {
       <UnitContext.Provider
         value={{
           addContentBlock: mockAddContentBlock,
-          removeContentBlock: vi.fn(),
+          removeContentBlockFromContext: vi.fn(),
           unitStates: {},
           updateUnitField: vi.fn(),
           markUnitAsDirty: vi.fn(),

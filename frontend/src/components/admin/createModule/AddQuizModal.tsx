@@ -26,7 +26,14 @@ function AddQuizModal({
     setContentState,
   } = useContentBlockContext();
 
-  const { addContentBlock } = useUnitContext();
+  const {
+    addContentBlock,
+    editingBlock,
+    setEditingBlock,
+    getUnitState,
+    updateUnitField,
+    getNextSortOrder,
+  } = useUnitContext();
 
   const [selectedOption, setSelectedOption] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
@@ -37,12 +44,27 @@ function AddQuizModal({
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) return;
+
+    const block =
+      editingBlock?.unitNumber === unitNumber && editingBlock.blockIndex != null
+        ? getUnitState(unitNumber)?.content[editingBlock.blockIndex]
+        : null;
+
+    if (block && block.type === 'quiz') {
+      setContentState({
+        ...block,
+        isDirty: false,
+        isSaving: false,
+        error: null,
+      });
+    } else {
+      const nextSortOrder = getNextSortOrder(unitNumber);
       clearContent();
       setContentState({
         unit_id: unitId,
         type: 'quiz',
-        sortOrder: 0,
+        sortOrder: nextSortOrder,
         isDirty: true,
         isSaving: false,
         error: null,
@@ -62,11 +84,14 @@ function AddQuizModal({
       pointsValue !== undefined && pointsValue !== null ? pointsValue : '',
     ).trim();
 
-    if (!pointsStr && pointsValue !== 0) {
-      newErrors.push('Points is required.');
+    if (pointsStr === '' || isNaN(Number(pointsStr))) {
+      newErrors.push('Points is required and must be a number.');
     }
 
     const questions = data.questions || [];
+    if (questions.length === 0) {
+      newErrors.push('At least one question is required.');
+    }
 
     questions.forEach((q, index) => {
       const questionErrs: string[] = [];
@@ -152,28 +177,28 @@ function AddQuizModal({
     const validationErrors = validateQuiz();
 
     if (validationErrors.length > 0) {
+      console.warn('[AddQuizModal] Validation failed', validationErrors);
       setErrors(validationErrors);
       return;
     }
 
     try {
-      await saveContent('quiz');
+      const savedBlock = await saveContent('quiz');
+      if (!savedBlock) return;
 
-      addContentBlock(unitNumber, {
-        type: 'quiz',
-        data: {
-          ...data,
-        },
-        sortOrder: 0,
-        unit_id: unitId,
-        isDirty: false,
-        isSaving: false,
-        error: null,
-      });
+      if (editingBlock) {
+        const currentContent = getUnitState(unitNumber)?.content ?? [];
+        const newBlocks = [...currentContent];
+        newBlocks[editingBlock.blockIndex] = savedBlock;
+        updateUnitField(unitNumber, 'content', newBlocks);
+      } else {
+        addContentBlock(unitNumber, savedBlock);
+      }
 
       setErrors([]);
       setQuestionErrors({});
       clearContent();
+      setEditingBlock(null);
       onClose();
     } catch (error) {
       console.error('Error saving quiz:', error);
@@ -185,6 +210,7 @@ function AddQuizModal({
     setErrors([]);
     setQuestionErrors({});
     clearContent();
+    setEditingBlock(null);
     onClose();
   };
 

@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { useUnitContext } from '../../../context/admin/UnitContext';
+import {
+  type QuizQuestion,
+  useUnitContext,
+} from '../../../context/admin/UnitContext';
 import {
   fetchQuizById,
   fetchQuizQuestionsByQuizId,
   type Quiz,
   type Question,
 } from '../../../services/quiz/quizApi';
+import ConfirmationModal from '../createModule/ConfirmationModal.tsx';
 
 interface QuizBlockProps {
   unitNumber?: number;
@@ -18,11 +22,13 @@ const QuizBlock: React.FC<QuizBlockProps> = ({
   blockIndex,
   id,
 }) => {
-  const { getUnitState } = useUnitContext();
+  const { getUnitState, setUnitState, setEditingBlock, removeUnitContent } =
+    useUnitContext();
   const unitContent =
     unitNumber != null && blockIndex != null
       ? getUnitState(unitNumber)?.content[blockIndex]
       : null;
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const shouldUseContext =
     Array.isArray(unitContent?.data?.questions) &&
@@ -42,6 +48,45 @@ const QuizBlock: React.FC<QuizBlockProps> = ({
           ]);
           setQuiz(qz);
           setQuestions(qs);
+
+          if (unitNumber != null && blockIndex != null) {
+            const unit = getUnitState(unitNumber);
+            if (!unit) return;
+
+            const updatedBlock = {
+              ...unit.content[blockIndex],
+              data: {
+                ...unit.content[blockIndex].data,
+                title: qz.title,
+                content: qz.content,
+                points: qz.points,
+                questions: qs.map(
+                  (q): QuizQuestion => ({
+                    title: q.title,
+                    type:
+                      q.type === 'multiple choice'
+                        ? 'multiple'
+                        : q.type === 'true/false'
+                          ? 'true/false'
+                          : 'multiple',
+                    sort_order: q.sort_order,
+                    answers: q.answers.map((a) => ({
+                      title: a.title,
+                      is_correct: !!a.is_correct, // ← forces it to be a boolean
+                      sort_order: a.sort_order,
+                    })),
+                  }),
+                ),
+              },
+            };
+
+            const updatedContent = [...unit.content];
+            updatedContent[blockIndex] = updatedBlock;
+
+            setUnitState(unitNumber, {
+              content: updatedContent,
+            });
+          }
         } catch {
           setError('Failed to load quiz');
         } finally {
@@ -65,6 +110,15 @@ const QuizBlock: React.FC<QuizBlockProps> = ({
         points: quiz?.points,
         questions,
       };
+
+  const handleConfirmDelete = async () => {
+    if (unitNumber != null && blockIndex != null) {
+      const success = await removeUnitContent(unitNumber, blockIndex);
+      if (success) {
+        setShowDeleteConfirm(false);
+      }
+    }
+  };
 
   return (
     <div className="px-6 pb-4 text-primary text-base">
@@ -110,14 +164,34 @@ const QuizBlock: React.FC<QuizBlockProps> = ({
           </div>
         </div>
         <div className="flex gap-4">
-          <button className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover text-sm">
+          <button
+            className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover text-sm"
+            onClick={() => {
+              if (unitNumber != null && blockIndex != null) {
+                setEditingBlock({ unitNumber, blockIndex, type: 'quiz' });
+              }
+            }}
+          >
             Edit
           </button>
-          <button className="px-4 py-2 bg-error text-white rounded-lg hover:bg-errorHover text-sm">
+          <button
+            className="px-4 py-2 bg-error text-white rounded-lg hover:bg-errorHover text-sm"
+            onClick={() => setShowDeleteConfirm(true)}
+          >
             Delete
           </button>
         </div>
       </div>
+
+      {showDeleteConfirm && (
+        <ConfirmationModal
+          onCancel={() => setShowDeleteConfirm(false)}
+          onConfirm={handleConfirmDelete}
+          title="Delete Quiz"
+          description="Are you sure you want to delete this quiz? This action cannot be undone."
+          confirmText="Delete"
+        />
+      )}
     </div>
   );
 };

@@ -1,3 +1,5 @@
+import { getAuthToken } from '../../../utils/authHelpers.ts';
+
 const envBaseUrl = import.meta.env.VITE_BACKEND_URL;
 const BASE_URL =
   envBaseUrl && envBaseUrl.trim() !== '' ? `${envBaseUrl}/api` : '/api';
@@ -135,5 +137,159 @@ export async function saveQuizContent(
       error instanceof Error ? error.message : 'Unknown error',
     );
     throw error instanceof Error ? error : new Error('Unknown error occurred');
+  }
+}
+
+export async function updateArticleContent(
+  id: string,
+  article: SaveArticleRequest,
+): Promise<{ id: string }> {
+  const token = getAuthToken();
+  const url = `${BASE_URL}/unit_content/article/${id}`;
+  console.log('[updateArticle] UPDATE:', url);
+  try {
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify(article),
+    });
+
+    console.log(`[updateArticle] Response status: ${response.status}`);
+    console.log(
+      `[updateArticle] Response headers:`,
+      Object.fromEntries(response.headers.entries()),
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to update article content: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(
+      'Error updating article content:',
+      error instanceof Error ? error.message : 'Unknown error',
+    );
+    throw error instanceof Error ? error : new Error('Unknown error occurred');
+  }
+}
+
+export async function updateVideoContent(
+  id: string,
+  video: SaveVideoRequest,
+): Promise<{ id: string }> {
+  const token = getAuthToken();
+  const url = `${BASE_URL}/unit_content/video/${id}`;
+  console.log('[updateVideo] UPDATE:', url);
+  try {
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify(video),
+    });
+
+    console.log(`[updateVideo] Response status: ${response.status}`);
+    console.log(
+      `[updateVideo] Response headers:`,
+      Object.fromEntries(response.headers.entries()),
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to update video content: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(
+      'Error updating video content:',
+      error instanceof Error ? error.message : 'Unknown error',
+    );
+    throw error instanceof Error ? error : new Error('Unknown error occurred');
+  }
+}
+
+export async function updateQuizContent(
+  id: string,
+  quiz: SaveQuizRequest,
+): Promise<{ id: string }> {
+  const token = getAuthToken();
+  const url = `${BASE_URL}/unit_content/quiz/${id}`;
+  console.log('[updateQuiz] UPDATE:', url);
+  try {
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify(quiz),
+    });
+
+    console.log(`[updateQuiz] Response status: ${response.status}`);
+    console.log(
+      `[updateQuiz] Response headers:`,
+      Object.fromEntries(response.headers.entries()),
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to update video content: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(
+      'Error updating video content:',
+      error instanceof Error ? error.message : 'Unknown error',
+    );
+    throw error instanceof Error ? error : new Error('Unknown error occurred');
+  }
+}
+
+export async function deleteUnitContent(id: string): Promise<string> {
+  const token = getAuthToken();
+  const url = `${BASE_URL}/unit_content/${id}`;
+  console.log('[deleteUnitContent] DELETE:', url);
+
+  try {
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+
+    console.log(`[deleteUnitContent] Response status: ${response.status}`);
+    console.log(
+      `[deleteUnitContent] Response headers:`,
+      Object.fromEntries(response.headers.entries()),
+    );
+
+    const text = await response.text();
+
+    if (!response.ok) {
+      console.error(`[deleteUnitContent] Error response body:`, text);
+      throw new Error('Failed to delete unit');
+    }
+
+    return text;
+  } catch (error) {
+    console.error(`[deleteUnitContent] Exception:`, error);
+    throw error;
   }
 }

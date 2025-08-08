@@ -14,6 +14,13 @@ import {
   updateUnit,
 } from '../../services/unit/unitApi';
 import toast from 'react-hot-toast';
+import { deleteUnitContent } from '../../services/unit/content/unitContentApi.ts';
+
+export type EditingBlock = {
+  unitNumber: number;
+  blockIndex: number;
+  type: ContentBlock['type'];
+};
 
 export type QuizQuestionAnswer = {
   title: string;
@@ -74,7 +81,14 @@ type UnitContextType = {
   saveUnit: (unitNumber: number, moduleId: string) => Promise<void>;
   removeUnit: (unitNumber: number) => Promise<boolean>;
   addContentBlock: (unitNumber: number, block: ContentBlock) => void;
-  removeContentBlock: (unitNumber: number, blockIndex: number) => void;
+  removeContentBlockFromContext: (
+    unitNumber: number,
+    blockIndex: number,
+  ) => void;
+  removeUnitContent: (
+    unitNumber: number,
+    blockIndex: number,
+  ) => Promise<boolean>;
   addUnit: () => void;
   setUnitStatesRaw: (state: Record<number, UnitContextEntry>) => void;
   loadUnitContentIntoState: (
@@ -82,6 +96,9 @@ type UnitContextType = {
     unitNumber: number,
   ) => Promise<void>;
   setIsEditing: (unitNumber: number, editing: boolean) => void;
+  editingBlock: EditingBlock | null;
+  setEditingBlock: (block: EditingBlock | null) => void;
+  getNextSortOrder: (unitNumber: number) => number;
 };
 
 export const initialUnitState = (): UnitContextEntry => ({
@@ -104,6 +121,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
   const [unitStates, setUnitStates] = useState<
     Record<number, UnitContextEntry>
   >({});
+  const [editingBlock, setEditingBlock] = useState<EditingBlock | null>(null);
 
   const updateUnitField = useCallback(
     (unitNumber: number, key: keyof UnitContextEntry, value: any) => {
@@ -272,7 +290,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     [],
   );
 
-  const removeContentBlock = useCallback(
+  const removeContentBlockFromContext = useCallback(
     (unitNumber: number, blockIndex: number) => {
       setUnitStates((prev) => {
         const currentUnit = prev[unitNumber];
@@ -292,6 +310,31 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
       });
     },
     [],
+  );
+
+  const removeUnitContent = useCallback(
+    async (unitNumber: number, blockIndex: number): Promise<boolean> => {
+      const unit = unitStates[unitNumber];
+      if (!unit || !unit.content[blockIndex]) return false;
+
+      const block = unit.content[blockIndex];
+      if (!block) return false;
+
+      if (block.id) {
+        try {
+          await deleteUnitContent(block.id);
+          toast.success('Content block deleted successfully');
+        } catch (err) {
+          console.error('Failed to delete content block:', err);
+          toast.error('Failed to delete content. Please try again later.');
+          return false;
+        }
+      }
+
+      removeContentBlockFromContext(unitNumber, blockIndex);
+      return true;
+    },
+    [unitStates, removeContentBlockFromContext],
   );
 
   const setUnitStatesRaw = (newState: Record<number, UnitContextEntry>) => {
@@ -336,6 +379,13 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
+  const getNextSortOrder = (unitNumber: number): number => {
+    const unit = getUnitState(unitNumber);
+    if (!unit || unit.content.length === 0) return 0;
+    const maxOrder = Math.max(...unit.content.map((b) => b.sortOrder || 0));
+    return maxOrder + 10;
+  };
+
   const contextValue: UnitContextType = {
     unitStates,
     updateUnitField,
@@ -346,11 +396,15 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     saveUnit,
     removeUnit,
     addContentBlock,
-    removeContentBlock,
+    removeContentBlockFromContext,
+    removeUnitContent,
     addUnit,
     setUnitStatesRaw,
     loadUnitContentIntoState,
     setIsEditing,
+    editingBlock,
+    setEditingBlock,
+    getNextSortOrder,
   };
 
   return (

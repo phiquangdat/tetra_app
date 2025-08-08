@@ -6,7 +6,7 @@ import {
   type UnitContent,
 } from '../../../services/unit/unitApi';
 import { useUnitContent } from '../../../context/user/UnitContentContext';
-import { useModuleProgress } from '../../../context/user/ModuleContext';
+import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
 import { useQuizModal } from '../../../context/user/QuizModalContext.tsx';
 import {
   BookIcon,
@@ -65,7 +65,13 @@ async function fetchUnitDetails(id: string) {
 }
 
 const UnitPage = ({ id }: UnitPageProps) => {
-  const { setUnitId, setModuleId, setUnitProgressStatus } = useModuleProgress();
+  const {
+    setUnitId,
+    setModuleId,
+    unitProgressStatus,
+    setUnitProgressStatus,
+    goToFirstContent,
+  } = useModuleProgress();
   const [checkedIndex, setCheckedIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -101,17 +107,10 @@ const UnitPage = ({ id }: UnitPageProps) => {
 
         try {
           const unitProgress = await getUnitProgress(id);
-          setUnitProgressStatus(unitProgress?.status);
+          setUnitProgressStatus(unitProgress?.status.toLowerCase());
         } catch (getError) {
           if (getError instanceof Error && getError.message.includes('404')) {
-            try {
-              const response = await createUnitProgress(id, details.moduleId); // POST unit progress if only it doesn't exist (404 error)
-              console.log('[createUnitProgress] response', response);
-              setUnitProgressStatus(response.status.toLowerCase());
-            } catch (createError) {
-              console.error('Failed to create unit progress:', createError);
-              setError('Failed to create unit progress');
-            }
+            setUnitProgressStatus('not_started');
           }
         }
       } catch (error) {
@@ -140,6 +139,23 @@ const UnitPage = ({ id }: UnitPageProps) => {
     );
   };
 
+  const handleStart = async () => {
+    try {
+      if (unitDetails.id) {
+        const response = await createUnitProgress(
+          unitDetails.id,
+          unitDetails.moduleId,
+        );
+        setUnitProgressStatus(response.status.toLowerCase());
+        console.log('[createUnitProgress] Unit progress created:', response);
+        await goToFirstContent();
+      }
+    } catch (err) {
+      console.error('Error starting unit:', err);
+      setError('Cannot start unit.');
+    }
+  };
+
   return (
     <div className="mx-auto px-8 py-8 min-h-screen bg-[#FFFFFF] text-left">
       <div className="mb-6">
@@ -156,6 +172,22 @@ const UnitPage = ({ id }: UnitPageProps) => {
         <h1 className="text-2xl md:text-3xl font-extrabold text-[#231942] tracking-tight">
           {loading ? 'Loading...' : unitDetails.title}
         </h1>
+        {unitProgressStatus === 'in_progress' ? (
+          <button
+            className="bg-secondary text-white font-semibold px-14 py-3 rounded-full text-lg shadow-md hover:bg-secondaryHover focus:outline-none focus:ring-2 focus:ring-surface transition w-fit"
+            type="button"
+          >
+            Continue
+          </button>
+        ) : (
+          <button
+            className="bg-surface text-white font-semibold px-16 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition w-fit"
+            type="button"
+            onClick={handleStart}
+          >
+            Start
+          </button>
+        )}
       </div>
 
       <h2 className="text-xl font-bold ml-4 mb-4 text-[#231942]">

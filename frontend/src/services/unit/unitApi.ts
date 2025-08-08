@@ -9,6 +9,8 @@ export interface UnitContent {
   title: string;
   content_type: string;
   sort_order: number;
+  status: string;
+  points: number;
 }
 
 export interface UnitDetailsResponse {

@@ -18,6 +18,7 @@ import {
 import {
   getUnitProgress,
   createUnitProgress,
+  getContentProgress,
 } from '../../../services/userProgress/userProgressApi.tsx';
 
 interface UnitPageProps {
@@ -101,9 +102,28 @@ const UnitPage = ({ id }: UnitPageProps) => {
         setUnitId(id);
         setModuleId(details.moduleId);
 
-        const content = await fetchUnitContentById(id);
+        const [content, contentProgress] = await Promise.all([
+          fetchUnitContentById(id),
+          getContentProgress(id),
+        ]);
+
+        console.log('[getContentProgress] Content progress:', contentProgress);
+
         setUnitContent(details.id, content);
-        setUnitContentList(content);
+
+        const updatedContent = content.map((item) => {
+          // Merge content with progress
+          const progress = contentProgress.find(
+            (p) => p.unitContentId === item.id,
+          );
+          return {
+            ...item,
+            status: progress ? progress.status : 'not_started',
+            points: progress ? progress.points : 0,
+          };
+        });
+
+        setUnitContentList(updatedContent);
 
         try {
           const unitProgress = await getUnitProgress(id);
@@ -232,9 +252,13 @@ const UnitPage = ({ id }: UnitPageProps) => {
           unitContentList.map((content, index) => (
             <div
               key={content.id}
-              className={`grid grid-cols-[24px_80px_1fr_32px] gap-4 items-center p-4 rounded-xl cursor-pointer transition-colors 
+              className={`grid grid-cols-[24px_80px_1fr_auto] gap-4 items-center p-4 rounded-xl cursor-pointer transition-colors 
                 hover:bg-[#D4C2FC] ${
-                  checkedIndex === index ? 'bg-[#998FC7]/30' : 'bg-white'
+                  checkedIndex === index
+                    ? 'bg-[#998FC7]/30'
+                    : content.status?.toLowerCase() === 'completed'
+                      ? 'bg-green-100/70 border border-green-300'
+                      : 'bg-white'
                 }`}
               onClick={() => handleRowClick(index)}
             >
@@ -266,6 +290,18 @@ const UnitPage = ({ id }: UnitPageProps) => {
                   </button>
                 )}
                 {checkedIndex === index ? <CheckIcon /> : ''}
+                {content.status?.toLowerCase() === 'completed' && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
+                      <CheckIcon width={14} height={14} color="white" />
+                    </div>
+                    {content.points > 0 && (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold border border-green-200">
+                        {content.points} pts
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ))

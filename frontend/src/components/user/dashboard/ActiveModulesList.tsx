@@ -1,19 +1,18 @@
-import { StarIcon } from '../../common/Icons';
 import { Link } from 'react-router-dom';
+import ActiveModuleCard, {
+  type ActiveModuleStatus,
+} from '../../ui/ActiveModuleCard';
 
 const data = [
-  {
-    title: 'Internet Privacy',
-    topic: 'Cybersecurity - Intermediate',
-  },
-  {
-    title: 'Safety at Work',
-    topic: 'Occupational Safety',
-  },
-  {
-    title: 'Artificial Intelligence',
-    topic: 'AI tools - Beginner',
-  },
+  { title: 'Internet Privacy', topic: 'Cybersecurity - Intermediate' },
+  { title: 'Safety at Work', topic: 'Occupational Safety' },
+  { title: 'Artificial Intelligence', topic: 'AI tools - Beginner' },
+];
+
+const dummyStatuses: ActiveModuleStatus[] = [
+  'in_progress',
+  'not_started',
+  'completed',
 ];
 
 const ActiveModulesList = () => {
@@ -28,29 +27,17 @@ const ActiveModulesList = () => {
       </div>
 
       <div className="flex flex-col gap-6">
-        {data.map((item) => (
-          <div
+        {data.map((item, idx) => (
+          <ActiveModuleCard
             key={item.title}
-            className="flex flex-col justify-between rounded-xl bg-background p-6 border border-highlight hover:shadow-xl transition-all duration-300 shadow-sm"
-          >
-            <div className="flex self-start items-center gap-4">
-              <span>
-                <StarIcon width={26} height={26} />
-              </span>
-              <div>
-                <div className="font-bold text-lg text-primary leading-relaxed">
-                  {item.title}
-                </div>
-                <div className="text-primary/70 text-sm italic">
-                  {item.topic}
-                </div>
-              </div>
-            </div>
-
-            <button className="bg-surface hover:bg-surfaceHover self-end text-white font-semibold px-6 py-3 rounded-lg shadow transform hover:scale-105 transition-all duration-300">
-              Start learning
-            </button>
-          </div>
+            title={item.title}
+            topic={item.topic}
+            earnedPoints={idx * 5 + 10}
+            status={dummyStatuses[idx % dummyStatuses.length]}
+            onClick={() => {
+              console.log('Start learning clicked for', item.title);
+            }}
+          />
         ))}
       </div>
 

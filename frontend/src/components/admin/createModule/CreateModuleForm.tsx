@@ -28,10 +28,8 @@ const CreateModuleForm: React.FC = () => {
     'bg-cardBackground border border-highlight rounded-3xl p-6 shadow-md text-primary w-full';
 
   return (
-    <div className="max-w-5xl">
-      <h2 className="text-2xl font-semibold text-primary mb-6">
-        Module Details
-      </h2>
+    <div className="mb-10 w-full">
+      <h2 className="text-xl font-bold text-primary mb-4">Module Details</h2>
 
       {Object.keys(formErrors).length > 0 && (
         <div className="bg-error/10 text-error p-4 rounded-lg mb-6">
@@ -61,7 +59,7 @@ const CreateModuleForm: React.FC = () => {
         <ModuleDetailsUI onEdit={() => setIsEditing(true)} />
       ) : (
         <div className={cardClasses}>
-          <form className="space-y-6 max-w-110 mx-0 mb-11">
+          <form className="space-y-6 mx-0 mb-2">
             <ModuleFormFields />
             <SaveButton onClick={handleSave} disabled={isSaving} />
           </form>

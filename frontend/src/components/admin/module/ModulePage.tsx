@@ -8,7 +8,7 @@ interface ModulePageProps {
 
 const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   return (
-    <div className="mx-auto px-8 py-8 min-h-screen bg-[#FFFFFF] text-left">
+    <div className="mx-auto max-w-6xl px-8 py-10 min-h-screen bg-background text-left">
       <div className="mb-6">
         <a
           onClick={() => history.back()}

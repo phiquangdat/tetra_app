@@ -44,13 +44,13 @@ const UnitsManager: React.FC = () => {
           />
         );
       })}
-      <div className="flex justify-center mt-4">
-        <div className="relative group inline-block">
+      <div className="w-full flex justify-center items-center mt-6">
+        <div className="relative group">
           <button
             type="button"
             onClick={handleAddUnit}
             disabled={!canAddUnit}
-            className={`px-4 py-2 rounded-lg transition ${
+            className={`w-36 h-10 rounded-lg transition ${
               canAddUnit
                 ? 'bg-indigo-500 text-white hover:bg-indigo-600'
                 : 'bg-highlight text-primary opacity-50 cursor-not-allowed'
@@ -94,10 +94,10 @@ function CreateModulePageContent() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl min-h-screen bg-background px-4 py-6 text-left">
-      <h1 className="font-extrabold text-[28px] pb-4 text-primary">
-        Create New Module
-      </h1>
+    <div className="mx-auto max-w-6xl min-h-screen bg-background px-8 py-10 text-left">
+      <header className="mb-6">
+        <h1 className="text-3xl font-extrabold text-primary">Create Module</h1>
+      </header>
       <CreateModuleForm />
       <UnitsManager />
       <div className="max-w-5xl px-6 sm:px-10 py-8 my-6 rounded-3xl">

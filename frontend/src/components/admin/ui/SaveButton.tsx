@@ -3,26 +3,34 @@ import React from 'react';
 interface SaveButtonProps {
   onClick: () => void;
   disabled?: boolean;
+  isDirty?: boolean;
   label?: string;
 }
 
 const SaveButton: React.FC<SaveButtonProps> = ({
   onClick,
   disabled = false,
+  isDirty = true,
   label = 'Save',
 }) => {
+  let classes = '';
+
+  if (disabled) {
+    classes = 'bg-highlight text-primary/60 opacity-60 cursor-not-allowed';
+  } else if (isDirty) {
+    classes =
+      'bg-surface text-white hover:bg-surfaceHover border border-highlight';
+  } else {
+    classes = 'bg-highlight text-primary hover:bg-highlight/80';
+  }
+
   return (
     <button
       type="button"
-      aria-label="Save Module"
+      aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className={`text-sm px-4 py-1 rounded-lg cursor-pointer transition-colors duration-200 mr-4 mt-8 w-28 h-10
-        ${
-          disabled
-            ? 'bg-highlight text-primary/60 opacity-60 cursor-not-allowed'
-            : 'bg-surface text-white hover:bg-surfaceHover border border-highlight'
-        }`}
+      className={`px-4 py-2 rounded-lg transition-colors duration-200 ${classes}`}
     >
       {disabled ? 'Saving...' : label}
     </button>

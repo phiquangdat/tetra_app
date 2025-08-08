@@ -64,26 +64,27 @@ const UnitForm: React.FC<UnitFormProps> = ({ unitNumber, onSaved }) => {
     updateUnitField(unitNumber, 'description', e.target.value);
   };
 
+  const inputBase =
+    'w-full rounded-lg p-2 text-primary bg-cardBackground border-2 border-highlight focus:outline-none focus:border-surface transition-colors duration-200';
+  const labelBase = 'block mb-1 font-medium text-primary';
+
   return (
     <form onSubmit={(e) => e.preventDefault()}>
       {/* Error or Success Messages */}
       {unitState?.error && (
-        <div className="bg-red-100 text-red-700 p-2 rounded mb-4">
+        <div className="bg-error/10 text-error p-2 rounded mb-4">
           {unitState.error}
         </div>
       )}
       {successSaved && (
-        <div className="bg-green-100 text-green-700 p-2 rounded mb-4">
+        <div className="bg-success/10 text-success p-2 rounded mb-4">
           Unit saved successfully!
         </div>
       )}
 
       {/* Title Input */}
       <div className="mb-6">
-        <label
-          htmlFor={`unitTitle-${unitNumber}`}
-          className="block mb-1 font-medium"
-        >
+        <label htmlFor={`unitTitle-${unitNumber}`} className={labelBase}>
           Title
         </label>
         <input
@@ -91,16 +92,13 @@ const UnitForm: React.FC<UnitFormProps> = ({ unitNumber, onSaved }) => {
           type="text"
           value={unitState?.title || ''}
           onChange={handleTitleChange}
-          className="w-full border-gray-300 border rounded p-2 focus:outline-none focus:border-blue-500"
+          className={inputBase}
         />
       </div>
 
       {/* Description Input */}
       <div className="mb-6">
-        <label
-          htmlFor={`unitDesc-${unitNumber}`}
-          className="block mb-1 font-medium"
-        >
+        <label htmlFor={`unitDesc-${unitNumber}`} className={labelBase}>
           Description
         </label>
         <textarea
@@ -108,7 +106,7 @@ const UnitForm: React.FC<UnitFormProps> = ({ unitNumber, onSaved }) => {
           value={unitState?.description || ''}
           onChange={handleDescriptionChange}
           rows={4}
-          className="w-full border-gray-300 border rounded p-2 focus:outline-none focus:border-blue-500 resize-none"
+          className={`${inputBase} resize-none`}
         />
       </div>
 
@@ -120,10 +118,10 @@ const UnitForm: React.FC<UnitFormProps> = ({ unitNumber, onSaved }) => {
           disabled={unitState?.isSaving || localSaving}
           className={`px-4 py-2 rounded-lg transition ${
             unitState?.isSaving || localSaving
-              ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+              ? 'bg-highlight text-primary/60 opacity-60 cursor-not-allowed'
               : unitState?.isDirty
-                ? 'bg-blue-500 text-white hover:bg-blue-600'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
+                ? 'bg-surface text-white hover:bg-surfaceHover border border-highlight'
+                : 'bg-highlight text-primary hover:bg-highlight/80'
           }`}
         >
           {unitState?.isSaving || localSaving ? 'Saving...' : 'Save'}

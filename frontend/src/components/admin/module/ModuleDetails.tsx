@@ -56,6 +56,9 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ id }) => {
   if (loading) return <div>Loading module...</div>;
   if (!module) return <div className="text-error">Module not found</div>;
 
+  const cardClasses =
+    'bg-cardBackground border border-highlight rounded-3xl p-6 shadow-md text-primary w-full';
+
   return isEditing ? (
     <>
       {Object.keys(formErrors).length > 0 && (
@@ -76,10 +79,12 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ id }) => {
         </div>
       )}
 
-      <form>
-        <ModuleFormFields />
-        <SaveButton onClick={handleSave} disabled={isSaving} />
-      </form>
+      <div className={cardClasses}>
+        <form>
+          <ModuleFormFields />
+          <SaveButton onClick={handleSave} disabled={isSaving} />
+        </form>
+      </div>
     </>
   ) : (
     <ModuleDetailsUI onEdit={() => setIsEditing(true)} />

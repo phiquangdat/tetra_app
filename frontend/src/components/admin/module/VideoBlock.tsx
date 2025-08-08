@@ -6,6 +6,7 @@ import {
 } from '../../../services/unit/unitApi';
 import { validateVideoUrl } from '../../../utils/videoHelpers';
 import { UploadAltIcon } from '../../common/Icons';
+import ConfirmationModal from '../createModule/ConfirmationModal.tsx';
 
 interface VideoBlockProps {
   unitNumber?: number;
@@ -27,11 +28,13 @@ const VideoBlock: React.FC<VideoBlockProps> = ({
   blockIndex,
   id,
 }) => {
-  const { getUnitState, setUnitState, setEditingBlock } = useUnitContext();
+  const { getUnitState, setUnitState, setEditingBlock, removeUnitContent } =
+    useUnitContext();
   const unitContent =
     unitNumber != null && blockIndex != null
       ? getUnitState(unitNumber)?.content[blockIndex]
       : null;
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const shouldUseContext =
     !!unitContent?.data?.url && !!unitContent?.data?.content;
@@ -81,6 +84,15 @@ const VideoBlock: React.FC<VideoBlockProps> = ({
 
   const { isValid, isYouTube, embedUrl } = validateVideoUrl(data?.url);
 
+  const handleConfirmDelete = async () => {
+    if (unitNumber != null && blockIndex != null) {
+      const success = await removeUnitContent(unitNumber, blockIndex);
+      if (success) {
+        setShowDeleteConfirm(false);
+      }
+    }
+  };
+
   return (
     <div className="px-6 pb-4 text-primary text-base">
       <div className="space-y-4 mt-4">
@@ -127,11 +139,24 @@ const VideoBlock: React.FC<VideoBlockProps> = ({
           >
             Edit
           </button>
-          <button className="px-4 py-2 bg-error text-white rounded-lg hover:bg-errorHover text-sm">
+          <button
+            className="px-4 py-2 bg-error text-white rounded-lg hover:bg-errorHover text-sm"
+            onClick={() => setShowDeleteConfirm(true)}
+          >
             Delete
           </button>
         </div>
       </div>
+
+      {showDeleteConfirm && (
+        <ConfirmationModal
+          onCancel={() => setShowDeleteConfirm(false)}
+          onConfirm={handleConfirmDelete}
+          title="Delete Video"
+          description="Are you sure you want to delete this video? This action cannot be undone."
+          confirmText="Delete"
+        />
+      )}
     </div>
   );
 };

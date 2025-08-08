@@ -6,7 +6,9 @@ import {
   UnitContextProvider,
   useUnitContext,
 } from '../../../context/admin/UnitContext';
+
 import * as unitApi from '../../../services/unit/unitApi';
+import * as contentApi from '../../../services/unit/content/unitContentApi'; // ✅ correct module
 
 // Mock toast
 vi.mock('react-hot-toast', () => ({
@@ -21,6 +23,12 @@ vi.mock('react-hot-toast', () => ({
 vi.mock('../../../services/unit/unitApi', async () => {
   return {
     deleteUnit: vi.fn(),
+  };
+});
+
+vi.mock('../../../services/unit/content/unitContentApi', async () => {
+  return {
+    deleteUnitContent: vi.fn(),
   };
 });
 
@@ -41,7 +49,6 @@ describe('UnitContext - removeUnit', () => {
       ),
     });
 
-    // Add unit with an ID
     act(() => {
       result.current.setUnitState(1, {
         id: 'unit-id-1',
@@ -143,7 +150,152 @@ describe('UnitContext - removeUnit', () => {
 
     let success: boolean;
     await act(async () => {
-      success = await result.current.removeUnit(42); // no such unit
+      success = await result.current.removeUnit(42);
+    });
+
+    expect(success!).toBe(false);
+  });
+});
+
+describe('UnitContext - removeUnitContent', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('deletes unit content and removes block from context on success', async () => {
+    const mockDeleteContent =
+      contentApi.deleteUnitContent as unknown as ReturnType<typeof vi.fn>;
+    mockDeleteContent.mockResolvedValueOnce('Content deleted');
+
+    const { result } = renderHook(() => useUnitContext(), {
+      wrapper: ({ children }) => (
+        <UnitContextProvider>{children}</UnitContextProvider>
+      ),
+    });
+
+    act(() => {
+      result.current.setUnitState(1, {
+        id: 'unit-id-1',
+        title: 'Unit With Content',
+        description: '',
+        content: [
+          {
+            id: 'block-1',
+            type: 'article',
+            data: { title: 'Article' },
+            sortOrder: 1,
+            unit_id: 'unit-id-1',
+            isDirty: false,
+            isSaving: false,
+            error: null,
+          },
+        ],
+        isDirty: false,
+        isSaving: false,
+        error: null,
+        isEditing: false,
+      });
+    });
+
+    let resultSuccess: boolean;
+    await act(async () => {
+      resultSuccess = await result.current.removeUnitContent(1, 0);
+    });
+
+    expect(resultSuccess!).toBe(true);
+    expect(mockDeleteContent).toHaveBeenCalledWith('block-1');
+    expect(result.current.getUnitState(1)!.content.length).toBe(0);
+    expect(toast.success).toHaveBeenCalledWith(
+      'Content block deleted successfully',
+    );
+  });
+
+  it('shows error toast and does not remove content if API call fails', async () => {
+    const mockDeleteContent =
+      contentApi.deleteUnitContent as unknown as ReturnType<typeof vi.fn>;
+    mockDeleteContent.mockRejectedValueOnce(new Error('Delete failed'));
+
+    const { result } = renderHook(() => useUnitContext(), {
+      wrapper: ({ children }) => (
+        <UnitContextProvider>{children}</UnitContextProvider>
+      ),
+    });
+
+    act(() => {
+      result.current.setUnitState(1, {
+        id: 'unit-id-1',
+        title: 'Unit With Content',
+        description: '',
+        content: [
+          {
+            id: 'block-1',
+            type: 'video',
+            data: { title: 'Video' },
+            sortOrder: 1,
+            unit_id: 'unit-id-1',
+            isDirty: false,
+            isSaving: false,
+            error: null,
+          },
+        ],
+        isDirty: false,
+        isSaving: false,
+        error: null,
+        isEditing: false,
+      });
+    });
+
+    let resultSuccess: boolean;
+    await act(async () => {
+      resultSuccess = await result.current.removeUnitContent(1, 0);
+    });
+
+    expect(resultSuccess!).toBe(false);
+    expect(mockDeleteContent).toHaveBeenCalledWith('block-1');
+    expect(result.current.getUnitState(1)!.content.length).toBe(1);
+    expect(toast.error).toHaveBeenCalledWith(
+      'Failed to delete content. Please try again later.',
+    );
+  });
+
+  it('does nothing and returns false if unit number is invalid', async () => {
+    const { result } = renderHook(() => useUnitContext(), {
+      wrapper: ({ children }) => (
+        <UnitContextProvider>{children}</UnitContextProvider>
+      ),
+    });
+
+    let success: boolean;
+    await act(async () => {
+      success = await result.current.removeUnitContent(99, 0);
+    });
+
+    expect(success!).toBe(false);
+  });
+
+  it('does nothing and returns false if block index is invalid', async () => {
+    const { result } = renderHook(() => useUnitContext(), {
+      wrapper: ({ children }) => (
+        <UnitContextProvider>{children}</UnitContextProvider>
+      ),
+    });
+
+    act(() => {
+      result.current.setUnitState(1, {
+        id: 'unit-id-1',
+        title: 'Unit',
+        description: '',
+        content: [],
+        isDirty: false,
+        isSaving: false,
+        error: null,
+        isEditing: false,
+      });
+    });
+
+    let success: boolean;
+    await act(async () => {
+      success = await result.current.removeUnitContent(1, 5);
     });
 
     expect(success!).toBe(false);

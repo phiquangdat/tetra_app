@@ -250,7 +250,7 @@ function AddQuizModal({
     >
       <div
         ref={modalRef}
-        className="bg-background rounded-2xl shadow-2xl w-1/2 max-w-4xl overflow-hidden"
+        className="bg-background rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
       >
         <div className="flex items-center justify-between bg-cardBackground px-8 py-4 border-b border-highlight/50">
           <div className="flex items-center gap-3">
@@ -262,7 +262,7 @@ function AddQuizModal({
           <button
             type="button"
             onClick={handleClose}
-            className="text-primary hover:text-secondaryHover transition-colors p-2 rounded-lg hover:bg-cardBackground"
+            className="text-primary hover:text-secondaryHover hover:bg-cardBackground rounded-lg transition-all p-2 duration-200"
             disabled={isSaving}
             aria-label="Close"
           >
@@ -271,106 +271,133 @@ function AddQuizModal({
         </div>
 
         {errors.length > 0 && (
-          <div className="bg-red-100 text-red-800 p-4 mb-4 rounded-lg mx-6">
-            <ul className="list-disc pl-6">
-              {errors.map((err, idx) => (
-                <li key={idx}>{err}</li>
-              ))}
-            </ul>
+          <div className="mx-6 mt-4 p-4 bg-error/5 border border-error/30 rounded-xl">
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center mt-0.5">
+                <span className="text-white text-xs font-bold">!</span>
+              </div>
+              <ul className="flex flex-col gap-2 list-disc">
+                {errors.map((err, idx) => (
+                  <li key={idx} className="text-sm text-red-700 flex gap-2">
+                    <span className="text-red-400">•</span>
+                    <span>{err}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         )}
 
-        <div className="flex flex-col h-full max-h-[70vh] overflow-hidden">
-          <div className="mb-6 max-w-110 p-6 pb-0 flex-1 overflow-y-auto">
-            <label
-              htmlFor="quizTitle"
-              className="block text-base font-semibold text-primary mb-2 flex items-center gap-2"
-            >
-              Title
-            </label>
-            <input
-              type="text"
-              id="quizTitle"
-              placeholder="Enter quiz title"
-              value={data.title || ''}
-              onChange={(e) =>
-                updateContentField('data', { ...data, title: e.target.value })
-              }
-              className="w-full px-4 py-3 border border-primary/50 rounded-lg text-primary placeholder:text-primary/40 focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200"
-              required
-            />
+        <div className="flex-1 overflow-y-auto max-h-[calc(90vh-180px)]">
+          <div className="p-6">
+            <div className="rounded-xl p-6 mb-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="lg:col-span-2">
+                  <label
+                    htmlFor="quizTitle"
+                    className="block text-base font-semibold text-primary mb-2"
+                  >
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    id="quizTitle"
+                    placeholder="Enter quiz title"
+                    value={data.title || ''}
+                    onChange={(e) =>
+                      updateContentField('data', {
+                        ...data,
+                        title: e.target.value,
+                      })
+                    }
+                    className="w-full max-w-md px-4 py-3 border border-primary/50 rounded-lg text-primary placeholder:text-primary/40 focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200"
+                    required
+                  />
+                </div>
 
-            <div className="max-w-110 mt-4">
-              <label
-                htmlFor="quizDescription"
-                className="block text-base font-semibold text-primary mb-2 flex items-center gap-2"
-              >
-                Description
-              </label>
-              <textarea
-                id="quizDescription"
-                value={data.content || ''}
-                onChange={handleChangeDescription}
-                className="w-full px-4 py-3 border border-primary/50 rounded-lg text-primary placeholder:text-primary/40 focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200"
-                placeholder="Enter quiz description"
-                aria-label="quiz description"
-                required
-                rows={3}
-              />
+                <div className="lg:col-span-2">
+                  <label
+                    htmlFor="quizDescription"
+                    className="block text-base font-semibold text-primary mb-2"
+                  >
+                    Description
+                  </label>
+                  <textarea
+                    id="quizDescription"
+                    value={data.content || ''}
+                    onChange={handleChangeDescription}
+                    className="w-full max-w-md px-4 py-3 border border-primary/50 rounded-lg text-primary placeholder:text-primary/40 focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200"
+                    placeholder="Enter quiz description"
+                    aria-label="quiz description"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="points"
+                    className="block text-base font-semibold text-primary mb-2"
+                  >
+                    Points
+                  </label>
+                  <input
+                    type="text"
+                    id="points"
+                    value={
+                      data.points !== undefined && data.points !== null
+                        ? String(data.points)
+                        : ''
+                    }
+                    onChange={handleChangePoints}
+                    placeholder="Enter quiz points"
+                    required
+                    className="px-4 py-3 border border-primary/50 rounded-lg text-primary placeholder:text-primary/40 focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200"
+                    aria-label="points"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-base font-semibold text-primary mb-2">
+                    Add Question
+                  </label>
+                  <select
+                    value={selectedOption}
+                    onChange={(e) => {
+                      const selectedType = e.target.value as
+                        | 'trueFalse'
+                        | 'multipleChoice';
+                      setSelectedOption('');
+                      handleAddQuestion(selectedType);
+                    }}
+                    className="w-full max-w-md px-4 py-3 text-primary border border-primary/50 rounded-xl focus:outline-none focus:border-2 focus:border-surface/70 transition-all duration-200 cursor-pointer appearance-none"
+                  >
+                    <option value="" disabled>
+                      + Select Question Type
+                    </option>
+                    <option value="multipleChoice">Multiple Choice</option>
+                    <option value="trueFalse">True/False</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
-            <div className="max-w-28 mt-4">
-              <label
-                htmlFor="points"
-                className="block text-base font-semibold text-primary mb-2 flex items-center gap-2"
-              >
-                Points
-              </label>
-              <input
-                type="text"
-                value={
-                  data.points !== undefined && data.points !== null
-                    ? String(data.points)
-                    : ''
-                }
-                onChange={handleChangePoints}
-                required
-                className="w-full px-4 py-3 border border-primary/50 rounded-lg text-primary placeholder:text-primary/40 focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200"
-                aria-label="points"
-              />
-            </div>
+            {(data.questions || []).length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-6"></div>
 
-            <div className="w-48 mt-6 mb-11 p-2">
-              <select
-                value={selectedOption}
-                onChange={(e) => {
-                  const selectedType = e.target.value as
-                    | 'trueFalse'
-                    | 'multipleChoice';
-                  setSelectedOption('');
-                  handleAddQuestion(selectedType);
-                }}
-                className="w-full bg-background border-primary/50 border-2 rounded-xl p-2 focus:outline-none focus:border-2 focus:border-surface/70 transition-colors"
-              >
-                <option value="" disabled>
-                  + Add Question
-                </option>
-                <option value="multipleChoice">Multiple Choice</option>
-                <option value="trueFalse">True/False</option>
-              </select>
-            </div>
-
-            <div className="space-y-6">
-              {(data.questions || []).map((question, index) => (
-                <QuestionForm
-                  key={index}
-                  questionNumber={index + 1}
-                  questionType={question.type}
-                  onClose={() => handleCloseQuestion(index)}
-                  errors={questionErrors[index] || []}
-                />
-              ))}
-            </div>
+                <div className="space-y-6">
+                  {(data.questions || []).map((question, index) => (
+                    <QuestionForm
+                      key={index}
+                      questionNumber={index + 1}
+                      questionType={question.type}
+                      onClose={() => handleCloseQuestion(index)}
+                      errors={questionErrors[index] || []}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <div className="flex items-center justify-end gap-4 px-8 py-4 border-t border-highlight bg-cardBackground">

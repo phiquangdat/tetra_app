@@ -68,48 +68,65 @@ function QuestionOption({ questionIndex, answerIndex }: Props) {
   const label = String.fromCharCode(65 + answerIndex); // A, B, C, ...
 
   return (
-    <div className="flex now-wrap items-center justify-between">
-      <div className="w-6 flex flex-col items-center justify-center">
-        <button type="button" title="Reorder disabled">
+    <div
+      className={`flex items-center gap-4 p-4 rounded-xl border border-highlight shadow-sm hover:shadow-md transition-all duration-200  ${
+        isCorrect ? 'border-success bg-success/10' : 'border-highlight bg-white'
+      }`}
+    >
+      <div className="flex items-center justify-center w-8 h-8">
+        <button
+          type="button"
+          title="Reorder disabled"
+          className={`${isCorrect ? 'text-surface' : 'text-secondary'} hover:text-surface p-1 `}
+        >
           <ReOrderIcon />
         </button>
       </div>
 
-      <div className="w-12 text-left pl-2">
-        <p>{label}.</p>
+      <div
+        className={`flex items-center justify-center w-10 h-10 rounded-lg border border-highlight ${
+          isCorrect ? 'bg-success text-white' : 'bg-highlight text-surface'
+        }`}
+      >
+        <span className="text-sm font-semibold">{label}</span>
       </div>
 
-      <div className="flex no-wrap items-center justify-between w-full border-2 border-gray-400 rounded-lg overflow-hidden">
+      <div className="flex-1 flex items-center bg-cardBackground rounded-lg border border-highlight overflow-hidden focus-within:ring-2 focus-within:ring-surface focus-within:ring-opacity-20 transition-all duration-200">
         <input
           type="text"
           value={answerText}
           onChange={handleTextChange}
           onBlur={handleBlur}
           placeholder="Answer text"
-          className="w-full h-8 bg-white p-1 focus:outline-none focus:border-blue-500 transition-colors duration-200"
+          className="flex-1 h-12 px-4 placeholder:text-surface/50 focus:outline-none focus:border-surface transition-colors duration-200"
         />
-        <div className="flex items-center bg-white">
-          <button
-            type="button"
-            className={`px-1 h-8 text-gray-700 border-r border-l border-gray-400 ${
-              isCorrect ? 'bg-green-100' : ''
-            }`}
-            title="Mark as Correct"
-            onClick={() => applyUpdate(true)}
-          >
-            <CorrectAnswerIcon />
-          </button>
-          <button
-            type="button"
-            className={`px-1 h-8 text-gray-700 ${
-              !isCorrect ? 'bg-red-100' : ''
-            }`}
-            title="Mark as Incorrect"
-            onClick={() => applyUpdate(false)}
-          >
-            <IncorrectAnswerIcon />
-          </button>
-        </div>
+      </div>
+
+      <div className="flex items-center bg-cardBackground rounded-lg overflow-hidden border border-highlight">
+        <button
+          type="button"
+          className={`flex items-center justify-center w-12 h-12 transition-all duration-200 border-r border-highlight ${
+            isCorrect
+              ? 'text-white shadow-sm bg-success'
+              : 'text-secondary bg-background hover:bg-success/30 hover:text-white '
+          }`}
+          title="Mark as Correct"
+          onClick={() => applyUpdate(true)}
+        >
+          <CorrectAnswerIcon />
+        </button>
+        <button
+          type="button"
+          className={`flex items-center justify-center w-12 h-12 transition-all duration-200 ${
+            !isCorrect
+              ? 'text-white shadow-sm bg-error'
+              : 'text-secondary bg-background hover:bg-error/20 hover:text-white'
+          }`}
+          title="Mark as Incorrect"
+          onClick={() => applyUpdate(false)}
+        >
+          <IncorrectAnswerIcon />
+        </button>
       </div>
     </div>
   );

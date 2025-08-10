@@ -169,19 +169,21 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
           src={data.url}
         />
       )}
-      <button
-        type="button"
-        onClick={() =>
-          updateContentField('data', {
-            ...data,
-            url: '',
-          })
-        }
-        className="mt-4 px-4 py-2 text-sm text-surface hover:text-surfaceHover border border-surface/20 hover:border-surface/40 rounded-xl transition-colors"
-        disabled={isSaving}
-      >
-        Change Video
-      </button>
+      <div className="flex justify-end mt-4">
+        <button
+          type="button"
+          onClick={() =>
+            updateContentField('data', {
+              ...data,
+              url: '',
+            })
+          }
+          className="bg-accent px-4 py-2 text-base text-white font-semibold hover:text-surfaceHover border border-surface/20 hover:bg-[#FFB74D] rounded-xl transition-colors"
+          disabled={isSaving}
+        >
+          Change Video
+        </button>
+      </div>
     </div>
   );
 
@@ -196,7 +198,7 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
       >
         <div className="flex items-center justify-between bg-cardBackground px-8 py-4 border-b border-highlight/50">
           <div className="flex items-center gap-4">
-            <div className="p-2 bg-white rounded-xl shadow-sm border border-purple-200">
+            <div className="p-2 bg-white rounded-2xl shadow-sm border border-highlight/30">
               <VideoHeaderIcon color="var(--color-surface)" />
             </div>
             <h2 className="text-xl font-semibold text-primary">
@@ -218,7 +220,7 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
           <div>
             <label
               htmlFor="videoTitle"
-              className="block text-sm font-medium text-primary mb-2"
+              className="block text-base font-semibold text-primary mb-2"
             >
               Title
             </label>
@@ -240,7 +242,7 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-primary mb-2">
+            <label className="block text-base font-semibold text-primary mb-2">
               Video
             </label>
             <div className="border-2 border-dashed border-highlight rounded-2xl p-6 bg-cardBackground">
@@ -251,7 +253,7 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
           <div>
             <label
               htmlFor="videoDescription"
-              className="block text-sm font-medium text-primary mb-2"
+              className="block text-base font-semibold text-primary mb-2"
             >
               Description
             </label>

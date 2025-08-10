@@ -275,6 +275,8 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
           </div>
         </div>
 
+        {error && <p className="text-error text-sm">{error}</p>}
+
         <div className="flex items-center justify-end gap-4 px-8 py-4 border-t border-highlight bg-cardBackground">
           <button
             type="button"

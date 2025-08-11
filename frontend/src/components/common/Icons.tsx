@@ -193,11 +193,19 @@ export const StarIcon: React.FC<IconProps> = ({
   </svg>
 );
 
-export const CheckIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+export const CheckIcon: React.FC<React.SVGProps<SVGSVGElement>> = ({
+  width = 24,
+  height = 24,
+  color = '#998FC7',
+  className,
+  ...props
+}) => (
   <svg
-    className="w-6 h-6"
+    width={width}
+    height={height}
+    className={className}
     fill="none"
-    stroke="currentColor"
+    stroke={color}
     strokeWidth={2}
     viewBox="0 0 24 24"
     {...props}

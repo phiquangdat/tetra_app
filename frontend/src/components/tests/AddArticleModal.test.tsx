@@ -1,0 +1,116 @@
+import { render, screen, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import AddArticleModal from '../admin/createModule/AddArticleModal';
+import { ContentBlockContextProvider } from '../../context/admin/ContentBlockContext';
+import { UnitContextProvider } from '../../context/admin/UnitContext';
+import { EditorStateProvider } from '../../utils/editor/contexts/EditorStateContext';
+
+// Mock the content save API used by ContentBlockContext.saveContent
+vi.mock('../../services/unit/content/unitContentApi.ts', () => ({
+  saveArticleContent: vi.fn(async () => ({ id: 'new-article-id' })),
+  updateArticleContent: vi.fn(),
+  saveVideoContent: vi.fn(),
+  updateVideoContent: vi.fn(),
+  saveQuizContent: vi.fn(),
+  updateQuizContent: vi.fn(),
+}));
+
+const AddArticleModalWithProviders = (props: any) => (
+  <UnitContextProvider>
+    <ContentBlockContextProvider>
+      <EditorStateProvider>
+        <AddArticleModal {...props} />
+      </EditorStateProvider>
+    </ContentBlockContextProvider>
+  </UnitContextProvider>
+);
+
+describe('AddArticleModal (new version)', () => {
+  const onClose = vi.fn();
+
+  beforeEach(() => {
+    onClose.mockReset();
+  });
+
+  it('renders the modal header', () => {
+    render(
+      <AddArticleModalWithProviders
+        isOpen={true}
+        onClose={onClose}
+        unitId="unit-1"
+        unitNumber={1}
+      />,
+    );
+
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(
+      'Article',
+    );
+  });
+
+  it('Save is disabled with empty title, then enabled after typing title (editor is initialized non-empty)', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <AddArticleModalWithProviders
+        isOpen={true}
+        onClose={onClose}
+        unitId="unit-1"
+        unitNumber={1}
+      />,
+    );
+
+    const saveButton = screen.getByRole('button', { name: /^save$/i });
+    // Initially title is empty -> Save disabled
+    expect(saveButton).toBeDisabled();
+
+    // Type title — editor is already initialized with "<p></p>", so Save becomes enabled
+    const titleInput = screen.getByLabelText('Title');
+    await user.type(titleInput, 'My Title');
+    expect(saveButton).toBeEnabled();
+  });
+
+  it('saves article and calls onClose with valid input', async () => {
+    const user = userEvent.setup();
+    const { saveArticleContent } = await import(
+      '../../services/unit/content/unitContentApi'
+    );
+
+    render(
+      <AddArticleModalWithProviders
+        isOpen={true}
+        onClose={onClose}
+        unitId="unit-1"
+        unitNumber={1}
+      />,
+    );
+
+    const titleInput = screen.getByLabelText('Title');
+    await user.type(titleInput, 'Test Article Title');
+
+    const textboxes = screen.getAllByRole('textbox');
+    const editor = textboxes.find(
+      (el) =>
+        el.getAttribute('contenteditable') === 'true' ||
+        el.getAttribute('data-lexical-editor') === 'true',
+    );
+    expect(editor).toBeTruthy();
+
+    // Type some content
+    if (editor) {
+      await user.click(editor);
+      await user.type(editor, 'Some article content');
+    }
+
+    const saveButton = screen.getByRole('button', { name: /^save$/i });
+    expect(saveButton).toBeEnabled();
+    await user.click(saveButton);
+
+    await waitFor(() => {
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    expect(saveArticleContent).toHaveBeenCalledTimes(1);
+  });
+});

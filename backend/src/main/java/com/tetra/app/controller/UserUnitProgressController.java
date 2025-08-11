@@ -15,9 +15,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/user-unit-progress")
@@ -218,5 +220,45 @@ public class UserUnitProgressController {
         UserUnitProgress saved = userUnitProgressRepository.save(progress);
         UserUnitProgressDto responseDto = UserUnitProgressMapper.toDto(saved);
         return ResponseEntity.ok(responseDto);
+    }
+
+    @GetMapping("")
+    public ResponseEntity<?> getUserUnitProgressByModuleId(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestParam(value = "moduleId", required = false) String moduleIdStr
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String userIdStr;
+        try {
+            userIdStr = jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        UUID userId;
+        UUID moduleId;
+        try {
+            userId = UUID.fromString(userIdStr);
+            moduleId = UUID.fromString(moduleIdStr);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid userId or moduleId format");
+        }
+
+        List<UserUnitProgress> progressList = userUnitProgressRepository.findByUser_IdAndModule_Id(userId, moduleId)
+            .stream()
+            .filter(p -> "IN_PROGRESS".equalsIgnoreCase(p.getStatus()) || "COMPLETED".equalsIgnoreCase(p.getStatus()))
+            .collect(Collectors.toList());
+
+        if (progressList.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No progress found for this module");
+        }
+
+        List<Object> result = progressList.stream()
+            .map(UserUnitProgressMapper::toDto)
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
     }
 }

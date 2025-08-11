@@ -5,6 +5,9 @@ import com.tetra.app.model.Unit;
 import com.tetra.app.repository.BlacklistedTokenRepository;
 import com.tetra.app.repository.TrainingModuleRepository;
 import com.tetra.app.repository.UnitRepository;
+import com.tetra.app.repository.UnitContentRepository;
+import com.tetra.app.repository.QuestionRepository;
+import com.tetra.app.repository.AnswerRepository;
 import com.tetra.app.security.JwtUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,12 +27,26 @@ public class UnitController {
     private final TrainingModuleRepository trainingModuleRepository;
     private final JwtUtil jwtUtil;
     private final BlacklistedTokenRepository blacklistedTokenRepository;
+    private final UnitContentRepository unitContentRepository;
+    private final QuestionRepository questionRepository;
+    private final AnswerRepository answerRepository;
 
-    public UnitController(UnitRepository unitRepository, TrainingModuleRepository trainingModuleRepository, JwtUtil jwtUtil, BlacklistedTokenRepository blacklistedTokenRepository) {
+    public UnitController(
+        UnitRepository unitRepository,
+        TrainingModuleRepository trainingModuleRepository,
+        JwtUtil jwtUtil,
+        BlacklistedTokenRepository blacklistedTokenRepository,
+        UnitContentRepository unitContentRepository,
+        QuestionRepository questionRepository,
+        AnswerRepository answerRepository
+    ) {
         this.unitRepository = unitRepository;
         this.trainingModuleRepository = trainingModuleRepository;
         this.jwtUtil = jwtUtil;
         this.blacklistedTokenRepository = blacklistedTokenRepository;
+        this.unitContentRepository = unitContentRepository;
+        this.questionRepository = questionRepository;
+        this.answerRepository = answerRepository;
     }
 
     @GetMapping
@@ -123,13 +140,23 @@ public class UnitController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
-
         if (!"ADMIN".equals(role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
         }
-
         if (!unitRepository.existsById(id)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Unit not found with id: " + id);
+        }
+
+        List<com.tetra.app.model.UnitContent> contents = unitContentRepository.findByUnit_Id(id);
+        for (com.tetra.app.model.UnitContent content : contents) {
+            if ("quiz".equalsIgnoreCase(content.getContentType())) {
+                List<com.tetra.app.model.Question> questions = questionRepository.findByUnitContent_Id(content.getId());
+                for (com.tetra.app.model.Question q : questions) {
+                    answerRepository.deleteAll(answerRepository.findByQuestion_Id(q.getId()));
+                }
+                questionRepository.deleteAll(questions);
+            }
+            unitContentRepository.deleteById(content.getId());
         }
 
         unitRepository.deleteById(id);

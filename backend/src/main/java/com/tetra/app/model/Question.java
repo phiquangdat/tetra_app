@@ -27,6 +27,9 @@ public class Question {
     @Column(name = "sort_order")
     private Integer sortOrder;
 
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<Answer> answers;
+
     public UUID getId() {
         return id;
     }
@@ -65,6 +68,14 @@ public class Question {
 
     public void setSortOrder(Integer sortOrder) {
         this.sortOrder = sortOrder;
+    }
+
+    public java.util.List<Answer> getAnswers() {
+        return answers;
+    }
+
+    public void setAnswers(java.util.List<Answer> answers) {
+        this.answers = answers;
     }
 
     @com.fasterxml.jackson.annotation.JsonProperty("unitContentId")

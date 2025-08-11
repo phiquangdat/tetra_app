@@ -19,6 +19,15 @@ export interface UnitProgress {
   status: string;
 }
 
+export interface ContentProgress {
+  id: string;
+  userId: string;
+  unitId: string;
+  unitContentId: string;
+  status: string;
+  points: number;
+}
+
 export interface CreateModuleProgressRequest {
   lastVisitedContent?: string;
   lastVisitedUnit?: string;
@@ -75,5 +84,19 @@ export async function createUnitProgress(
     throw error instanceof Error
       ? error
       : new Error('Failed to create unit progress');
+  }
+}
+
+export async function getContentProgress(
+  unitId: string,
+): Promise<ContentProgress[]> {
+  try {
+    return await fetchWithAuth(
+      `${BASE_URL}/users-content-progress?unitId=${unitId}`,
+    );
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to get content progress');
   }
 }

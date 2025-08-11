@@ -29,15 +29,28 @@ const UnitItem: React.FC<UnitItemProps> = ({
     useUnitContext();
   const unit = getUnitState(unitNumber);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+  const [isContentLoading, setIsContentLoading] = useState(false);
 
   useEffect(() => {
     const unitId = unit?.id;
     if (!unit || !unitId || !unitNumber) return;
 
+    let isMounted = true;
+
     if (unit.content.length === 0 && !unit.wasJustCreated) {
+      setIsContentLoading(true);
       console.log(`[UnitItem] Loading content for unit ${unitNumber}`);
-      void loadUnitContentIntoState(unitId, unitNumber);
+
+      void loadUnitContentIntoState(unitId, unitNumber).finally(() => {
+        if (isMounted) {
+          setIsContentLoading(false);
+        }
+      });
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, [unitNumber, unit?.id, unit?.wasJustCreated]);
 
   if (!unit) {
@@ -121,10 +134,14 @@ const UnitItem: React.FC<UnitItemProps> = ({
       )}
 
       <div className="mt-6">
-        {unit.content.length > 0 ? (
+        {isContentLoading ? (
+          <p className="text-sm text-gray-500">Loading content blocks…</p>
+        ) : unit.content.length > 0 ? (
           <ContentBlockList unitNumber={unitNumber} />
         ) : (
-          <p className="text-sm text-gray-500">Loading content blocks…</p>
+          <p className="text-sm text-gray-500 italic">
+            No content in this unit yet.
+          </p>
         )}
       </div>
       {/* Remove Confirmation Modal */}

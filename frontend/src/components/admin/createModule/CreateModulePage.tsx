@@ -100,30 +100,30 @@ function CreateModulePageContent() {
       </header>
       <CreateModuleForm />
       <UnitsManager />
-      <div className="max-w-5xl px-6 sm:px-10 py-8 my-6 rounded-3xl">
-        <div className="mx-auto my-2 flex justify-center">
-          {status !== 'published' && (
-            <div className="mx-auto my-2 flex justify-center">
-              <button
-                type="button"
-                onClick={() => setShowPublishConfirm(true)}
-                className="
-                    inline-flex items-center justify-center
-                    bg-surface text-white
-                    border border-highlight
-                    text-sm px-4 py-2 rounded-lg
-                    cursor-pointer
-                    hover:bg-surfaceHover
-                    focus:outline-none focus:ring-2 focus:ring-highlight/60 focus:ring-offset-2 focus:ring-offset-background
-                    transition-colors duration-200 w-36 h-10
-                  "
-              >
-                Publish
-              </button>
-            </div>
-          )}
-        </div>
+
+      <div className="mx-auto my-2 flex justify-center">
+        {status !== 'published' && (
+          <div className="mx-auto my-2 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setShowPublishConfirm(true)}
+              className="
+                  inline-flex items-center justify-center
+                  bg-surface text-white
+                  border border-highlight
+                  px-4 py-2 rounded-lg
+                  cursor-pointer
+                  hover:bg-surfaceHover
+                  focus:outline-none focus:ring-2 focus:ring-highlight/60 focus:ring-offset-2 focus:ring-offset-background
+                  transition-colors duration-200 w-36 h-10
+                "
+            >
+              Publish
+            </button>
+          </div>
+        )}
       </div>
+
       {showPublishConfirm && (
         <ConfirmationModal
           title="Publish Module"

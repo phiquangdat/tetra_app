@@ -7,6 +7,7 @@ import { useContentBlockContext } from '../../../context/admin/ContentBlockConte
 import { useModuleContext } from '../../../context/admin/ModuleContext.tsx';
 import ConfirmationModal from './ConfirmationModal.tsx';
 import { useNavigate } from 'react-router-dom';
+import { useMemo } from 'react';
 
 const UnitsManager: React.FC = () => {
   const { unitStates, addUnit, getNextUnitNumber } = useUnitContext();
@@ -71,12 +72,24 @@ const UnitsManager: React.FC = () => {
 };
 
 function CreateModulePageContent() {
-  const { setUnitStatesRaw } = useUnitContext();
+  const { setUnitStatesRaw, unitStates } = useUnitContext();
   const [ready, setReady] = useState(false);
   const { clearContent } = useContentBlockContext();
-  const { publishModule, status } = useModuleContext();
+  const { id, publishModule, status } = useModuleContext();
   const [showPublishConfirm, setShowPublishConfirm] = useState(false);
   const navigate = useNavigate();
+  const canPublish = useMemo(() => {
+    if (!id) return false;
+
+    const units = Object.values(unitStates);
+    if (units.length === 0) return false;
+
+    // At least one saved unit that has at least one saved content block
+    return units.some(
+      (u) =>
+        !!u.id && Array.isArray(u.content) && u.content.some((c) => !!c.id),
+    );
+  }, [id, unitStates]);
 
   useEffect(() => {
     setUnitStatesRaw({});
@@ -101,25 +114,28 @@ function CreateModulePageContent() {
       <CreateModuleForm />
       <UnitsManager />
 
-      <div className="mx-auto my-2 flex justify-center">
+      <div className="mx-auto my-2 mt-5 flex justify-center">
         {status !== 'published' && (
-          <div className="mx-auto my-2 flex justify-center">
+          <div className="relative group">
             <button
               type="button"
-              onClick={() => setShowPublishConfirm(true)}
-              className="
-                  inline-flex items-center justify-center
-                  bg-surface text-white
-                  border border-highlight
-                  px-4 py-2 rounded-lg
-                  cursor-pointer
-                  hover:bg-surfaceHover
-                  focus:outline-none focus:ring-2 focus:ring-highlight/60 focus:ring-offset-2 focus:ring-offset-background
-                  transition-colors duration-200 w-36 h-10
-                "
+              disabled={!canPublish}
+              onClick={() => canPublish && setShowPublishConfirm(true)}
+              className={`w-36 h-10 rounded-lg transition ${
+                canPublish
+                  ? 'bg-indigo-500 text-white hover:bg-indigo-600'
+                  : 'bg-highlight text-primary opacity-50 cursor-not-allowed'
+              }`}
             >
               Publish
             </button>
+
+            {!canPublish && (
+              <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-max px-3 py-2 bg-error/10 text-error text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                Save the module, plus at least one unit with at least one saved
+                content block.
+              </div>
+            )}
           </div>
         )}
       </div>

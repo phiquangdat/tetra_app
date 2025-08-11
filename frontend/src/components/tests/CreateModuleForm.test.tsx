@@ -44,9 +44,7 @@ describe('CreateModuleForm', () => {
     expect(screen.getByLabelText(/module topic/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/points awarded/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/cover picture url/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /save module/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /save/i })).toBeInTheDocument();
   });
 
   it('lets the user input values into fields & see cover preview', async () => {
@@ -79,7 +77,7 @@ describe('CreateModuleForm', () => {
     await user.type(cover, 'not-a-valid-url');
 
     // Click Save to trigger formErrors rendering
-    await user.click(screen.getByRole('button', { name: /save module/i }));
+    await user.click(screen.getByRole('button', { name: /save/i }));
 
     // The UI shows this exact message (from useModuleSave’s formErrors)
     expect(
@@ -110,7 +108,7 @@ describe('CreateModuleForm', () => {
     await user.clear(cover);
     await user.type(cover, 'https://example.com/image.jpg');
 
-    await user.click(screen.getByRole('button', { name: /save module/i }));
+    await user.click(screen.getByRole('button', { name: /save/i }));
 
     // Success banner from CreateModuleForm (useModuleSave.successSaved)
     expect(
@@ -143,7 +141,7 @@ describe('CreateModuleForm', () => {
       'https://example.com/image.jpg',
     );
 
-    await user.click(screen.getByRole('button', { name: /save module/i }));
+    await user.click(screen.getByRole('button', { name: /save/i }));
 
     // Success banner appears; read-only details view is rendered now
     expect(
@@ -162,7 +160,7 @@ describe('CreateModuleForm', () => {
     await user.clear(desc);
     await user.type(desc, 'Updated Description');
 
-    await user.click(screen.getByRole('button', { name: /save module/i }));
+    await user.click(screen.getByRole('button', { name: /save/i }));
 
     // Success banner again
     expect(

@@ -75,7 +75,7 @@ const UnitItem: React.FC<UnitItemProps> = ({
     setShowRemoveConfirm(false);
   };
 
-  const { title, description, error } = unit;
+  const { title, description } = unit;
 
   return (
     <Accordion
@@ -90,7 +90,6 @@ const UnitItem: React.FC<UnitItemProps> = ({
       onToggle={onToggle}
     >
       {unit.isSaving && <p>Loading unit details…</p>}
-      {error && <p className="text-error">{error}</p>}
 
       {isEditing && renderEdit ? (
         <>{renderEdit}</>

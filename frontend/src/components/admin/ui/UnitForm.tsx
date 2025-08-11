@@ -30,6 +30,9 @@ const UnitForm: React.FC<UnitFormProps> = ({ unitNumber, onSaved }) => {
 
     if (!moduleId) {
       updateUnitField(unitNumber, 'error', 'Please save the module first.');
+      setTimeout(() => {
+        updateUnitField(unitNumber, 'error', null);
+      }, 5000);
       return;
     }
 

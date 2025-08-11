@@ -202,6 +202,13 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
 
       if (!currentUnit || !currentUnit.isDirty || currentUnit.isSaving) return;
 
+      if (!currentUnit.title?.trim() || !currentUnit.description?.trim()) {
+        setUnitState(unitNumber, {
+          error: 'Title and description are required.',
+        });
+        return;
+      }
+
       setUnitState(unitNumber, { isSaving: true, error: null });
 
       try {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useModuleContext } from '../../../context/admin/ModuleContext.tsx';
 import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
 
@@ -6,6 +6,11 @@ interface UnitFormProps {
   unitNumber: number;
   onSaved: () => void;
 }
+
+type FieldErrors = Partial<{
+  title: string;
+  description: string;
+}>;
 
 const UnitForm: React.FC<UnitFormProps> = ({ unitNumber, onSaved }) => {
   const { id: moduleId } = useModuleContext();
@@ -16,6 +21,40 @@ const UnitForm: React.FC<UnitFormProps> = ({ unitNumber, onSaved }) => {
   // const [isOpen, setIsOpen] = useState(true);
   const [localSaving, setLocalSaving] = useState(false);
   const [successSaved, setSuccessSaved] = useState(false);
+  const [formErrors, setFormErrors] = useState<FieldErrors>({});
+
+  // handy refs to current values
+  const title = unitState?.title ?? '';
+  const description = unitState?.description ?? '';
+
+  const validate = useCallback(() => {
+    const errs: FieldErrors = {};
+    if (!title.trim()) errs.title = 'Title is required';
+    if (!description.trim()) errs.description = 'Description is required';
+    setFormErrors(errs);
+    return Object.keys(errs).length === 0;
+  }, [title, description]);
+
+  // Clear individual field errors as the user types
+  useEffect(() => {
+    if (title.trim() && formErrors.title) {
+      setFormErrors((prev) => {
+        const next = { ...prev };
+        delete next.title;
+        return next;
+      });
+    }
+  }, [title, formErrors.title]);
+
+  useEffect(() => {
+    if (description.trim() && formErrors.description) {
+      setFormErrors((prev) => {
+        const next = { ...prev };
+        delete next.description;
+        return next;
+      });
+    }
+  }, [description, formErrors.description]);
 
   // Clear the green “saved!” banner after 3s
   useEffect(() => {
@@ -31,6 +70,11 @@ const UnitForm: React.FC<UnitFormProps> = ({ unitNumber, onSaved }) => {
     if (!moduleId) {
       updateUnitField(unitNumber, 'error', 'Please save the module first.');
       return;
+    }
+
+    // Block saving if fields are empty
+    if (!validate()) {
+      return; // <- do not call saveUnit or onSaved
     }
 
     // If nothing changed, just exit edit mode
@@ -66,6 +110,17 @@ const UnitForm: React.FC<UnitFormProps> = ({ unitNumber, onSaved }) => {
 
   return (
     <form onSubmit={(e) => e.preventDefault()}>
+      {/* Field validation errors */}
+      {Object.keys(formErrors).length > 0 && (
+        <div className="bg-red-100 text-red-700 p-2 rounded mb-4">
+          <ul className="list-disc list-inside text-sm">
+            {Object.values(formErrors).map((err, idx) => (
+              <li key={idx}>{err}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Error or Success Messages */}
       {unitState?.error && (
         <div className="bg-red-100 text-red-700 p-2 rounded mb-4">

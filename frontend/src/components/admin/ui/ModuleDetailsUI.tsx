@@ -71,7 +71,7 @@ const ModuleDetailsUI: React.FC<ModuleDetailsProps> = ({ onEdit }) => {
         <div className="flex gap-4">
           <button
             onClick={onEdit}
-            className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover"
+            className="px-4 py-2 bg-secondary text-sm text-white rounded-lg hover:bg-secondaryHover"
           >
             Edit
           </button>

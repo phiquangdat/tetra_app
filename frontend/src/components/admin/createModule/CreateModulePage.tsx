@@ -44,13 +44,13 @@ const UnitsManager: React.FC = () => {
           />
         );
       })}
-      <div className="flex justify-center mt-4">
-        <div className="relative group inline-block">
+      <div className="w-full flex justify-center items-center mt-6">
+        <div className="relative group">
           <button
             type="button"
             onClick={handleAddUnit}
             disabled={!canAddUnit}
-            className={`px-4 py-2 rounded-lg transition ${
+            className={`w-36 h-10 rounded-lg transition ${
               canAddUnit
                 ? 'bg-indigo-500 text-white hover:bg-indigo-600'
                 : 'bg-highlight text-primary opacity-50 cursor-not-allowed'
@@ -94,33 +94,36 @@ function CreateModulePageContent() {
   };
 
   return (
-    <div className="m-0 px-4 py-4 max-w-5xl">
-      <h1 className="font-extrabold text-[28px] pb-4">Create New Module</h1>
+    <div className="mx-auto max-w-6xl min-h-screen bg-background px-8 py-10 text-left">
+      <header className="mb-6">
+        <h1 className="text-3xl font-extrabold text-primary">Create Module</h1>
+      </header>
       <CreateModuleForm />
       <UnitsManager />
-      <div
-        className="max-w-5xl px-16 py-9 my-6 rounded-3xl"
-        style={{ backgroundColor: '#F2EAEA' }}
-      >
-        <div className="mx-auto my-6 flex justify-center gap-2">
-          {status !== 'published' && (
-            <div
-              className="max-w-5xl px-16 py-9 my-6 rounded-3xl"
-              style={{ backgroundColor: '#F2EAEA' }}
+
+      <div className="mx-auto my-2 flex justify-center">
+        {status !== 'published' && (
+          <div className="mx-auto my-2 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setShowPublishConfirm(true)}
+              className="
+                  inline-flex items-center justify-center
+                  bg-surface text-white
+                  border border-highlight
+                  px-4 py-2 rounded-lg
+                  cursor-pointer
+                  hover:bg-surfaceHover
+                  focus:outline-none focus:ring-2 focus:ring-highlight/60 focus:ring-offset-2 focus:ring-offset-background
+                  transition-colors duration-200 w-36 h-10
+                "
             >
-              <div className="mx-auto my-6 flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => setShowPublishConfirm(true)}
-                  className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors duration-200 w-32 h-10"
-                >
-                  Publish
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+              Publish
+            </button>
+          </div>
+        )}
       </div>
+
       {showPublishConfirm && (
         <ConfirmationModal
           title="Publish Module"

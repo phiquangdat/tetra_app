@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import com.tetra.app.dto.PatchUserModuleProgressRequest;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -331,5 +332,62 @@ public class UserModuleProgressController {
 
         userModuleProgressRepository.deleteById(progressId);
         return ResponseEntity.ok("User module progress deleted");
+    }
+
+    @GetMapping("")
+    public ResponseEntity<?> getUserModuleProgressList(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestParam(value = "status", required = false) String statusStr,
+            @RequestParam(value = "limit", required = false) Integer limit
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String userIdStr;
+        try {
+            userIdStr = jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        UUID userId;
+        try {
+            userId = UUID.fromString(userIdStr);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid userId in token");
+        }
+
+        ProgressStatus status = null;
+        if (statusStr != null) {
+            try {
+                status = ProgressStatus.valueOf(statusStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid status value");
+            }
+        }
+
+        List<UserModuleProgress> progresses;
+        if (status != null) {
+            progresses = userModuleProgressRepository.findByUser_IdAndStatus(userId, status);
+        } else {
+            progresses = userModuleProgressRepository.findByUser_Id(userId);
+        }
+        if (limit != null && limit > 0 && progresses.size() > limit) {
+            progresses = progresses.subList(0, limit);
+        }
+
+        var result = progresses.stream().map(progress -> {
+            var module = progress.getModule();
+            return Map.of(
+                "moduleId", module != null ? module.getId() : null,
+                "moduleTitle", module != null ? module.getTitle() : null,
+                "status", progress.getStatus(),
+                "earned_points", progress.getEarnedPoints(),
+                "last_visited_unit_id", progress.getLastVisitedUnit() != null ? progress.getLastVisitedUnit().getId() : null,
+                "last_visited_content_id", progress.getLastVisitedContent() != null ? progress.getLastVisitedContent().getId() : null
+            );
+        }).toList();
+
+        return ResponseEntity.ok(result);
     }
 }

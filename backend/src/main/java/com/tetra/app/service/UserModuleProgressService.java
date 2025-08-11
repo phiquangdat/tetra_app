@@ -2,10 +2,10 @@ package com.tetra.app.service;
 
 import com.tetra.app.model.UserModuleProgress;
 import com.tetra.app.model.ProgressStatus;
-import com.tetra.app.repository.UserModuleProgressRepository;
 import com.tetra.app.model.UnitContent;
 import com.tetra.app.model.Unit;
 import com.tetra.app.model.TrainingModule;
+import com.tetra.app.repository.UserModuleProgressRepository;
 import com.tetra.app.repository.UnitContentRepository;
 import com.tetra.app.repository.UnitRepository;
 import com.tetra.app.repository.TrainingModuleRepository;
@@ -92,5 +92,15 @@ public class UserModuleProgressService {
         if (unit == null || !unitId.equals(unit.getId())) return false;
         TrainingModule module = unit.getModule();
         return module != null && moduleId.equals(module.getId());
+    }
+
+    public List<UserModuleProgress> findByUserIdWithFilters(UUID userId, ProgressStatus status, Integer limit) {
+        List<UserModuleProgress> all = (status != null)
+            ? repository.findByUser_IdAndStatus(userId, status)
+            : repository.findByUser_Id(userId);
+        if (limit != null && limit > 0 && all.size() > limit) {
+            return all.subList(0, limit);
+        }
+        return all;
     }
 }

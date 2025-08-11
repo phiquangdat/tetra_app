@@ -1397,7 +1397,7 @@ components:
               schema:
                 type: string
                 example: User module progress not found
-      
+     
   
   /api/users-content-progress/{unitContentId}:
     get:
@@ -1472,3 +1472,75 @@ components:
                 properties:
                   message:
                     type: string
+                    
+
+  /api/user-module-progress:
+  get:
+    summary: Get list of user module progress records
+    description: Returns a list of modules with the current user's progress. Supports optional filtering by status and limiting the number of results.
+    tags:
+      - UserModuleProgress
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+            - IN_PROGRESS
+            - COMPLETED
+        description: Filter modules by progress status
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+        description: Limit the number of returned modules
+    responses:
+      '200':
+        description: List of user module progress records
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  moduleId:
+                    type: string
+                    format: uuid
+                    example: "6acff8d4-9343-44c9-b0e0-63c57d1d911f"
+                  moduleTitle:
+                    type: string
+                    example: "Artificial Intelligence"
+                  status:
+                    type: string
+                    example: "IN_PROGRESS"
+                  earned_points:
+                    type: integer
+                    example: 0
+                  last_visited_unit_id:
+                    type: string
+                    format: uuid
+                    example: "a1996599-bef6-4331-9341-ef3704345bf3"
+                  last_visited_content_id:
+                    type: string
+                    format: uuid
+                    example: "682bbf06-be85-421f-bfee-64b5930945d6"
+      '400':
+        description: Invalid parameters
+        content:
+          text/plain:
+            schema:
+              type: string
+              example: Invalid query parameters
+      '401':
+        description: Missing or invalid Authorization header
+        content:
+          text/plain:
+            schema:
+              type: string
+              example: Missing or invalid Authorization header

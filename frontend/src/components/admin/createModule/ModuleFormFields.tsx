@@ -80,6 +80,10 @@ const ModuleFormFields: React.FC = () => {
     markModuleAsDirty();
   };
 
+  const inputBase =
+    'w-full max-w-lg rounded-lg p-2 text-primary bg-cardBackground border-2 border-highlight focus:outline-none focus:border-surface transition-colors duration-200';
+  const labelBase = 'block mb-2 font-medium text-primary';
+
   const renderCoverPicture = () => {
     return (
       <div className="space-y-3">
@@ -94,10 +98,7 @@ const ModuleFormFields: React.FC = () => {
           </div>
         )}
 
-        <label
-          htmlFor="coverPictureUrl"
-          className="block text-sm font-medium text-gray-700"
-        >
+        <label htmlFor="coverPictureUrl" className={labelBase}>
           Cover Picture URL
         </label>
         <input
@@ -108,7 +109,7 @@ const ModuleFormFields: React.FC = () => {
           placeholder="https://example.com/image.jpg"
           value={coverPicture ?? ''}
           onChange={handleCoverPictureChange}
-          className="text-xs bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
+          className={`text-xs ${inputBase}`}
         />
       </div>
     );
@@ -117,21 +118,10 @@ const ModuleFormFields: React.FC = () => {
   return (
     <>
       <div>
-        <div className="mb-8">
-          <label
-            htmlFor="moduleCoverPicture"
-            className="block mb-2 font-medium text-gray-700"
-          >
-            Module Cover Picture
-          </label>
-          {renderCoverPicture()}
-        </div>
+        <div className="mb-8">{renderCoverPicture()}</div>
 
-        <div className="max-w-90 mb-11">
-          <label
-            htmlFor="moduleTitle"
-            className="block mb-2 font-medium text-gray-700"
-          >
+        <div className="mb-8">
+          <label htmlFor="moduleTitle" className={labelBase}>
             Module Title
           </label>
           <input
@@ -141,15 +131,12 @@ const ModuleFormFields: React.FC = () => {
             value={title}
             onChange={handleTitleChange}
             required
-            className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
+            className={inputBase}
           />
         </div>
 
-        <div className="w-full mb-11">
-          <label
-            htmlFor="moduleDescription"
-            className="block mb-2 font-medium text-gray-700"
-          >
+        <div className="mb-8">
+          <label htmlFor="moduleDescription" className={labelBase}>
             Module Description
           </label>
           <textarea
@@ -159,16 +146,13 @@ const ModuleFormFields: React.FC = () => {
             onChange={handleDescriptionChange}
             rows={4}
             required
-            className="bg-white border-gray-400 border-2 w-full h-60 rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
+            className={`${inputBase} h-60`}
             style={{ resize: 'none' }}
           />
         </div>
 
-        <div className="max-w-90 mb-11">
-          <label
-            htmlFor="moduleTopic"
-            className="block mb-2 font-medium text-gray-700"
-          >
+        <div className="mb-8">
+          <label htmlFor="moduleTopic" className={labelBase}>
             Module Topic
           </label>
           <select
@@ -177,7 +161,7 @@ const ModuleFormFields: React.FC = () => {
             value={topic}
             onChange={handleTopicChange}
             required
-            className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
+            className={inputBase}
           >
             <option value="" disabled>
               Select topic
@@ -191,10 +175,10 @@ const ModuleFormFields: React.FC = () => {
           </select>
         </div>
 
-        <div className="max-w-48">
+        <div className="mb-2">
           <label
             htmlFor="pointsAwarded"
-            className="block mb-0 font-medium text-gray-700"
+            className="block mb-0 font-medium text-primary"
           >
             Points Awarded
           </label>
@@ -209,7 +193,7 @@ const ModuleFormFields: React.FC = () => {
             }
             onChange={handlePointsChange}
             required
-            className="bg-white border-gray-400 border-2 w-full rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-200"
+            className={inputBase}
           />
         </div>
       </div>

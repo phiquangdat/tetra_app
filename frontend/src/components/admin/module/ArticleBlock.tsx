@@ -88,7 +88,7 @@ const ArticleBlock: React.FC<ArticleBlockProps> = ({
           <p className="text-sm font-semibold">Article title</p>
           <p>{title}</p>
         </div>
-        <div className="prose prose-sm max-w-none bg-gray-100 rounded-xl p-4">
+        <div className="prose prose-sm max-w-none bg-background border border-highlight rounded-xl p-6">
           <div dangerouslySetInnerHTML={{ __html: contentHtml }} />
         </div>
         <div className="flex gap-4">

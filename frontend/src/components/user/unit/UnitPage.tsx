@@ -19,6 +19,7 @@ import {
   getUnitProgress,
   createUnitProgress,
   getContentProgress,
+  type ContentProgress,
 } from '../../../services/userProgress/userProgressApi.tsx';
 
 interface UnitPageProps {
@@ -102,11 +103,22 @@ const UnitPage = ({ id }: UnitPageProps) => {
         setUnitId(id);
         setModuleId(details.moduleId);
 
-        const [content, contentProgress] = await Promise.all([
-          fetchUnitContentById(id),
-          getContentProgress(id),
-        ]);
+        const content = await fetchUnitContentById(id);
+        let contentProgress: ContentProgress[] = [];
 
+        try {
+          contentProgress = await getContentProgress(id);
+        } catch (progressError) {
+          if (
+            progressError instanceof Error &&
+            progressError.message.includes('404')
+          ) {
+            console.error('[getContentProgress] No progress records found');
+            contentProgress = [];
+          } else {
+            throw progressError;
+          }
+        }
         console.log('[getContentProgress] Content progress:', contentProgress);
 
         setUnitContent(details.id, content);
@@ -292,7 +304,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
                 {checkedIndex === index ? <CheckIcon /> : ''}
                 {content.status?.toLowerCase() === 'completed' && (
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
+                    <div className="mx-4 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
                       <CheckIcon width={14} height={14} color="white" />
                     </div>
                     {content.points > 0 && (

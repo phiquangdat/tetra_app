@@ -7,6 +7,7 @@ interface Props {
   title?: string;
   description?: string;
   confirmText?: string;
+  buttonColor?: string;
 }
 
 export default function ConfirmationModal({
@@ -15,6 +16,7 @@ export default function ConfirmationModal({
   title = 'Remove Item',
   description = 'Are you sure you want to remove this item? This cannot be undone.',
   confirmText = 'Remove',
+  buttonColor = 'bg-error hover:bg-errorHover',
 }: Props) {
   return createPortal(
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
@@ -50,7 +52,7 @@ export default function ConfirmationModal({
           </button>
           <button
             onClick={onConfirm}
-            className="bg-error hover:bg-errorHover text-background px-6 py-2.5 rounded-lg text-sm font-medium transition duration-200"
+            className={`${buttonColor} text-background px-6 py-2.5 rounded-lg text-sm font-medium transition duration-200`}
           >
             {confirmText}
           </button>

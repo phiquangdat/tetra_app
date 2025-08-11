@@ -3,7 +3,7 @@ import { StarIcon } from '../../common/Icons';
 import { useUser } from '../../../context/auth/UserContext';
 
 const DashboardHeader: React.FC = () => {
-  const { userName, points, userNameLoading } = useUser();
+  const { userName, points, userNameLoading, pointsLoading } = useUser();
 
   let greeting;
   if (userNameLoading) {
@@ -27,7 +27,9 @@ const DashboardHeader: React.FC = () => {
           <StarIcon color="var(--color-accent)" />
           <div>
             <div className="text-sm">Points</div>
-            <div className="text-2xl font-bold text-surface">{points}</div>
+            <div className="text-2xl font-bold text-surface">
+              {pointsLoading ? '...' : (points ?? 0)}
+            </div>
           </div>
         </div>
       </div>

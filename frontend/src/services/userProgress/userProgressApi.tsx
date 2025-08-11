@@ -106,6 +106,20 @@ export async function getContentProgressByUnitId(
   }
 }
 
+export async function getContentProgress(
+  unitContentId: string,
+): Promise<ContentProgress> {
+  try {
+    return await fetchWithAuth(
+      `${BASE_URL}/users-content-progress/${unitContentId}`,
+    );
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to get content progress');
+  }
+}
+
 export async function createContentProgress(
   contentData: CreateContentProgressRequest,
 ): Promise<ContentProgress> {

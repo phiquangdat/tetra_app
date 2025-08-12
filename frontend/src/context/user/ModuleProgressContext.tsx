@@ -8,6 +8,10 @@ import {
 import { useUnitContent } from './UnitContentContext';
 import { useQuizModal } from './QuizModalContext.tsx';
 import { useUnitCompletionModal } from './UnitCompletionModalContext';
+import {
+  createContentProgress,
+  createUnitProgress,
+} from '../../services/userProgress/userProgressApi.tsx';
 
 interface Unit {
   id: string;
@@ -31,6 +35,7 @@ interface ModuleProgressContextProps {
   goToStart: () => Promise<void>;
   goToLastVisited: (lastUnitId: string, lastContentId: string) => void;
   goToFirstContent: () => Promise<void>;
+  initFirstUnitAndContentProgress: () => Promise<void>;
 }
 
 const ModuleProgressContext = createContext<
@@ -172,6 +177,39 @@ export const ModuleProgressProvider = ({
     }
   };
 
+  const initFirstUnitAndContentProgress = async () => {
+    const units = await fetchUnitTitleByModuleId(moduleId);
+    if (!units?.length) return;
+
+    const firstUnitId = units[0].id;
+
+    try {
+      await createUnitProgress(firstUnitId, moduleId);
+      setUnitProgressStatus('in_progress');
+    } catch (e: any) {
+      if (!String(e.message).includes('409')) console.warn('[unit]', e);
+    }
+
+    const contents = await fetchUnitContentById(firstUnitId);
+    if (!contents?.length) return;
+
+    const firstContentId = contents[0].id;
+
+    try {
+      await createContentProgress({
+        unitId: firstUnitId,
+        unitContentId: firstContentId,
+        status: 'IN_PROGRESS',
+        points: 0,
+      });
+    } catch (e: any) {
+      if (!String(e.message).includes('409')) console.warn('[content]', e);
+    }
+
+    setUnitId(firstUnitId);
+    setUnitContent(firstUnitId, contents);
+  };
+
   return (
     <ModuleProgressContext.Provider
       value={{
@@ -190,6 +228,7 @@ export const ModuleProgressProvider = ({
         goToStart,
         goToLastVisited,
         goToFirstContent,
+        initFirstUnitAndContentProgress,
       }}
     >
       {children}

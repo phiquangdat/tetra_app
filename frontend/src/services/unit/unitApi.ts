@@ -8,6 +8,7 @@ export interface UnitContent {
   id: string;
   title: string;
   content_type: string;
+  content: string;
   sort_order: number;
   status: string;
   points: number;
@@ -31,6 +32,7 @@ export interface Article {
   id: string;
   title: string;
   content: string;
+  points: number;
 }
 
 export interface Unit {
@@ -87,6 +89,19 @@ export async function fetchUnitById(unitId: string): Promise<any> {
     );
     throw error instanceof Error ? error : new Error('Unknown error occurred');
   }
+}
+
+export async function fetchUnitContentDetails(
+  id: string,
+): Promise<UnitContent> {
+  const response = await fetch(`${BASE_URL}/unit_content/${id}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch unit content');
+  }
+
+  const data: UnitContent = await response.json();
+  console.log('fetched unit details are', data);
+  return data;
 }
 
 export async function fetchUnitContentById(id: string): Promise<UnitContent[]> {

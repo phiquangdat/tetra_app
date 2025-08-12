@@ -1,16 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  fetchArticleContentById,
+  fetchUnitContentDetails,
   type Article,
 } from '../../../services/unit/unitApi';
 import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
 import {
   getContentProgress,
   createContentProgress,
+  updateContentProgress,
   type ContentProgress,
 } from '../../../services/userProgress/userProgressApi';
 import { CheckIcon } from '../../common/Icons';
+
 interface ArticlePageProps {
   id: string;
 }
@@ -22,9 +24,48 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
   const [contentProgress, setContentProgress] = useState<ContentProgress>();
 
+  const calculateScrollPercent = useCallback(() => {
+    const scrollTop = window.scrollY;
+    const scrollHeight = document.documentElement.scrollHeight;
+    const clientHeight = window.innerHeight;
+
+    const scrollableHeight = scrollHeight - clientHeight;
+    if (scrollableHeight <= 0) return 100;
+
+    const percent = (scrollTop / scrollableHeight) * 100;
+    return Math.round(percent);
+  }, []);
+
+  const handleScroll = useCallback(async () => {
+    const percent = calculateScrollPercent();
+
+    if (
+      percent >= 90 &&
+      contentProgress?.id &&
+      article?.points !== undefined &&
+      contentProgress.status !== 'COMPLETED'
+    ) {
+      try {
+        const response = await updateContentProgress(contentProgress.id, {
+          status: 'COMPLETED',
+          points: article.points,
+        });
+        setContentProgress((prev) =>
+          prev
+            ? { ...prev, status: 'COMPLETED', points: article.points }
+            : prev,
+        );
+        console.log('[updateContentProgress]', response);
+      } catch (error) {
+        console.error('Error updating progress:', error);
+      }
+    }
+  }, [calculateScrollPercent, contentProgress, article?.points]);
+
   useEffect(() => {
     const fetchData = async () => {
-      fetchArticleContentById(id).then((data) => setArticle(data));
+      const data = await fetchUnitContentDetails(id);
+      setArticle(data);
 
       try {
         const progress = await getContentProgress(id);
@@ -49,7 +90,19 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
     };
 
     fetchData();
-  }, [id]);
+  }, [id, unitIdFromState]);
+
+  useEffect(() => {
+    if (contentProgress?.status?.toLowerCase() == 'completed') return;
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [handleScroll]);
+
   const { goToNextContent, isNextContent } = useModuleProgress();
 
   return (
@@ -64,7 +117,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
         </a>
       </div>
 
-      {contentProgress?.status?.toLocaleLowerCase() == 'completed' && (
+      {contentProgress?.status?.toLowerCase() == 'completed' && (
         <div className="mb-6 bg-green-50 max-w-xl mx-auto border border-green-200 rounded-xl p-4 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
@@ -76,7 +129,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
               </span>
             </div>
             <div className="flex items-center gap-1 px-3 py-1 bg-white text-green-700 rounded-full text-sm font-medium border border-green-200 shadow-sm">
-              + {contentProgress.points} pts
+              + {contentProgress?.points ?? 0} pts
             </div>
           </div>
         </div>

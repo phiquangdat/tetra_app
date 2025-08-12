@@ -134,3 +134,22 @@ export async function createContentProgress(
       : new Error('Failed to get content progress');
   }
 }
+
+export async function updateContentProgress(
+  id: string,
+  data: {
+    status?: string;
+    points?: number;
+  },
+): Promise<ContentProgress> {
+  try {
+    return await fetchWithAuth(`${BASE_URL}/users-content-progress/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to get content progress');
+  }
+}

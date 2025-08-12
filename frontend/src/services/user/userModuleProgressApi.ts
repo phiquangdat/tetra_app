@@ -15,7 +15,7 @@ export interface BackendModuleProgress {
 
 export async function getUserModuleProgress(
   status?: 'IN_PROGRESS' | 'COMPLETED',
-  limit?: number
+  limit?: number,
 ): Promise<BackendModuleProgress[]> {
   try {
     const params = new URLSearchParams();
@@ -24,7 +24,7 @@ export async function getUserModuleProgress(
 
     const data = await fetchWithAuth(
       `${BASE_URL}/user-module-progress?${params.toString()}`,
-      { method: 'GET' }
+      { method: 'GET' },
     );
 
     if (!Array.isArray(data)) {

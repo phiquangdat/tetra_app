@@ -5,8 +5,13 @@ import {
   fetchVideoContentById,
   type Video,
 } from '../../../services/unit/unitApi';
+import {
+  getContentProgress,
+  createContentProgress,
+  type ContentProgress,
+} from '../../../services/userProgress/userProgressApi';
 import { useModuleProgress } from '../../../context/user/ModuleProgressContext.tsx';
-import { UploadAltIcon } from '../../common/Icons';
+import { UploadAltIcon, CheckIcon } from '../../common/Icons';
 
 const FallbackVideo = () => (
   <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100 rounded-2xl">
@@ -24,15 +29,41 @@ interface VideoPageProps {
 
 const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   const [video, setVideo] = useState<Video | null>(null);
+  const [contentProgress, setContentProgress] = useState<ContentProgress>();
   const navigate = useNavigate();
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
   const { goToNextContent, isNextContent } = useModuleProgress();
 
   useEffect(() => {
-    if (id) {
-      fetchVideoContentById(id).then((data) => setVideo(data));
-    }
+    const fetchData = async () => {
+      if (id) {
+        fetchVideoContentById(id).then((data) => setVideo(data));
+      }
+
+      try {
+        const progress = await getContentProgress(id);
+        console.log('[getContentProgress]', progress);
+
+        setContentProgress(progress);
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('404')) {
+          const progress = await createContentProgress({
+            unitId: unitIdFromState as string,
+            unitContentId: id,
+            status: 'IN_PROGRESS',
+            points: 0,
+          });
+          console.log('[createContentProgress]', progress);
+
+          setContentProgress(progress);
+        } else {
+          console.error(error);
+        }
+      }
+    };
+
+    fetchData();
   }, [id]);
 
   const { isValid, isYouTube, embedUrl } = validateVideoUrl(video?.url);
@@ -52,6 +83,24 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
           Back to Unit page
         </a>
       </div>
+
+      {contentProgress?.status?.toLocaleLowerCase() == 'completed' && (
+        <div className="mb-6 bg-green-50 max-w-xl mx-auto border border-green-200 rounded-xl p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
+              <CheckIcon width={16} height={16} color="white" />
+            </div>
+            <div className="flex-1">
+              <span className="text-green-600 text-sm">
+                You've viewed this before. Feel free to review it again!
+              </span>
+            </div>
+            <div className="flex items-center gap-1 px-3 py-1 bg-white text-green-700 rounded-full text-sm font-medium border border-green-200 shadow-sm">
+              + {contentProgress.points} pts
+            </div>
+          </div>
+        </div>
+      )}
 
       <h1 className="text-4xl font-extrabold mb-8 text-primary text-center">
         {video?.title}

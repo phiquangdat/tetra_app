@@ -33,6 +33,11 @@ export interface CreateModuleProgressRequest {
   lastVisitedUnit?: string;
 }
 
+export type CreateContentProgressRequest = Omit<
+  ContentProgress,
+  'id' | 'userId'
+>;
+
 export async function getModuleProgress(
   moduleId: string,
 ): Promise<ModuleProgress> {
@@ -87,13 +92,42 @@ export async function createUnitProgress(
   }
 }
 
-export async function getContentProgress(
+export async function getContentProgressByUnitId(
   unitId: string,
 ): Promise<ContentProgress[]> {
   try {
     return await fetchWithAuth(
       `${BASE_URL}/users-content-progress?unitId=${unitId}`,
     );
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to get content progress');
+  }
+}
+
+export async function getContentProgress(
+  unitContentId: string,
+): Promise<ContentProgress> {
+  try {
+    return await fetchWithAuth(
+      `${BASE_URL}/users-content-progress/${unitContentId}`,
+    );
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to get content progress');
+  }
+}
+
+export async function createContentProgress(
+  contentData: CreateContentProgressRequest,
+): Promise<ContentProgress> {
+  try {
+    return await fetchWithAuth(`${BASE_URL}/users-content-progress`, {
+      method: 'POST',
+      body: JSON.stringify(contentData),
+    });
   } catch (error) {
     throw error instanceof Error
       ? error

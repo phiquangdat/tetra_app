@@ -18,7 +18,7 @@ import {
 import {
   getUnitProgress,
   createUnitProgress,
-  getContentProgress,
+  getContentProgressByUnitId,
   type ContentProgress,
 } from '../../../services/userProgress/userProgressApi.tsx';
 
@@ -107,7 +107,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
         let contentProgress: ContentProgress[] = [];
 
         try {
-          contentProgress = await getContentProgress(id);
+          contentProgress = await getContentProgressByUnitId(id);
         } catch (progressError) {
           if (
             progressError instanceof Error &&

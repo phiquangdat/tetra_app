@@ -17,7 +17,8 @@ interface ModuleDetailsProps {
 }
 
 const ModuleDetails: React.FC<ModuleDetailsProps> = ({ id }) => {
-  const { setModuleState, isEditing, setIsEditing } = useModuleContext();
+  const { setModuleState, isEditing, setIsEditing, isDirty } =
+    useModuleContext();
   const { handleSave, isSaving, formErrors, showContextError, error } =
     useModuleSave();
 
@@ -82,7 +83,11 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ id }) => {
       <div className={cardClasses}>
         <form>
           <ModuleFormFields />
-          <SaveButton onClick={handleSave} disabled={isSaving} />
+          <SaveButton
+            onClick={handleSave}
+            disabled={isSaving}
+            isDirty={isDirty}
+          />
         </form>
       </div>
     </>

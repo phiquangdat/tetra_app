@@ -12,4 +12,5 @@ import java.util.UUID;
 public interface UserUnitProgressRepository extends JpaRepository<UserUnitProgress, UUID> {
     Optional<UserUnitProgress> findByUser_IdAndUnit_Id(UUID userId, UUID unitId);
     List<UserUnitProgress> findByUser_IdAndModule_Id(UUID userId, UUID moduleId);
+    List<UserUnitProgress> findByUnit_Id(UUID unitId);
 }

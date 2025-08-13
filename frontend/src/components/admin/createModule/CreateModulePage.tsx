@@ -147,6 +147,7 @@ function CreateModulePageContent() {
           onCancel={() => setShowPublishConfirm(false)}
           onConfirm={handleConfirmPublish}
           confirmText="Publish"
+          buttonColor="bg-surface hover:bg-surfaceHover"
         />
       )}
     </div>

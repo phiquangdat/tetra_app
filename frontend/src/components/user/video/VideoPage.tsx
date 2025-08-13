@@ -47,6 +47,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   const playerRef = useRef<any>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  const { isValid, isYouTube, embedUrl } = validateVideoUrl(video?.url);
+
+  if (!video?.url) {
+    console.warn('No Video URL provided');
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       if (id) {
@@ -79,19 +85,23 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   }, [id, unitIdFromState]);
 
   const markAsCompleted = async () => {
-    if (!contentProgress) return;
-    const response = await updateContentProgress(contentProgress.id, {
-      status: 'COMPLETED',
-    });
-    setContentProgress(response);
-    console.log('[Progress Updated]', response);
+    if (!(contentProgress && contentProgress.status !== 'COMPLETED')) return;
+
+    try {
+      const response = await updateContentProgress(contentProgress.id, {
+        status: 'COMPLETED',
+      });
+      setContentProgress((prev) =>
+        prev ? { ...prev, status: 'COMPLETED' } : prev,
+      );
+      console.log('[updateContentProgress]', response);
+    } catch (error) {
+      console.error('Error updating progress:', error);
+    }
   };
 
   useEffect(() => {
-    if (!video?.url) return;
-
-    const { isValid, isYouTube } = validateVideoUrl(video.url);
-    if (!isValid || !isYouTube) return;
+    if (!video?.url || !isValid || !isYouTube) return;
 
     const loadYouTubeAPI = () => {
       return new Promise<void>((resolve) => {
@@ -171,12 +181,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     };
   }, [video?.url, contentProgress?.id]);
 
-  const { isValid, isYouTube, embedUrl } = validateVideoUrl(video?.url);
-
-  if (!video?.url) {
-    console.warn('No Video URL provided');
-  }
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <div className="w-full max-w-4xl mb-6 text-left">
@@ -201,7 +205,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
               </span>
             </div>
             <div className="flex items-center gap-1 px-3 py-1 bg-white text-green-700 rounded-full text-sm font-medium border border-green-200 shadow-sm">
-              + {contentProgress?.points ?? 0} pts
+              + {contentProgress.points} pts
             </div>
           </div>
         </div>
@@ -217,7 +221,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
               id="youtube"
               className="w-full h-full border-none"
               title={video?.title}
-            ></div>
+            />
           ) : (
             <video
               className="w-full h-full object-cover"

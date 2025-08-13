@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { validateVideoUrl } from '../../../utils/videoHelpers';
+import { validateVideoUrl, getYouTubeId } from '../../../utils/videoHelpers';
 import {
   fetchVideoContentById,
   type Video,
@@ -8,10 +8,19 @@ import {
 import {
   getContentProgress,
   createContentProgress,
+  updateContentProgress,
   type ContentProgress,
 } from '../../../services/userProgress/userProgressApi';
 import { useModuleProgress } from '../../../context/user/ModuleProgressContext.tsx';
 import { UploadAltIcon, CheckIcon } from '../../common/Icons';
+
+declare global {
+  var YT: any;
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
 
 const FallbackVideo = () => (
   <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100 rounded-2xl">
@@ -34,6 +43,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
   const { goToNextContent, isNextContent } = useModuleProgress();
+
+  const playerRef = useRef<any>(null);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,7 +76,108 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     };
 
     fetchData();
-  }, [id]);
+  }, [id, unitIdFromState]);
+
+  useEffect(() => {
+    if (!video?.url) return;
+
+    const { isValid, isYouTube } = validateVideoUrl(video.url);
+    if (!isValid || !isYouTube) return;
+
+    const loadYouTubeAPI = () => {
+      return new Promise<void>((resolve) => {
+        if (window.YT?.Player) {
+          resolve();
+          return;
+        }
+
+        window.onYouTubeIframeAPIReady = resolve;
+
+        if (
+          !document.querySelector(
+            'script[src="https://www.youtube.com/iframe_api"]',
+          )
+        ) {
+          const script = document.createElement('script');
+          script.src = 'https://www.youtube.com/iframe_api';
+          document.body.appendChild(script);
+        }
+      });
+    };
+
+    const initPlayer = () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+      if (playerRef.current?.destroy) {
+        playerRef.current.destroy();
+      }
+
+      playerRef.current = new window.YT.Player('youtube', {
+        videoId: getYouTubeId(video.url),
+        playerVars: {
+          autoplay: 1,
+          controls: 1,
+          modestbranding: 1,
+          rel: 0,
+        },
+        events: {
+          onStateChange: (event: any) => {
+            if (event.data === window.YT.PlayerState.PLAYING) {
+              if (progressIntervalRef.current) {
+                clearInterval(progressIntervalRef.current);
+              }
+
+              progressIntervalRef.current = setInterval(async () => {
+                const currentTime = playerRef.current?.getCurrentTime();
+                const duration = playerRef.current?.getDuration();
+
+                if (duration > 0) {
+                  const progress = Math.round((currentTime / duration) * 100);
+
+                  if (progress >= 90 && contentProgress) {
+                    clearInterval(progressIntervalRef.current!);
+                    progressIntervalRef.current = null;
+
+                    const response = await updateContentProgress(
+                      contentProgress.id,
+                      {
+                        status: 'COMPLETED',
+                      },
+                    );
+                    setContentProgress(response);
+                    console.log('[Progress Updated]', response);
+                  }
+                }
+              }, 1000);
+            }
+
+            if (
+              event.data === window.YT.PlayerState.PAUSED ||
+              event.data === window.YT.PlayerState.ENDED
+            ) {
+              if (progressIntervalRef.current) {
+                clearInterval(progressIntervalRef.current);
+                progressIntervalRef.current = null;
+              }
+            }
+          },
+        },
+      });
+    };
+
+    loadYouTubeAPI().then(initPlayer);
+
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+      if (playerRef.current?.destroy) {
+        playerRef.current.destroy();
+      }
+    };
+  }, [video?.url, contentProgress?.id]);
 
   const { isValid, isYouTube, embedUrl } = validateVideoUrl(video?.url);
 
@@ -84,7 +197,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         </a>
       </div>
 
-      {contentProgress?.status?.toLocaleLowerCase() == 'completed' && (
+      {contentProgress?.status?.toLowerCase() === 'completed' && (
         <div className="mb-6 bg-green-50 max-w-xl mx-auto border border-green-200 rounded-xl p-4 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
@@ -96,7 +209,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
               </span>
             </div>
             <div className="flex items-center gap-1 px-3 py-1 bg-white text-green-700 rounded-full text-sm font-medium border border-green-200 shadow-sm">
-              + {contentProgress.points} pts
+              + {contentProgress?.points ?? 0} pts
             </div>
           </div>
         </div>
@@ -108,14 +221,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
       <div className="w-full max-w-4xl aspect-video rounded-3xl overflow-hidden shadow-xl bg-cardBackground flex items-center justify-center">
         {isValid ? (
           isYouTube ? (
-            <iframe
-              className="w-full h-full"
-              src={embedUrl}
+            <div
+              id="youtube"
+              className="w-full h-full border-none"
               title={video?.title}
-              style={{ border: 'none' }}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+            ></div>
           ) : (
             <video
               className="w-full h-full object-cover"

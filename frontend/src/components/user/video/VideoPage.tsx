@@ -78,6 +78,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     fetchData();
   }, [id, unitIdFromState]);
 
+  const markAsCompleted = async () => {
+    if (!contentProgress) return;
+    const response = await updateContentProgress(contentProgress.id, {
+      status: 'COMPLETED',
+    });
+    setContentProgress(response);
+    console.log('[Progress Updated]', response);
+  };
+
   useEffect(() => {
     if (!video?.url) return;
 
@@ -92,16 +101,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         }
 
         window.onYouTubeIframeAPIReady = resolve;
-
-        if (
-          !document.querySelector(
-            'script[src="https://www.youtube.com/iframe_api"]',
-          )
-        ) {
-          const script = document.createElement('script');
-          script.src = 'https://www.youtube.com/iframe_api';
-          document.body.appendChild(script);
-        }
       });
     };
 
@@ -140,14 +139,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
                     clearInterval(progressIntervalRef.current!);
                     progressIntervalRef.current = null;
 
-                    const response = await updateContentProgress(
-                      contentProgress.id,
-                      {
-                        status: 'COMPLETED',
-                      },
-                    );
-                    setContentProgress(response);
-                    console.log('[Progress Updated]', response);
+                    markAsCompleted();
                   }
                 }
               }, 1000);
@@ -251,7 +243,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         <button
           className="bg-surface text-background font-semibold px-12 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition-all duration-200 w-fit"
           type="button"
-          onClick={() => goToNextContent(id)}
+          onClick={() => {
+            markAsCompleted();
+            goToNextContent(id);
+          }}
         >
           {isNextContent(id ?? '') ? 'Up next' : 'Finish'}
         </button>

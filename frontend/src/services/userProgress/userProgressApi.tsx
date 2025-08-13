@@ -78,7 +78,7 @@ export async function getUnitProgress(unitId: string): Promise<UnitProgress> {
 
 export async function getUnitProgressByModuleId(
   moduleId: string,
-): Promise<UnitProgress> {
+): Promise<UnitProgress[]> {
   try {
     return await fetchWithAuth(
       `${BASE_URL}/user-unit-progress?moduleId=${moduleId}`,

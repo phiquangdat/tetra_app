@@ -6,12 +6,16 @@ import {
 import { fetchUnitTitleByModuleId } from '../../../services/unit/unitApi';
 import {
   getModuleProgress,
+  getUnitProgressByModuleId,
   createModuleProgress,
   type ModuleProgress,
+  type UnitProgress,
 } from '../../../services/userProgress/userProgressApi';
 import Syllabus from './syllabus/Syllabus';
 import { useNavigate } from 'react-router-dom';
 import { OpenBooksIcon, PuzzleIcon, StarIcon } from '../../common/Icons';
+import toast from 'react-hot-toast';
+
 interface ModulePageProps {
   id: string;
 }
@@ -24,6 +28,7 @@ export type Unit = {
     type: 'video' | 'article' | 'quiz';
     title: string;
   }[];
+  hasProgress?: boolean;
 };
 
 const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
@@ -36,6 +41,9 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   } = useModuleProgress();
   const [module, setModule] = useState<Module | null>(null);
   const [moduleProgress, setModuleProgress] = useState<ModuleProgress | null>(
+    null,
+  );
+  const [unitsProgress, setUnitsProgress] = useState<UnitProgress[] | null>(
     null,
   );
   const [units, setUnits] = useState<Unit[]>([]);
@@ -67,6 +75,36 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
           if (err instanceof Error && err.message.includes('404')) {
             setModuleProgress(null);
             setModuleProgressStatus('not_started');
+          } else {
+            throw err;
+          }
+        }
+
+        try {
+          const progress = await getUnitProgressByModuleId(id);
+
+          setUnitsProgress(progress);
+
+          const unitIdsWithProgress = new Set(progress.map((p) => p.unitId));
+
+          const updatedUnits = units.map((u) => ({
+            ...u,
+            hasProgress: unitIdsWithProgress.has(u.id), //Return true if progress list has unit ID
+          }));
+          setUnits(updatedUnits);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message.toLowerCase() : '';
+          const onlyFirstClickable = units.map((u, i) => ({
+            ...u,
+            hasProgress: i === 0, //Set clickable to first item
+          }));
+
+          if (msg.includes('404')) {
+            setUnits(onlyFirstClickable);
+          } else if (msg.includes('401') || msg.includes('network')) {
+            console.warn('Failed to fetch unit progress:', err);
+            toast.error('Try login again.');
+            setUnits(onlyFirstClickable);
           } else {
             throw err;
           }

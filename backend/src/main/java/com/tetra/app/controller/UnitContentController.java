@@ -178,6 +178,7 @@ public class UnitContentController {
         result.put("id", content.getId());
         result.put("title", content.getTitle());
         result.put("content", content.getContentData());
+        result.put("points", content.getPoints());  // Add points to the response
         return ResponseEntity.ok(result);
     }
 

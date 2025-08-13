@@ -10,7 +10,7 @@ interface SaveButtonProps {
 const SaveButton: React.FC<SaveButtonProps> = ({
   onClick,
   disabled = false,
-  isDirty = true,
+  isDirty = false,
   label = 'Save',
 }) => {
   let classes = '';

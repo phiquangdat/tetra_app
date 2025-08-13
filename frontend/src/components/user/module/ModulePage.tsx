@@ -43,7 +43,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   const [moduleProgress, setModuleProgress] = useState<ModuleProgress | null>(
     null,
   );
-  const [unitsProgress, setUnitsProgress] = useState<UnitProgress[] | null>(
+  const [_unitsProgress, setUnitsProgress] = useState<UnitProgress[] | null>(
     null,
   );
   const [units, setUnits] = useState<Unit[]>([]);
@@ -84,17 +84,18 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
           const progress = await getUnitProgressByModuleId(id);
 
           setUnitsProgress(progress);
+          console.log('[getUnitProgressByModuleId]', progress);
 
           const unitIdsWithProgress = new Set(progress.map((p) => p.unitId));
 
-          const updatedUnits = units.map((u) => ({
+          const updatedUnits = units.map((u: Unit) => ({
             ...u,
-            hasProgress: unitIdsWithProgress.has(u.id), //Return true if progress list has unit ID
+            hasProgress: unitIdsWithProgress.has(u.id), //Set to true if the returned progress list has current unit ID
           }));
           setUnits(updatedUnits);
         } catch (err) {
           const msg = err instanceof Error ? err.message.toLowerCase() : '';
-          const onlyFirstClickable = units.map((u, i) => ({
+          const onlyFirstClickable = units.map((u: Unit, i: number) => ({
             ...u,
             hasProgress: i === 0, //Set clickable to first item
           }));

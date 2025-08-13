@@ -38,8 +38,8 @@ describe('ModulePage', () => {
   };
 
   const mockUnits = [
-    { id: 'unit1', title: 'Unit 1: Basics', content: [] },
-    { id: 'unit2', title: 'Unit 2: Advanced', content: [] },
+    { id: 'unit1', title: 'Unit 1: Basics', content: [], hasProgress: true },
+    { id: 'unit2', title: 'Unit 2: Advanced', content: [], hasProgress: true },
   ];
 
   const mockUserProgress = {
@@ -56,6 +56,22 @@ describe('ModulePage', () => {
     vi.spyOn(userProgressApi, 'getModuleProgress').mockResolvedValue(
       mockUserProgress,
     );
+    vi.spyOn(userProgressApi, 'getUnitProgressByModuleId').mockResolvedValue([
+      {
+        id: '1',
+        unitId: 'unit1',
+        status: 'IN_PROGRESS',
+        userId: 'user1',
+        moduleId: 'module1',
+      },
+      {
+        id: '2',
+        unitId: 'unit2',
+        status: 'IN_PROGRESS',
+        userId: 'user2',
+        moduleId: 'module2',
+      },
+    ]);
   });
 
   afterEach(() => {

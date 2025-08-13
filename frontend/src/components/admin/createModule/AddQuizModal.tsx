@@ -250,9 +250,9 @@ function AddQuizModal({
     >
       <div
         ref={modalRef}
-        className="bg-background rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
+        className="bg-background rounded-2xl shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden"
       >
-        <div className="flex items-center justify-between bg-cardBackground px-8 py-4 border-b border-highlight/50">
+        <div className="flex items-center justify-between bg-cardBackground px-8 py-4 border-b border-highlight/50 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-background rounded-2xl shadow-sm border border-highlight/30">
               <QuizIcon color="var(--color-surface)" />
@@ -272,23 +272,34 @@ function AddQuizModal({
 
         {errors.length > 0 && (
           <div className="mx-6 mt-4 p-4 bg-error/5 border border-error/30 rounded-xl">
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
               <div className="flex-shrink-0 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center mt-0.5">
                 <span className="text-white text-xs font-bold">!</span>
               </div>
-              <ul className="flex flex-col gap-2 list-disc">
-                {errors.map((err, idx) => (
-                  <li key={idx} className="text-sm text-red-700 flex gap-2">
-                    <span className="text-red-400">•</span>
-                    <span>{err}</span>
-                  </li>
-                ))}
-              </ul>
+
+              <div className="flex-1 min-w-0">
+                <ul className="space-y-1.5">
+                  {errors.map((err, idx) => (
+                    <li key={idx} className="text-sm text-red-700 flex gap-2">
+                      <span className="text-red-400">•</span>
+                      <span>{err}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setErrors([])}
+                className="flex-shrink-0 text-red-400 hover:text-red-600 hover:bg-red-100/60 rounded-lg p-1.5 transition-all duration-200 -mt-0.5"
+                aria-label="Dismiss errors"
+              >
+                <CloseIcon />
+              </button>
             </div>
           </div>
         )}
-
-        <div className="flex-1 overflow-y-auto max-h-[calc(90vh-180px)]">
+        <div className="flex-1 overflow-y-auto min-h-0">
           <div className="p-6">
             <div className="rounded-xl p-6 mb-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -400,7 +411,7 @@ function AddQuizModal({
             )}
           </div>
         </div>
-        <div className="flex items-center justify-end gap-4 px-8 py-4 border-t border-highlight bg-cardBackground">
+        <div className="flex items-center justify-end gap-4 px-8 py-4 border-t border-highlight bg-cardBackground flex-shrink-0">
           <button
             type="button"
             onClick={handleClose}

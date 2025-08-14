@@ -322,7 +322,18 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/VideoContent'
+                type: object
+                properties:
+                  id:
+                    type: string
+                  title:
+                    type: string
+                  content:
+                    type: string
+                  url:
+                    type: string
+                  points: 
+                    type: integer
         '404':
           description: Video content not found.
 
@@ -1045,6 +1056,8 @@ components:
           type: string
         url:
           type: string
+        points:
+          type: integer
 
     ArticleContent:
       type: object

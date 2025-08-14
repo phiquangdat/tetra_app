@@ -136,10 +136,10 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
         earned_points: response.earnedPoints || 0,
       };
 
-        setModuleProgress(progress);
-        setModuleProgressStatus('in_progress');
-        const preload = await initFirstUnitAndContentProgress();
-        await goToStart(preload ?? undefined);
+      setModuleProgress(progress);
+      setModuleProgressStatus('in_progress');
+      const preload = await initFirstUnitAndContentProgress();
+      await goToStart(preload ?? undefined);
     } catch (err) {
       err instanceof Error
         ? console.error(err.message)

@@ -28,11 +28,13 @@ export type Unit = {
 
 const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   const {
+    setModuleId,
     setUnits: setModuleUnits,
     moduleProgressStatus,
     setModuleProgressStatus,
     goToStart,
     goToLastVisited,
+    initFirstUnitAndContentProgress,
   } = useModuleProgress();
   const [module, setModule] = useState<Module | null>(null);
   const [moduleProgress, setModuleProgress] = useState<ModuleProgress | null>(
@@ -44,6 +46,8 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    setModuleId(id);
+
     const getModuleAndUnits = async () => {
       try {
         const [data, units] = await Promise.all([
@@ -98,8 +102,8 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
 
         setModuleProgress(progress);
         setModuleProgressStatus('in_progress');
-
-        await goToStart();
+        const preload = await initFirstUnitAndContentProgress();
+        await goToStart(preload ?? undefined);
       }
     } catch (err) {
       err instanceof Error

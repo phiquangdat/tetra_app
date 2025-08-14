@@ -236,8 +236,9 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
         )}
 
         {!isStarting && !isContinuing && visibleStatus === 'completed' && (
-          <span className="inline-flex items-center gap-2 text-green-700 font-semibold bg-green-50 border border-green-200 px-4 py-2 rounded-full">
-            ✓ Module completed
+          <span className="self-start w-fit inline-flex items-center gap-2 text-sm font-semibold text-green-700 bg-green-50 border border-green-200 px-6 py-1.5 rounded-full shadow-sm">
+            <span aria-hidden>✓</span>
+            <span>Module completed</span>
           </span>
         )}
       </div>

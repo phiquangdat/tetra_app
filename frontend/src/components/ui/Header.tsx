@@ -81,8 +81,8 @@ const Header: React.FC<HeaderProps> = ({
         )}
 
         <LogoIcon />
-        <span className="font-extrabold text-2xl text-white tracking-wide">
-          Gamify learning
+        <span className="font-bold text-3xl text-white tracking-wide">
+          TETRA
         </span>
       </div>
       <nav className="flex flex-1 justify-center">

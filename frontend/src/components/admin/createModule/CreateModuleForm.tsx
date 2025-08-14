@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import {
   initialModuleState,
   useModuleContext,
@@ -7,6 +7,10 @@ import ModuleDetailsUI from '../ui/ModuleDetailsUI';
 import ModuleFormFields from './ModuleFormFields';
 import SaveButton from '../ui/SaveButton.tsx';
 import { useModuleSave } from '../../../hooks/useModuleSave';
+import {
+  useOutsideClick,
+  type UseOutsideClickParams,
+} from '../../../hooks/useOutSideClick.ts';
 
 const CreateModuleForm: React.FC = () => {
   const { setModuleState, isEditing, setIsEditing, isDirty } =
@@ -20,16 +24,37 @@ const CreateModuleForm: React.FC = () => {
     successSaved,
   } = useModuleSave();
 
+  const formContainerRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     setModuleState(initialModuleState);
     setIsEditing(true);
   }, [setModuleState, setIsEditing]);
 
+  const exitEditMode = useCallback(() => {
+    if (isEditing) setIsEditing(false);
+  }, [isEditing, setIsEditing]);
+
+  const outsideClickParams: UseOutsideClickParams = {
+    getElement: () => formContainerRef.current,
+    onOutside: exitEditMode,
+    options: {
+      eventType: 'pointerdown',
+      enabled: isEditing,
+      ignore: (target) =>
+        !!(target as HTMLElement | null)?.closest?.(
+          '[role="dialog"], [data-portal-root], [data-ignore-outside="true"]',
+        ),
+    },
+  };
+
+  useOutsideClick(outsideClickParams);
+
   const cardClasses =
     'bg-cardBackground border border-highlight rounded-3xl p-6 shadow-md text-primary w-full';
 
   return (
-    <div className="mb-10 w-full">
+    <div className="mb-10 w-full" ref={formContainerRef}>
       <h2 className="text-xl font-bold text-primary mb-4">Module Details</h2>
 
       {Object.keys(formErrors).length > 0 && (

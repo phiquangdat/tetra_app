@@ -8,6 +8,10 @@ import {
 import { useUnitContent } from './UnitContentContext';
 import { useQuizModal } from './QuizModalContext.tsx';
 import { useUnitCompletionModal } from './UnitCompletionModalContext';
+import {
+  createContentProgress,
+  createUnitProgress,
+} from '../../services/userProgress/userProgressApi.tsx';
 
 interface Unit {
   id: string;
@@ -28,9 +32,16 @@ interface ModuleProgressContextProps {
   setModuleProgressStatus: (status: string) => void;
   unitProgressStatus: string;
   setUnitProgressStatus: (status: string) => void;
-  goToStart: () => Promise<void>;
+  goToStart: (preloadedData?: {
+    unitId: string;
+    contents: UnitContent[];
+  }) => Promise<void>;
   goToLastVisited: (lastUnitId: string, lastContentId: string) => void;
   goToFirstContent: () => Promise<void>;
+  initFirstUnitAndContentProgress: () => Promise<{
+    unitId: string;
+    contents: UnitContent[];
+  } | null>;
 }
 
 const ModuleProgressContext = createContext<
@@ -113,31 +124,41 @@ export const ModuleProgressProvider = ({
     return false;
   };
 
-  const goToStart = async () => {
-    const units = await fetchUnitTitleByModuleId(moduleId);
+  const goToStart = async (preloadedData?: {
+    unitId: string;
+    contents: UnitContent[];
+  }) => {
+    let startUnitId = preloadedData?.unitId ?? units?.[0]?.id;
+    let startContents = preloadedData?.contents;
 
-    if (units && units.length > 0) {
-      const firstUnitId = units[0].id;
-      const firstUnitContent = await fetchUnitContentById(firstUnitId);
-
-      if (firstUnitContent && firstUnitContent.length > 0) {
-        const firstContent = firstUnitContent[0];
-
-        setUnits(units);
-
-        setUnitId(firstUnitId);
-
-        setUnitContent(firstUnitId, firstUnitContent);
-
-        navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
-          state: { unitId: firstUnitId },
-        });
-      } else {
-        throw new Error('This module has no content to start.');
+    if (!startUnitId) {
+      const apiUnits = await fetchUnitTitleByModuleId(moduleId);
+      if (!apiUnits || !apiUnits.length) {
+        throw new Error('This module has no units.');
       }
-    } else {
-      throw new Error('This module has no units.');
+      setUnits(apiUnits);
+      startUnitId = apiUnits[0].id;
     }
+
+    if (!startContents) {
+      startContents =
+        contentList.length && unitId === startUnitId
+          ? contentList
+          : await fetchUnitContentById(startUnitId);
+    }
+
+    if (!startContents || !startContents.length) {
+      throw new Error('This module has no content to start.');
+    }
+
+    const firstContent = startContents[0];
+
+    setUnitId(startUnitId);
+    setUnitContent(startUnitId, startContents);
+
+    navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
+      state: { unitId: startUnitId },
+    });
   };
 
   const goToLastVisited = async (lastUnitId: string, lastContentId: string) => {
@@ -172,6 +193,46 @@ export const ModuleProgressProvider = ({
     }
   };
 
+  const initFirstUnitAndContentProgress = async (): Promise<{
+    unitId: string;
+    contents: UnitContent[];
+  } | null> => {
+    const firstUnitId = units?.[0]?.id;
+    if (!firstUnitId) return null;
+
+    let contents: UnitContent[] =
+      contentList.length && unitId === firstUnitId
+        ? contentList
+        : await fetchUnitContentById(firstUnitId);
+
+    try {
+      await createUnitProgress(firstUnitId, moduleId);
+      setUnitProgressStatus('in_progress');
+    } catch (e: any) {
+      if (!String(e?.message ?? '').includes('409')) console.warn('[unit]', e);
+    }
+
+    const firstContentId = contents?.[0]?.id;
+    if (firstContentId) {
+      try {
+        await createContentProgress({
+          unitId: firstUnitId,
+          unitContentId: firstContentId,
+          status: 'IN_PROGRESS',
+          points: 0,
+        });
+      } catch (e: any) {
+        if (!String(e?.message ?? '').includes('409'))
+          console.warn('[content]', e);
+      }
+    }
+
+    setUnitId(firstUnitId);
+    setUnitContent(firstUnitId, contents);
+
+    return { unitId: firstUnitId, contents };
+  };
+
   return (
     <ModuleProgressContext.Provider
       value={{
@@ -190,6 +251,7 @@ export const ModuleProgressProvider = ({
         goToStart,
         goToLastVisited,
         goToFirstContent,
+        initFirstUnitAndContentProgress,
       }}
     >
       {children}

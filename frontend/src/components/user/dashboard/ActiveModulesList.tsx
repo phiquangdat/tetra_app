@@ -62,14 +62,28 @@ const ActiveModulesList = () => {
     console.log('Module clicked:', moduleId); // Placeholder for actual navigation logic
   };
 
+  let percent = 60; //Placeholder
   return (
     <div className="rounded-2xl bg-cardBackground p-6 my-12 shadow-lg">
-      <div className="relative -mx-6 mb-10">
-        <div className="text-primary text-xl font-semibold pb-3 px-10">
-          In Progress
+      <div className="mb-8">
+        <div className="flex items-center justify-between px-4 mb-4">
+          <h1 className="text-2xl font-bold text-primary mb-2">In Progress</h1>
+
+          <span className="text-sm font-medium text-white bg-success/90 px-4 py-1.5 rounded-full">
+            {percent}% Completed
+          </span>
         </div>
-        <span className="block absolute left-0 border-b-4 border-highlight w-1/3"></span>
-        <span className="block absolute left-1/3 border-b-4 border-accent w-2/3"></span>
+
+        <div className="relative w-full h-2">
+          <span
+            className="block absolute top-0 left-0 rounded-l-xl border-b-6 border-success/80"
+            style={{ width: `${percent}%` }}
+          ></span>
+          <span
+            className="block absolute top-0 rounded-r-xl border-b-6 border-accent"
+            style={{ left: `${percent}%`, width: `${100 - percent}%` }}
+          ></span>
+        </div>
       </div>
 
       <div className="flex flex-col gap-6">

@@ -165,6 +165,7 @@ public class UnitContentController {
         result.put("title", content.getTitle());
         result.put("content", content.getContentData());
         result.put("url", content.getUrl());
+        result.put("points", content.getPoints()); 
         return ResponseEntity.ok(result);
     }
 

@@ -9,7 +9,8 @@ import SaveButton from '../ui/SaveButton.tsx';
 import { useModuleSave } from '../../../hooks/useModuleSave';
 
 const CreateModuleForm: React.FC = () => {
-  const { setModuleState, isEditing, setIsEditing } = useModuleContext();
+  const { setModuleState, isEditing, setIsEditing, isDirty } =
+    useModuleContext();
   const {
     handleSave,
     isSaving,
@@ -61,7 +62,11 @@ const CreateModuleForm: React.FC = () => {
         <div className={cardClasses}>
           <form className="space-y-6 mx-0 mb-2">
             <ModuleFormFields />
-            <SaveButton onClick={handleSave} disabled={isSaving} />
+            <SaveButton
+              onClick={handleSave}
+              disabled={isSaving}
+              isDirty={isDirty}
+            />
           </form>
         </div>
       )}

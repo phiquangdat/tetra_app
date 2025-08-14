@@ -1,12 +1,27 @@
 package com.tetra.app.controller;
 
 import com.tetra.app.model.TrainingModule;
+import com.tetra.app.model.Unit;
+import com.tetra.app.model.UnitContent;
+import com.tetra.app.model.Question;
+import com.tetra.app.model.Answer;
 import com.tetra.app.repository.TrainingModuleRepository;
+import com.tetra.app.repository.UnitRepository;
+import com.tetra.app.repository.UnitContentRepository;
+import com.tetra.app.repository.QuestionRepository;
+import com.tetra.app.repository.AnswerRepository;
 import com.tetra.app.security.JwtUtil;
+import com.tetra.app.repository.UserModuleProgressRepository;
+import com.tetra.app.repository.UserUnitProgressRepository;
+import com.tetra.app.repository.UserContentProgressRepository;
+import com.tetra.app.model.UserModuleProgress;
+import com.tetra.app.model.UserUnitProgress;
+import com.tetra.app.model.UserContentProgress;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -16,11 +31,35 @@ import java.util.UUID;
 public class TrainingModuleController {
 
     private final TrainingModuleRepository trainingModuleRepository;
+    private final UnitRepository unitRepository;
+    private final UnitContentRepository unitContentRepository;
+    private final QuestionRepository questionRepository;
+    private final AnswerRepository answerRepository;
     private final JwtUtil jwtUtil;
+    private final UserModuleProgressRepository userModuleProgressRepository;
+    private final UserUnitProgressRepository userUnitProgressRepository;
+    private final UserContentProgressRepository userContentProgressRepository;
 
-    public TrainingModuleController(TrainingModuleRepository trainingModuleRepository, JwtUtil jwtUtil) {
+    public TrainingModuleController(
+        TrainingModuleRepository trainingModuleRepository,
+        UnitRepository unitRepository,
+        UnitContentRepository unitContentRepository,
+        QuestionRepository questionRepository,
+        AnswerRepository answerRepository,
+        JwtUtil jwtUtil,
+        UserModuleProgressRepository userModuleProgressRepository,
+        UserUnitProgressRepository userUnitProgressRepository,
+        UserContentProgressRepository userContentProgressRepository
+    ) {
         this.trainingModuleRepository = trainingModuleRepository;
+        this.unitRepository = unitRepository;
+        this.unitContentRepository = unitContentRepository;
+        this.questionRepository = questionRepository;
+        this.answerRepository = answerRepository;
         this.jwtUtil = jwtUtil;
+        this.userModuleProgressRepository = userModuleProgressRepository;
+        this.userUnitProgressRepository = userUnitProgressRepository;
+        this.userContentProgressRepository = userContentProgressRepository;
     }
 
     @GetMapping
@@ -115,16 +154,17 @@ public class TrainingModuleController {
     }
 
     @DeleteMapping("/{id}")
+    @Transactional
     public ResponseEntity<?> deleteModule(
-        @PathVariable UUID id,
-        @RequestHeader(value = "Authorization", required = false) String authHeader
+            @PathVariable UUID id,
+            @RequestHeader(value = "Authorization", required = false) String authHeader
     ) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
         }
         String token = authHeader.substring(7);
         String role;
-        try {            
+        try {
             role = jwtUtil.extractRole(token);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
@@ -135,8 +175,44 @@ public class TrainingModuleController {
         if (!trainingModuleRepository.existsById(id)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Module not found with id: " + id);
         }
-        trainingModuleRepository.deleteById(id);
-        return ResponseEntity.ok("Module deleted");
+
+        try {
+            // Delete user progress for this module
+            List<UserModuleProgress> moduleProgresses = userModuleProgressRepository.findByModule_Id(id);
+            userModuleProgressRepository.deleteAll(moduleProgresses);
+
+            List<Unit> units = unitRepository.findByModule_Id(id);
+            for (Unit unit : units) {
+                // Delete user unit progress for this unit
+                List<UserUnitProgress> unitProgresses = userUnitProgressRepository.findByUnit_Id(unit.getId());
+                userUnitProgressRepository.deleteAll(unitProgresses);
+
+                List<UnitContent> contents = unitContentRepository.findByUnit_Id(unit.getId());
+                for (UnitContent content : contents) {
+                    // Delete user content progress for this content
+                    List<UserContentProgress> contentProgresses = userContentProgressRepository.findByUnitContent_Id(content.getId());
+                    userContentProgressRepository.deleteAll(contentProgresses);
+
+                    if ("quiz".equalsIgnoreCase(content.getContentType())) {
+                        List<Question> questions = questionRepository.findByUnitContent_Id(content.getId());
+                        for (Question q : questions) {
+                            answerRepository.deleteAll(answerRepository.findByQuestion_Id(q.getId()));
+                        }
+                        questionRepository.deleteAll(questions);
+                    }
+                    unitContentRepository.deleteById(content.getId());
+                }
+                unitRepository.deleteById(unit.getId());
+            }
+
+            trainingModuleRepository.deleteById(id);
+            return ResponseEntity.ok("Module deleted successfully");
+        } catch (Exception e) {
+            // Log the error for debugging
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Failed to delete module and all related content: " + e.getMessage());
+        }
     }
 }
 

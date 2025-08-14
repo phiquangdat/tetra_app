@@ -76,7 +76,7 @@ const ActiveModuleCard: React.FC<ActiveModuleCardProps> = ({
           disabled={isCompleted}
           className={`bg-surface hover:bg-surfaceHover disabled:bg-surface/60 disabled:cursor-not-allowed self-end text-white font-semibold px-6 py-3 rounded-lg shadow transform hover:scale-105 transition-all duration-300`}
         >
-          {isCompleted ? 'Review' : 'Start learning'}
+          {isCompleted ? 'Review' : 'Continue learning'}
         </button>
       </div>
     </div>

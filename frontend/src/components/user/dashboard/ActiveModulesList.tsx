@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import ActiveModuleCard, {
   type ActiveModuleStatus,
 } from '../../ui/ActiveModuleCard';
@@ -22,6 +22,7 @@ const ActiveModulesList = () => {
   const [items, setItems] = useState<UiModule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const loadModules = useCallback(async () => {
     try {
@@ -59,14 +60,15 @@ const ActiveModulesList = () => {
   }, [loadModules]);
 
   const handleClickModule = (moduleId: string) => {
-    console.log('Module clicked:', moduleId); // Placeholder for actual navigation logic
+    if (moduleId == null) return;
+    navigate(`/user/modules/${moduleId}`);
   };
 
   let percent = 60; //Placeholder
   return (
     <div className="rounded-2xl bg-cardBackground p-6 my-12 shadow-lg">
       <div className="mb-8">
-        <div className="flex items-center justify-between px-4 mb-4">
+        <div className="flex items-center justify-between px-6 mb-4">
           <h1 className="text-2xl font-bold text-primary mb-2">In Progress</h1>
 
           <span className="text-sm font-medium text-white bg-success/90 px-4 py-1.5 rounded-full">

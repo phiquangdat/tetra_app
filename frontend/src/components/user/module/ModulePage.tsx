@@ -38,6 +38,8 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   const {
     setModuleId,
     setUnits: setModuleUnits,
+    moduleProgress,
+    setModuleProgress,
     moduleProgressStatus,
     setModuleProgressStatus,
     goToStart,

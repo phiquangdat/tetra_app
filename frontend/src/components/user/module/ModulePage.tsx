@@ -26,6 +26,8 @@ export type Unit = {
   }[];
 };
 
+type ProgressStatus = 'not_started' | 'in_progress' | 'completed';
+
 const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   const {
     setModuleId,
@@ -43,6 +45,13 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   const [units, setUnits] = useState<Unit[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const [isStarting, setIsStarting] = useState(false);
+  const [isContinuing, setIsContinuing] = useState(false);
+
+  const [visibleStatus, setVisibleStatus] = useState<ProgressStatus | null>(
+    null,
+  );
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -85,40 +94,71 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
     getModuleAndUnits();
   }, [id]);
 
+  useEffect(() => {
+    let t: ReturnType<typeof setTimeout> | undefined;
+
+    if (moduleProgressStatus === 'completed') {
+      setVisibleStatus('completed');
+      return;
+    }
+
+    t = setTimeout(() => {
+      if (
+        moduleProgressStatus === 'not_started' ||
+        moduleProgressStatus === 'in_progress'
+      ) {
+        setVisibleStatus(moduleProgressStatus);
+      } else {
+        setVisibleStatus(null);
+      }
+    }, 150);
+
+    return () => {
+      if (t) clearTimeout(t);
+    };
+  }, [moduleProgressStatus]);
+
   const handleStart = async () => {
     try {
-      if (moduleProgressStatus === 'not_started') {
-        const response = await createModuleProgress(id, {
-          lastVisitedContent: moduleProgress?.last_visited_content_id,
-          lastVisitedUnit: moduleProgress?.last_visited_unit_id,
-        });
+      if (moduleProgressStatus !== 'not_started' || isStarting) return;
+      setIsStarting(true);
+      setVisibleStatus(null);
 
-        const progress = {
-          status: response.status,
-          last_visited_unit_id: response.lastVisitedUnit.id || '',
-          last_visited_content_id: response.lastVisitedContent.id || '',
-          earned_points: response.earnedPoints || 0,
-        };
+      const response = await createModuleProgress(id, {
+        lastVisitedContent: moduleProgress?.last_visited_content_id,
+        lastVisitedUnit: moduleProgress?.last_visited_unit_id,
+      });
 
-        setModuleProgress(progress);
-        setModuleProgressStatus('in_progress');
-        const preload = await initFirstUnitAndContentProgress();
-        await goToStart(preload ?? undefined);
-      }
+      const progress = {
+        status: response.status,
+        last_visited_unit_id: response.lastVisitedUnit.id || '',
+        last_visited_content_id: response.lastVisitedContent.id || '',
+        earned_points: response.earnedPoints || 0,
+      };
+
+      setModuleProgress(progress);
+      setModuleProgressStatus('in_progress');
+      const preload = await initFirstUnitAndContentProgress();
+      await goToStart(preload ?? undefined);
     } catch (err) {
       err instanceof Error
         ? console.error(err.message)
         : setError('Cannot start module.');
+    } finally {
+      setIsStarting(false);
     }
   };
 
   const handleContinue = async () => {
     try {
+      if (isContinuing) return;
       if (
         moduleProgress?.last_visited_content_id &&
         moduleProgress?.last_visited_unit_id
       ) {
-        goToLastVisited(
+        setIsContinuing(true);
+        setVisibleStatus(null);
+        await goToLastVisited(
           moduleProgress.last_visited_unit_id,
           moduleProgress.last_visited_content_id,
         );
@@ -131,6 +171,8 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
       err instanceof Error
         ? console.error(err.message)
         : setError('Cannot continue module.');
+    } finally {
+      setIsContinuing(false);
     }
   };
 
@@ -155,15 +197,29 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
         <h1 className="text-2xl md:text-3xl font-extrabold text-[#231942] tracking-tight">
           {module.title}
         </h1>
-        {moduleProgressStatus === 'in_progress' ? (
+
+        {isStarting && (
           <button
-            className="bg-secondary text-white font-semibold px-14 py-3 rounded-full text-lg shadow-md hover:bg-secondaryHover focus:outline-none focus:ring-2 focus:ring-surface transition w-fit"
+            className="bg-surface text-white font-semibold px-16 py-3 rounded-full text-lg shadow-md opacity-80 cursor-wait w-fit"
             type="button"
-            onClick={handleContinue}
+            disabled
+            aria-busy="true"
           >
-            Continue
+            Starting…
           </button>
-        ) : (
+        )}
+        {isContinuing && (
+          <button
+            className="bg-secondary text-white font-semibold px-14 py-3 rounded-full text-lg shadow-md opacity-80 cursor-wait w-fit"
+            type="button"
+            disabled
+            aria-busy="true"
+          >
+            Continuing…
+          </button>
+        )}
+
+        {!isStarting && !isContinuing && visibleStatus === 'not_started' && (
           <button
             className="bg-surface text-white font-semibold px-16 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition w-fit"
             type="button"
@@ -171,6 +227,23 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
           >
             Start
           </button>
+        )}
+
+        {!isStarting && !isContinuing && visibleStatus === 'in_progress' && (
+          <button
+            className="bg-secondary text-white font-semibold px-14 py-3 rounded-full text-lg shadow-md hover:bg-secondaryHover focus:outline-none focus:ring-2 focus:ring-surface transition w-fit"
+            type="button"
+            onClick={handleContinue}
+          >
+            Continue
+          </button>
+        )}
+
+        {!isStarting && !isContinuing && visibleStatus === 'completed' && (
+          <span className="self-start w-fit inline-flex items-center gap-2 text-sm font-semibold text-green-700 bg-green-50 border border-green-200 px-6 py-1.5 rounded-full shadow-sm">
+            <span aria-hidden>✓</span>
+            <span>Module completed</span>
+          </span>
         )}
       </div>
 

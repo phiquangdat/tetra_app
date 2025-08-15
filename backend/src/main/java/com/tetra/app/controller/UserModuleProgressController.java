@@ -218,6 +218,7 @@ public class UserModuleProgressController {
         }
         UserModuleProgress progress = progressOpt.get();
         var response = Map.of(
+            "id", progress.getId(),
             "status", progress.getStatus(),
             "last_visited_unit_id", progress.getLastVisitedUnit() != null ? progress.getLastVisitedUnit().getId() : null,
             "last_visited_content_id", progress.getLastVisitedContent() != null ? progress.getLastVisitedContent().getId() : null,
@@ -379,6 +380,7 @@ public class UserModuleProgressController {
         var result = progresses.stream().map(progress -> {
             var module = progress.getModule();
             return Map.of(
+                "id", progress.getId(),
                 "moduleId", module != null ? module.getId() : null,
                 "moduleTitle", module != null ? module.getTitle() : null,
                 "status", progress.getStatus(),

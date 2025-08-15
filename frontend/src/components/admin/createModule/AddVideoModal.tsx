@@ -129,53 +129,47 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
   };
 
   const renderVideoInput = () => (
-    <>
-      <div className="text-gray-600">
+    <div className="flex flex-col items-center py-8">
+      <div className="p-2 bg-white rounded-2xl shadow-sm border border-highlight/30 mb-4">
         <VideoUploadIcon />
       </div>
-      <div className="mt-4 text-sm">
-        <input
-          type="url"
-          placeholder="https://example.com/video.mp4 or YouTube URL"
-          value={data.url ?? ''}
-          onChange={(e) =>
-            updateContentField('data', {
-              ...data,
-              url: e.target.value,
-            })
-          }
-          className="min-w-90 px-4 py-2 text-sm border-2 border-gray-400 rounded-md focus:outline-none focus:border-blue-500"
-        />
-      </div>
-      <div className="mt-2 text-sm text-gray-400">
-        Paste the video URL here (MP4 or YouTube)
-      </div>
-    </>
+      <input
+        type="url"
+        placeholder="Paste video URL here (MP4 or YouTube)"
+        value={data.url}
+        onChange={(e) =>
+          updateContentField('data', {
+            ...data,
+            url: e.target.value,
+          })
+        }
+        className="w-full max-w-md px-4 py-3 border border-primary/50 rounded-lg bg-background text-primary placeholder:text-secondary/70 focus:outline-none focus:border-2 focus:border-surface/70 transition-colors"
+      />
+      <p className="mt-3 text-sm text-secondary text-center">
+        Supports MP4 files and YouTube links
+      </p>
+    </div>
   );
 
-  const renderPreview = () =>
-    isYouTubeUrl(data.url ?? '') ? (
-      <iframe
-        width="100%"
-        height="315"
-        src={getYouTubeEmbedUrl(data.url ?? '') ?? undefined}
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-        title={data.title || 'Video preview'}
-        aria-label="video preview"
-      />
-    ) : (
-      <video
-        className="w-full h-auto rounded-md shadow-lg"
-        controls
-        src={data.url}
-      />
-    );
-
-  const renderVideoBlock = () => (
-    <div className="text-gray-500 text-center flex flex-col items-center">
-      {isValidUrl ? renderPreview() : renderVideoInput()}
-      {isValidUrl && (
+  const renderPreview = () => (
+    <div className="w-full">
+      {isYouTubeUrl(data.url ?? '') ? (
+        <iframe
+          className="w-full aspect-video rounded-xl"
+          src={getYouTubeEmbedUrl(data.url ?? '') ?? undefined}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          title={data.title || 'Video preview'}
+          aria-label="video preview"
+        />
+      ) : (
+        <video
+          className="w-full aspect-video rounded-xl"
+          controls
+          src={data.url}
+        />
+      )}
+      <div className="flex justify-end mt-4">
         <button
           type="button"
           onClick={() =>
@@ -184,109 +178,122 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
               url: '',
             })
           }
-          className="my-4 text-sm text-gray-500 hover:text-gray-700 cursor-pointer transition-colors"
+          className="bg-accent px-4 py-2 text-base text-white font-semibold hover:text-surfaceHover border border-surface/20 hover:bg-[#FFB74D] rounded-xl transition-colors"
           disabled={isSaving}
         >
           Change Video
         </button>
-      )}
+      </div>
     </div>
   );
 
   if (!isOpen) return null;
 
   return (
-    <div>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur flex items-center justify-center z-50 p-4">
       <div
-        className="fixed inset-0 flex items-center justify-center z-50 p-4 overflow-auto"
-        style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+        ref={modalRef}
+        className="bg-background rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
         onClick={handleBackdropClick}
       >
-        <div
-          ref={modalRef}
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
-        >
-          <div className="flex items-center justify-between p-6 pb-0">
-            <div className="flex items-center gap-3">
-              <div className="text-gray-600">
-                <VideoHeaderIcon />
-              </div>
-              <h2 className="text-lg font-medium text-gray-900">Video</h2>
+        <div className="flex items-center justify-between bg-cardBackground px-8 py-4 border-b border-highlight/50">
+          <div className="flex items-center gap-4">
+            <div className="p-2 bg-white rounded-2xl shadow-sm border border-highlight/30">
+              <VideoHeaderIcon color="var(--color-surface)" />
             </div>
-            <button
-              onClick={handleClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-1"
-              disabled={isSaving}
+            <h2 className="text-xl font-semibold text-primary">
+              Add New Video
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="text-primary hover:text-secondaryHover transition-colors p-2 rounded-lg hover:bg-cardBackground"
+            disabled={isSaving}
+            aria-label="Close"
+          >
+            <CloseIcon />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div>
+            <label
+              htmlFor="videoTitle"
+              className="block text-base font-semibold text-primary mb-2"
             >
-              <CloseIcon />
-            </button>
+              Title
+            </label>
+            <input
+              type="text"
+              id="videoTitle"
+              value={data.title}
+              onChange={(e) =>
+                updateContentField('data', {
+                  ...data,
+                  title: e.target.value,
+                })
+              }
+              placeholder="Enter video title"
+              className="w-full px-4 py-3 border border-primary/50 rounded-lg text-primary placeholder:text-primary/40 focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200"
+              required
+              disabled={isSaving}
+            />
           </div>
 
-          <div className="p-6 pb-0 flex flex-col h-full">
-            <div className="mb-6 max-w-110">
-              <label
-                htmlFor="videoTitle"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Title
-              </label>
-              <input
-                type="text"
-                id="videoTitle"
-                value={data.title}
-                onChange={(e) =>
-                  updateContentField('data', {
-                    ...data,
-                    title: e.target.value,
-                  })
-                }
-                className="w-full px-4 py-2 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                required
-                disabled={isSaving}
-              />
-            </div>
-
-            <div className="mb-6 max-w-110 min-h-40 h-auto border border-gray-400 rounded-lg p-4 pb-0">
-              {renderVideoBlock()}
-            </div>
-
-            <div className="mb-6 max-w-full">
-              <label
-                htmlFor="videoDescription"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Description
-              </label>
-              <textarea
-                id="videoDescription"
-                value={data.content}
-                onChange={(e) =>
-                  updateContentField('data', {
-                    ...data,
-                    content: e.target.value,
-                  })
-                }
-                placeholder="Enter video description..."
-                className="w-full h-40 px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none"
-                required
-                disabled={isSaving}
-              />
-            </div>
-
-            {error && <p className="text-error text-sm">{error}</p>}
-
-            <div className="flex justify-end p-6 pt-0">
-              <button
-                type="button"
-                aria-label="Save Video"
-                onClick={handleSave}
-                className="bg-white border-gray-400 border-2 text-sm text-gray-700 px-4 py-1 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors duration-200 mr-4 w-24 h-10"
-                disabled={!canSave || isSaving}
-              >
-                {isSaving ? 'Saving...' : 'Save'}
-              </button>
+          <div>
+            <label className="block text-base font-semibold text-primary mb-2">
+              Video
+            </label>
+            <div className="border-2 border-dashed border-highlight rounded-2xl p-6 bg-cardBackground">
+              {isValidUrl ? renderPreview() : renderVideoInput()}
             </div>
           </div>
+
+          <div>
+            <label
+              htmlFor="videoDescription"
+              className="block text-base font-semibold text-primary mb-2"
+            >
+              Description
+            </label>
+            <textarea
+              id="videoDescription"
+              value={data.content}
+              onChange={(e) =>
+                updateContentField('data', {
+                  ...data,
+                  content: e.target.value,
+                })
+              }
+              placeholder="Enter video description..."
+              rows={5}
+              className="w-full px-4 py-3 border border-primary/50 rounded-lg text-primary placeholder:text-primary/40 focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200"
+              required
+              disabled={isSaving}
+            />
+          </div>
+        </div>
+
+        {error && <p className="text-error text-sm">{error}</p>}
+
+        <div className="flex items-center justify-end gap-4 px-8 py-4 border-t border-highlight bg-cardBackground">
+          <button
+            type="button"
+            onClick={handleClose}
+            className="bg-secondary hover:bg-secondaryHover text-background px-6 py-2.5 rounded-lg text-sm font-medium transition duration-200"
+            disabled={isSaving}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            className="bg-surface hover:bg-surfaceHover text-background px-6 py-2.5 rounded-lg text-sm font-medium transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!canSave || isSaving}
+          >
+            {isSaving ? 'Saving...' : 'Save'}
+          </button>
         </div>
       </div>
     </div>

@@ -71,6 +71,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
     setUnitId,
     setModuleId,
     unitProgressStatus,
+    setUnitProgress,
     setUnitProgressStatus,
     goToFirstContent,
   } = useModuleProgress();
@@ -139,9 +140,12 @@ const UnitPage = ({ id }: UnitPageProps) => {
 
         try {
           const unitProgress = await getUnitProgress(id);
+
+          setUnitProgress(unitProgress);
           setUnitProgressStatus(unitProgress?.status.toLowerCase());
         } catch (getError) {
           if (getError instanceof Error && getError.message.includes('404')) {
+            setUnitProgress(null);
             setUnitProgressStatus('not_started');
           }
         }
@@ -178,6 +182,8 @@ const UnitPage = ({ id }: UnitPageProps) => {
           unitDetails.id,
           unitDetails.moduleId,
         );
+
+        setUnitProgress(response);
         setUnitProgressStatus(response.status.toLowerCase());
         console.log('[createUnitProgress] Unit progress created:', response);
         await goToFirstContent();

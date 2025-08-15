@@ -11,6 +11,8 @@ import { useUnitCompletionModal } from './UnitCompletionModalContext';
 import {
   createContentProgress,
   createUnitProgress,
+  updateUnitProgress,
+  type UnitProgress,
 } from '../../services/userProgress/userProgressApi.tsx';
 
 interface Unit {
@@ -22,7 +24,7 @@ interface Unit {
 interface ModuleProgressContextProps {
   units: Unit[];
   setUnits: (units: Unit[]) => void;
-  goToNextContent: (currentContentId: string) => void;
+  goToNextContent: (currentContentId: string, unitProgressId: string) => void;
   isNextContent: (currentContentId: string) => boolean | undefined;
   unitId: string;
   setUnitId: (id: string) => void;
@@ -30,6 +32,8 @@ interface ModuleProgressContextProps {
   setModuleId: (id: string) => void;
   moduleProgressStatus: string;
   setModuleProgressStatus: (status: string) => void;
+  unitProgress: UnitProgress | null;
+  setUnitProgress: (unitProgress: UnitProgress | null) => void;
   unitProgressStatus: string;
   setUnitProgressStatus: (status: string) => void;
   goToStart: (preloadedData?: {
@@ -70,6 +74,7 @@ export const ModuleProgressProvider = ({
   const [moduleId, setModuleId] = useState<string>('');
   const [moduleProgressStatus, setModuleProgressStatus] =
     useState<string>('not_started');
+  const [unitProgress, setUnitProgress] = useState<UnitProgress | null>(null);
   const [unitProgressStatus, setUnitProgressStatus] =
     useState<string>('not_started');
   const navigate = useNavigate();
@@ -246,6 +251,8 @@ export const ModuleProgressProvider = ({
         setModuleId,
         moduleProgressStatus,
         setModuleProgressStatus,
+        unitProgress,
+        setUnitProgress,
         unitProgressStatus,
         setUnitProgressStatus,
         goToStart,

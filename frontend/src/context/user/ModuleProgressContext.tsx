@@ -24,7 +24,7 @@ interface Unit {
 interface ModuleProgressContextProps {
   units: Unit[];
   setUnits: (units: Unit[]) => void;
-  goToNextContent: (currentContentId: string, unitProgressId: string) => void;
+  goToNextContent: (currentContentId: string) => void;
   isNextContent: (currentContentId: string) => boolean | undefined;
   unitId: string;
   setUnitId: (id: string) => void;
@@ -108,6 +108,27 @@ export const ModuleProgressProvider = ({
     const nextUnit = units[currentUnitIndex + 1];
     if (nextUnit) {
       openUnitCompletionModal(nextUnit.id, moduleId);
+
+      async function updateProgress() {
+        try {
+          const response = await updateUnitProgress(
+            unitProgress?.id as string,
+            {
+              moduleId,
+              unitId,
+              status: 'COMPLETED',
+            },
+          );
+          setUnitProgress(response);
+          setUnitProgressStatus('completed');
+
+          console.log('[updateUnitProgress]', response);
+        } catch (error) {
+          console.error('Error updating unit progress:', error);
+        }
+      }
+
+      updateProgress();
     } else {
       navigate(`/user/modules/${moduleId}`);
     }

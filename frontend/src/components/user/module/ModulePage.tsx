@@ -16,6 +16,7 @@ interface ModulePageProps {
   id: string;
 }
 import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
+import { useUnitContent } from '../../../context/user/UnitContentContext.tsx';
 
 export type Unit = {
   id: string;
@@ -38,6 +39,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
     goToLastVisited,
     initFirstUnitAndContentProgress,
   } = useModuleProgress();
+  const { setUnitContent } = useUnitContent();
   const [module, setModule] = useState<Module | null>(null);
   const [moduleProgress, setModuleProgress] = useState<ModuleProgress | null>(
     null,
@@ -55,6 +57,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    setUnitContent('', []);
     setModuleId(id);
 
     const getModuleAndUnits = async () => {

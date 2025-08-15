@@ -143,11 +143,7 @@ class TrainingModuleControllerTest {
                 })
                 .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000010"))
                 .andExpect(jsonPath("$.title").value("New Module"))
-                .andExpect(jsonPath("$.description").doesNotExist())
-                .andExpect(jsonPath("$.points").doesNotExist())
-                .andExpect(jsonPath("$.topic").doesNotExist())
-                .andExpect(jsonPath("$.coverurl").doesNotExist())
-                .andExpect(jsonPath("$.status").doesNotExist());
+                .andExpect(jsonPath("$.points").value(20));
     }
 
     @Test

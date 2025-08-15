@@ -8,7 +8,6 @@ import {
   getModuleProgress,
   getUnitProgressByModuleId,
   createModuleProgress,
-  type ModuleProgress,
   type UnitProgress,
 } from '../../../services/userProgress/userProgressApi';
 import Syllabus from './syllabus/Syllabus';
@@ -48,9 +47,6 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   } = useModuleProgress();
   const { setUnitContent } = useUnitContent();
   const [module, setModule] = useState<Module | null>(null);
-  const [moduleProgress, setModuleProgress] = useState<ModuleProgress | null>(
-    null,
-  );
   const [_unitsProgress, setUnitsProgress] = useState<UnitProgress[] | null>(
     null,
   );
@@ -174,6 +170,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
       });
 
       const progress = {
+        id: response.id,
         status: response.status,
         last_visited_unit_id: response.lastVisitedUnit.id || '',
         last_visited_content_id: response.lastVisitedContent.id || '',

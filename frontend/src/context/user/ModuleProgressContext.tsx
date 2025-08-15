@@ -78,7 +78,7 @@ export const ModuleProgressProvider = ({
     setUnitsState(units);
   };
 
-  const goToNextContent = (currentContentId: string) => {
+  const goToNextContent = async (currentContentId: string) => {
     const currentUnitIndex = units.findIndex((u) => u.id === unitId);
     if (currentUnitIndex === -1) return;
 
@@ -90,7 +90,7 @@ export const ModuleProgressProvider = ({
     if (nextContent) {
       // CASE 1: next content in current unit
       if (nextContent.content_type === 'quiz') {
-        openModal(nextContent.id); // Show quiz modal (don't navigate)
+        await openModal(nextContent.id); // Show quiz modal (don't navigate)
       } else {
         navigate(`/user/${nextContent.content_type}/${nextContent.id}`, {
           state: { unitId },

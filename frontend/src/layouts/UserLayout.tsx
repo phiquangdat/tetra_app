@@ -11,6 +11,7 @@ import Footer from '../components/ui/Footer.tsx';
 import UnitCompletionModal from '../components/user/unit/UnitCompletionModal.tsx';
 import { UnitCompletionModalProvider } from '../context/user/UnitCompletionModalContext.tsx';
 import { UserProvider } from '../context/auth/UserContext.tsx';
+import QuizPassedModal from '../components/user/quiz/QuizPassedModal.tsx';
 
 export default function UserLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -48,6 +49,7 @@ export default function UserLayout() {
                       <Outlet />
                       <UnitCompletionModal />
                       <QuizStartModal />
+                      <QuizPassedModal />
                     </main>
                   </div>
                   <Footer />

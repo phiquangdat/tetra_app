@@ -72,79 +72,118 @@ function QuestionForm({
   };
 
   return (
-    <div
-      className="max-w-5xl px-4 pt-2 pb-6 my-6 rounded-lg border border-gray-400 shadow-lg"
-      style={{ backgroundColor: '#F2EAEA' }}
-    >
-      <div className="flex justify-end">
-        <button
-          aria-label="Close"
-          onClick={handleClose}
-          className="text-gray-400 hover:text-gray-600 transition-colors p-1"
-        >
-          <CloseIcon />
-        </button>
-      </div>
-
-      <h2 className="text-lg text-gray-700 mb-4">Question {questionNumber}</h2>
-
-      {errors.length > 0 && (
-        <div className="bg-red-100 text-red-800 p-4 mb-4 rounded-lg">
-          <ul className="list-disc pl-6 text-sm">
-            {errors.map((err, idx) => (
-              <li key={idx}>{err}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <label htmlFor={`quizTitle-${questionNumber}`} className="sr-only">
-        Question Title
-      </label>
-      <textarea
-        name={`quizTitle-${questionNumber}`}
-        id={`quizTitle-${questionNumber}`}
-        value={question.title || ''}
-        className="bg-white border-gray-400 border w-full h-32 rounded-lg p-2 mb-6 focus:outline-none focus:border-blue-500 transition-colors duration-200"
-        style={{ resize: 'none' }}
-        onChange={handleTitleChange}
-      />
-
-      {questionType === 'true/false' && (
-        <div className="space-y-2 mb-6">
-          <QuestionOption questionIndex={questionIndex} answerIndex={0} />
-          <QuestionOption questionIndex={questionIndex} answerIndex={1} />
-        </div>
-      )}
-
-      {questionType === 'multiple' && (
-        <div>
-          <div className="flex justify-around items-center mb-4">
+    <div className="max-w-xl mx-auto">
+      <div className="bg-background rounded-2xl border border-highlight shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+        <div className="bg-cardBackground px-6 py-4 border-b border-highlight">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center bg-surface justify-center text-surface w-12 h-12 rounded-xl shadow-md">
+                <span className="text-white font-bold text-lg">
+                  {questionNumber}
+                </span>
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-primary">
+                  Question {questionNumber}
+                </h2>
+                <p className="text-sm capitalize text-secondary">
+                  {questionType.replace('/', ' / ')} Question
+                </p>
+              </div>
+            </div>
             <button
-              className="bg-white border-gray-400 border text-sm text-gray-700 px-2 rounded-lg cursor-pointer w-36 h-10 hover:bg-gray-100 transition-colors duration-200 flex items-center gap-2 mb-6"
-              onClick={handleAddOption}
+              aria-label="Close"
+              onClick={handleClose}
+              className="flex items-center justify-center text-secondary w-10 h-10 rounded-lg transition-all duration-200 hover:bg-opacity-50"
             >
-              <span className="text-xl pb-1">+</span>Add Option
-            </button>
-            <button
-              className="bg-white border-gray-400 border text-sm text-gray-700 px-2 rounded-lg cursor-pointer w-36 h-10 hover:bg-gray-100 transition-colors duration-200 flex items-center gap-2 mb-6"
-              onClick={handleRemoveOption}
-              disabled={question.answers.length <= 2}
-            >
-              <span className="text-xl pb-1">-</span>Remove Option
+              <CloseIcon />
             </button>
           </div>
-          <div className="space-y-2">
-            {question.answers.map((_, index) => (
-              <QuestionOption
-                key={index}
-                questionIndex={questionIndex}
-                answerIndex={index}
+        </div>
+
+        <div className="p-6">
+          {errors.length > 0 && (
+            <div className="mb-6 p-4 rounded-xl border border-error bg-error/10">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 bg-error w-5 h-5 rounded-full flex items-center justify-center mt-0.5">
+                  <span className="text-white text-xs font-bold">!</span>
+                </div>
+                <div className="flex-1">
+                  <ul className="space-y-1">
+                    {errors.map((err, idx) => (
+                      <li
+                        key={idx}
+                        className="text-error text-sm flex items-start gap-2"
+                      >
+                        <span className="text-error">•</span>
+                        <span>{err}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="mb-8">
+            <label
+              htmlFor={`quizTitle-${questionNumber}`}
+              className="text-primary block text-sm font-medium mb-3"
+            >
+              Question Title
+            </label>
+            <div className="relative">
+              <textarea
+                name={`quizTitle-${questionNumber}`}
+                id={`quizTitle-${questionNumber}`}
+                value={question.title || ''}
+                placeholder="Enter question here"
+                className="w-full h-32 p-4 bg-cardBackground border border-highlight text-surface rounded-xl focus:outline-none focus:ring-2 focus:ring-surface focus:ring-opacity-20 transition-all duration-200 resize-none"
+                onChange={handleTitleChange}
               />
-            ))}
+            </div>
           </div>
+
+          {questionType === 'true/false' && (
+            <div className="space-y-4">
+              <QuestionOption questionIndex={questionIndex} answerIndex={0} />
+              <QuestionOption questionIndex={questionIndex} answerIndex={1} />
+            </div>
+          )}
+
+          {questionType === 'multiple' && (
+            <div>
+              <div className="flex items-center justify-end mb-6">
+                <div className="flex items-center gap-3">
+                  <button
+                    className="text-surface bg-cardBackground inline-flex items-center gap-2 px-4 py-2 text-sm font-medium border border-highlight rounded-lg focus:outline-none focus:ring-2 focus:ring-surface focus:ring-opacity-20 transition-all duration-200"
+                    onClick={handleAddOption}
+                  >
+                    Add Option
+                  </button>
+                  <button
+                    className="inline-flex items-center bg-error/5 text-error gap-2 px-4 py-2 text-sm font-medium border border-error/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-error focus:ring-opacity-20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={handleRemoveOption}
+                    disabled={question.answers.length <= 2}
+                  >
+                    Remove Option
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {question.answers.map((_, index) => (
+                  <QuestionOption
+                    key={index}
+                    questionIndex={questionIndex}
+                    answerIndex={index}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

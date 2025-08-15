@@ -10,7 +10,12 @@ import userEvent from '@testing-library/user-event';
 
 const mockModuleId = 'aaeacc19-4619-4f0a-8249-88ce37cf2a50';
 const mockUnitTitles = [
-  { id: mockModuleId, title: 'Cybersecurity Essentials', content: [] },
+  {
+    id: mockModuleId,
+    title: 'Cybersecurity Essentials',
+    content: [],
+    hasProgress: true,
+  },
 ];
 
 const mockUnitContent = [

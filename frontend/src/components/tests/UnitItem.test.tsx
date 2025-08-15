@@ -23,6 +23,7 @@ describe('UnitItem Component', () => {
   const mockUnitItem = {
     id: 'b5a40228-6e30-499e-87c7-44eb7c542338',
     title: 'AI in Business Strategies',
+    hasProgress: true,
     content: [
       { type: 'video' as const, title: 'Introduction to AI' },
       { type: 'article' as const, title: 'AI Adoption in Business' },

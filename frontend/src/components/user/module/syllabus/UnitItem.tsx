@@ -1,17 +1,11 @@
 import React from 'react';
+import { type Unit } from '../ModulePage';
 import { useNavigate } from 'react-router-dom';
 import UnitContentItem from './UnitContentItem';
 import { ChevronDownIcon, ChevronUpIcon } from '../../../common/Icons';
 
 type UnitItemProps = {
-  unit: {
-    id: string;
-    title: string;
-    content?: {
-      type: 'video' | 'article' | 'quiz';
-      title: string;
-    }[];
-  };
+  unit: Unit;
   isOpen: boolean;
   onToggle: () => void;
   index: number;
@@ -39,10 +33,18 @@ const UnitItem: React.FC<UnitItemProps> = ({
       >
         <div
           onClick={(e) => {
+            if (!unit.hasProgress) return;
             e.stopPropagation();
             handleTitleClick(unit.id);
           }}
-          className="font-semibold text-xl text-[#14248A] hover:underline flex items-center cursor-pointer"
+          title={
+            !unit.hasProgress ? 'Start the module to unlock this unit' : ''
+          }
+          className={`font-semibold text-xl flex items-center ${
+            unit.hasProgress
+              ? 'text-[#14248A] cursor-pointer hover:underline'
+              : 'text-[#14248A]/50 cursor-not-allowed'
+          }`}
         >
           Unit {index + 1}: {unit.title}
         </div>

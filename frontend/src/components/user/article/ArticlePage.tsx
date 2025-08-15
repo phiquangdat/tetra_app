@@ -9,6 +9,7 @@ import {
   getContentProgress,
   createContentProgress,
   updateContentProgress,
+  patchModuleProgress,
   type ContentProgress,
 } from '../../../services/userProgress/userProgressApi';
 import { CheckIcon } from '../../common/Icons';
@@ -23,6 +24,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
   const [contentProgress, setContentProgress] = useState<ContentProgress>();
+  const { goToNextContent, isNextContent, moduleProgress, setModuleProgress } =
+    useModuleProgress();
 
   const calculateScrollPercent = useCallback(() => {
     const scrollTop = window.scrollY;
@@ -67,6 +70,33 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
       const data = await fetchUnitContentDetails(id);
       setArticle(data);
 
+      if (
+        moduleProgress?.last_visited_unit_id !== unitIdFromState ||
+        moduleProgress?.last_visited_content_id !== id
+      ) {
+        try {
+          const response = await patchModuleProgress(
+            moduleProgress?.id as string,
+            {
+              lastVisitedUnit: unitIdFromState,
+              lastVisitedContent: id,
+            },
+          );
+          const progress = {
+            id: response.id,
+            status: response.status,
+            last_visited_unit_id: response.lastVisitedUnit.id || '',
+            last_visited_content_id: response.lastVisitedContent.id || '',
+            earned_points: response.earnedPoints || 0,
+          };
+
+          console.log('[patchModuleProgress]', response);
+          setModuleProgress(progress);
+        } catch (error) {
+          console.error('[patchModuleProgress]', error);
+        }
+      }
+
       try {
         const progress = await getContentProgress(id);
         console.log('[getContentProgress]', progress);
@@ -102,8 +132,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, [handleScroll]);
-
-  const { goToNextContent, isNextContent } = useModuleProgress();
 
   return (
     <div className="mx-auto px-8 py-8 min-h-screen text-left">

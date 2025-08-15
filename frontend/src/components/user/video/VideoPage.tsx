@@ -9,11 +9,11 @@ import {
   getContentProgress,
   createContentProgress,
   updateContentProgress,
+  patchModuleProgress,
   type ContentProgress,
 } from '../../../services/userProgress/userProgressApi';
 import { useModuleProgress } from '../../../context/user/ModuleProgressContext.tsx';
 import { UploadAltIcon, CheckIcon } from '../../common/Icons';
-
 declare global {
   var YT: any;
   interface Window {
@@ -42,7 +42,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
-  const { goToNextContent, isNextContent } = useModuleProgress();
+  const { goToNextContent, isNextContent, moduleProgress, setModuleProgress } =
+    useModuleProgress();
 
   const playerRef = useRef<any>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -57,6 +58,33 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     const fetchData = async () => {
       if (id) {
         fetchVideoContentById(id).then((data) => setVideo(data));
+      }
+
+      if (
+        moduleProgress?.last_visited_unit_id !== unitIdFromState ||
+        moduleProgress?.last_visited_content_id !== id
+      ) {
+        try {
+          const response = await patchModuleProgress(
+            moduleProgress?.id as string,
+            {
+              lastVisitedUnit: unitIdFromState,
+              lastVisitedContent: id,
+            },
+          );
+          const progress = {
+            id: response.id,
+            status: response.status,
+            last_visited_unit_id: response.lastVisitedUnit.id || '',
+            last_visited_content_id: response.lastVisitedContent.id || '',
+            earned_points: response.earnedPoints || 0,
+          };
+
+          console.log('[patchModuleProgress]', response);
+          setModuleProgress(progress);
+        } catch (error) {
+          console.error('[patchModuleProgress]', error);
+        }
       }
 
       try {
@@ -126,7 +154,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
       playerRef.current = new window.YT.Player('youtube', {
         videoId: getYouTubeId(video.url),
         playerVars: {
-          autoplay: 1,
           controls: 1,
           modestbranding: 1,
           rel: 0,

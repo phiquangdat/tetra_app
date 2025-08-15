@@ -76,6 +76,20 @@ export async function getUnitProgress(unitId: string): Promise<UnitProgress> {
   }
 }
 
+export async function getUnitProgressByModuleId(
+  moduleId: string,
+): Promise<UnitProgress[]> {
+  try {
+    return await fetchWithAuth(
+      `${BASE_URL}/user-unit-progress?moduleId=${moduleId}`,
+    );
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to get unit progress');
+  }
+}
+
 export async function createUnitProgress(
   unitId: string,
   moduleId: string,

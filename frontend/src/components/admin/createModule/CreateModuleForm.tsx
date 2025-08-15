@@ -13,7 +13,7 @@ import {
 } from '../../../hooks/useOutSideClick.ts';
 
 const CreateModuleForm: React.FC = () => {
-  const { setModuleState, isEditing, setIsEditing, isDirty } =
+  const { setModuleState, isEditing, setIsEditing, isDirty, id } =
     useModuleContext();
   const {
     handleSave,
@@ -40,7 +40,7 @@ const CreateModuleForm: React.FC = () => {
     onOutside: exitEditMode,
     options: {
       eventType: 'pointerdown',
-      enabled: isEditing,
+      enabled: isEditing && !!id,
       ignore: (target) =>
         !!(target as HTMLElement | null)?.closest?.(
           '[role="dialog"], [data-portal-root], [data-ignore-outside="true"]',

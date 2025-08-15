@@ -169,4 +169,21 @@ describe('AddQuizModal', () => {
       expect(mockOnClose).toHaveBeenCalled();
     });
   });
+
+  it('renders a single-file "Attachment" input after the Title field', () => {
+    renderWithProviders();
+
+    const titleInput = screen.getByLabelText('Title');
+    const fileInput = screen.getByLabelText('Attachment') as HTMLInputElement;
+
+    expect(fileInput).toBeInTheDocument();
+    expect(fileInput).toHaveAttribute('type', 'file');
+    expect(fileInput).not.toHaveAttribute('multiple');
+
+    const isAfter =
+      (titleInput.compareDocumentPosition(fileInput) &
+        Node.DOCUMENT_POSITION_FOLLOWING) !==
+      0;
+    expect(isAfter).toBe(true);
+  });
 });

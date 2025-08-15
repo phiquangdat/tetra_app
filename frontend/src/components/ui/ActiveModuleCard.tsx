@@ -1,5 +1,5 @@
 import React from 'react';
-import { StarIcon } from '../common/Icons';
+import { OpenBooksIcon } from '../common/Icons';
 
 export type ActiveModuleStatus = 'not_started' | 'in_progress' | 'completed';
 
@@ -36,13 +36,17 @@ const ActiveModuleCard: React.FC<ActiveModuleCardProps> = ({
 
   return (
     <div
-      className={`flex flex-col justify-between rounded-xl bg-background p-6 border border-highlight hover:shadow-xl transition-all duration-300 shadow-sm ${className}`}
+      className={`group flex flex-col justify-between rounded-xl bg-background p-6 border border-highlight hover:shadow-xl transition-all duration-300 shadow-sm ${className}`}
       data-testid="active-module-card"
     >
       <div className="flex w-full items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          <span className="shrink-0">
-            <StarIcon width={26} height={26} />
+          <span className="shrink-0 p-3 bg-highlight/30 rounded-xl group-hover:bg-highlight/70 transition-colors duration-300">
+            <OpenBooksIcon
+              color="var(--color-surface)"
+              width={26}
+              height={26}
+            />
           </span>
           <div>
             <div className="font-bold text-lg text-primary leading-relaxed">
@@ -72,7 +76,7 @@ const ActiveModuleCard: React.FC<ActiveModuleCardProps> = ({
           disabled={isCompleted}
           className={`bg-surface hover:bg-surfaceHover disabled:bg-surface/60 disabled:cursor-not-allowed self-end text-white font-semibold px-6 py-3 rounded-lg shadow transform hover:scale-105 transition-all duration-300`}
         >
-          {isCompleted ? 'Review' : 'Start learning'}
+          {isCompleted ? 'Review' : 'Continue learning'}
         </button>
       </div>
     </div>

@@ -55,7 +55,7 @@ const QuizSummaryPage: React.FC = () => {
       .then((qs) => {
         if (!cancelled) {
           setFetchedQuestions(qs);
-          console.log('[QuizSummaryPage] fetchedQuestions:', fetchedQuestions);
+          console.log('[QuizSummaryPage] fetchedQuestions:', qs);
           console.log('[QuizSummaryPage] userAnswers:', userAnswers);
         }
       })
@@ -75,6 +75,7 @@ const QuizSummaryPage: React.FC = () => {
   }, [quizId, userAnswers]);
 
   console.log('Quiz ID is ', quizId);
+  console.log(fetchedQuestions);
 
   const correctAnswers = mockedQuestions.filter(
     (q) => q.userAnswer === q.correctAnswer,

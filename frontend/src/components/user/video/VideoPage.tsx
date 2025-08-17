@@ -60,38 +60,39 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         fetchVideoContentById(id).then((data) => setVideo(data));
       }
 
-      if (
-        moduleProgress?.last_visited_unit_id !== unitIdFromState ||
-        moduleProgress?.last_visited_content_id !== id
-      ) {
-        try {
-          const response = await patchModuleProgress(
-            moduleProgress?.id as string,
-            {
-              lastVisitedUnit: unitIdFromState,
-              lastVisitedContent: id,
-            },
-          );
-          const progress = {
-            id: response.id,
-            status: response.status,
-            last_visited_unit_id: response.lastVisitedUnit.id || '',
-            last_visited_content_id: response.lastVisitedContent.id || '',
-            earned_points: response.earnedPoints || 0,
-          };
-
-          console.log('[patchModuleProgress]', response);
-          setModuleProgress(progress);
-        } catch (error) {
-          console.error('[patchModuleProgress]', error);
-        }
-      }
-
       try {
         const progress = await getContentProgress(id);
         console.log('[getContentProgress]', progress);
 
         setContentProgress(progress);
+
+        if (
+          (moduleProgress?.last_visited_unit_id !== unitIdFromState ||
+            moduleProgress?.last_visited_content_id !== id) &&
+          progress.status !== 'COMPLETED'
+        ) {
+          try {
+            const response = await patchModuleProgress(
+              moduleProgress?.id as string,
+              {
+                lastVisitedUnit: unitIdFromState,
+                lastVisitedContent: id,
+              },
+            );
+            const progress = {
+              id: response.id,
+              status: response.status,
+              last_visited_unit_id: response.lastVisitedUnit.id || '',
+              last_visited_content_id: response.lastVisitedContent.id || '',
+              earned_points: response.earnedPoints || 0,
+            };
+
+            console.log('[patchModuleProgress]', response);
+            setModuleProgress(progress);
+          } catch (error) {
+            console.error('[patchModuleProgress]', error);
+          }
+        }
       } catch (error) {
         if (error instanceof Error && error.message.includes('404')) {
           const progress = await createContentProgress({

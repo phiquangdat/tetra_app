@@ -42,7 +42,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
     moduleProgressStatus,
     setModuleProgressStatus,
     goToStart,
-    goToLastVisited,
+    continueFromLastVisited,
     initFirstUnitAndContentProgress,
   } = useModuleProgress();
   const { setUnitContent } = useUnitContent();
@@ -193,21 +193,10 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   const handleContinue = async () => {
     try {
       if (isContinuing) return;
-      if (
-        moduleProgress?.last_visited_content_id &&
-        moduleProgress?.last_visited_unit_id
-      ) {
-        setIsContinuing(true);
-        setVisibleStatus(null);
-        await goToLastVisited(
-          moduleProgress.last_visited_unit_id,
-          moduleProgress.last_visited_content_id,
-        );
-      } else {
-        throw new Error(
-          'Cannot continue module: last visited content or unit id not provided.',
-        );
-      }
+      setIsContinuing(true);
+      setVisibleStatus(null);
+
+      await continueFromLastVisited();
     } catch (err) {
       err instanceof Error
         ? console.error(err.message)

@@ -74,6 +74,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
     setUnitProgress,
     setUnitProgressStatus,
     goToFirstContent,
+    continueFromLastVisited,
   } = useModuleProgress();
   const [checkedIndex, setCheckedIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -194,6 +195,15 @@ const UnitPage = ({ id }: UnitPageProps) => {
     }
   };
 
+  const handleContinue = async () => {
+    try {
+      await continueFromLastVisited();
+    } catch (err) {
+      console.error('Error continuing from UnitPage:', err);
+      setError('Cannot continue unit.');
+    }
+  };
+
   return (
     <div className="mx-auto px-8 py-8 min-h-screen bg-[#FFFFFF] text-left">
       <div className="mb-6">
@@ -214,6 +224,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
           <button
             className="bg-secondary text-white font-semibold px-14 py-3 rounded-full text-lg shadow-md hover:bg-secondaryHover focus:outline-none focus:ring-2 focus:ring-surface transition w-fit"
             type="button"
+            onClick={handleContinue}
           >
             Continue
           </button>

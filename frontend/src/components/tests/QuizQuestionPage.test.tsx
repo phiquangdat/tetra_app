@@ -2,7 +2,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { describe, it, vi, beforeEach } from 'vitest';
 import QuizQuestionPage from '../user/quiz/QuizQuestionPage';
-import { QuizProvider } from '../../context/user/QuizContext';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QuizContext } from '../../context/user/QuizContext';
 
@@ -36,28 +35,26 @@ const mockQuestions = [
   },
 ];
 
-const renderWithRouter = (questions = mockQuestions) =>
-  render(
-    <MemoryRouter initialEntries={['/user/quiz/test-quiz-id/question/1']}>
-      <QuizContext.Provider value={{ questions, setQuestions: vi.fn() }}>
-        <Routes>
-          <Route
-            path="/user/quiz/:quizId/question/:index"
-            element={<QuizQuestionPage />}
-          />
-        </Routes>
-      </QuizContext.Provider>
-    </MemoryRouter>,
-  );
+function renderAtIndex(
+  index = '1',
+  ctxOverrides: Partial<React.ContextType<typeof QuizContext>> = {},
+) {
+  const defaultCtx = {
+    questions: mockQuestions,
+    setQuestions: vi.fn(),
+    userAnswers: [] as Array<{ questionId: string; answerId: string }>,
+    setUserAnswer: vi.fn(),
+    getUserAnswerFor: vi.fn(() => undefined),
+    clearUserAnswers: vi.fn(),
+  };
 
-const renderAtIndex = (index = '1') =>
-  render(
+  const ctxValue = { ...defaultCtx, ...ctxOverrides };
+
+  return render(
     <MemoryRouter
       initialEntries={[`/user/quiz/test-quiz-id/question/${index}`]}
     >
-      <QuizContext.Provider
-        value={{ questions: mockQuestions, setQuestions: vi.fn() }}
-      >
+      <QuizContext.Provider value={ctxValue as any}>
         <Routes>
           <Route
             path="/user/quiz/:quizId/question/:index"
@@ -67,6 +64,7 @@ const renderAtIndex = (index = '1') =>
       </QuizContext.Provider>
     </MemoryRouter>,
   );
+}
 
 describe('QuizQuestionPage', () => {
   beforeEach(() => {
@@ -74,7 +72,7 @@ describe('QuizQuestionPage', () => {
   });
 
   it('renders question and answers', () => {
-    renderWithRouter();
+    renderAtIndex('1');
 
     expect(screen.getByText(/question 1 of/i)).toBeInTheDocument();
     expect(screen.getByText('What is phishing?')).toBeInTheDocument();
@@ -83,7 +81,9 @@ describe('QuizQuestionPage', () => {
   });
 
   it('navigates to next question on "Next"', () => {
-    renderWithRouter();
+    const setUserAnswer = vi.fn();
+
+    renderAtIndex('1', { setUserAnswer });
 
     // Simulate selecting the first answer
     const firstRadio = screen.getByLabelText('Fake login prompt');
@@ -92,9 +92,13 @@ describe('QuizQuestionPage', () => {
     const nextButton = screen.getByRole('button', { name: /next/i });
     fireEvent.click(nextButton);
 
+    // Should navigate to question 2
     expect(mockNavigate).toHaveBeenCalledWith(
       '/user/quiz/test-quiz-id/question/2',
     );
+
+    // Should record answer
+    expect(setUserAnswer).toHaveBeenCalledWith('q1', 'a1');
   });
 
   it('navigates back on "Previous"', () => {
@@ -107,19 +111,20 @@ describe('QuizQuestionPage', () => {
   });
 
   it('shows loading when no current question is found', () => {
-    render(
-      <MemoryRouter initialEntries={['/user/quiz/test-quiz-id/question/3']}>
-        <QuizProvider>
-          <Routes>
-            <Route
-              path="/user/quiz/:quizId/question/:index"
-              element={<QuizQuestionPage />}
-            />
-          </Routes>
-        </QuizProvider>
-      </MemoryRouter>,
-    );
+    renderAtIndex('3'); // there are only 2 questions
 
     expect(screen.getByText(/loading question/i)).toBeInTheDocument();
+  });
+
+  it('preselects saved answer when returning to a previous question', () => {
+    // Simulate having saved answer a2 for q1
+    const getUserAnswerFor = vi.fn((qId: string) =>
+      qId === 'q1' ? 'a2' : undefined,
+    );
+
+    renderAtIndex('1', { getUserAnswerFor });
+
+    const radio = screen.getByLabelText('Legit email') as HTMLInputElement;
+    expect(radio.checked).toBe(true);
   });
 });

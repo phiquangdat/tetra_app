@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import { useUnitContent } from '../../../context/user/UnitContentContext.tsx';
 import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
 import { CircularProgressIcon } from '../../common/Icons';
+import {
+  fetchQuizQuestionsByQuizId,
+  type Question,
+} from '../../../services/quiz/quizApi';
+import { useQuiz } from '../../../context/user/QuizContext';
 
 const mockedQuestions = [
   {
@@ -33,7 +38,44 @@ const QuizSummaryPage: React.FC = () => {
   const { unitId } = useUnitContent();
   const navigate = useNavigate();
 
+  const [fetchedQuestions, setFetchedQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const { userAnswers } = useQuiz();
+
+  useEffect(() => {
+    if (!quizId) return;
+
+    let cancelled = false;
+    setLoading(true);
+    setLoadError(null);
+
+    fetchQuizQuestionsByQuizId(quizId, true) // includeCorrect = true
+      .then((qs) => {
+        if (!cancelled) {
+          setFetchedQuestions(qs);
+          console.log('[QuizSummaryPage] fetchedQuestions:', qs);
+          console.log('[QuizSummaryPage] userAnswers:', userAnswers);
+        }
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          console.error('[QuizSummaryPage] fetch questions failed:', e);
+          setLoadError('Failed to load quiz questions');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [quizId, userAnswers]);
+
   console.log('Quiz ID is ', quizId);
+  console.log(fetchedQuestions);
 
   const correctAnswers = mockedQuestions.filter(
     (q) => q.userAnswer === q.correctAnswer,
@@ -54,6 +96,15 @@ const QuizSummaryPage: React.FC = () => {
           Back to Unit page
         </a>
       </div>
+
+      {loading && (
+        <div className="text-center text-sm text-gray-500 mb-4">
+          Loading quiz data…
+        </div>
+      )}
+      {loadError && (
+        <div className="text-center text-sm text-red-600 mb-4">{loadError}</div>
+      )}
 
       <h1 className="text-2xl font-semibold text-center text-primary mb-1">
         Quiz Summary

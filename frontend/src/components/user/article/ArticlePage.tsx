@@ -40,18 +40,20 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
   }, []);
 
   const handleScroll = useCallback(async () => {
+    if (
+      !contentProgress ||
+      contentProgress.status === 'COMPLETED' ||
+      !moduleProgress ||
+      !article
+    )
+      return;
     const percent = calculateScrollPercent();
 
-    if (
-      percent >= 90 &&
-      contentProgress?.id &&
-      article?.points !== undefined &&
-      contentProgress.status !== 'COMPLETED'
-    ) {
+    if (percent >= 90) {
       try {
         const response = await updateContentProgress(contentProgress.id, {
           status: 'COMPLETED',
-          points: article.points,
+          points: article.points || 0,
         });
         setContentProgress((prev) =>
           prev
@@ -61,6 +63,26 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
         console.log('[updateContentProgress]', response);
       } catch (error) {
         console.error('Error updating progress:', error);
+      }
+      try {
+        const response = await patchModuleProgress(moduleProgress.id, {
+          earnedPoints: moduleProgress.earned_points + article.points || 0,
+        });
+        const progressArg = {
+          id: response.id,
+          status: response.status,
+          last_visited_unit_id: response.lastVisitedUnit.id || '',
+          last_visited_content_id: response.lastVisitedContent.id || '',
+          earned_points: response.earnedPoints || 0,
+        };
+
+        console.log('[patchModuleProgress], New Total Points: ', response);
+        setModuleProgress(progressArg);
+      } catch (error) {
+        console.error(
+          '[patchModuleProgress] Failed to increment module points',
+          error,
+        );
       }
     }
   }, [calculateScrollPercent, contentProgress, article?.points]);
@@ -89,7 +111,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
                 lastVisitedContent: id,
               },
             );
-            const progress = {
+            const progressArg = {
               id: response.id,
               status: response.status,
               last_visited_unit_id: response.lastVisitedUnit.id || '',
@@ -98,7 +120,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
             };
 
             console.log('[patchModuleProgress]', response);
-            setModuleProgress(progress);
+            setModuleProgress(progressArg);
           } catch (error) {
             console.error('[patchModuleProgress]', error);
           }

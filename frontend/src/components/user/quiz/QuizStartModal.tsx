@@ -22,7 +22,7 @@ const isQuizValid = (quiz: Quiz): boolean => {
 };
 
 const QuizStartModal = () => {
-  const { isOpen, quizId, closeModal } = useQuizModal();
+  const { isOpen, quizId, type, closeModal } = useQuizModal();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [quizDetails, setQuizDetails] = useState<Quiz>({
@@ -34,6 +34,8 @@ const QuizStartModal = () => {
   });
   const navigate = useNavigate();
   const { setQuestions } = useQuiz();
+
+  const isVisible = isOpen && type === 'start' && !!quizId;
 
   const handleStartQuiz = async () => {
     if (!quizId) return;
@@ -48,7 +50,7 @@ const QuizStartModal = () => {
   };
 
   useEffect(() => {
-    if (!isOpen || !quizId) return;
+    if (!isVisible || !quizId) return;
 
     setLoading(true);
     const loadQuizDetails = async () => {
@@ -68,9 +70,9 @@ const QuizStartModal = () => {
     };
 
     loadQuizDetails();
-  }, [quizId, isOpen]);
+  }, [isVisible, quizId]);
 
-  if (!isOpen) return null;
+  if (!isVisible) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/30">

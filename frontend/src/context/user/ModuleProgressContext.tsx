@@ -83,7 +83,7 @@ export const ModuleProgressProvider = ({
     setUnitsState(units);
   };
 
-  const goToNextContent = (currentContentId: string) => {
+  const goToNextContent = async (currentContentId: string) => {
     const currentUnitIndex = units.findIndex((u) => u.id === unitId);
     if (currentUnitIndex === -1) return;
 
@@ -95,7 +95,7 @@ export const ModuleProgressProvider = ({
     if (nextContent) {
       // CASE 1: next content in current unit
       if (nextContent.content_type === 'quiz') {
-        openModal(nextContent.id); // Show quiz modal (don't navigate)
+        await openModal(nextContent.id); // Show quiz modal (don't navigate)
       } else {
         navigate(`/user/${nextContent.content_type}/${nextContent.id}`, {
           state: { unitId },
@@ -182,9 +182,13 @@ export const ModuleProgressProvider = ({
     setUnitId(startUnitId);
     setUnitContent(startUnitId, startContents);
 
-    navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
-      state: { unitId: startUnitId },
-    });
+    if (firstContent.content_type === 'quiz') {
+      await openModal(firstContent.id);
+    } else {
+      navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
+        state: { unitId: startUnitId },
+      });
+    }
   };
 
   const goToLastVisited = async (lastUnitId: string, lastContentId: string) => {
@@ -198,9 +202,13 @@ export const ModuleProgressProvider = ({
 
     if (lastContent) {
       setUnitContent(lastContent.id, lastContentList);
-      navigate(`/user/${lastContent.content_type}/${lastContentId}`, {
-        state: { unitId: lastUnitId },
-      });
+      if (lastContent.content_type === 'quiz') {
+        await openModal(lastContent.id);
+      } else {
+        navigate(`/user/${lastContent.content_type}/${lastContentId}`, {
+          state: { unitId: lastUnitId },
+        });
+      }
     } else {
       throw new Error('Last visited content not found.');
     }
@@ -211,9 +219,13 @@ export const ModuleProgressProvider = ({
     if (contentList && contentList.length > 0) {
       const firstContent = contentList[0];
       setUnitContent(unitId, contentList);
-      navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
-        state: { unitId },
-      });
+      if (firstContent.content_type == 'quiz') {
+        await openModal(firstContent.id);
+      } else {
+        navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
+          state: { unitId },
+        });
+      }
     } else {
       throw new Error('This unit has no content to start.');
     }

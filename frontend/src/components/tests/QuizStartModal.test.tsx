@@ -62,9 +62,12 @@ describe('QuizStartModal', () => {
     vi.restoreAllMocks();
   });
 
-  const setupModalContext = (overrides = {}) => {
+  const setupModalContext = (
+    overrides: Partial<ReturnType<typeof useQuizModal>> = {},
+  ) => {
     (useQuizModal as vi.Mock).mockReturnValue({
       isOpen: true,
+      type: 'start', // IMPORTANT: make the modal visible under new logic
       quizId: MOCK_QUIZ_ID,
       closeModal: vi.fn(),
       ...overrides,
@@ -114,7 +117,7 @@ describe('QuizStartModal', () => {
   });
 
   it('does not render anything when modal is closed', () => {
-    setupModalContext({ isOpen: false });
+    setupModalContext({ isOpen: false as any });
     const { container } = renderComponent();
     expect(container).toBeEmptyDOMElement();
   });
@@ -139,5 +142,12 @@ describe('QuizStartModal', () => {
         `/user/quiz/${MOCK_QUIZ_ID}/question/1`,
       );
     });
+  });
+
+  // Optional: prove it hides when the modal type is not "start"
+  it('does not render when modal type is "passed"', () => {
+    setupModalContext({ type: 'passed' } as any);
+    const { container } = renderComponent();
+    expect(container).toBeEmptyDOMElement();
   });
 });

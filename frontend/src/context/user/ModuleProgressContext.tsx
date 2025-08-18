@@ -13,6 +13,7 @@ import {
   createUnitProgress,
   updateUnitProgress,
   type UnitProgress,
+  type ModuleProgress,
 } from '../../services/userProgress/userProgressApi.tsx';
 
 interface Unit {
@@ -30,6 +31,8 @@ interface ModuleProgressContextProps {
   setUnitId: (id: string) => void;
   moduleId: string;
   setModuleId: (id: string) => void;
+  moduleProgress: ModuleProgress | null;
+  setModuleProgress: (module: ModuleProgress | null) => void;
   moduleProgressStatus: string;
   setModuleProgressStatus: (status: string) => void;
   unitProgress: UnitProgress | null;
@@ -72,6 +75,9 @@ export const ModuleProgressProvider = ({
   const [units, setUnitsState] = useState<Unit[]>([]);
   const [unitId, setUnitId] = useState<string>('');
   const [moduleId, setModuleId] = useState<string>('');
+  const [moduleProgress, setModuleProgress] = useState<ModuleProgress | null>(
+    null,
+  );
   const [moduleProgressStatus, setModuleProgressStatus] =
     useState<string>('not_started');
   const [unitProgress, setUnitProgress] = useState<UnitProgress | null>(null);
@@ -282,6 +288,8 @@ export const ModuleProgressProvider = ({
         setUnitId,
         moduleId,
         setModuleId,
+        moduleProgress,
+        setModuleProgress,
         moduleProgressStatus,
         setModuleProgressStatus,
         unitProgress,

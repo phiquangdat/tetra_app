@@ -5,6 +5,7 @@ const BASE_URL =
 import { fetchWithAuth } from '../../utils/authHelpers';
 
 export interface ModuleProgress {
+  id: string;
   status: string;
   last_visited_unit_id: string;
   last_visited_content_id: string;
@@ -31,6 +32,13 @@ export interface ContentProgress {
 export interface CreateModuleProgressRequest {
   lastVisitedContent?: string;
   lastVisitedUnit?: string;
+}
+
+export interface PatchModuleProgressRequest {
+  lastVisitedContent?: string;
+  lastVisitedUnit?: string;
+  status?: string;
+  earnedPoints?: number;
 }
 
 export type CreateContentProgressRequest = Omit<
@@ -63,6 +71,22 @@ export async function createModuleProgress(
     throw error instanceof Error
       ? error
       : new Error('Failed to create module progress');
+  }
+}
+
+export async function patchModuleProgress(
+  id: string,
+  data: PatchModuleProgressRequest,
+): Promise<any> {
+  try {
+    return await fetchWithAuth(`${BASE_URL}/user-module-progress/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to patch module progress');
   }
 }
 

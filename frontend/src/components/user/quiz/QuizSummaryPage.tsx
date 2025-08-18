@@ -11,6 +11,10 @@ import {
 } from '../../../services/quiz/quizApi';
 import { useQuiz } from '../../../context/user/QuizContext';
 import { calculateQuizResults } from '../../../utils/quizResults';
+import {
+  getContentProgress,
+  updateContentProgress,
+} from '../../../services/userProgress/userProgressApi';
 
 const QuizSummaryPage: React.FC = () => {
   const { goToNextContent, isNextContent } = useModuleProgress();
@@ -23,6 +27,16 @@ const QuizSummaryPage: React.FC = () => {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [quizTitle, setQuizTitle] = useState<string>('Quiz Summary');
   const [totalPoints, setTotalPoints] = useState<number>(0);
+
+  const [contentProgressId, setContentProgressId] = useState<string | null>(
+    null,
+  );
+  const [contentProgressStatus, setContentProgressStatus] = useState<
+    string | null
+  >(null);
+  const [contentProgressPoints, setContentProgressPoints] = useState<
+    number | null
+  >(null);
 
   const { userAnswers } = useQuiz();
 
@@ -51,6 +65,19 @@ const QuizSummaryPage: React.FC = () => {
           setQuestions(qs);
           console.log('[QuizSummaryPage] fetchedQuestions:', qs);
         }
+
+        try {
+          const cp = await getContentProgress(quizId);
+          if (!cancelled) {
+            setContentProgressId(cp.id);
+            setContentProgressStatus(cp.status);
+            setContentProgressPoints(cp.points ?? 0);
+          }
+        } catch (e: any) {
+          if (!String(e?.message ?? '').includes('404')) {
+            console.warn('[QuizSummary] getContentProgress failed:', e);
+          }
+        }
       } catch (e: any) {
         console.error('[QuizSummary] load failed:', e);
         setLoadError(e?.message ?? 'Failed to load quiz summary data');
@@ -67,6 +94,38 @@ const QuizSummaryPage: React.FC = () => {
   const { correct, incorrect, percentage, pointsEarned } = useMemo(() => {
     return calculateQuizResults(questions, userAnswers, totalPoints);
   }, [questions, userAnswers, totalPoints]);
+
+  useEffect(() => {
+    if (!quizId) return;
+    if (!contentProgressId) return; // No progress record id -> skip
+    if (questions.length === 0) return; // Nothing to finalize
+
+    const alreadyCompleted =
+      String(contentProgressStatus || '').toUpperCase() === 'COMPLETED';
+    const samePoints = (contentProgressPoints ?? 0) === pointsEarned;
+
+    if (alreadyCompleted && samePoints) return;
+
+    (async () => {
+      try {
+        await updateContentProgress(contentProgressId, {
+          status: 'COMPLETED',
+          points: pointsEarned,
+        });
+        setContentProgressStatus('COMPLETED');
+        setContentProgressPoints(pointsEarned);
+      } catch (e) {
+        console.error('[QuizSummary] updateContentProgress failed:', e);
+      }
+    })();
+  }, [
+    quizId,
+    contentProgressId,
+    contentProgressStatus,
+    contentProgressPoints,
+    questions.length,
+    pointsEarned,
+  ]);
 
   const correctAnswers = correct;
   const incorrectAnswers = incorrect;

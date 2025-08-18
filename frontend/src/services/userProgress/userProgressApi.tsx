@@ -106,6 +106,26 @@ export async function createUnitProgress(
   }
 }
 
+export async function updateUnitProgress(
+  id: string,
+  data: {
+    unitId?: string;
+    moduleId?: string;
+    status?: 'IN_PROGRESS' | 'COMPLETED';
+  },
+): Promise<UnitProgress> {
+  try {
+    return await fetchWithAuth(`${BASE_URL}/user-unit-progress/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ ...data }),
+    });
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to update unit progress');
+  }
+}
+
 export async function getContentProgressByUnitId(
   unitId: string,
 ): Promise<ContentProgress[]> {

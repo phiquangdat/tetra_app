@@ -6,6 +6,12 @@ import { useQuiz } from '../../../context/user/QuizContext.tsx';
 import { fetchQuizQuestionsByQuizId } from '../../../services/quiz/quizApi';
 import { QuestionIcon, StarIcon } from '../../common/Icons.tsx';
 import { X } from 'lucide-react';
+import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
+import {
+  getContentProgress,
+  createContentProgress,
+  patchModuleProgress,
+} from '../../../services/userProgress/userProgressApi';
 
 const isQuizValid = (quiz: Quiz): boolean => {
   return (
@@ -34,12 +40,49 @@ const QuizStartModal = () => {
   });
   const navigate = useNavigate();
   const { setQuestions } = useQuiz();
+  const { unitId, moduleProgress } = useModuleProgress();
 
   const isVisible = isOpen && type === 'start' && !!quizId;
 
   const handleStartQuiz = async () => {
     if (!quizId) return;
+
     try {
+      let progress;
+      // Ensure users-content-progress exists (create IN_PROGRESS if 404)
+      try {
+        progress = await getContentProgress(quizId);
+      } catch (e: any) {
+        if (String(e?.message ?? '').includes('404') && unitId) {
+          progress = await createContentProgress({
+            unitId,
+            unitContentId: quizId,
+            status: 'IN_PROGRESS',
+            points: 0,
+          });
+        } else {
+          throw e;
+        }
+      }
+
+      // PATCH last visited in user-module-progress (if not already completed)
+      if (
+        moduleProgress?.id &&
+        progress?.status !== 'COMPLETED' &&
+        (moduleProgress.last_visited_unit_id !== unitId ||
+          moduleProgress.last_visited_content_id !== quizId)
+      ) {
+        try {
+          await patchModuleProgress(moduleProgress.id, {
+            lastVisitedUnit: unitId,
+            lastVisitedContent: quizId,
+            status: 'IN_PROGRESS',
+          });
+        } catch (err) {
+          console.warn('[patchModuleProgress] skipped:', err);
+        }
+      }
+
       const questions = await fetchQuizQuestionsByQuizId(quizId);
       setQuestions(questions);
       closeModal();

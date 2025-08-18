@@ -89,14 +89,11 @@ public class TrainingModuleController {
             return new ResponseEntity<>("coverUrl is required", HttpStatus.BAD_REQUEST);
         }
         if (module.getPoints() == null) {
-            return new ResponseEntity<>("Points is required", HttpStatus.BAD_REQUEST);
+            module.setPoints(0);
         }
-
-        // Set default status if not provided
         if (module.getStatus() == null || module.getStatus().isEmpty()) {
-            module.setStatus("draft"); // Only "draft" or "published" are allowed
+            module.setStatus("draft");
         }
-        // Optionally validate status if provided
         if (!module.getStatus().equals("draft") && !module.getStatus().equals("published")) {
             return new ResponseEntity<>("Invalid status value. Allowed: draft, published", HttpStatus.BAD_REQUEST);
         }
@@ -107,6 +104,7 @@ public class TrainingModuleController {
             java.util.Map<String, Object> response = new java.util.HashMap<>();
             response.put("id", savedModule.getId());
             response.put("title", savedModule.getTitle());
+            response.put("points", savedModule.getPoints());
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>("Failed to create module: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);

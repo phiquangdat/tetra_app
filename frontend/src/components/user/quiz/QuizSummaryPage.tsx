@@ -127,6 +127,15 @@ const QuizSummaryPage: React.FC = () => {
     pointsEarned,
   ]);
 
+  const summaryHeadline =
+    percentage >= 90
+      ? 'Outstanding! You nailed it.'
+      : percentage >= 70
+        ? "Well done! Here's how you did."
+        : percentage >= 50
+          ? 'Good effort! You covered quite a bit.'
+          : 'Don’t worry! Learning takes time.';
+
   const correctAnswers = correct;
   const incorrectAnswers = incorrect;
 
@@ -157,9 +166,7 @@ const QuizSummaryPage: React.FC = () => {
       <h2 className="text-4xl font-extrabold text-center text-surface mb-3">
         {quizTitle}
       </h2>
-      <p className="text-center text-gray-700 mb-10">
-        Well done! Here's how you did!
-      </p>
+      <p className="text-center text-gray-700 mb-10">{summaryHeadline}</p>
 
       <div className="flex flex-col md:flex-row items-center justify-center gap-12 mb-12">
         {/* Circular progress bar */}

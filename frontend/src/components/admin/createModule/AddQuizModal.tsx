@@ -326,6 +326,21 @@ function AddQuizModal({
                   />
                 </div>
 
+                <div className="mb-6 max-w-110">
+                  <label
+                    htmlFor="attachment"
+                    className="block text-base font-semibold text-primary mb-2 items-center gap-2"
+                  >
+                    Attachment
+                  </label>
+                  <input
+                    type="file"
+                    id="attachment"
+                    name="attachment"
+                    className="w-full px-4 py-3 border border-primary/50 rounded-lg text-primary focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-surface file:text-background file:cursor-pointer hover:file:bg-surfaceHover"
+                  />
+                </div>
+
                 <div className="lg:col-span-2">
                   <label
                     htmlFor="quizDescription"

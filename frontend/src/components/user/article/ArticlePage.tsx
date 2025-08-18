@@ -76,7 +76,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
           earned_points: response.earnedPoints || 0,
         };
 
-        console.log('[patchModuleProgress], New Total Points: ', response);
+        console.log('[patchModuleProgress], Update Total Points: ', response);
         setModuleProgress(progressArg);
       } catch (error) {
         console.error(
@@ -119,7 +119,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
               earned_points: response.earnedPoints || 0,
             };
 
-            console.log('[patchModuleProgress]', response);
+            console.log('[patchModuleProgress], Update IDs:', response);
             setModuleProgress(progressArg);
           } catch (error) {
             console.error('[patchModuleProgress]', error);

@@ -38,6 +38,7 @@ interface VideoPageProps {
 
 const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   const [video, setVideo] = useState<Video | null>(null);
+  const [isCompleted, setIsCompleted] = useState(false); // Ensure Finish button triggers navigation if completion hasn’t occurred
   const [contentProgress, setContentProgress] = useState<ContentProgress>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -60,6 +61,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         fetchVideoContentById(id).then((data) => setVideo(data));
       }
 
+      setIsCompleted(true);
       try {
         const progress = await getContentProgress(id);
         console.log('[getContentProgress]', progress);
@@ -87,7 +89,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
               earned_points: response.earnedPoints || 0,
             };
 
-            console.log('[patchModuleProgress]', response);
+            console.log('[patchModuleProgress], Update IDs:', response);
             setModuleProgress(progress);
           } catch (error) {
             console.error('[patchModuleProgress]', error);
@@ -146,7 +148,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         earned_points: response.earnedPoints || 0,
       };
 
-      console.log('[patchModuleProgress], New Total Points: ', response);
+      console.log('[patchModuleProgress], Update Total Points: ', response);
       setModuleProgress(progressArg);
     } catch (error) {
       console.error(
@@ -302,8 +304,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         <button
           className="bg-surface text-background font-semibold px-12 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition-all duration-200 w-fit"
           type="button"
-          onClick={() => {
-            markAsCompleted();
+          onClick={async () => {
+            if (!isCompleted) await markAsCompleted();
             goToNextContent(id);
           }}
         >

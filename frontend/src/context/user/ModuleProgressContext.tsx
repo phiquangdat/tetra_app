@@ -14,6 +14,7 @@ import {
   updateUnitProgress,
   type UnitProgress,
   type ModuleProgress,
+  getModuleProgress,
 } from '../../services/userProgress/userProgressApi.tsx';
 
 interface Unit {
@@ -49,6 +50,7 @@ interface ModuleProgressContextProps {
     unitId: string;
     contents: UnitContent[];
   } | null>;
+  continueFromLastVisited: () => Promise<void>;
 }
 
 const ModuleProgressContext = createContext<
@@ -265,6 +267,39 @@ export const ModuleProgressProvider = ({
     return { unitId: firstUnitId, contents };
   };
 
+  const continueFromLastVisited = async (): Promise<void> => {
+    try {
+      if (!moduleId) {
+        console.warn('[continueFromLastVisited] No moduleId available');
+        return;
+      }
+
+      const progress = await getModuleProgress(moduleId);
+
+      if (!progress) {
+        console.warn('[continueFromLastVisited] No module progress found');
+        return;
+      }
+
+      setModuleProgress(progress);
+      setModuleProgressStatus(progress.status.toLowerCase());
+
+      const { last_visited_unit_id, last_visited_content_id } = progress;
+
+      if (!last_visited_unit_id || !last_visited_content_id) {
+        console.warn('[continueFromLastVisited] Missing last visited IDs:', {
+          unitId: last_visited_unit_id,
+          contentId: last_visited_content_id,
+        });
+        return;
+      }
+
+      await goToLastVisited(last_visited_unit_id, last_visited_content_id);
+    } catch (error) {
+      console.error('[continueFromLastVisited] Error:', error);
+    }
+  };
+
   return (
     <ModuleProgressContext.Provider
       value={{
@@ -288,6 +323,7 @@ export const ModuleProgressProvider = ({
         goToLastVisited,
         goToFirstContent,
         initFirstUnitAndContentProgress,
+        continueFromLastVisited,
       }}
     >
       {children}

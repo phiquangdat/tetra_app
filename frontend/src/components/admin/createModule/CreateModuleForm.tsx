@@ -10,7 +10,7 @@ import { useModuleSave } from '../../../hooks/useModuleSave';
 import {
   useOutsideClick,
   type UseOutsideClickParams,
-} from '../../../hooks/useOutSideClick.ts';
+} from '../../../hooks/useOutsideClick.ts';
 
 const CreateModuleForm: React.FC = () => {
   const { setModuleState, isEditing, setIsEditing, isDirty, id } =

@@ -42,7 +42,7 @@ export interface ContentBlock {
     title: string;
     content?: string;
     url?: string; // for video
-    points?: number; // for quiz
+    points?: number;
     questions?: QuizQuestion[]; // for quiz
   };
   sortOrder: number;

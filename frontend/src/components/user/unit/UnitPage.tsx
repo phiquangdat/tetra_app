@@ -321,7 +321,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
                       <CheckIcon width={14} height={14} color="white" />
                     </div>
                     {content.points > 0 && (
-                      <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold border border-green-200">
+                      <div className="min-w-[70px] flex justify-center items-center gap-1 px-2 py-1.5 bg-emerald-600 text-white rounded-full text-xs font-semibold">
                         {content.points} pts
                       </div>
                     )}

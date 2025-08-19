@@ -5,6 +5,7 @@ const BASE_URL =
 import { fetchWithAuth } from '../../utils/authHelpers';
 
 export interface ModuleProgress {
+  id: string;
   status: string;
   last_visited_unit_id: string;
   last_visited_content_id: string;
@@ -32,6 +33,18 @@ export interface CreateModuleProgressRequest {
   lastVisitedContent?: string;
   lastVisitedUnit?: string;
 }
+
+export interface PatchModuleProgressRequest {
+  lastVisitedContent?: string;
+  lastVisitedUnit?: string;
+  status?: string;
+  earnedPoints?: number;
+}
+
+export type CreateContentProgressRequest = Omit<
+  ContentProgress,
+  'id' | 'userId'
+>;
 
 export async function getModuleProgress(
   moduleId: string,
@@ -61,9 +74,39 @@ export async function createModuleProgress(
   }
 }
 
+export async function patchModuleProgress(
+  id: string,
+  data: PatchModuleProgressRequest,
+): Promise<any> {
+  try {
+    return await fetchWithAuth(`${BASE_URL}/user-module-progress/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to patch module progress');
+  }
+}
+
 export async function getUnitProgress(unitId: string): Promise<UnitProgress> {
   try {
     return await fetchWithAuth(`${BASE_URL}/user-unit-progress/${unitId}`);
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to get unit progress');
+  }
+}
+
+export async function getUnitProgressByModuleId(
+  moduleId: string,
+): Promise<UnitProgress[]> {
+  try {
+    return await fetchWithAuth(
+      `${BASE_URL}/user-unit-progress?moduleId=${moduleId}`,
+    );
   } catch (error) {
     throw error instanceof Error
       ? error
@@ -87,13 +130,81 @@ export async function createUnitProgress(
   }
 }
 
-export async function getContentProgress(
+export async function updateUnitProgress(
+  id: string,
+  data: {
+    unitId?: string;
+    moduleId?: string;
+    status?: 'IN_PROGRESS' | 'COMPLETED';
+  },
+): Promise<UnitProgress> {
+  try {
+    return await fetchWithAuth(`${BASE_URL}/user-unit-progress/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ ...data }),
+    });
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to update unit progress');
+  }
+}
+
+export async function getContentProgressByUnitId(
   unitId: string,
 ): Promise<ContentProgress[]> {
   try {
     return await fetchWithAuth(
       `${BASE_URL}/users-content-progress?unitId=${unitId}`,
     );
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to get content progress');
+  }
+}
+
+export async function getContentProgress(
+  unitContentId: string,
+): Promise<ContentProgress> {
+  try {
+    return await fetchWithAuth(
+      `${BASE_URL}/users-content-progress/${unitContentId}`,
+    );
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to get content progress');
+  }
+}
+
+export async function createContentProgress(
+  contentData: CreateContentProgressRequest,
+): Promise<ContentProgress> {
+  try {
+    return await fetchWithAuth(`${BASE_URL}/users-content-progress`, {
+      method: 'POST',
+      body: JSON.stringify(contentData),
+    });
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to get content progress');
+  }
+}
+
+export async function updateContentProgress(
+  id: string,
+  data: {
+    status?: string;
+    points?: number;
+  },
+): Promise<ContentProgress> {
+  try {
+    return await fetchWithAuth(`${BASE_URL}/users-content-progress/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
   } catch (error) {
     throw error instanceof Error
       ? error

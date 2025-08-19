@@ -24,3 +24,8 @@ export const validateVideoUrl = (url: string | undefined) => {
 
   return { isValid, isYouTube, embedUrl };
 };
+
+export const getYouTubeId = (url: string) => {
+  const match = url.match(/(?:v=|\/embed\/|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return match ? match[1] : null;
+};

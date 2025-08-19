@@ -1,3 +1,4 @@
+
 package com.tetra.app.model;
 
 import jakarta.persistence.*;
@@ -11,37 +12,31 @@ public class Subject {
     private Long id;
 
     @Column(name = "user_id")
-    private Long userId;
+    private UUID userId;
 
     @Column(name = "unit_content_id")
-    private Long unitContentId;
+    private UUID unitContentId;
 
     @Column(name = "unit_id")
-    private Long unitId;
+    private UUID unitId;
 
     @Column(name = "module_id")
     private UUID moduleId;
 
-    @Column(name = "subject_type", nullable = false)
-    private String subjectType;
-
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
+    public UUID getUserId() { return userId; }
+    public void setUserId(UUID userId) { this.userId = userId; }
 
-    public Long getUnitContentId() { return unitContentId; }
-    public void setUnitContentId(Long unitContentId) { this.unitContentId = unitContentId; }
+    public UUID getUnitContentId() { return unitContentId; }
+    public void setUnitContentId(UUID unitContentId) { this.unitContentId = unitContentId; }
 
-    public Long getUnitId() { return unitId; }
-    public void setUnitId(Long unitId) { this.unitId = unitId; }
+    public UUID getUnitId() { return unitId; }
+    public void setUnitId(UUID unitId) { this.unitId = unitId; }
 
     public UUID getModuleId() { return moduleId; }
     public void setModuleId(UUID moduleId) { this.moduleId = moduleId; }
-
-    public String getSubjectType() { return subjectType; }
-    public void setSubjectType(String subjectType) { this.subjectType = subjectType; }
 
     @Override
     public String toString() {
@@ -51,7 +46,6 @@ public class Subject {
                 ", unitContentId=" + getUnitContentId() +
                 ", unitId=" + getUnitId() +
                 ", moduleId=" + getModuleId() +
-                ", subjectType='" + getSubjectType() + '\'' +
                 '}';
     }
 }

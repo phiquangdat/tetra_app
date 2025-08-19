@@ -1,12 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { validateVideoUrl } from '../../../utils/videoHelpers';
+import { validateVideoUrl, getYouTubeId } from '../../../utils/videoHelpers';
 import {
   fetchVideoContentById,
   type Video,
 } from '../../../services/unit/unitApi';
+import {
+  getContentProgress,
+  createContentProgress,
+  updateContentProgress,
+  patchModuleProgress,
+  type ContentProgress,
+} from '../../../services/userProgress/userProgressApi';
 import { useModuleProgress } from '../../../context/user/ModuleProgressContext.tsx';
-import { UploadAltIcon } from '../../common/Icons';
+import { UploadAltIcon, CheckIcon } from '../../common/Icons';
+declare global {
+  var YT: any;
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
 
 const FallbackVideo = () => (
   <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100 rounded-2xl">
@@ -24,22 +38,176 @@ interface VideoPageProps {
 
 const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   const [video, setVideo] = useState<Video | null>(null);
+  const [contentProgress, setContentProgress] = useState<ContentProgress>();
   const navigate = useNavigate();
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
-  const { goToNextContent, isNextContent } = useModuleProgress();
+  const { goToNextContent, isNextContent, moduleProgress, setModuleProgress } =
+    useModuleProgress();
 
-  useEffect(() => {
-    if (id) {
-      fetchVideoContentById(id).then((data) => setVideo(data));
-    }
-  }, [id]);
+  const playerRef = useRef<any>(null);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const { isValid, isYouTube, embedUrl } = validateVideoUrl(video?.url);
 
   if (!video?.url) {
     console.warn('No Video URL provided');
   }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (id) {
+        fetchVideoContentById(id).then((data) => setVideo(data));
+      }
+
+      try {
+        const progress = await getContentProgress(id);
+        console.log('[getContentProgress]', progress);
+
+        setContentProgress(progress);
+
+        if (
+          (moduleProgress?.last_visited_unit_id !== unitIdFromState ||
+            moduleProgress?.last_visited_content_id !== id) &&
+          progress.status !== 'COMPLETED'
+        ) {
+          try {
+            const response = await patchModuleProgress(
+              moduleProgress?.id as string,
+              {
+                lastVisitedUnit: unitIdFromState,
+                lastVisitedContent: id,
+              },
+            );
+            const progress = {
+              id: response.id,
+              status: response.status,
+              last_visited_unit_id: response.lastVisitedUnit.id || '',
+              last_visited_content_id: response.lastVisitedContent.id || '',
+              earned_points: response.earnedPoints || 0,
+            };
+
+            console.log('[patchModuleProgress]', response);
+            setModuleProgress(progress);
+          } catch (error) {
+            console.error('[patchModuleProgress]', error);
+          }
+        }
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('404')) {
+          const progress = await createContentProgress({
+            unitId: unitIdFromState as string,
+            unitContentId: id,
+            status: 'IN_PROGRESS',
+            points: 0,
+          });
+          console.log('[createContentProgress]', progress);
+
+          setContentProgress(progress);
+        } else {
+          console.error(error);
+        }
+      }
+    };
+
+    fetchData();
+  }, [id, unitIdFromState]);
+
+  const markAsCompleted = async () => {
+    if (!(contentProgress && contentProgress.status !== 'COMPLETED')) return;
+
+    try {
+      const response = await updateContentProgress(contentProgress.id, {
+        status: 'COMPLETED',
+      });
+      setContentProgress((prev) =>
+        prev ? { ...prev, status: 'COMPLETED' } : prev,
+      );
+      console.log('[updateContentProgress]', response);
+    } catch (error) {
+      console.error('Error updating progress:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (!video?.url || !isValid || !isYouTube) return;
+
+    const loadYouTubeAPI = () => {
+      return new Promise<void>((resolve) => {
+        if (window.YT?.Player) {
+          resolve();
+          return;
+        }
+
+        window.onYouTubeIframeAPIReady = resolve;
+      });
+    };
+
+    const initPlayer = () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+      if (playerRef.current?.destroy) {
+        playerRef.current.destroy();
+      }
+
+      playerRef.current = new window.YT.Player('youtube', {
+        videoId: getYouTubeId(video.url),
+        playerVars: {
+          controls: 1,
+          modestbranding: 1,
+          rel: 0,
+        },
+        events: {
+          onStateChange: (event: any) => {
+            if (event.data === window.YT.PlayerState.PLAYING) {
+              if (progressIntervalRef.current) {
+                clearInterval(progressIntervalRef.current);
+              }
+
+              progressIntervalRef.current = setInterval(async () => {
+                const currentTime = playerRef.current?.getCurrentTime();
+                const duration = playerRef.current?.getDuration();
+
+                if (duration > 0) {
+                  const progress = Math.round((currentTime / duration) * 100);
+
+                  if (progress >= 90 && contentProgress) {
+                    clearInterval(progressIntervalRef.current!);
+                    progressIntervalRef.current = null;
+
+                    markAsCompleted();
+                  }
+                }
+              }, 1000);
+            }
+
+            if (
+              event.data === window.YT.PlayerState.PAUSED ||
+              event.data === window.YT.PlayerState.ENDED
+            ) {
+              if (progressIntervalRef.current) {
+                clearInterval(progressIntervalRef.current);
+                progressIntervalRef.current = null;
+              }
+            }
+          },
+        },
+      });
+    };
+
+    loadYouTubeAPI().then(initPlayer);
+
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+      if (playerRef.current?.destroy) {
+        playerRef.current.destroy();
+      }
+    };
+  }, [video?.url, contentProgress?.id]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
@@ -53,19 +221,34 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         </a>
       </div>
 
+      {contentProgress?.status?.toLowerCase() === 'completed' && (
+        <div className="mb-6 bg-green-50 max-w-xl mx-auto border border-green-200 rounded-xl p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
+              <CheckIcon width={16} height={16} color="white" />
+            </div>
+            <div className="flex-1">
+              <span className="text-green-600 text-sm">
+                You've viewed this before. Feel free to review it again!
+              </span>
+            </div>
+            <div className="flex items-center gap-1 px-3 py-1 bg-white text-green-700 rounded-full text-sm font-medium border border-green-200 shadow-sm">
+              + {contentProgress.points} pts
+            </div>
+          </div>
+        </div>
+      )}
+
       <h1 className="text-4xl font-extrabold mb-8 text-primary text-center">
         {video?.title}
       </h1>
       <div className="w-full max-w-4xl aspect-video rounded-3xl overflow-hidden shadow-xl bg-cardBackground flex items-center justify-center">
         {isValid ? (
           isYouTube ? (
-            <iframe
-              className="w-full h-full"
-              src={embedUrl}
+            <div
+              id="youtube"
+              className="w-full h-full border-none"
               title={video?.title}
-              style={{ border: 'none' }}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
             />
           ) : (
             <video
@@ -92,7 +275,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         <button
           className="bg-surface text-background font-semibold px-12 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition-all duration-200 w-fit"
           type="button"
-          onClick={() => goToNextContent(id)}
+          onClick={() => {
+            markAsCompleted();
+            goToNextContent(id);
+          }}
         >
           {isNextContent(id ?? '') ? 'Up next' : 'Finish'}
         </button>

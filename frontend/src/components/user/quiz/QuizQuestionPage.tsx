@@ -4,7 +4,7 @@ import { useQuiz } from '../../../context/user/QuizContext.tsx';
 
 const QuizQuestionPage = () => {
   const { index, quizId } = useParams();
-  const { questions } = useQuiz();
+  const { questions, setUserAnswer, getUserAnswerFor } = useQuiz();
   const navigate = useNavigate();
   const currentIndex = parseInt(index || '1', 10) - 1;
   const currentQuestion = questions[currentIndex];
@@ -19,8 +19,25 @@ const QuizQuestionPage = () => {
   }, [questions]);
 
   useEffect(() => {
-    setSelected(null);
-  }, [currentIndex]);
+    if (!currentQuestion) return;
+    const savedAnswerId = getUserAnswerFor(currentQuestion.id);
+    if (!savedAnswerId) {
+      setSelected(null);
+      return;
+    }
+    const idx = currentQuestion.answers.findIndex(
+      (a) => a.id === savedAnswerId,
+    );
+    setSelected(idx >= 0 ? idx : null);
+  }, [currentIndex, currentQuestion, getUserAnswerFor]);
+
+  const handleChoose = (answerIdx: number) => {
+    if (!currentQuestion) return;
+    const answerId = currentQuestion.answers[answerIdx]?.id;
+    if (!answerId) return;
+    setSelected(answerIdx);
+    setUserAnswer(currentQuestion.id, answerId); // persist selection
+  };
 
   const handleNext = () => {
     if (currentIndex + 1 < questions.length) {
@@ -61,7 +78,7 @@ const QuizQuestionPage = () => {
                   type="radio"
                   name="quiz"
                   checked={selected === idx}
-                  onChange={() => setSelected(idx)}
+                  onChange={() => handleChoose(idx)}
                   className="form-radio h-5 w-5 text-secondary border-secondary focus:ring-secondary/30 mr-4"
                 />
                 <span className="text-base leading-snug">{answer.title}</span>

@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
+import com.tetra.app.events.AdminActionLogEvent;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,7 @@ public class UnitContentController {
     private final com.tetra.app.repository.UnitRepository unitRepository;
     private final JwtUtil jwtUtil;
     private final BlacklistedTokenRepository blacklistedTokenRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public UnitContentController(
         UnitContentRepository unitContentRepository,
@@ -48,7 +51,8 @@ public class UnitContentController {
         AnswerRepository answerRepository,
         com.tetra.app.repository.UnitRepository unitRepository,
         JwtUtil jwtUtil,
-        BlacklistedTokenRepository blacklistedTokenRepository
+        BlacklistedTokenRepository blacklistedTokenRepository,
+        ApplicationEventPublisher eventPublisher
     ) {
         this.unitContentRepository = unitContentRepository;
         this.questionRepository = questionRepository;
@@ -56,6 +60,7 @@ public class UnitContentController {
         this.unitRepository = unitRepository;
         this.jwtUtil = jwtUtil;
         this.blacklistedTokenRepository = blacklistedTokenRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @GetMapping
@@ -105,12 +110,11 @@ public class UnitContentController {
         result.put("unit_id", content.getUnitId());
         result.put("content_type", content.getContentType());
         result.put("title", content.getTitle());
-        result.put("content", content.getContent()); // plain text description
+        result.put("content", content.getContent());
         result.put("sort_order", content.getSortOrder());
         result.put("points", content.getPoints());
         result.put("questions_number", content.getQuestionsNumber());
 
-        // Get questions and answers
         List<Question> questions = questionRepository.findByUnitContent_Id(content.getId());
         List<Map<String, Object>> questionsList = questions.stream().map(q -> {
             Map<String, Object> qMap = new HashMap<>();
@@ -166,6 +170,7 @@ public class UnitContentController {
         result.put("title", content.getTitle());
         result.put("content", content.getContentData());
         result.put("url", content.getUrl());
+        result.put("points", content.getPoints()); 
         return ResponseEntity.ok(result);
     }
 
@@ -178,6 +183,7 @@ public class UnitContentController {
         result.put("id", content.getId());
         result.put("title", content.getTitle());
         result.put("content", content.getContentData());
+        result.put("points", content.getPoints());
         return ResponseEntity.ok(result);
     }
 
@@ -201,7 +207,6 @@ public class UnitContentController {
                 return ResponseEntity.badRequest().body("title is required");
             }
 
-            // Use content as plain text description
             String content = (String) body.get("content");
 
             Integer points = body.get("points") instanceof Integer
@@ -229,6 +234,25 @@ public class UnitContentController {
             unitContent.setPoints(points);
             unitContent.setQuestionsNumber(questionsNumber);
             unitContent = unitContentRepository.saveAndFlush(unitContent);
+            // Publish admin action log event after flush
+            String token = null;
+            String role = null;
+            UUID adminId = null;
+            if (body.containsKey("token")) {
+                token = (String) body.get("token");
+            }
+            if (token != null) {
+                try {
+                    role = jwtUtil.extractRole(token);
+                    adminId = UUID.fromString(jwtUtil.extractUserId(token));
+                } catch (Exception ignored) {}
+            } else {
+                adminId = com.tetra.app.controller.AuthController.lastAdminId;
+                role = com.tetra.app.controller.AuthController.lastAdminRole != null ? com.tetra.app.controller.AuthController.lastAdminRole.name() : null;
+            }
+            if (adminId != null && "ADMIN".equals(role)) {
+                eventPublisher.publishEvent(new AdminActionLogEvent(adminId, "create", unitContent.getId(), "unit_content"));
+            }
 
             List<Map<String, Object>> questionsData = (List<Map<String, Object>>) body.get("questions");
             if (questionsData != null) {
@@ -274,7 +298,7 @@ public class UnitContentController {
             response.put("unit_id", unitContent.getUnitId());
             response.put("content_type", unitContent.getContentType());
             response.put("title", unitContent.getTitle());
-            response.put("content", unitContent.getContent()); // <-- return plain text
+            response.put("content", unitContent.getContent());
             response.put("sort_order", unitContent.getSortOrder());
             response.put("points", unitContent.getPoints());
             response.put("questions_number", unitContent.getQuestionsNumber());
@@ -341,13 +365,12 @@ public class UnitContentController {
                 }
             }
 
-            // Validate unit exists
+            
             Unit unit = unitRepository.findById(unitId).orElse(null);
             if (unit == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Unit not found");
             }
 
-            // Check for duplicate sort_order in the same unit
             boolean sortOrderExists = unitContentRepository.findByUnit_Id(unitId)
                 .stream()
                 .anyMatch(uc -> uc.getSortOrder() != null && uc.getSortOrder().equals(sortOrder));
@@ -364,6 +387,25 @@ public class UnitContentController {
             unitContent.setPoints(points);
 
             unitContent = unitContentRepository.saveAndFlush(unitContent);
+            // Publish admin action log event after flush
+            String token = null;
+            String role = null;
+            UUID adminId = null;
+            if (body.containsKey("token")) {
+                token = (String) body.get("token");
+            }
+            if (token != null) {
+                try {
+                    role = jwtUtil.extractRole(token);
+                    adminId = UUID.fromString(jwtUtil.extractUserId(token));
+                } catch (Exception ignored) {}
+            } else {
+                adminId = com.tetra.app.controller.AuthController.lastAdminId;
+                role = com.tetra.app.controller.AuthController.lastAdminRole != null ? com.tetra.app.controller.AuthController.lastAdminRole.name() : null;
+            }
+            if (adminId != null && "ADMIN".equals(role)) {
+                eventPublisher.publishEvent(new AdminActionLogEvent(adminId, "create", unitContent.getId(), "unit_content"));
+            }
 
             Map<String, Object> response = new HashMap<>();
             response.put("id", unitContent.getId());
@@ -438,13 +480,11 @@ public class UnitContentController {
                 }
             }
 
-            // Validate unit exists
             Unit unit = unitRepository.findById(unitId).orElse(null);
             if (unit == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Unit not found");
             }
 
-            // Check for duplicate sort_order in the same unit
             boolean sortOrderExists = unitContentRepository.findByUnit_Id(unitId)
                 .stream()
                 .anyMatch(uc -> uc.getSortOrder() != null && uc.getSortOrder().equals(sortOrder));
@@ -462,6 +502,25 @@ public class UnitContentController {
             unitContent.setPoints(points); 
 
             unitContent = unitContentRepository.saveAndFlush(unitContent);
+            // Publish admin action log event after flush
+            String token = null;
+            String role = null;
+            UUID adminId = null;
+            if (body.containsKey("token")) {
+                token = (String) body.get("token");
+            }
+            if (token != null) {
+                try {
+                    role = jwtUtil.extractRole(token);
+                    adminId = UUID.fromString(jwtUtil.extractUserId(token));
+                } catch (Exception ignored) {}
+            } else {
+                adminId = com.tetra.app.controller.AuthController.lastAdminId;
+                role = com.tetra.app.controller.AuthController.lastAdminRole != null ? com.tetra.app.controller.AuthController.lastAdminRole.name() : null;
+            }
+            if (adminId != null && "ADMIN".equals(role)) {
+                eventPublisher.publishEvent(new AdminActionLogEvent(adminId, "create", unitContent.getId(), "unit_content"));
+            }
 
             Map<String, Object> response = new HashMap<>();
             response.put("id", unitContent.getId());
@@ -841,7 +900,6 @@ public class UnitContentController {
 
         UnitContent unitContent = unitContentRepository.findById(id).orElse(null);
         if (unitContent != null && "quiz".equalsIgnoreCase(unitContent.getContentType())) {
-            // Delete all related answers and questions
             List<Question> questions = questionRepository.findByUnitContent_Id(id);
             for (Question q : questions) {
                 answerRepository.deleteAll(answerRepository.findByQuestion_Id(q.getId()));

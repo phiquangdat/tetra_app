@@ -35,16 +35,16 @@ public class AdminActionLogService {
         Optional<Subject> subjectOpt = Optional.empty();
         switch (subjectType) {
             case "user":
-                subjectOpt = subjectRepository.findByUserIdAndSubjectType((Long) entityId, subjectType);
+                subjectOpt = subjectRepository.findByUserId((UUID) entityId);
                 break;
             case "unit_content":
-                subjectOpt = subjectRepository.findByUnitContentIdAndSubjectType((Long) entityId, subjectType);
+                subjectOpt = subjectRepository.findByUnitContentId((UUID) entityId);
                 break;
             case "unit":
-                subjectOpt = subjectRepository.findByUnitIdAndSubjectType((Long) entityId, subjectType);
+                subjectOpt = subjectRepository.findByUnitId((UUID) entityId);
                 break;
             case "training_module":
-                subjectOpt = subjectRepository.findByModuleIdAndSubjectType((UUID) entityId, subjectType);
+                subjectOpt = subjectRepository.findByModuleId((UUID) entityId);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown subjectType: " + subjectType);
@@ -53,16 +53,15 @@ public class AdminActionLogService {
             return subjectOpt.get();
         }
         Subject subject = new Subject();
-        subject.setSubjectType(subjectType);
         switch (subjectType) {
             case "user":
-                subject.setUserId((Long) entityId);
+                subject.setUserId((UUID) entityId);
                 break;
             case "unit_content":
-                subject.setUnitContentId((Long) entityId);
+                subject.setUnitContentId((UUID) entityId);
                 break;
             case "unit":
-                subject.setUnitId((Long) entityId);
+                subject.setUnitId((UUID) entityId);
                 break;
             case "training_module":
                 subject.setModuleId((UUID) entityId);
@@ -72,7 +71,66 @@ public class AdminActionLogService {
         return subjectRepository.save(subject);
     }
 
+
     public void logAction(UUID adminId, String actionType, UUID entityId, String subjectType) {
+        // Fallback: if adminId is null, use AuthController.lastAdminId
+        if (adminId == null) {
+            try {
+                adminId = com.tetra.app.controller.AuthController.lastAdminId;
+                System.out.println("[AdminActionLogService] Fallback to AuthController.lastAdminId: " + adminId);
+            } catch (Exception e) {
+                System.err.println("[AdminActionLogService] Could not get lastAdminId from AuthController: " + e.getMessage());
+            }
+        }
+        // Special case: if creating user/unit_content/unit/training_module and entityId is null, try to get last created entity
+        if ("create".equals(actionType) && entityId == null) {
+            try {
+                switch (subjectType) {
+                    case "user": {
+                        Optional<com.tetra.app.model.User> lastUser = userRepository.findAll().stream()
+                            .sorted((u1, u2) -> u2.getId().compareTo(u1.getId()))
+                            .findFirst();
+                        if (lastUser.isPresent()) {
+                            entityId = lastUser.get().getId();
+                            System.out.println("[AdminActionLogService] Fallback: using last created userId for log: " + entityId);
+                        }
+                        break;
+                    }
+                    case "unit_content": {
+                        Optional<com.tetra.app.model.UnitContent> lastContent = unitContentRepository.findAll().stream()
+                            .sorted((c1, c2) -> c2.getId().compareTo(c1.getId()))
+                            .findFirst();
+                        if (lastContent.isPresent()) {
+                            entityId = lastContent.get().getId();
+                            System.out.println("[AdminActionLogService] Fallback: using last created unitContentId for log: " + entityId);
+                        }
+                        break;
+                    }
+                    case "unit": {
+                        Optional<com.tetra.app.model.Unit> lastUnit = unitRepository.findAll().stream()
+                            .sorted((u1, u2) -> u2.getId().compareTo(u1.getId()))
+                            .findFirst();
+                        if (lastUnit.isPresent()) {
+                            entityId = lastUnit.get().getId();
+                            System.out.println("[AdminActionLogService] Fallback: using last created unitId for log: " + entityId);
+                        }
+                        break;
+                    }
+                    case "training_module": {
+                        Optional<com.tetra.app.model.TrainingModule> lastModule = trainingModuleRepository.findAll().stream()
+                            .sorted((m1, m2) -> m2.getId().compareTo(m1.getId()))
+                            .findFirst();
+                        if (lastModule.isPresent()) {
+                            entityId = lastModule.get().getId();
+                            System.out.println("[AdminActionLogService] Fallback: using last created moduleId for log: " + entityId);
+                        }
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("[AdminActionLogService] Could not get last created entity for logging: " + e.getMessage());
+            }
+        }
         System.out.println("[AdminActionLogService] logAction called with adminId=" + adminId +
                 ", actionType=" + actionType + ", entityId=" + entityId + ", subjectType=" + subjectType);
 
@@ -131,14 +189,13 @@ public class AdminActionLogService {
         return exists;
     }
 
-    private Long getUserIdByUuid(UUID uuid) {
+    private UUID getUserIdByUuid(UUID uuid) {
         try {
             return userRepository.findById(uuid)
                 .map(u -> {
-                    // u.getId() должен быть Long, если есть поле Long id
-                    // Если id типа UUID, то возвращайте null
                     Object id = u.getId();
-                    return (id instanceof Long) ? (Long) id : null;
+                    if (id instanceof UUID) return (UUID) id;
+                    return null;
                 })
                 .orElse(null);
         } catch (Exception e) {
@@ -146,12 +203,13 @@ public class AdminActionLogService {
             return null;
         }
     }
-    private Long getUnitContentIdByUuid(UUID uuid) {
+    private UUID getUnitContentIdByUuid(UUID uuid) {
         try {
             return unitContentRepository.findById(uuid)
                 .map(uc -> {
                     Object id = uc.getId();
-                    return (id instanceof Long) ? (Long) id : null;
+                    if (id instanceof UUID) return (UUID) id;
+                    return null;
                 })
                 .orElse(null);
         } catch (Exception e) {
@@ -159,14 +217,20 @@ public class AdminActionLogService {
             return null;
         }
     }
-    private Long getUnitIdByUuid(UUID uuid) {
+    private UUID getUnitIdByUuid(UUID uuid) {
         try {
             return unitRepository.findById(uuid)
                 .map(u -> {
                     Object id = u.getId();
-                    return (id instanceof Long) ? (Long) id : null;
+                    if (id instanceof UUID) return (UUID) id;
+                    return null;
                 })
-                .orElse(null);
+                .orElseGet(() -> {
+                    // Debug: print all units in DB if not found
+                    System.err.println("[AdminActionLogService] Unit not found for UUID " + uuid + ". All units in DB:");
+                    unitRepository.findAll().forEach(unit -> System.err.println("  Unit: " + unit.getId()));
+                    return null;
+                });
         } catch (Exception e) {
             System.err.println("[AdminActionLogService] getUnitIdByUuid exception: " + e.getMessage());
             return null;

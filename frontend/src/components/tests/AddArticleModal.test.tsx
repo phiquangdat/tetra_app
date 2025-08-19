@@ -113,4 +113,28 @@ describe('AddArticleModal (new version)', () => {
 
     expect(saveArticleContent).toHaveBeenCalledTimes(1);
   });
+
+  it('renders a single-file input labeled "Attachment" after the Title field', () => {
+    render(
+      <AddArticleModalWithProviders
+        isOpen={true}
+        onClose={onClose}
+        unitId="unit-1"
+        unitNumber={1}
+      />,
+    );
+
+    const titleInput = screen.getByLabelText('Title');
+    const fileInput = screen.getByLabelText('Attachment') as HTMLInputElement;
+
+    expect(fileInput).toBeInTheDocument();
+    expect(fileInput).toHaveAttribute('type', 'file');
+    expect(fileInput).not.toHaveAttribute('multiple');
+
+    const isAfter =
+      (titleInput.compareDocumentPosition(fileInput) &
+        Node.DOCUMENT_POSITION_FOLLOWING) !==
+      0;
+    expect(isAfter).toBe(true);
+  });
 });

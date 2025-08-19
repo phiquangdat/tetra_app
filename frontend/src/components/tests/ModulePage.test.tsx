@@ -38,8 +38,8 @@ describe('ModulePage', () => {
   };
 
   const mockUnits = [
-    { id: 'unit1', title: 'Unit 1: Basics', content: [] },
-    { id: 'unit2', title: 'Unit 2: Advanced', content: [] },
+    { id: 'unit1', title: 'Unit 1: Basics', content: [], hasProgress: true },
+    { id: 'unit2', title: 'Unit 2: Advanced', content: [], hasProgress: true },
   ];
 
   const mockUserProgress = {
@@ -56,6 +56,22 @@ describe('ModulePage', () => {
     vi.spyOn(userProgressApi, 'getModuleProgress').mockResolvedValue(
       mockUserProgress,
     );
+    vi.spyOn(userProgressApi, 'getUnitProgressByModuleId').mockResolvedValue([
+      {
+        id: '1',
+        unitId: 'unit1',
+        status: 'IN_PROGRESS',
+        userId: 'user1',
+        moduleId: 'module1',
+      },
+      {
+        id: '2',
+        unitId: 'unit2',
+        status: 'IN_PROGRESS',
+        userId: 'user2',
+        moduleId: 'module2',
+      },
+    ]);
   });
 
   afterEach(() => {
@@ -105,22 +121,25 @@ describe('ModulePage', () => {
     });
   });
 
-  it('renders module title and Start button when no progress', async () => {
+  it('renders module title and Start button when no progress, and hides Continue', async () => {
     vi.spyOn(userProgressApi, 'getModuleProgress').mockRejectedValue(
       new Error('404'),
     );
     renderWithProvider('123');
     await waitFor(() => {
       expect(
-        screen.getByRole('heading', { name: /Intro to Python/i }),
+        screen.getByRole('heading', { name: /intro to python/i }),
       ).toBeInTheDocument();
       expect(
         screen.getByRole('button', { name: /start/i }),
       ).toBeInTheDocument();
     });
+    expect(
+      screen.queryByRole('button', { name: /continue/i }),
+    ).not.toBeInTheDocument();
   });
 
-  it('renders module title and Continue button when progress exists', async () => {
+  it('renders module title and Continue button when progress exists, and hides Start', async () => {
     renderWithProvider('123');
     await waitFor(() => {
       expect(
@@ -130,6 +149,36 @@ describe('ModulePage', () => {
         screen.getByRole('button', { name: /continue/i }),
       ).toBeInTheDocument();
     });
+
+    expect(
+      screen.queryByRole('button', { name: /start/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders no Start or Continue buttons when progress is completed', async () => {
+    vi.spyOn(userProgressApi, 'getModuleProgress').mockResolvedValue({
+      status: 'COMPLETED',
+      last_visited_unit_id: 'unit1',
+      last_visited_content_id: 'content1',
+      earned_points: 0,
+    });
+
+    renderWithProvider('123');
+
+    expect(
+      await screen.findByRole('heading', { name: /intro to python/i }),
+    ).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('button', { name: /start/i }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /continue/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    expect(await screen.findByText(/module completed/i)).toBeInTheDocument();
   });
 
   it('renders the About section with description and points', async () => {

@@ -8,6 +8,13 @@ import {
 import { useUnitContent } from './UnitContentContext';
 import { useQuizModal } from './QuizModalContext.tsx';
 import { useUnitCompletionModal } from './UnitCompletionModalContext';
+import {
+  createContentProgress,
+  createUnitProgress,
+  updateUnitProgress,
+  type UnitProgress,
+  type ModuleProgress,
+} from '../../services/userProgress/userProgressApi.tsx';
 
 interface Unit {
   id: string;
@@ -24,13 +31,24 @@ interface ModuleProgressContextProps {
   setUnitId: (id: string) => void;
   moduleId: string;
   setModuleId: (id: string) => void;
+  moduleProgress: ModuleProgress | null;
+  setModuleProgress: (module: ModuleProgress | null) => void;
   moduleProgressStatus: string;
   setModuleProgressStatus: (status: string) => void;
+  unitProgress: UnitProgress | null;
+  setUnitProgress: (unitProgress: UnitProgress | null) => void;
   unitProgressStatus: string;
   setUnitProgressStatus: (status: string) => void;
-  goToStart: () => Promise<void>;
+  goToStart: (preloadedData?: {
+    unitId: string;
+    contents: UnitContent[];
+  }) => Promise<void>;
   goToLastVisited: (lastUnitId: string, lastContentId: string) => void;
   goToFirstContent: () => Promise<void>;
+  initFirstUnitAndContentProgress: () => Promise<{
+    unitId: string;
+    contents: UnitContent[];
+  } | null>;
 }
 
 const ModuleProgressContext = createContext<
@@ -57,8 +75,12 @@ export const ModuleProgressProvider = ({
   const [units, setUnitsState] = useState<Unit[]>([]);
   const [unitId, setUnitId] = useState<string>('');
   const [moduleId, setModuleId] = useState<string>('');
+  const [moduleProgress, setModuleProgress] = useState<ModuleProgress | null>(
+    null,
+  );
   const [moduleProgressStatus, setModuleProgressStatus] =
     useState<string>('not_started');
+  const [unitProgress, setUnitProgress] = useState<UnitProgress | null>(null);
   const [unitProgressStatus, setUnitProgressStatus] =
     useState<string>('not_started');
   const navigate = useNavigate();
@@ -67,7 +89,7 @@ export const ModuleProgressProvider = ({
     setUnitsState(units);
   };
 
-  const goToNextContent = (currentContentId: string) => {
+  const goToNextContent = async (currentContentId: string) => {
     const currentUnitIndex = units.findIndex((u) => u.id === unitId);
     if (currentUnitIndex === -1) return;
 
@@ -79,7 +101,7 @@ export const ModuleProgressProvider = ({
     if (nextContent) {
       // CASE 1: next content in current unit
       if (nextContent.content_type === 'quiz') {
-        openModal(nextContent.id); // Show quiz modal (don't navigate)
+        await openModal(nextContent.id); // Show quiz modal (don't navigate)
       } else {
         navigate(`/user/${nextContent.content_type}/${nextContent.id}`, {
           state: { unitId },
@@ -92,6 +114,27 @@ export const ModuleProgressProvider = ({
     const nextUnit = units[currentUnitIndex + 1];
     if (nextUnit) {
       openUnitCompletionModal(nextUnit.id, moduleId);
+
+      async function updateProgress() {
+        try {
+          const response = await updateUnitProgress(
+            unitProgress?.id as string,
+            {
+              moduleId,
+              unitId,
+              status: 'COMPLETED',
+            },
+          );
+          setUnitProgress(response);
+          setUnitProgressStatus('completed');
+
+          console.log('[updateUnitProgress]', response);
+        } catch (error) {
+          console.error('Error updating unit progress:', error);
+        }
+      }
+
+      updateProgress();
     } else {
       navigate(`/user/modules/${moduleId}`);
     }
@@ -113,30 +156,44 @@ export const ModuleProgressProvider = ({
     return false;
   };
 
-  const goToStart = async () => {
-    const units = await fetchUnitTitleByModuleId(moduleId);
+  const goToStart = async (preloadedData?: {
+    unitId: string;
+    contents: UnitContent[];
+  }) => {
+    let startUnitId = preloadedData?.unitId ?? units?.[0]?.id;
+    let startContents = preloadedData?.contents;
 
-    if (units && units.length > 0) {
-      const firstUnitId = units[0].id;
-      const firstUnitContent = await fetchUnitContentById(firstUnitId);
-
-      if (firstUnitContent && firstUnitContent.length > 0) {
-        const firstContent = firstUnitContent[0];
-
-        setUnits(units);
-
-        setUnitId(firstUnitId);
-
-        setUnitContent(firstUnitId, firstUnitContent);
-
-        navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
-          state: { unitId: firstUnitId },
-        });
-      } else {
-        throw new Error('This module has no content to start.');
+    if (!startUnitId) {
+      const apiUnits = await fetchUnitTitleByModuleId(moduleId);
+      if (!apiUnits || !apiUnits.length) {
+        throw new Error('This module has no units.');
       }
+      setUnits(apiUnits);
+      startUnitId = apiUnits[0].id;
+    }
+
+    if (!startContents) {
+      startContents =
+        contentList.length && unitId === startUnitId
+          ? contentList
+          : await fetchUnitContentById(startUnitId);
+    }
+
+    if (!startContents || !startContents.length) {
+      throw new Error('This module has no content to start.');
+    }
+
+    const firstContent = startContents[0];
+
+    setUnitId(startUnitId);
+    setUnitContent(startUnitId, startContents);
+
+    if (firstContent.content_type === 'quiz') {
+      await openModal(firstContent.id);
     } else {
-      throw new Error('This module has no units.');
+      navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
+        state: { unitId: startUnitId },
+      });
     }
   };
 
@@ -151,9 +208,13 @@ export const ModuleProgressProvider = ({
 
     if (lastContent) {
       setUnitContent(lastContent.id, lastContentList);
-      navigate(`/user/${lastContent.content_type}/${lastContentId}`, {
-        state: { unitId: lastUnitId },
-      });
+      if (lastContent.content_type === 'quiz') {
+        await openModal(lastContent.id);
+      } else {
+        navigate(`/user/${lastContent.content_type}/${lastContentId}`, {
+          state: { unitId: lastUnitId },
+        });
+      }
     } else {
       throw new Error('Last visited content not found.');
     }
@@ -164,12 +225,56 @@ export const ModuleProgressProvider = ({
     if (contentList && contentList.length > 0) {
       const firstContent = contentList[0];
       setUnitContent(unitId, contentList);
-      navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
-        state: { unitId },
-      });
+      if (firstContent.content_type == 'quiz') {
+        await openModal(firstContent.id);
+      } else {
+        navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
+          state: { unitId },
+        });
+      }
     } else {
       throw new Error('This unit has no content to start.');
     }
+  };
+
+  const initFirstUnitAndContentProgress = async (): Promise<{
+    unitId: string;
+    contents: UnitContent[];
+  } | null> => {
+    const firstUnitId = units?.[0]?.id;
+    if (!firstUnitId) return null;
+
+    let contents: UnitContent[] =
+      contentList.length && unitId === firstUnitId
+        ? contentList
+        : await fetchUnitContentById(firstUnitId);
+
+    try {
+      await createUnitProgress(firstUnitId, moduleId);
+      setUnitProgressStatus('in_progress');
+    } catch (e: any) {
+      if (!String(e?.message ?? '').includes('409')) console.warn('[unit]', e);
+    }
+
+    const firstContentId = contents?.[0]?.id;
+    if (firstContentId) {
+      try {
+        await createContentProgress({
+          unitId: firstUnitId,
+          unitContentId: firstContentId,
+          status: 'IN_PROGRESS',
+          points: 0,
+        });
+      } catch (e: any) {
+        if (!String(e?.message ?? '').includes('409'))
+          console.warn('[content]', e);
+      }
+    }
+
+    setUnitId(firstUnitId);
+    setUnitContent(firstUnitId, contents);
+
+    return { unitId: firstUnitId, contents };
   };
 
   return (
@@ -183,13 +288,18 @@ export const ModuleProgressProvider = ({
         setUnitId,
         moduleId,
         setModuleId,
+        moduleProgress,
+        setModuleProgress,
         moduleProgressStatus,
         setModuleProgressStatus,
+        unitProgress,
+        setUnitProgress,
         unitProgressStatus,
         setUnitProgressStatus,
         goToStart,
         goToLastVisited,
         goToFirstContent,
+        initFirstUnitAndContentProgress,
       }}
     >
       {children}

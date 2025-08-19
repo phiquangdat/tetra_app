@@ -40,9 +40,25 @@ class TrainingModuleControllerTest {
 
     @MockBean
     private BlacklistedTokenRepository blacklistedTokenRepository;
-    
+
     @MockBean
     private JwtUtil jwtUtil;
+
+    // Add mocks for cascade delete dependencies
+    @MockBean
+    private com.tetra.app.repository.UnitRepository unitRepository;
+    @MockBean
+    private com.tetra.app.repository.UnitContentRepository unitContentRepository;
+    @MockBean
+    private com.tetra.app.repository.QuestionRepository questionRepository;
+    @MockBean
+    private com.tetra.app.repository.AnswerRepository answerRepository;
+    @MockBean
+    private com.tetra.app.repository.UserModuleProgressRepository userModuleProgressRepository;
+    @MockBean
+    private com.tetra.app.repository.UserUnitProgressRepository userUnitProgressRepository;
+    @MockBean
+    private com.tetra.app.repository.UserContentProgressRepository userContentProgressRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -127,11 +143,7 @@ class TrainingModuleControllerTest {
                 })
                 .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000010"))
                 .andExpect(jsonPath("$.title").value("New Module"))
-                .andExpect(jsonPath("$.description").doesNotExist())
-                .andExpect(jsonPath("$.points").doesNotExist())
-                .andExpect(jsonPath("$.topic").doesNotExist())
-                .andExpect(jsonPath("$.coverurl").doesNotExist())
-                .andExpect(jsonPath("$.status").doesNotExist());
+                .andExpect(jsonPath("$.points").value(20));
     }
 
     @Test
@@ -254,10 +266,14 @@ class TrainingModuleControllerTest {
         when(jwtUtil.extractRole(anyString())).thenReturn("ADMIN");
         when(trainingModuleRepository.existsById(moduleId)).thenReturn(true);
 
+        // Mock cascade delete calls
+        when(userModuleProgressRepository.findByModule_Id(moduleId)).thenReturn(java.util.Collections.emptyList());
+        when(unitRepository.findByModule_Id(moduleId)).thenReturn(java.util.Collections.emptyList());
+
         mockMvc.perform(delete("/api/modules/" + moduleId)
                 .header("Authorization", "Bearer validtoken"))
             .andExpect(status().isOk())
-            .andExpect(content().string("Module deleted"));
+            .andExpect(content().string("Module deleted successfully"));
     }
 
     @Test

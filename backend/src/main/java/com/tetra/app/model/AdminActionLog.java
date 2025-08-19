@@ -1,3 +1,4 @@
+
 package com.tetra.app.model;
 
 import jakarta.persistence.*;
@@ -5,10 +6,19 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@Table(name = "admin_action_logs")
 public class AdminActionLog {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @SequenceGenerator(
+        name = "admin_action_log_seq",
+        sequenceName = "admin_action_log_seq",
+        allocationSize = 1
+    )
+    @GeneratedValue(
+        strategy = GenerationType.SEQUENCE,
+        generator = "admin_action_log_seq"
+    )
     private Long id;
 
     private UUID adminId;

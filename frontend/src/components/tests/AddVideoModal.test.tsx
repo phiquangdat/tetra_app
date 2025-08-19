@@ -59,7 +59,7 @@ describe('AddVideoModal', () => {
       />,
     );
 
-    const saveBtn = screen.getByRole('button', { name: /save video/i });
+    const saveBtn = screen.getByRole('button', { name: /save/i });
     // initially disabled (empty fields)
     expect(saveBtn).toBeDisabled();
 
@@ -73,13 +73,15 @@ describe('AddVideoModal', () => {
 
     // Invalid URL -> still disabled
     await user.type(
-      screen.getByPlaceholderText(/mp4 or youtube url/i),
+      screen.getByPlaceholderText('Paste video URL here (MP4 or YouTube)'),
       'notaurl',
     );
     expect(saveBtn).toBeDisabled();
 
     // Valid YouTube URL -> enabled
-    const urlInput = screen.getByPlaceholderText(/mp4 or youtube url/i);
+    const urlInput = screen.getByPlaceholderText(
+      'Paste video URL here (MP4 or YouTube)',
+    );
     await user.clear(urlInput);
     await user.type(urlInput, 'https://youtu.be/dQw4w9WgXcQ');
 
@@ -110,11 +112,11 @@ describe('AddVideoModal', () => {
       'This is a test video description.',
     );
     await user.type(
-      screen.getByPlaceholderText(/mp4 or youtube url/i),
+      screen.getByPlaceholderText('Paste video URL here (MP4 or YouTube)'),
       'https://youtu.be/dQw4w9WgXcQ',
     );
 
-    const saveBtn = screen.getByRole('button', { name: /save video/i });
+    const saveBtn = screen.getByRole('button', { name: /save/i });
     await waitFor(() => expect(saveBtn).toBeEnabled());
     await user.click(saveBtn);
 

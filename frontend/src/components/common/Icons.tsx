@@ -214,14 +214,20 @@ export const CheckIcon: React.FC<React.SVGProps<SVGSVGElement>> = ({
   </svg>
 );
 
-export const EditIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+export const EditIcon: React.FC<React.SVGProps<SVGSVGElement>> = ({
+  width = 24,
+  height = 24,
+  color = '#998FC7',
+  className,
+  ...props
+}) => (
   <svg
     className="svg-icon"
     style={{
-      width: '1em',
-      height: '1em',
+      width: width,
+      height: height,
       verticalAlign: 'middle',
-      fill: 'currentColor',
+      fill: color,
       overflow: 'hidden',
     }}
     viewBox="0 0 1024 1024"
@@ -334,14 +340,19 @@ export const GamifiedIcon: React.FC<IconProps> = ({
   </svg>
 );
 
-export const QuizIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+export const QuizIcon: React.FC<React.SVGProps<SVGSVGElement>> = ({
+  width = 24,
+  height = 24,
+  color = '#998FC7',
+  ...props
+}) => (
   <svg
     className="svg-icon"
     style={{
-      width: '1em',
-      height: '1em',
+      width: width,
+      height: height,
       verticalAlign: 'middle',
-      fill: 'currentColor',
+      fill: color,
       overflow: 'hidden',
     }}
     viewBox="0 0 1024 1024"
@@ -491,16 +502,20 @@ export const CircularProgressIcon: React.FC<
   </svg>
 );
 
-export const VideoHeaderIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
-  props,
-) => (
+export const VideoHeaderIcon: React.FC<React.SVGProps<SVGSVGElement>> = ({
+  width = 24,
+  height = 24,
+  color = '#998FC7',
+  className,
+  ...props
+}) => (
   <svg
     className="svg-icon"
     style={{
-      width: '1em',
-      height: '1em',
+      width: width,
+      height: height,
       verticalAlign: 'middle',
-      fill: 'currentColor',
+      fill: color,
       overflow: 'hidden',
     }}
     viewBox="0 0 1024 1024"

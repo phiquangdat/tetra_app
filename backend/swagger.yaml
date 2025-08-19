@@ -28,7 +28,8 @@ paths:
       summary: Create a module
       description: |
         Creates a new training module.
-        The request body must include all required fields for the module.
+        The request body must include all required fields for the module except `points`, which is optional.
+        If `points` is omitted or null, the API will persist `points = 0` and return that value in responses.
       requestBody:
         required: true
         description: Module object to be created.
@@ -322,7 +323,18 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/VideoContent'
+                type: object
+                properties:
+                  id:
+                    type: string
+                  title:
+                    type: string
+                  content:
+                    type: string
+                  url:
+                    type: string
+                  points: 
+                    type: integer
         '404':
           description: Video content not found.
 
@@ -1045,6 +1057,8 @@ components:
           type: string
         url:
           type: string
+        points:
+          type: integer
 
     ArticleContent:
       type: object

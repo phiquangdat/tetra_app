@@ -1,5 +1,11 @@
 package com.tetra.app.controller;
 
+import java.util.UUID;
+import java.util.Set;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import com.tetra.app.model.Role;
+
 import com.tetra.app.dto.LoginRequest;
 import com.tetra.app.dto.LoginResponse;
 import com.tetra.app.model.User;
@@ -13,14 +19,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.UUID;
-
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+    // Static fields to store the last successfully logged-in admin's ID and role
+    public static UUID lastAdminId = null;
+    public static Role lastAdminRole = null;
 
     private final UserService userService;
     private final PasswordHashingService passwordHashingService;
@@ -58,6 +62,12 @@ public class AuthController {
         }
 
         String token = jwtUtil.generateToken(user);
+
+        // If the user is an admin, update the static fields
+        if (user.getRole() == Role.ADMIN) {
+            lastAdminId = user.getId();
+            lastAdminRole = user.getRole();
+        }
 
         return ResponseEntity.ok(new LoginResponse(user.getId(), user.getRole(), token));
     }

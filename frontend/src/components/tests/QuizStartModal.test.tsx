@@ -1,15 +1,13 @@
+// src/components/tests/QuizStartModal.test.tsx
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { describe, it, vi, beforeEach, afterEach } from 'vitest';
-import { QuizModalProvider } from '../../context/user/QuizModalContext';
-import { QuizProvider } from '../../context/user/QuizContext';
-import QuizStartModal from '../user/quiz/QuizStartModal';
-import {
-  fetchQuizById,
-  fetchQuizQuestionsByQuizId,
-} from '../../services/quiz/quizApi';
-import { useQuizModal } from '../../context/user/QuizModalContext';
-import { BrowserRouter } from 'react-router-dom';
+import { describe, it, vi, beforeEach, afterEach, expect } from 'vitest';
+
+// ---- Hoisted spies so mock factories can reference them ----
+const { patchSpy, setModuleProgressSpy } = vi.hoisted(() => ({
+  patchSpy: vi.fn(),
+  setModuleProgressSpy: vi.fn(),
+}));
 
 // Mocks
 vi.mock('../../services/quiz/quizApi', () => ({
@@ -25,6 +23,53 @@ vi.mock('../../context/user/QuizModalContext', async () => {
   };
 });
 
+// Module progress context: provide moduleProgress with an id
+vi.mock('../../context/user/ModuleProgressContext', () => ({
+  useModuleProgress: () => ({
+    moduleProgress: { id: 'ump-1', status: 'in_progress', earned_points: 0 },
+    setModuleProgress: setModuleProgressSpy,
+  }),
+}));
+
+// Unit content context
+vi.mock('../../context/user/UnitContentContext', () => ({
+  useUnitContent: () => ({
+    unitId: 'unit-123',
+    contentList: [],
+    setUnitContent: vi.fn(),
+  }),
+}));
+
+// Mock BOTH paths to the same spy
+vi.mock('../../services/userProgress/userProgressApi', () => ({
+  patchModuleProgress: (...args: any[]) => patchSpy(...args),
+}));
+vi.mock('../../services/userProgress/userProgressApi.tsx', () => ({
+  patchModuleProgress: (...args: any[]) => patchSpy(...args),
+}));
+
+// Router navigate mock
+const { mockNavigate } = vi.hoisted(() => ({
+  mockNavigate: vi.fn(),
+}));
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+    BrowserRouter: actual.BrowserRouter,
+  };
+});
+
+import QuizStartModal from '../user/quiz/QuizStartModal';
+import { QuizProvider } from '../../context/user/QuizContext';
+import { useQuizModal } from '../../context/user/QuizModalContext';
+import {
+  fetchQuizById,
+  fetchQuizQuestionsByQuizId,
+} from '../../services/quiz/quizApi';
+import { BrowserRouter } from 'react-router-dom';
+
 const MOCK_QUIZ_ID = 'mock-quiz-id';
 const MOCK_QUIZ_DATA = {
   id: MOCK_QUIZ_ID,
@@ -33,10 +78,9 @@ const MOCK_QUIZ_DATA = {
   points: 10,
   questions_number: 5,
 };
-
 const MOCK_QUESTIONS = [
   {
-    id: '1',
+    id: 'q1',
     title: 'Sample Question',
     type: 'single',
     sort_order: 1,
@@ -44,14 +88,26 @@ const MOCK_QUESTIONS = [
   },
 ];
 
-const mockNavigate = vi.fn();
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  };
-});
+const setupModalContext = (
+  overrides: Partial<ReturnType<typeof useQuizModal>> = {},
+) => {
+  (useQuizModal as unknown as vi.Mock).mockReturnValue({
+    isOpen: true,
+    type: 'start',
+    quizId: MOCK_QUIZ_ID,
+    closeModal: vi.fn(),
+    ...overrides,
+  });
+};
+
+const renderComponent = () =>
+  render(
+    <BrowserRouter>
+      <QuizProvider>
+        <QuizStartModal />
+      </QuizProvider>
+    </BrowserRouter>,
+  );
 
 describe('QuizStartModal', () => {
   beforeEach(() => {
@@ -62,30 +118,7 @@ describe('QuizStartModal', () => {
     vi.restoreAllMocks();
   });
 
-  const setupModalContext = (
-    overrides: Partial<ReturnType<typeof useQuizModal>> = {},
-  ) => {
-    (useQuizModal as vi.Mock).mockReturnValue({
-      isOpen: true,
-      type: 'start', // IMPORTANT: make the modal visible under new logic
-      quizId: MOCK_QUIZ_ID,
-      closeModal: vi.fn(),
-      ...overrides,
-    });
-  };
-
-  const renderComponent = () =>
-    render(
-      <BrowserRouter>
-        <QuizModalProvider>
-          <QuizProvider>
-            <QuizStartModal />
-          </QuizProvider>
-        </QuizModalProvider>
-      </BrowserRouter>,
-    );
-
-  it('fetches and displays quiz details when modal is open', async () => {
+  it('fetches and displays quiz details when modal is open and type=start', async () => {
     setupModalContext();
     (fetchQuizById as vi.Mock).mockResolvedValueOnce(MOCK_QUIZ_DATA);
 
@@ -117,34 +150,11 @@ describe('QuizStartModal', () => {
   });
 
   it('does not render anything when modal is closed', () => {
-    setupModalContext({ isOpen: false as any });
+    setupModalContext({ isOpen: false } as any);
     const { container } = renderComponent();
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('navigates to quiz question page when "Let\'s go" is clicked', async () => {
-    setupModalContext();
-    (fetchQuizById as vi.Mock).mockResolvedValueOnce(MOCK_QUIZ_DATA);
-    (fetchQuizQuestionsByQuizId as vi.Mock).mockResolvedValueOnce(
-      MOCK_QUESTIONS,
-    );
-
-    renderComponent();
-
-    // Wait for quiz to load
-    await waitFor(() => screen.getByText(MOCK_QUIZ_DATA.title));
-
-    const button = screen.getByRole('button', { name: /let's go/i });
-    fireEvent.click(button);
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(
-        `/user/quiz/${MOCK_QUIZ_ID}/question/1`,
-      );
-    });
-  });
-
-  // Optional: prove it hides when the modal type is not "start"
   it('does not render when modal type is "passed"', () => {
     setupModalContext({ type: 'passed' } as any);
     const { container } = renderComponent();

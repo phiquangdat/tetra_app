@@ -77,7 +77,6 @@ public class AdminActionLogService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logAction(UUID adminId, String actionType, UUID entityId, String subjectType) {
-        // Fallback: if adminId is null, use AuthController.lastAdminId
         if (adminId == null) {
             try {
                 adminId = com.tetra.app.controller.AuthController.lastAdminId;
@@ -86,7 +85,6 @@ public class AdminActionLogService {
                 System.err.println("[AdminActionLogService] Could not get lastAdminId from AuthController: " + e.getMessage());
             }
         }
-        // Special case: if creating user/unit_content/unit/training_module and entityId is null, try to get last created entity
         if ("create".equals(actionType) && entityId == null) {
             try {
                 switch (subjectType) {
@@ -230,7 +228,6 @@ public class AdminActionLogService {
                     return null;
                 })
                 .orElseGet(() -> {
-                    // Debug: print all units in DB if not found
                     System.err.println("[AdminActionLogService] Unit not found for UUID " + uuid + ". All units in DB:");
                     unitRepository.findAll().forEach(unit -> System.err.println("  Unit: " + unit.getId()));
                     return null;

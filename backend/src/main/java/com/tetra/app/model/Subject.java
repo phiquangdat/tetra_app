@@ -1,4 +1,3 @@
-
 package com.tetra.app.model;
 
 import jakarta.persistence.*;

@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    // Static fields to store the last successfully logged-in admin's ID and role
     public static UUID lastAdminId = null;
     public static Role lastAdminRole = null;
 
@@ -31,7 +30,6 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final BlacklistedTokenRepository blacklistedTokenRepository;
 
-    // Simple in-memory blacklist for demonstration
     private static final Set<String> tokenBlacklist = ConcurrentHashMap.newKeySet();
 
     @Autowired
@@ -62,8 +60,7 @@ public class AuthController {
         }
 
         String token = jwtUtil.generateToken(user);
-
-        // If the user is an admin, update the static fields
+        
         if (user.getRole() == Role.ADMIN) {
             lastAdminId = user.getId();
             lastAdminRole = user.getRole();

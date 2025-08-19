@@ -235,7 +235,6 @@ public class UnitContentController {
             unitContent.setQuestionsNumber(questionsNumber);
             unitContent = unitContentRepository.saveAndFlush(unitContent);
 
-            // Publish admin action log event after flush
             String token = null;
             String role = null;
             UUID adminId = null;
@@ -388,7 +387,6 @@ public class UnitContentController {
             unitContent.setPoints(points);
 
             unitContent = unitContentRepository.saveAndFlush(unitContent);
-            // Publish admin action log event after flush
             String token = null;
             String role = null;
             UUID adminId = null;
@@ -503,7 +501,6 @@ public class UnitContentController {
             unitContent.setPoints(points); 
 
             unitContent = unitContentRepository.saveAndFlush(unitContent);
-            // Publish admin action log event after flush
             String token = null;
             String role = null;
             UUID adminId = null;

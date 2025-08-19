@@ -45,11 +45,9 @@ public class AdminActionAspect {
         String actionType = getActionType(method);
         String subjectType = getSubjectTypeFromMethod(method);
         UUID entityId = extractEntityIdFromArgs(joinPoint.getArgs());
-        // Если create и не нашли entityId в аргументах — пробуем взять из result
         if ("create".equals(actionType) && entityId == null && result != null) {
             entityId = extractEntityIdFromResult(result);
         }
-        // Для create всегда вызываем логгер, даже если entityId == null (логгер сам подставит ID)
         if (adminId != null && role == Role.ADMIN && actionType != null && subjectType != null) {
             System.out.println("[AdminActionAspect] Logging admin action: adminId=" + adminId +
                     ", actionType=" + actionType + ", entityId=" + entityId + ", subjectType=" + subjectType);
@@ -59,7 +57,6 @@ public class AdminActionAspect {
         }
     }
 
-    // Получить adminId и роль только из текущего JWT (Authorization header)
     private AdminContext getCurrentAdminContext() {
         String authHeader = httpServletRequest.getHeader("Authorization");
         UUID adminId = null;
@@ -80,7 +77,6 @@ public class AdminActionAspect {
                 role = null;
             }
         }
-        // Если нет токена — берём из AuthController
         if (adminId == null && role == null) {
             adminId = com.tetra.app.controller.AuthController.lastAdminId;
             role = com.tetra.app.controller.AuthController.lastAdminRole;
@@ -88,7 +84,6 @@ public class AdminActionAspect {
         return new AdminContext(adminId, role);
     }
 
-    // Вспомогательный класс для хранения adminId и роли
     private static class AdminContext {
         public final UUID adminId;
         public final Role role;
@@ -98,16 +93,13 @@ public class AdminActionAspect {
         }
     }
 
-    // Извлекает UUID из result (ResponseEntity, Map, DTO)
     private UUID extractEntityIdFromResult(Object result) {
         if (result == null) return null;
-        // Если ResponseEntity — берём body
         if (result instanceof org.springframework.http.ResponseEntity) {
             org.springframework.http.ResponseEntity responseEntity = (org.springframework.http.ResponseEntity) result;
             Object body = responseEntity.getBody();
             UUID id = extractEntityIdFromObject(body);
             if (id != null) return id;
-            // Для unit: ищем id и module_id
             if (body instanceof Map) {
                 Map map = (Map) body;
                 Object unitId = map.get("id");
@@ -126,11 +118,9 @@ public class AdminActionAspect {
                 }
             }
         }
-        // Если просто Map/DTO
         return extractEntityIdFromObject(result);
     }
 
-    // Универсальный способ вытащить UUID из объекта (Map, DTO)
     private UUID extractEntityIdFromObject(Object obj) {
         if (obj == null) return null;
         if (obj instanceof UUID) return (UUID) obj;
@@ -149,7 +139,6 @@ public class AdminActionAspect {
                 } catch (Exception ignored) {}
             }
         }
-        // DTO с getId()
         try {
             Method getId = obj.getClass().getMethod("getId");
             Object id = getId.invoke(obj);
@@ -190,7 +179,6 @@ public class AdminActionAspect {
             }
             if (arg instanceof Map) {
                 Map map = (Map) arg;
-                // Для unit ищем unit_id, id
                 Object unitId = map.get("unit_id");
                 if (unitId instanceof UUID) return (UUID) unitId;
                 if (unitId instanceof String) {

@@ -302,11 +302,18 @@ const UnitPage = ({ id }: UnitPageProps) => {
                       e.stopPropagation();
                       openModal(content.id);
                     }}
-                    className="px-4 py-2 bg-[#FFA726] hover:bg-[#FFB74D] text-black font-semibold rounded-full transition-colors duration-200 text-sm whitespace-nowrap"
+                    className={`px-4 py-2 font-semibold rounded-full transition-colors duration-200 text-sm whitespace-nowrap ${
+                      content.status === 'COMPLETED'
+                        ? 'bg-surface hover:bg-secondaryHover text-white'
+                        : 'bg-accent hover:bg-[#FFB74D] text-black'
+                    }`}
                   >
-                    Start challenge
+                    {content.status === 'COMPLETED'
+                      ? 'Review quiz'
+                      : 'Start challenge'}
                   </button>
                 )}
+
                 {checkedIndex === index ? <CheckIcon /> : ''}
                 {content.status?.toLowerCase() === 'completed' && (
                   <div className="flex items-center gap-2">

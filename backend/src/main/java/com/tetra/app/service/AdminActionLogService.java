@@ -9,7 +9,10 @@ import com.tetra.app.repository.UnitContentRepository;
 import com.tetra.app.repository.UnitRepository;
 import com.tetra.app.repository.TrainingModuleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -72,6 +75,7 @@ public class AdminActionLogService {
     }
 
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logAction(UUID adminId, String actionType, UUID entityId, String subjectType) {
         // Fallback: if adminId is null, use AuthController.lastAdminId
         if (adminId == null) {

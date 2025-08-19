@@ -234,6 +234,7 @@ public class UnitContentController {
             unitContent.setPoints(points);
             unitContent.setQuestionsNumber(questionsNumber);
             unitContent = unitContentRepository.saveAndFlush(unitContent);
+
             // Publish admin action log event after flush
             String token = null;
             String role = null;
@@ -251,7 +252,7 @@ public class UnitContentController {
                 role = com.tetra.app.controller.AuthController.lastAdminRole != null ? com.tetra.app.controller.AuthController.lastAdminRole.name() : null;
             }
             if (adminId != null && "ADMIN".equals(role)) {
-                eventPublisher.publishEvent(new AdminActionLogEvent(adminId, "create", unitContent.getId(), "unit_content"));
+                eventPublisher.publishEvent(new com.tetra.app.events.AdminActionLogEvent(adminId, "create", unitContent.getId(), "unit_content"));
             }
 
             List<Map<String, Object>> questionsData = (List<Map<String, Object>>) body.get("questions");
@@ -404,7 +405,7 @@ public class UnitContentController {
                 role = com.tetra.app.controller.AuthController.lastAdminRole != null ? com.tetra.app.controller.AuthController.lastAdminRole.name() : null;
             }
             if (adminId != null && "ADMIN".equals(role)) {
-                eventPublisher.publishEvent(new AdminActionLogEvent(adminId, "create", unitContent.getId(), "unit_content"));
+                eventPublisher.publishEvent(new com.tetra.app.events.AdminActionLogEvent(adminId, "create", unitContent.getId(), "unit_content"));
             }
 
             Map<String, Object> response = new HashMap<>();
@@ -519,7 +520,7 @@ public class UnitContentController {
                 role = com.tetra.app.controller.AuthController.lastAdminRole != null ? com.tetra.app.controller.AuthController.lastAdminRole.name() : null;
             }
             if (adminId != null && "ADMIN".equals(role)) {
-                eventPublisher.publishEvent(new AdminActionLogEvent(adminId, "create", unitContent.getId(), "unit_content"));
+                eventPublisher.publishEvent(new com.tetra.app.events.AdminActionLogEvent(adminId, "create", unitContent.getId(), "unit_content"));
             }
 
             Map<String, Object> response = new HashMap<>();

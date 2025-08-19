@@ -112,41 +112,35 @@ public class TrainingModuleController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateModule(@PathVariable UUID id, @RequestBody TrainingModule updated) {
-        if (updated.getTitle() == null || updated.getTitle().isEmpty()) {
-            return new ResponseEntity<>("Title is required", HttpStatus.BAD_REQUEST);
-        }
-        if (updated.getTopic() == null || updated.getTopic().isEmpty()) {
-            return new ResponseEntity<>("Topic is required", HttpStatus.BAD_REQUEST);
-        }
-        if (updated.getDescription() == null || updated.getDescription().isEmpty()) {
-            return new ResponseEntity<>("Description is required", HttpStatus.BAD_REQUEST);
-        }
-        String coverUrl = updated.getCoverurl();
-        if (coverUrl == null || coverUrl.isEmpty()) {
-            return new ResponseEntity<>("coverUrl is required", HttpStatus.BAD_REQUEST);
-        }
-        if (updated.getPoints() == null) {
-            return new ResponseEntity<>("Points is required", HttpStatus.BAD_REQUEST);
-        }
-        if (updated.getStatus() == null || updated.getStatus().isEmpty()) {
-            updated.setStatus("draft");
-        }
-        if (!updated.getStatus().equals("draft") && !updated.getStatus().equals("published")) {
-            return new ResponseEntity<>("Invalid status value. Allowed: draft, published", HttpStatus.BAD_REQUEST);
-        }
-
+    public ResponseEntity<?> updateModule(@PathVariable UUID id, @RequestBody com.tetra.app.dto.UpdateTrainingModuleRequest updated) {
         var existingOpt = trainingModuleRepository.findById(id);
         if (existingOpt.isEmpty()) {
             return new ResponseEntity<>("Module not found with id: " + id, HttpStatus.NOT_FOUND);
         }
         TrainingModule existing = existingOpt.get();
-        existing.setTitle(updated.getTitle());
-        existing.setDescription(updated.getDescription());
-        existing.setTopic(updated.getTopic());
-        existing.setPoints(updated.getPoints());
-        existing.setCoverurl(updated.getCoverurl());
-        existing.setStatus(updated.getStatus());
+
+        if (updated.getTitle() != null) {
+            existing.setTitle(updated.getTitle());
+        }
+        if (updated.getDescription() != null) {
+            existing.setDescription(updated.getDescription());
+        }
+        if (updated.getTopic() != null) {
+            existing.setTopic(updated.getTopic());
+        }
+        if (updated.getPoints() != null) {
+            existing.setPoints(updated.getPoints());
+        }
+        if (updated.getCoverUrl() != null) {
+            existing.setCoverurl(updated.getCoverUrl());
+        }
+        if (updated.getStatus() != null) {
+            if (!updated.getStatus().equals("draft") && !updated.getStatus().equals("published")) {
+                return new ResponseEntity<>("Invalid status value. Allowed: draft, published", HttpStatus.BAD_REQUEST);
+            }
+            existing.setStatus(updated.getStatus());
+        }
+
         TrainingModule saved = trainingModuleRepository.save(existing);
         return new ResponseEntity<>(saved, HttpStatus.OK);
     }

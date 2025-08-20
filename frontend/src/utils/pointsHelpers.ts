@@ -1,4 +1,3 @@
-// utils/pointsHelpers.ts
 import { fetchModuleById, updateModule } from '../services/module/moduleApi';
 import { fetchUnitContentDetails } from '../services/unit/unitApi';
 
@@ -6,7 +5,7 @@ export async function adjustModulePoints(
   moduleId: string,
   action: 'create' | 'edit' | 'delete',
   newBlockPoints: number,
-  blockId?: string, // needed for edit/delete
+  blockId?: string,
 ) {
   // 1. Fetch current module points
   const module = await fetchModuleById(moduleId);

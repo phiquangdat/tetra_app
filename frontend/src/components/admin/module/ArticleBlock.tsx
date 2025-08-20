@@ -17,7 +17,6 @@ const ArticleBlock: React.FC<ArticleBlockProps> = ({
   blockIndex,
   id,
 }) => {
-  // const fromContext = unitNumber != null && blockIndex != null;
   const { getUnitState, setUnitState, setEditingBlock, removeUnitContent } =
     useUnitContext();
   const [article, setArticle] = useState<Article | null>(null);
@@ -47,6 +46,7 @@ const ArticleBlock: React.FC<ArticleBlockProps> = ({
               data: {
                 ...unit.content[blockIndex].data,
                 content: fetched.content,
+                points: fetched.points,
               },
             };
 
@@ -72,6 +72,10 @@ const ArticleBlock: React.FC<ArticleBlockProps> = ({
     ? (unitContent!.data.content ?? '<p>No content</p>')
     : (article?.content ?? '<p>No content available</p>');
 
+  const points = shouldUseContext
+    ? unitContent!.data.points
+    : (article?.points ?? 'No points available');
+
   const handleConfirmDelete = async () => {
     if (unitNumber != null && blockIndex != null) {
       const success = await removeUnitContent(unitNumber, blockIndex);
@@ -90,6 +94,10 @@ const ArticleBlock: React.FC<ArticleBlockProps> = ({
         </div>
         <div className="prose prose-sm max-w-none bg-background border border-highlight rounded-xl p-6">
           <div dangerouslySetInnerHTML={{ __html: contentHtml }} />
+        </div>
+        <div>
+          <p className="text-sm font-semibold">Points</p>
+          <p>{points}</p>
         </div>
         <div className="flex gap-4">
           <button

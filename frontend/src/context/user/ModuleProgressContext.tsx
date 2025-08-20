@@ -16,6 +16,8 @@ import {
   type ModuleProgress,
   getModuleProgress,
   getContentProgressByUnitId,
+  getUnitProgressByModuleId,
+  patchModuleProgress,
 } from '../../services/userProgress/userProgressApi.tsx';
 
 interface Unit {
@@ -56,6 +58,7 @@ interface ModuleProgressContextProps {
     unitId: string,
     moduleId: string,
   ) => Promise<boolean>;
+  finalizeModuleIfComplete: (moduleId: string) => Promise<boolean>;
 }
 
 const ModuleProgressContext = createContext<
@@ -214,7 +217,7 @@ export const ModuleProgressProvider = ({
     );
 
     if (lastContent) {
-      setUnitContent(lastContent.id, lastContentList);
+      setUnitContent(lastUnitId, lastContentList);
       if (lastContent.content_type === 'quiz') {
         await openModal(lastContent.id);
       } else {
@@ -342,8 +345,51 @@ export const ModuleProgressProvider = ({
         unitId,
         status: 'COMPLETED',
       });
+      await finalizeModuleIfComplete(moduleId);
       setUnitProgress(updated);
       setUnitProgressStatus('completed');
+    }
+    return true;
+  }
+
+  async function finalizeModuleIfComplete(moduleId: string) {
+    // Fetch unit progress for the whole module
+    const unitProgresses = await getUnitProgressByModuleId(moduleId);
+
+    // Fetch units for the module (we already keep them in context; fall back to API if empty)
+    const list: Unit[] = units?.length
+      ? units
+      : await fetchUnitTitleByModuleId(moduleId);
+
+    // All units must exist and be COMPLETED
+    const byUnit = new Map(unitProgresses.map((u) => [u.unitId, u]));
+    const allCompleted =
+      list.length > 0 &&
+      list.every((u) => {
+        const up = byUnit.get(u.id);
+        return up && String(up.status).toUpperCase() === 'COMPLETED';
+      });
+    if (!allCompleted) return false;
+
+    // Patch module progress if not already completed
+    if (
+      !moduleProgress ||
+      moduleProgress.status?.toUpperCase() !== 'COMPLETED'
+    ) {
+      const progressId =
+        moduleProgress?.id ?? (await getModuleProgress(moduleId))?.id;
+      if (!progressId) return false;
+      const updated = await patchModuleProgress(progressId, {
+        status: 'COMPLETED',
+      });
+      setModuleProgress({
+        id: updated.id,
+        status: updated.status,
+        last_visited_unit_id: updated.lastVisitedUnit?.id || '',
+        last_visited_content_id: updated.lastVisitedContent?.id || '',
+        earned_points: updated.earnedPoints || 0,
+      });
+      setModuleProgressStatus('completed');
     }
     return true;
   }
@@ -373,6 +419,7 @@ export const ModuleProgressProvider = ({
         initFirstUnitAndContentProgress,
         continueFromLastVisited,
         finalizeUnitIfComplete,
+        finalizeModuleIfComplete,
       }}
     >
       {children}

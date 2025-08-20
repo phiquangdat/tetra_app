@@ -71,8 +71,10 @@ const UnitPage = ({ id }: UnitPageProps) => {
     setUnitId,
     setModuleId,
     unitProgressStatus,
+    setUnitProgress,
     setUnitProgressStatus,
     goToFirstContent,
+    continueFromLastVisited,
   } = useModuleProgress();
   const [checkedIndex, setCheckedIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -139,9 +141,12 @@ const UnitPage = ({ id }: UnitPageProps) => {
 
         try {
           const unitProgress = await getUnitProgress(id);
+
+          setUnitProgress(unitProgress);
           setUnitProgressStatus(unitProgress?.status.toLowerCase());
         } catch (getError) {
           if (getError instanceof Error && getError.message.includes('404')) {
+            setUnitProgress(null);
             setUnitProgressStatus('not_started');
           }
         }
@@ -178,6 +183,8 @@ const UnitPage = ({ id }: UnitPageProps) => {
           unitDetails.id,
           unitDetails.moduleId,
         );
+
+        setUnitProgress(response);
         setUnitProgressStatus(response.status.toLowerCase());
         console.log('[createUnitProgress] Unit progress created:', response);
         await goToFirstContent();
@@ -185,6 +192,15 @@ const UnitPage = ({ id }: UnitPageProps) => {
     } catch (err) {
       console.error('Error starting unit:', err);
       setError('Cannot start unit.');
+    }
+  };
+
+  const handleContinue = async () => {
+    try {
+      await continueFromLastVisited();
+    } catch (err) {
+      console.error('Error continuing from UnitPage:', err);
+      setError('Cannot continue unit.');
     }
   };
 
@@ -208,6 +224,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
           <button
             className="bg-secondary text-white font-semibold px-14 py-3 rounded-full text-lg shadow-md hover:bg-secondaryHover focus:outline-none focus:ring-2 focus:ring-surface transition w-fit"
             type="button"
+            onClick={handleContinue}
           >
             Continue
           </button>
@@ -296,11 +313,18 @@ const UnitPage = ({ id }: UnitPageProps) => {
                       e.stopPropagation();
                       openModal(content.id);
                     }}
-                    className="px-4 py-2 bg-[#FFA726] hover:bg-[#FFB74D] text-black font-semibold rounded-full transition-colors duration-200 text-sm whitespace-nowrap"
+                    className={`px-4 py-2 font-semibold rounded-full transition-colors duration-200 text-sm whitespace-nowrap ${
+                      content.status === 'COMPLETED'
+                        ? 'bg-surface hover:bg-secondaryHover text-white'
+                        : 'bg-accent hover:bg-[#FFB74D] text-black'
+                    }`}
                   >
-                    Start challenge
+                    {content.status === 'COMPLETED'
+                      ? 'Review quiz'
+                      : 'Start challenge'}
                   </button>
                 )}
+
                 {checkedIndex === index ? <CheckIcon /> : ''}
                 {content.status?.toLowerCase() === 'completed' && (
                   <div className="flex items-center gap-2">
@@ -308,7 +332,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
                       <CheckIcon width={14} height={14} color="white" />
                     </div>
                     {content.points > 0 && (
-                      <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold border border-green-200">
+                      <div className="min-w-[70px] flex justify-center items-center gap-1 px-2 py-1.5 bg-emerald-600 text-white rounded-full text-xs font-semibold">
                         {content.points} pts
                       </div>
                     )}

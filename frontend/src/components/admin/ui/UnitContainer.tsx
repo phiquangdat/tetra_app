@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
 import UnitItem from './UnitItem.tsx';
 import UnitForm from './UnitForm.tsx';
@@ -6,6 +6,10 @@ import AddContentDropdown from '../createModule/AddContentDropdown.tsx';
 import AddArticleModal from '../createModule/AddArticleModal.tsx';
 import AddVideoModal from '../createModule/AddVideoModal.tsx';
 import AddQuizModal from '../createModule/AddQuizModal.tsx';
+import {
+  useOutsideClick,
+  type UseOutsideClickParams,
+} from '../../../hooks/useOutsideClick.ts';
 
 interface UnitContainerProps {
   unitNumber: number;
@@ -24,6 +28,8 @@ const UnitContainer: React.FC<UnitContainerProps> = ({
     useUnitContext();
   const unitState = getUnitState(unitNumber);
   const unitId = unitState?.id ?? '';
+
+  const editContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Set editing state on initial mount only if undefined
   useEffect(() => {
@@ -50,6 +56,25 @@ const UnitContainer: React.FC<UnitContainerProps> = ({
 
   const isEditing = unitState?.isEditing;
 
+  const exitEditMode = useCallback(() => {
+    if (isEditing) setIsEditing(unitNumber, false);
+  }, [isEditing, setIsEditing, unitNumber]);
+
+  const outsideClickParams: UseOutsideClickParams = {
+    getElement: () => editContainerRef.current,
+    onOutside: exitEditMode,
+    options: {
+      eventType: 'pointerdown',
+      enabled: !!isEditing && !!unitState?.id,
+      ignore: (target) =>
+        !!(target as HTMLElement | null)?.closest?.(
+          '[role="dialog"], [data-portal-root], [data-ignore-outside="true"]',
+        ),
+    },
+  };
+
+  useOutsideClick(outsideClickParams);
+
   // Content‐block modal flags
   const [showArticleModal, setShowArticleModal] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -66,10 +91,12 @@ const UnitContainer: React.FC<UnitContainerProps> = ({
         onToggle={onToggle}
         isEditing={isEditing}
         renderEdit={
-          <UnitForm
-            unitNumber={unitNumber}
-            onSaved={() => setIsEditing(unitNumber, false)}
-          />
+          <div ref={editContainerRef}>
+            <UnitForm
+              unitNumber={unitNumber}
+              onSaved={() => setIsEditing(unitNumber, false)}
+            />
+          </div>
         }
         onEdit={() => setIsEditing(unitNumber, true)}
         addContentComponent={

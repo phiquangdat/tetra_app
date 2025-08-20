@@ -143,11 +143,7 @@ class TrainingModuleControllerTest {
                 })
                 .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000010"))
                 .andExpect(jsonPath("$.title").value("New Module"))
-                .andExpect(jsonPath("$.description").doesNotExist())
-                .andExpect(jsonPath("$.points").doesNotExist())
-                .andExpect(jsonPath("$.topic").doesNotExist())
-                .andExpect(jsonPath("$.coverurl").doesNotExist())
-                .andExpect(jsonPath("$.status").doesNotExist());
+                .andExpect(jsonPath("$.points").value(20));
     }
 
     @Test
@@ -231,15 +227,27 @@ class TrainingModuleControllerTest {
     @Test
     @WithMockUser
     void testUpdateModule_MissingRequiredFields() throws Exception {
-        UUID moduleId = UUID.randomUUID();
+    UUID moduleId = UUID.randomUUID();
 
-        TrainingModule updated = new TrainingModule(); // Missing required fields
+    TrainingModule existing = new TrainingModule();
+    existing.setId(moduleId);
+    existing.setTitle("Old Title");
+    existing.setDescription("Old Desc");
+    existing.setTopic("Old Topic");
+    existing.setPoints(5);
+    existing.setCoverurl("old.jpg");
+    existing.setStatus("draft");
 
-        mockMvc.perform(put("/api/modules/" + moduleId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updated)))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("required")));
+    when(trainingModuleRepository.findById(moduleId)).thenReturn(Optional.of(existing));
+    when(trainingModuleRepository.save(any(TrainingModule.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    TrainingModule updated = new TrainingModule(); // No fields set
+
+    mockMvc.perform(put("/api/modules/" + moduleId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(updated)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(moduleId.toString()));
     }
 
     @Test

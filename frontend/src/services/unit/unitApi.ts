@@ -26,6 +26,7 @@ export interface Video {
   title: string;
   content: string;
   url: string;
+  points: number;
 }
 
 export interface Article {

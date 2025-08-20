@@ -9,6 +9,7 @@ import {
   getContentProgress,
   createContentProgress,
   updateContentProgress,
+  patchModuleProgress,
   type ContentProgress,
 } from '../../../services/userProgress/userProgressApi';
 import { CheckIcon } from '../../common/Icons';
@@ -23,6 +24,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
   const [contentProgress, setContentProgress] = useState<ContentProgress>();
+  const { goToNextContent, isNextContent, moduleProgress, setModuleProgress } =
+    useModuleProgress();
 
   const calculateScrollPercent = useCallback(() => {
     const scrollTop = window.scrollY;
@@ -37,18 +40,20 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
   }, []);
 
   const handleScroll = useCallback(async () => {
+    if (
+      !contentProgress ||
+      contentProgress.status === 'COMPLETED' ||
+      !moduleProgress ||
+      !article
+    )
+      return;
     const percent = calculateScrollPercent();
 
-    if (
-      percent >= 90 &&
-      contentProgress?.id &&
-      article?.points !== undefined &&
-      contentProgress.status !== 'COMPLETED'
-    ) {
+    if (percent >= 90) {
       try {
         const response = await updateContentProgress(contentProgress.id, {
           status: 'COMPLETED',
-          points: article.points,
+          points: article.points || 0,
         });
         setContentProgress((prev) =>
           prev
@@ -58,6 +63,26 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
         console.log('[updateContentProgress]', response);
       } catch (error) {
         console.error('Error updating progress:', error);
+      }
+      try {
+        const response = await patchModuleProgress(moduleProgress.id, {
+          earnedPoints: moduleProgress.earned_points + article.points || 0,
+        });
+        const progressArg = {
+          id: response.id,
+          status: response.status,
+          last_visited_unit_id: response.lastVisitedUnit.id || '',
+          last_visited_content_id: response.lastVisitedContent.id || '',
+          earned_points: response.earnedPoints || 0,
+        };
+
+        console.log('[patchModuleProgress], Update Total Points: ', response);
+        setModuleProgress(progressArg);
+      } catch (error) {
+        console.error(
+          '[patchModuleProgress] Failed to increment module points',
+          error,
+        );
       }
     }
   }, [calculateScrollPercent, contentProgress, article?.points]);
@@ -72,6 +97,34 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
         console.log('[getContentProgress]', progress);
 
         setContentProgress(progress);
+
+        if (
+          (moduleProgress?.last_visited_unit_id !== unitIdFromState ||
+            moduleProgress?.last_visited_content_id !== id) &&
+          progress.status !== 'COMPLETED'
+        ) {
+          try {
+            const response = await patchModuleProgress(
+              moduleProgress?.id as string,
+              {
+                lastVisitedUnit: unitIdFromState,
+                lastVisitedContent: id,
+              },
+            );
+            const progressArg = {
+              id: response.id,
+              status: response.status,
+              last_visited_unit_id: response.lastVisitedUnit.id || '',
+              last_visited_content_id: response.lastVisitedContent.id || '',
+              earned_points: response.earnedPoints || 0,
+            };
+
+            console.log('[patchModuleProgress], Update IDs:', response);
+            setModuleProgress(progressArg);
+          } catch (error) {
+            console.error('[patchModuleProgress]', error);
+          }
+        }
       } catch (error) {
         if (error instanceof Error && error.message.includes('404')) {
           const progress = await createContentProgress({
@@ -102,8 +155,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, [handleScroll]);
-
-  const { goToNextContent, isNextContent } = useModuleProgress();
 
   return (
     <div className="mx-auto px-8 py-8 min-h-screen text-left">

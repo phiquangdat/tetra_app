@@ -38,9 +38,9 @@ describe('QuestionOption', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders label A. for answerIndex 0', () => {
+  it('renders label A for answerIndex 0', () => {
     renderWithProviders(<QuestionOption questionIndex={0} answerIndex={0} />);
-    expect(screen.getByText('A.')).toBeInTheDocument();
+    expect(screen.getByText('A')).toBeInTheDocument();
   });
 
   it('updates answer text when user types', async () => {
@@ -61,7 +61,7 @@ describe('QuestionOption', () => {
     const correctBtn = screen.getByTitle('Mark as Correct');
     await user.click(correctBtn);
 
-    expect(correctBtn).toHaveClass('bg-green-100');
+    expect(correctBtn).toHaveClass('bg-success');
   });
 
   it('applies incorrect styling when marked incorrect', async () => {
@@ -71,13 +71,18 @@ describe('QuestionOption', () => {
     const incorrectBtn = screen.getByTitle('Mark as Incorrect');
     await user.click(incorrectBtn);
 
-    expect(incorrectBtn).toHaveClass('bg-red-100');
+    expect(incorrectBtn).toHaveClass('bg-error');
   });
 
   it('has proper input styling', () => {
     renderWithProviders(<QuestionOption questionIndex={0} answerIndex={0} />);
     const input = screen.getByPlaceholderText('Answer text');
-    expect(input).toHaveClass('w-full', 'h-8', 'bg-white', 'p-1');
+    expect(input).toHaveClass(
+      'flex-1',
+      'h-12',
+      'px-4',
+      'placeholder:text-surface/50',
+    );
   });
 
   it('renders all three buttons (reorder, correct, incorrect)', () => {

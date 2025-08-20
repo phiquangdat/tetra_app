@@ -5,6 +5,7 @@ const BASE_URL =
 import { fetchWithAuth } from '../../utils/authHelpers';
 
 export interface ModuleProgress {
+  id: string;
   status: string;
   last_visited_unit_id: string;
   last_visited_content_id: string;
@@ -31,6 +32,13 @@ export interface ContentProgress {
 export interface CreateModuleProgressRequest {
   lastVisitedContent?: string;
   lastVisitedUnit?: string;
+}
+
+export interface PatchModuleProgressRequest {
+  lastVisitedContent?: string;
+  lastVisitedUnit?: string;
+  status?: string;
+  earnedPoints?: number;
 }
 
 export type CreateContentProgressRequest = Omit<
@@ -66,9 +74,39 @@ export async function createModuleProgress(
   }
 }
 
+export async function patchModuleProgress(
+  id: string,
+  data: PatchModuleProgressRequest,
+): Promise<any> {
+  try {
+    return await fetchWithAuth(`${BASE_URL}/user-module-progress/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to patch module progress');
+  }
+}
+
 export async function getUnitProgress(unitId: string): Promise<UnitProgress> {
   try {
     return await fetchWithAuth(`${BASE_URL}/user-unit-progress/${unitId}`);
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to get unit progress');
+  }
+}
+
+export async function getUnitProgressByModuleId(
+  moduleId: string,
+): Promise<UnitProgress[]> {
+  try {
+    return await fetchWithAuth(
+      `${BASE_URL}/user-unit-progress?moduleId=${moduleId}`,
+    );
   } catch (error) {
     throw error instanceof Error
       ? error
@@ -89,6 +127,26 @@ export async function createUnitProgress(
     throw error instanceof Error
       ? error
       : new Error('Failed to create unit progress');
+  }
+}
+
+export async function updateUnitProgress(
+  id: string,
+  data: {
+    unitId?: string;
+    moduleId?: string;
+    status?: 'IN_PROGRESS' | 'COMPLETED';
+  },
+): Promise<UnitProgress> {
+  try {
+    return await fetchWithAuth(`${BASE_URL}/user-unit-progress/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ ...data }),
+    });
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to update unit progress');
   }
 }
 

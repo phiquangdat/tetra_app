@@ -84,12 +84,14 @@ public class UserModuleProgressControllerTestGet {
 
     @Test
     void returns200AndProgressDataOnSuccess() throws Exception {
+        UUID id = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         UUID moduleId = UUID.randomUUID();
         UUID unitId = UUID.randomUUID();
         UUID contentId = UUID.randomUUID();
 
         UserModuleProgress progress = new UserModuleProgress();
+        progress.setId(id);
         progress.setStatus(ProgressStatus.IN_PROGRESS);
         progress.setEarnedPoints(42);
 
@@ -109,6 +111,7 @@ public class UserModuleProgressControllerTestGet {
                 .header("Authorization", "Bearer sometoken"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(id.toString()))
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"))
                 .andExpect(jsonPath("$.last_visited_unit_id").value(unitId.toString()))
                 .andExpect(jsonPath("$.last_visited_content_id").value(contentId.toString()))

@@ -1,31 +1,20 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import { useUnitContent } from '../../../context/user/UnitContentContext.tsx';
 import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
 import { CircularProgressIcon } from '../../common/Icons';
-
-const mockedQuestions = [
-  {
-    id: 1,
-    question: 'Is GDPR applicable to companies outside the EU?',
-    options: ['Yes', 'No'],
-    userAnswer: 'Yes',
-    correctAnswer: 'Yes',
-  },
-  {
-    id: 2,
-    question: 'Which of these is a data subject right?',
-    options: [
-      'Right to work',
-      'Right to erasure',
-      'Right to relocate',
-      'Right to compensation',
-    ],
-    userAnswer: 'Right to relocate',
-    correctAnswer: 'Right to erasure',
-  },
-];
+import {
+  fetchQuizById,
+  fetchQuizQuestionsByQuizId,
+  type Question,
+} from '../../../services/quiz/quizApi';
+import { useQuiz } from '../../../context/user/QuizContext';
+import { calculateQuizResults } from '../../../utils/quizResults';
+import {
+  getContentProgress,
+  updateContentProgress,
+} from '../../../services/userProgress/userProgressApi';
 
 const QuizSummaryPage: React.FC = () => {
   const { goToNextContent, isNextContent } = useModuleProgress();
@@ -33,15 +22,122 @@ const QuizSummaryPage: React.FC = () => {
   const { unitId } = useUnitContent();
   const navigate = useNavigate();
 
-  console.log('Quiz ID is ', quizId);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [quizTitle, setQuizTitle] = useState<string>('Quiz Summary');
+  const [totalPoints, setTotalPoints] = useState<number>(0);
 
-  const correctAnswers = mockedQuestions.filter(
-    (q) => q.userAnswer === q.correctAnswer,
-  ).length;
-  const incorrectAnswers = mockedQuestions.length - correctAnswers;
-  const percentage = Math.round(
-    (correctAnswers / mockedQuestions.length) * 100,
+  const [contentProgressId, setContentProgressId] = useState<string | null>(
+    null,
   );
+  const [contentProgressStatus, setContentProgressStatus] = useState<
+    string | null
+  >(null);
+  const [contentProgressPoints, setContentProgressPoints] = useState<
+    number | null
+  >(null);
+
+  const { userAnswers } = useQuiz();
+
+  useEffect(() => {
+    if (!quizId) {
+      setLoadError('Missing quiz id');
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      setLoading(true);
+      setLoadError(null);
+
+      try {
+        const quiz = await fetchQuizById(quizId);
+        if (!cancelled) {
+          setQuizTitle(quiz.title);
+          setTotalPoints(quiz.points);
+        }
+
+        const qs = await fetchQuizQuestionsByQuizId(quizId, true);
+        if (!cancelled) {
+          setQuestions(qs);
+          console.log('[QuizSummaryPage] fetchedQuestions:', qs);
+        }
+
+        try {
+          const cp = await getContentProgress(quizId);
+          if (!cancelled) {
+            setContentProgressId(cp.id);
+            setContentProgressStatus(cp.status);
+            setContentProgressPoints(cp.points ?? 0);
+          }
+        } catch (e: any) {
+          if (!String(e?.message ?? '').includes('404')) {
+            console.warn('[QuizSummary] getContentProgress failed:', e);
+          }
+        }
+      } catch (e: any) {
+        console.error('[QuizSummary] load failed:', e);
+        setLoadError(e?.message ?? 'Failed to load quiz summary data');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [quizId]);
+
+  const { correct, incorrect, percentage, pointsEarned } = useMemo(() => {
+    return calculateQuizResults(questions, userAnswers, totalPoints);
+  }, [questions, userAnswers, totalPoints]);
+
+  useEffect(() => {
+    if (!quizId) return;
+    if (!contentProgressId) return; // No progress record id -> skip
+    if (questions.length === 0) return; // Nothing to finalize
+
+    const alreadyCompleted =
+      String(contentProgressStatus || '').toUpperCase() === 'COMPLETED';
+    const samePoints = (contentProgressPoints ?? 0) === pointsEarned;
+
+    if (alreadyCompleted && samePoints) return;
+
+    (async () => {
+      try {
+        await updateContentProgress(contentProgressId, {
+          status: 'COMPLETED',
+          points: pointsEarned,
+        });
+        setContentProgressStatus('COMPLETED');
+        setContentProgressPoints(pointsEarned);
+      } catch (e) {
+        console.error('[QuizSummary] updateContentProgress failed:', e);
+      }
+    })();
+  }, [
+    quizId,
+    contentProgressId,
+    contentProgressStatus,
+    contentProgressPoints,
+    questions.length,
+    pointsEarned,
+  ]);
+
+  const summaryHeadline =
+    percentage >= 90
+      ? 'Outstanding! You nailed it.'
+      : percentage >= 70
+        ? "Well done! Here's how you did."
+        : percentage >= 50
+          ? 'Good effort! You covered quite a bit.'
+          : 'Don’t worry! Learning takes time.';
+
+  const correctAnswers = correct;
+  const incorrectAnswers = incorrect;
 
   return (
     <div className="bg-white min-h-screen py-8 px-6">
@@ -55,15 +151,22 @@ const QuizSummaryPage: React.FC = () => {
         </a>
       </div>
 
+      {loading && (
+        <div className="text-center text-sm text-gray-500 mb-4">
+          Loading quiz data…
+        </div>
+      )}
+      {loadError && (
+        <div className="text-center text-sm text-red-600 mb-4">{loadError}</div>
+      )}
+
       <h1 className="text-2xl font-semibold text-center text-primary mb-1">
         Quiz Summary
       </h1>
       <h2 className="text-4xl font-extrabold text-center text-surface mb-3">
-        Key concepts of data protection
+        {quizTitle}
       </h2>
-      <p className="text-center text-gray-700 mb-10">
-        Well done! Here's how you did!
-      </p>
+      <p className="text-center text-gray-700 mb-10">{summaryHeadline}</p>
 
       <div className="flex flex-col md:flex-row items-center justify-center gap-12 mb-12">
         {/* Circular progress bar */}
@@ -87,70 +190,76 @@ const QuizSummaryPage: React.FC = () => {
             </div>
           </div>
           <div className="bg-accent text-white font-bold px-4 py-1 rounded-full text-center">
-            +12 px
+            +{pointsEarned} px
           </div>
         </div>
       </div>
 
       {/* Questions list */}
       <div className="space-y-6 mb-12">
-        {mockedQuestions.map((q, index) => (
-          <div
-            key={q.id}
-            className="bg-[#F5F3F7] border border-gray-300 p-6 rounded-2xl shadow-sm"
-          >
-            <h3 className="font-semibold text-primary mb-4">
-              Question {index + 1}: {q.question}
-            </h3>
-            <ul className="space-y-2">
-              {q.options.map((opt) => {
-                const isCorrect = opt === q.correctAnswer;
-                const isUserAnswer = opt === q.userAnswer;
-                const isIncorrect = isUserAnswer && !isCorrect;
-                const isCorrectAndNotChosen = isCorrect && !isUserAnswer;
+        {questions.map((q, index) => {
+          const userAnswerId = userAnswers.find(
+            (a) => a.questionId === q.id,
+          )?.answerId;
 
-                let icon = null;
-                if (isUserAnswer) {
-                  icon = isCorrect ? (
-                    <CheckCircleIcon className="w-5 h-5 text-success ml-2" />
-                  ) : (
-                    <XCircleIcon className="w-5 h-5 text-error ml-2" />
+          return (
+            <div
+              key={q.id}
+              className="bg-[#F5F3F7] border border-gray-300 p-6 rounded-2xl shadow-sm"
+            >
+              <h3 className="font-semibold text-primary mb-4">
+                Question {index + 1}: {q.title}
+              </h3>
+              <ul className="space-y-2">
+                {q.answers.map((ans) => {
+                  const isCorrect = ans.is_correct === true;
+                  const isUserAnswer = ans.id === userAnswerId;
+                  const isIncorrect = isUserAnswer && !isCorrect;
+                  const isCorrectAndNotChosen = isCorrect && !isUserAnswer;
+
+                  let icon = null;
+                  if (isUserAnswer) {
+                    icon = isCorrect ? (
+                      <CheckCircleIcon className="w-5 h-5 text-success ml-2" />
+                    ) : (
+                      <XCircleIcon className="w-5 h-5 text-error ml-2" />
+                    );
+                  }
+
+                  let bgClass = '';
+                  let textClass = '';
+                  let borderClass = 'border';
+
+                  if (isUserAnswer && isIncorrect) {
+                    bgClass = 'bg-red-100';
+                    textClass = 'text-error';
+                    borderClass += ' border-2 border-dashed border-[#7E6BBE]';
+                  } else if (isUserAnswer && isCorrect) {
+                    bgClass = 'bg-green-100';
+                    textClass = 'text-success';
+                    borderClass += ' border-2 border-dashed border-[#7E6BBE]';
+                  } else if (isCorrectAndNotChosen) {
+                    bgClass = 'bg-green-100';
+                    textClass = 'text-success';
+                    borderClass += ' border border-success';
+                  } else {
+                    borderClass += ' border border-gray-300';
+                  }
+
+                  return (
+                    <li
+                      key={ans.id}
+                      className={`flex items-center justify-between px-4 py-2 rounded-lg ${borderClass} ${bgClass} ${textClass}`}
+                    >
+                      {ans.title}
+                      {icon}
+                    </li>
                   );
-                }
-
-                let bgClass = '';
-                let textClass = '';
-                let borderClass = 'border';
-
-                if (isUserAnswer && isIncorrect) {
-                  bgClass = 'bg-red-100';
-                  textClass = 'text-error';
-                  borderClass += ' border-2 border-dashed border-[#7E6BBE]';
-                } else if (isUserAnswer && isCorrect) {
-                  bgClass = 'bg-green-100';
-                  textClass = 'text-success';
-                  borderClass += ' border-2 border-dashed border-[#7E6BBE]';
-                } else if (isCorrectAndNotChosen) {
-                  bgClass = 'bg-green-100';
-                  textClass = 'text-success';
-                  borderClass += ' border border-success';
-                } else {
-                  borderClass += ' border border-gray-300';
-                }
-
-                return (
-                  <li
-                    key={opt}
-                    className={`flex items-center justify-between px-4 py-2 rounded-lg ${borderClass} ${bgClass} ${textClass}`}
-                  >
-                    {opt}
-                    {icon}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
+                })}
+              </ul>
+            </div>
+          );
+        })}
       </div>
 
       <div className="flex justify-end">

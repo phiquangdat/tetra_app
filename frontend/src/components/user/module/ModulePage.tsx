@@ -6,12 +6,15 @@ import {
 import { fetchUnitTitleByModuleId } from '../../../services/unit/unitApi';
 import {
   getModuleProgress,
+  getUnitProgressByModuleId,
   createModuleProgress,
-  type ModuleProgress,
+  type UnitProgress,
 } from '../../../services/userProgress/userProgressApi';
 import Syllabus from './syllabus/Syllabus';
 import { useNavigate } from 'react-router-dom';
 import { OpenBooksIcon, PuzzleIcon, StarIcon } from '../../common/Icons';
+import toast from 'react-hot-toast';
+
 interface ModulePageProps {
   id: string;
 }
@@ -25,6 +28,7 @@ export type Unit = {
     type: 'video' | 'article' | 'quiz';
     title: string;
   }[];
+  hasProgress?: boolean;
 };
 
 type ProgressStatus = 'not_started' | 'in_progress' | 'completed';
@@ -33,15 +37,17 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   const {
     setModuleId,
     setUnits: setModuleUnits,
+    moduleProgress,
+    setModuleProgress,
     moduleProgressStatus,
     setModuleProgressStatus,
     goToStart,
-    goToLastVisited,
+    continueFromLastVisited,
     initFirstUnitAndContentProgress,
   } = useModuleProgress();
   const { setUnitContent } = useUnitContent();
   const [module, setModule] = useState<Module | null>(null);
-  const [moduleProgress, setModuleProgress] = useState<ModuleProgress | null>(
+  const [_unitsProgress, setUnitsProgress] = useState<UnitProgress[] | null>(
     null,
   );
   const [units, setUnits] = useState<Unit[]>([]);
@@ -83,6 +89,37 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
           if (err instanceof Error && err.message.includes('404')) {
             setModuleProgress(null);
             setModuleProgressStatus('not_started');
+          } else {
+            throw err;
+          }
+        }
+
+        try {
+          const progress = await getUnitProgressByModuleId(id);
+
+          setUnitsProgress(progress);
+          console.log('[getUnitProgressByModuleId]', progress);
+
+          const unitIdsWithProgress = new Set(progress.map((p) => p.unitId));
+
+          const updatedUnits = units.map((u: Unit) => ({
+            ...u,
+            hasProgress: unitIdsWithProgress.has(u.id), //Set to true if the returned progress list has current unit ID
+          }));
+          setUnits(updatedUnits);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message.toLowerCase() : '';
+          const onlyFirstClickable = units.map((u: Unit, i: number) => ({
+            ...u,
+            hasProgress: i === 0, //Set clickable to first item
+          }));
+
+          if (msg.includes('404')) {
+            setUnits(onlyFirstClickable);
+          } else if (msg.includes('401') || msg.includes('network')) {
+            console.warn('Failed to fetch unit progress:', err);
+            toast.error('Try login again.');
+            setUnits(onlyFirstClickable);
           } else {
             throw err;
           }
@@ -133,6 +170,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
       });
 
       const progress = {
+        id: response.id,
         status: response.status,
         last_visited_unit_id: response.lastVisitedUnit.id || '',
         last_visited_content_id: response.lastVisitedContent.id || '',
@@ -155,21 +193,10 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   const handleContinue = async () => {
     try {
       if (isContinuing) return;
-      if (
-        moduleProgress?.last_visited_content_id &&
-        moduleProgress?.last_visited_unit_id
-      ) {
-        setIsContinuing(true);
-        setVisibleStatus(null);
-        await goToLastVisited(
-          moduleProgress.last_visited_unit_id,
-          moduleProgress.last_visited_content_id,
-        );
-      } else {
-        throw new Error(
-          'Cannot continue module: last visited content or unit id not provided.',
-        );
-      }
+      setIsContinuing(true);
+      setVisibleStatus(null);
+
+      await continueFromLastVisited();
     } catch (err) {
       err instanceof Error
         ? console.error(err.message)

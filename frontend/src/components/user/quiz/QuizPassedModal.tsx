@@ -1,65 +1,93 @@
-import { QuestionIcon, CheckAltIcon, StarIcon } from '../../common/Icons';
+import { useQuizModal } from '../../../context/user/QuizModalContext';
+import { useEffect, useState } from 'react';
+import { fetchQuizById, type Quiz } from '../../../services/quiz/quizApi';
+import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
+import { getContentProgress } from '../../../services/userProgress/userProgressApi';
+import { CheckIcon, X } from 'lucide-react';
 
-const QuizPassedModal = ({ onNext }: { onNext: () => void }) => {
-  const quiz = {
-    title: 'Key concepts of data protection',
-    questions: 5,
-    points: 20,
-    completedDate: 'May 28',
-    score: 3,
-    pointsEarned: 12,
-  };
+const QuizPassedModal = () => {
+  const { isOpen, type, quizId, closeModal } = useQuizModal();
+  const { goToNextContent } = useModuleProgress();
+  const [quiz, setQuiz] = useState<Quiz | null>(null);
+  const [points, setPoints] = useState<number | null>(null);
+  const isVisible = isOpen && type === 'passed' && !!quizId;
+
+  useEffect(() => {
+    if (!isVisible || !quizId) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const [q, progress] = await Promise.all([
+          fetchQuizById(quizId),
+          getContentProgress(quizId).catch((e: Error) => {
+            if (e.message.includes('404')) return null;
+            throw e;
+          }),
+        ]);
+        if (!cancelled) {
+          setQuiz(q);
+          setPoints(progress?.points ?? null);
+        }
+      } catch (e) {
+        console.error('[QuizPassedModal] load failed:', e);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isVisible, quizId]);
+
+  if (!isOpen || type !== 'passed' || !quizId) return null;
 
   return (
-    <div className="mx-auto px-8 py-8 min-h-screen text-left">
-      <div className="mb-6">
-        <a
-          href="/unit"
-          className="inline-flex items-center text-gray-500 hover:text-black px-3 py-1 rounded-lg hover:bg-gray-100 hover:border hover:border-gray-300 active:bg-gray-200 transition-all"
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/30">
+      <div className="relative bg-background rounded-3xl p-8 md:p-12 shadow-2xl w-full max-w-2xl mx-4 flex flex-col items-center">
+        <button
+          onClick={closeModal}
+          className="absolute top-4 right-4 p-2 text-primary hover:text-secondaryHover transition"
+          aria-label="Close"
         >
-          <span className="mr-2 text-xl">←</span>
-          Back to Unit
-        </a>
-      </div>
+          <X size={20} />
+        </button>
 
-      <div className="flex flex-1 items-center justify-center">
-        <div className="bg-gray-100 rounded-2xl p-12 shadow-md w-full max-w-2xl flex flex-col items-center">
-          <h2 className="text-4xl font-extrabold mb-6 text-center text-black">
-            {quiz.title}
-          </h2>
-          <div className="flex flex-row gap-10 mb-6 items-center justify-center">
-            <div className="flex items-center gap-2 text-lg text-gray-700">
-              <span className="inline-flex items-center justify-center">
-                <QuestionIcon />
-              </span>
-              {quiz.questions} questions
-            </div>
-            <div className="flex items-center gap-2 text-lg text-gray-700">
-              <span className="inline-flex items-center justify-center">
-                <StarIcon />
-              </span>
-              {quiz.points} points
-            </div>
+        <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center shadow-sm mb-5">
+          <CheckIcon width={20} height={20} color="white" />
+        </div>
+
+        <h2 className="text-3xl md:text-4xl font-extrabold text-center text-primary mb-2">
+          {quiz?.title ?? 'Quiz completed'}
+        </h2>
+
+        {typeof points === 'number' && points > 0 && (
+          <div className="mt-2 mb-4">
+            <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold border border-green-200">
+              {points} pts
+            </span>
           </div>
-          <div className="rounded-xl p-6 mb-8 w-full max-w-md flex flex-col justify-center">
-            <div className="flex items-center mb-2">
-              <span className="mr-2">
-                <CheckAltIcon />
-              </span>
-              <span className="text-lg">
-                You completed this quiz on {quiz.completedDate}
-              </span>
-            </div>
-            <div className="text-lg mb-2">
-              <span>Score:</span> {quiz.score}/{quiz.questions}
-            </div>
-            <div className="text-lg mb-2">
-              <span>Points earned:</span> {quiz.pointsEarned}/{quiz.points}
-            </div>
-          </div>
+        )}
+
+        <p className="text-primary/80 text-center mb-8">
+          You’ve already completed this quiz. Feel free to proceed.
+        </p>
+
+        {/* Divider for structure */}
+        <div className="w-full h-px bg-highlight/40 mb-8" />
+
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
           <button
-            className="bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-3 px-10 rounded-full text-lg transition-all"
-            onClick={onNext}
+            onClick={closeModal}
+            className="bg-cardBackground hover:bg-highlight text-primary px-6 py-3 rounded-full text-base transition-all border border-highlight"
+          >
+            ← Back
+          </button>
+          <button
+            className="bg-surface hover:bg-surfaceHover text-background font-semibold px-6 py-3 rounded-full text-base transition-all"
+            onClick={() => {
+              closeModal();
+              goToNextContent(quizId);
+            }}
           >
             Go to Next block
           </button>

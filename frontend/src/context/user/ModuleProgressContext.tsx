@@ -11,6 +11,10 @@ import { useUnitCompletionModal } from './UnitCompletionModalContext';
 import {
   createContentProgress,
   createUnitProgress,
+  updateUnitProgress,
+  type UnitProgress,
+  type ModuleProgress,
+  getModuleProgress,
 } from '../../services/userProgress/userProgressApi.tsx';
 
 interface Unit {
@@ -28,8 +32,12 @@ interface ModuleProgressContextProps {
   setUnitId: (id: string) => void;
   moduleId: string;
   setModuleId: (id: string) => void;
+  moduleProgress: ModuleProgress | null;
+  setModuleProgress: (module: ModuleProgress | null) => void;
   moduleProgressStatus: string;
   setModuleProgressStatus: (status: string) => void;
+  unitProgress: UnitProgress | null;
+  setUnitProgress: (unitProgress: UnitProgress | null) => void;
   unitProgressStatus: string;
   setUnitProgressStatus: (status: string) => void;
   goToStart: (preloadedData?: {
@@ -42,6 +50,7 @@ interface ModuleProgressContextProps {
     unitId: string;
     contents: UnitContent[];
   } | null>;
+  continueFromLastVisited: () => Promise<void>;
 }
 
 const ModuleProgressContext = createContext<
@@ -68,8 +77,12 @@ export const ModuleProgressProvider = ({
   const [units, setUnitsState] = useState<Unit[]>([]);
   const [unitId, setUnitId] = useState<string>('');
   const [moduleId, setModuleId] = useState<string>('');
+  const [moduleProgress, setModuleProgress] = useState<ModuleProgress | null>(
+    null,
+  );
   const [moduleProgressStatus, setModuleProgressStatus] =
     useState<string>('not_started');
+  const [unitProgress, setUnitProgress] = useState<UnitProgress | null>(null);
   const [unitProgressStatus, setUnitProgressStatus] =
     useState<string>('not_started');
   const navigate = useNavigate();
@@ -78,7 +91,7 @@ export const ModuleProgressProvider = ({
     setUnitsState(units);
   };
 
-  const goToNextContent = (currentContentId: string) => {
+  const goToNextContent = async (currentContentId: string) => {
     const currentUnitIndex = units.findIndex((u) => u.id === unitId);
     if (currentUnitIndex === -1) return;
 
@@ -90,7 +103,7 @@ export const ModuleProgressProvider = ({
     if (nextContent) {
       // CASE 1: next content in current unit
       if (nextContent.content_type === 'quiz') {
-        openModal(nextContent.id); // Show quiz modal (don't navigate)
+        await openModal(nextContent.id); // Show quiz modal (don't navigate)
       } else {
         navigate(`/user/${nextContent.content_type}/${nextContent.id}`, {
           state: { unitId },
@@ -103,6 +116,27 @@ export const ModuleProgressProvider = ({
     const nextUnit = units[currentUnitIndex + 1];
     if (nextUnit) {
       openUnitCompletionModal(nextUnit.id, moduleId);
+
+      async function updateProgress() {
+        try {
+          const response = await updateUnitProgress(
+            unitProgress?.id as string,
+            {
+              moduleId,
+              unitId,
+              status: 'COMPLETED',
+            },
+          );
+          setUnitProgress(response);
+          setUnitProgressStatus('completed');
+
+          console.log('[updateUnitProgress]', response);
+        } catch (error) {
+          console.error('Error updating unit progress:', error);
+        }
+      }
+
+      updateProgress();
     } else {
       navigate(`/user/modules/${moduleId}`);
     }
@@ -156,9 +190,13 @@ export const ModuleProgressProvider = ({
     setUnitId(startUnitId);
     setUnitContent(startUnitId, startContents);
 
-    navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
-      state: { unitId: startUnitId },
-    });
+    if (firstContent.content_type === 'quiz') {
+      await openModal(firstContent.id);
+    } else {
+      navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
+        state: { unitId: startUnitId },
+      });
+    }
   };
 
   const goToLastVisited = async (lastUnitId: string, lastContentId: string) => {
@@ -172,9 +210,13 @@ export const ModuleProgressProvider = ({
 
     if (lastContent) {
       setUnitContent(lastContent.id, lastContentList);
-      navigate(`/user/${lastContent.content_type}/${lastContentId}`, {
-        state: { unitId: lastUnitId },
-      });
+      if (lastContent.content_type === 'quiz') {
+        await openModal(lastContent.id);
+      } else {
+        navigate(`/user/${lastContent.content_type}/${lastContentId}`, {
+          state: { unitId: lastUnitId },
+        });
+      }
     } else {
       throw new Error('Last visited content not found.');
     }
@@ -185,9 +227,13 @@ export const ModuleProgressProvider = ({
     if (contentList && contentList.length > 0) {
       const firstContent = contentList[0];
       setUnitContent(unitId, contentList);
-      navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
-        state: { unitId },
-      });
+      if (firstContent.content_type == 'quiz') {
+        await openModal(firstContent.id);
+      } else {
+        navigate(`/user/${firstContent.content_type}/${firstContent.id}`, {
+          state: { unitId },
+        });
+      }
     } else {
       throw new Error('This unit has no content to start.');
     }
@@ -233,6 +279,39 @@ export const ModuleProgressProvider = ({
     return { unitId: firstUnitId, contents };
   };
 
+  const continueFromLastVisited = async (): Promise<void> => {
+    try {
+      if (!moduleId) {
+        console.warn('[continueFromLastVisited] No moduleId available');
+        return;
+      }
+
+      const progress = await getModuleProgress(moduleId);
+
+      if (!progress) {
+        console.warn('[continueFromLastVisited] No module progress found');
+        return;
+      }
+
+      setModuleProgress(progress);
+      setModuleProgressStatus(progress.status.toLowerCase());
+
+      const { last_visited_unit_id, last_visited_content_id } = progress;
+
+      if (!last_visited_unit_id || !last_visited_content_id) {
+        console.warn('[continueFromLastVisited] Missing last visited IDs:', {
+          unitId: last_visited_unit_id,
+          contentId: last_visited_content_id,
+        });
+        return;
+      }
+
+      await goToLastVisited(last_visited_unit_id, last_visited_content_id);
+    } catch (error) {
+      console.error('[continueFromLastVisited] Error:', error);
+    }
+  };
+
   return (
     <ModuleProgressContext.Provider
       value={{
@@ -244,14 +323,19 @@ export const ModuleProgressProvider = ({
         setUnitId,
         moduleId,
         setModuleId,
+        moduleProgress,
+        setModuleProgress,
         moduleProgressStatus,
         setModuleProgressStatus,
+        unitProgress,
+        setUnitProgress,
         unitProgressStatus,
         setUnitProgressStatus,
         goToStart,
         goToLastVisited,
         goToFirstContent,
         initFirstUnitAndContentProgress,
+        continueFromLastVisited,
       }}
     >
       {children}

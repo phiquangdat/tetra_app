@@ -39,6 +39,11 @@ public class UnitContent {
 
     @Column(name = "questions_number")
     private Integer questionsNumber;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "attachment_id", foreignKey = @ForeignKey(name = "unit_content_attachment_id_fkey"))
+    private Attachment attachment;
+
     @JsonProperty("content")
     public String getContent() {
         return contentData;
@@ -62,6 +67,18 @@ public class UnitContent {
         this.url = url;
         this.points = points;
         this.questionsNumber = questionsNumber;
+    }
+
+    public UnitContent(Unit unit, Integer sortOrder, String contentType, String title, String contentData, String url, Integer points, Integer questionsNumber, Attachment attachment) {
+        this.unit = unit;
+        this.sortOrder = sortOrder;
+        this.contentType = contentType;
+        this.title = title;
+        this.contentData = contentData;
+        this.url = url;
+        this.points = points;
+        this.questionsNumber = questionsNumber;
+        this.attachment = attachment;
     }
 
     public UUID getId() {
@@ -149,5 +166,18 @@ public class UnitContent {
 
     public void setQuestions(java.util.List<Question> questions) {
         this.questions = questions;
+    }
+
+    public Attachment getAttachment() {
+        return attachment;
+    }
+
+    public void setAttachment(Attachment attachment) {
+        this.attachment = attachment;
+    }
+
+    @JsonProperty("attachmentId")
+    public UUID getAttachmentId() {
+        return attachment != null ? attachment.getId() : null;
     }
 }

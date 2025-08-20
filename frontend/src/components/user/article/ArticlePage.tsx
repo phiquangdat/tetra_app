@@ -24,8 +24,15 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
   const [contentProgress, setContentProgress] = useState<ContentProgress>();
-  const { goToNextContent, isNextContent, moduleProgress, setModuleProgress } =
-    useModuleProgress();
+  const {
+    moduleId,
+    unitId,
+    goToNextContent,
+    isNextContent,
+    moduleProgress,
+    setModuleProgress,
+    finalizeUnitIfComplete,
+  } = useModuleProgress();
 
   const calculateScrollPercent = useCallback(() => {
     const scrollTop = window.scrollY;
@@ -55,6 +62,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
           status: 'COMPLETED',
           points: article.points || 0,
         });
+        await finalizeUnitIfComplete(unitIdFromState || unitId, moduleId);
         setContentProgress((prev) =>
           prev
             ? { ...prev, status: 'COMPLETED', points: article.points }

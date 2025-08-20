@@ -13,11 +13,13 @@ import { useQuiz } from '../../../context/user/QuizContext';
 import { calculateQuizResults } from '../../../utils/quizResults';
 import {
   getContentProgress,
+  patchModuleProgress,
   updateContentProgress,
 } from '../../../services/userProgress/userProgressApi';
 
 const QuizSummaryPage: React.FC = () => {
-  const { goToNextContent, isNextContent } = useModuleProgress();
+  const { goToNextContent, isNextContent, moduleProgress, setModuleProgress } =
+    useModuleProgress();
   const { quizId } = useParams();
   const { unitId } = useUnitContent();
   const navigate = useNavigate();
@@ -105,6 +107,7 @@ const QuizSummaryPage: React.FC = () => {
     const samePoints = (contentProgressPoints ?? 0) === pointsEarned;
 
     if (alreadyCompleted && samePoints) return;
+    if (!moduleProgress) return;
 
     (async () => {
       try {
@@ -116,6 +119,27 @@ const QuizSummaryPage: React.FC = () => {
         setContentProgressPoints(pointsEarned);
       } catch (e) {
         console.error('[QuizSummary] updateContentProgress failed:', e);
+      }
+
+      try {
+        const response = await patchModuleProgress(moduleProgress?.id, {
+          earnedPoints: moduleProgress?.earned_points + pointsEarned || 0,
+        });
+        const progressArg = {
+          id: response.id,
+          status: response.status,
+          last_visited_unit_id: response.lastVisitedUnit.id || '',
+          last_visited_content_id: response.lastVisitedContent.id || '',
+          earned_points: response.earnedPoints || 0,
+        };
+
+        console.log('[patchModuleProgress], Update Total Points: ', response);
+        setModuleProgress(progressArg);
+      } catch (error) {
+        console.error(
+          '[patchModuleProgress] Failed to increment module points',
+          error,
+        );
       }
     })();
   }, [

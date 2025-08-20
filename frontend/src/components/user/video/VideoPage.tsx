@@ -43,8 +43,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
-  const { goToNextContent, isNextContent, moduleProgress, setModuleProgress } =
-    useModuleProgress();
+  const {
+    moduleId,
+    unitId,
+    goToNextContent,
+    isNextContent,
+    moduleProgress,
+    setModuleProgress,
+    finalizeUnitIfComplete,
+  } = useModuleProgress();
 
   const playerRef = useRef<any>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -129,6 +136,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         status: 'COMPLETED',
         points: video.points || 0,
       });
+      await finalizeUnitIfComplete(unitIdFromState || unitId, moduleId);
       setContentProgress((prev) =>
         prev ? { ...prev, status: 'COMPLETED' } : prev,
       );

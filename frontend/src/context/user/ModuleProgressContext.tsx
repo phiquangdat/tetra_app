@@ -15,6 +15,7 @@ import {
   type UnitProgress,
   type ModuleProgress,
   getModuleProgress,
+  getContentProgressByUnitId,
 } from '../../services/userProgress/userProgressApi.tsx';
 
 interface Unit {
@@ -51,6 +52,10 @@ interface ModuleProgressContextProps {
     contents: UnitContent[];
   } | null>;
   continueFromLastVisited: () => Promise<void>;
+  finalizeUnitIfComplete: (
+    unitId: string,
+    moduleId: string,
+  ) => Promise<boolean>;
 }
 
 const ModuleProgressContext = createContext<
@@ -312,6 +317,37 @@ export const ModuleProgressProvider = ({
     }
   };
 
+  async function finalizeUnitIfComplete(unitId: string, moduleId: string) {
+    // Fetch all content items for the unit
+    const contents = await fetchUnitContentById(unitId);
+
+    // Fetch all content progress for that unit
+    const progressList = await getContentProgressByUnitId(unitId);
+
+    // Determine if all content have a progress entry with status COMPLETED
+    const byId = new Map(progressList.map((p) => [p.unitContentId, p]));
+    const allCompleted =
+      contents.length > 0 &&
+      contents.every((c) => {
+        const p = byId.get(c.id);
+        return p && String(p.status).toUpperCase() === 'COMPLETED';
+      });
+
+    if (!allCompleted) return false;
+
+    // Mark the unit as COMPLETED if not already
+    if (unitProgress?.status?.toUpperCase() !== 'COMPLETED') {
+      const updated = await updateUnitProgress(unitProgress?.id as string, {
+        moduleId,
+        unitId,
+        status: 'COMPLETED',
+      });
+      setUnitProgress(updated);
+      setUnitProgressStatus('completed');
+    }
+    return true;
+  }
+
   return (
     <ModuleProgressContext.Provider
       value={{
@@ -336,6 +372,7 @@ export const ModuleProgressProvider = ({
         goToFirstContent,
         initFirstUnitAndContentProgress,
         continueFromLastVisited,
+        finalizeUnitIfComplete,
       }}
     >
       {children}

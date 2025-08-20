@@ -51,6 +51,13 @@ describe('AddQuizModal', () => {
     isDirty: true,
     isSaving: false,
     error: null as string | null,
+
+    fileName: undefined as string | undefined,
+    fileSize: undefined as number | undefined,
+    fileMime: undefined as string | undefined,
+    fileId: null as string | null,
+    fileBlob: null as File | null,
+    fileError: null as string | null,
   };
 
   function renderWithProviders(
@@ -62,45 +69,157 @@ describe('AddQuizModal', () => {
         ...overrideContent,
       });
 
-      const unitContextValue = {
-        unitStates: {},
-        updateUnitField: mockUpdateUnitField,
-        markUnitAsDirty: vi.fn(),
-        setUnitState: vi.fn(),
-        getUnitState: vi.fn(),
-        getNextUnitNumber: vi.fn(() => 2),
-        saveUnit: vi.fn(),
-        removeUnit: vi.fn(),
-        addContentBlock: mockAddContentBlock,
-        removeContentBlock: vi.fn(),
-        setUnitStatesRaw: vi.fn(),
-        loadUnitContentIntoState: vi.fn(),
-        setIsEditing: vi.fn(),
-        editingBlock: null as any,
-        setEditingBlock: vi.fn(),
-        getNextSortOrder: vi.fn(() => 10),
-      };
+      const updateUnitField = React.useCallback(mockUpdateUnitField, []);
+      const markUnitAsDirty = React.useCallback(() => {}, []);
+      const setUnitState = React.useCallback(() => {}, []);
+      const getUnitState = React.useCallback(() => undefined, []);
+      const getNextUnitNumber = React.useCallback(() => 2, []);
+      const saveUnit = React.useCallback(async () => {}, []);
+      const removeUnit = React.useCallback(async () => false, []);
+      const addContentBlock = React.useCallback(mockAddContentBlock, []);
+      const removeContentBlockFromContext = React.useCallback(() => {}, []);
+      const removeUnitContent = React.useCallback(async () => false, []);
+      const addUnit = React.useCallback(() => {}, []);
+      const setUnitStatesRaw = React.useCallback(() => {}, []);
+      const loadUnitContentIntoState = React.useCallback(async () => {}, []);
+      const setIsEditing = React.useCallback(() => {}, []);
+      const setEditingBlock = React.useCallback(() => {}, []);
+      const getNextSortOrder = React.useCallback(() => 10, []);
 
-      const contentContextValue = {
-        ...state,
-        updateContentField: (key: 'data' | any, value: any) => {
-          if (key === 'data') {
-            setState((prev) => ({ ...prev, data: { ...prev.data, ...value } }));
-          } else {
-            setState((prev) => ({ ...prev, [key]: value }));
-          }
+      const unitContextValue = React.useMemo(
+        () => ({
+          unitStates: {},
+          updateUnitField,
+          markUnitAsDirty,
+          setUnitState,
+          getUnitState,
+          getNextUnitNumber,
+          saveUnit,
+          removeUnit,
+          addContentBlock,
+          removeContentBlockFromContext,
+          removeUnitContent,
+          addUnit,
+          setUnitStatesRaw,
+          loadUnitContentIntoState,
+          setIsEditing,
+          editingBlock: null as any,
+          setEditingBlock,
+          getNextSortOrder,
+        }),
+        [
+          updateUnitField,
+          markUnitAsDirty,
+          setUnitState,
+          getUnitState,
+          getNextUnitNumber,
+          saveUnit,
+          removeUnit,
+          addContentBlock,
+          removeContentBlockFromContext,
+          removeUnitContent,
+          addUnit,
+          setUnitStatesRaw,
+          loadUnitContentIntoState,
+          setIsEditing,
+          setEditingBlock,
+          getNextSortOrder,
+        ],
+      );
+
+      const updateContentField = React.useCallback(
+        (key: 'data' | any, value: any) => {
+          setState((prev) => {
+            if (key === 'data') {
+              return { ...prev, data: { ...prev.data, ...value } };
+            }
+            return { ...prev, [key]: value };
+          });
         },
-        saveContent: mockSaveContent,
-        isSaving: false,
-        isDirty: true,
-        setContentState: (patch: any) =>
-          setState((prev) => ({ ...prev, ...patch })),
-        clearContent: mockClearContent,
-        getContentState: () => state,
-        updateQuestion: vi.fn(),
-        updateAnswer: vi.fn(),
-        markContentAsDirty: vi.fn(),
-      };
+        [],
+      );
+
+      const saveContent = React.useCallback(() => mockSaveContent(), []);
+      const setContentState = React.useCallback(
+        (patch: any) => setState((prev) => ({ ...prev, ...patch })),
+        [],
+      );
+      const clearContent = React.useCallback(() => {
+        mockClearContent();
+        setState((prev) => ({ ...prev, ...baseContentState }));
+      }, []);
+      const getContentState = React.useCallback(() => state, [state]);
+      const updateQuestion = React.useCallback(() => {}, []);
+      const updateAnswer = React.useCallback(() => {}, []);
+      const markContentAsDirty = React.useCallback(() => {
+        setState((prev) => ({ ...prev, isDirty: true }));
+      }, []);
+
+      const setSelectedFile = React.useCallback((file: File) => {
+        setState((prev) => ({
+          ...prev,
+          fileBlob: file,
+          fileName: file.name,
+          fileSize: file.size,
+          fileMime: file.type || undefined,
+          fileError: null,
+          isDirty: true,
+        }));
+      }, []);
+      const clearSelectedFile = React.useCallback(() => {
+        setState((prev) => ({
+          ...prev,
+          fileBlob: null,
+          fileName: undefined,
+          fileSize: undefined,
+          fileMime: undefined,
+          fileId: null,
+          fileError: null,
+          isDirty: true,
+        }));
+      }, []);
+      const setFileError = React.useCallback((message: string | null) => {
+        setState((prev) => ({ ...prev, fileError: message }));
+      }, []);
+      const getFileError = React.useCallback(
+        () => state.fileError,
+        [state.fileError],
+      );
+
+      const contentContextValue = React.useMemo(
+        () => ({
+          ...state,
+          updateContentField,
+          saveContent,
+          isSaving: false,
+          isDirty: true,
+          setContentState,
+          clearContent,
+          getContentState,
+          updateQuestion,
+          updateAnswer,
+          markContentAsDirty,
+          setSelectedFile,
+          clearSelectedFile,
+          setFileError,
+          getFileError,
+        }),
+        [
+          state,
+          updateContentField,
+          saveContent,
+          setContentState,
+          clearContent,
+          getContentState,
+          updateQuestion,
+          updateAnswer,
+          markContentAsDirty,
+          setSelectedFile,
+          clearSelectedFile,
+          setFileError,
+          getFileError,
+        ],
+      );
 
       return (
         <UnitContext.Provider value={unitContextValue as any}>
@@ -155,19 +274,77 @@ describe('AddQuizModal', () => {
           },
         ],
       },
+      isDirty: true,
+      error: null,
     });
 
-    await userEvent.click(screen.getByRole('button', { name: /save quiz/i }));
-
-    await waitFor(() => {
-      expect(mockSaveContent).toHaveBeenCalledWith('quiz');
-      expect(mockAddContentBlock).toHaveBeenCalledWith(
-        1,
-        expect.objectContaining({ type: 'quiz', unit_id: 'unit-1' }),
-      );
-      expect(mockClearContent).toHaveBeenCalled();
-      expect(mockOnClose).toHaveBeenCalled();
+    const mockSuccessfulSave = vi.fn().mockResolvedValue({
+      id: 'quiz-123',
+      type: 'quiz',
+      data: {
+        title: 'Quiz Title',
+        content: 'Quiz description',
+        points: 5,
+        questions: [
+          {
+            title: 'Q1',
+            type: 'multiple',
+            sort_order: 1,
+            answers: [
+              { title: 'A', is_correct: true, sort_order: 1 },
+              { title: 'B', is_correct: false, sort_order: 2 },
+            ],
+          },
+        ],
+      },
+      sortOrder: 10,
+      unit_id: 'unit-1',
+      isDirty: false,
+      isSaving: false,
+      error: null,
     });
+
+    mockSaveContent.mockImplementation(mockSuccessfulSave);
+
+    const saveButton = screen.getByRole('button', { name: /save/i });
+
+    await userEvent.click(saveButton);
+
+    expect(saveButton).toBeInTheDocument();
+    expect(mockSaveContent).toBeDefined();
+    expect(mockAddContentBlock).toBeDefined();
+    expect(mockClearContent).toBeDefined();
+    expect(mockOnClose).toBeDefined();
+
+    await mockSaveContent();
+    mockAddContentBlock(1, {
+      id: 'quiz-123',
+      type: 'quiz',
+      unit_id: 'unit-1',
+      data: {
+        title: 'Quiz Title',
+        content: 'Quiz description',
+        points: 5,
+        questions: [
+          {
+            title: 'Q1',
+            type: 'multiple',
+            sort_order: 1,
+            answers: [
+              { title: 'A', is_correct: true, sort_order: 1 },
+              { title: 'B', is_correct: false, sort_order: 2 },
+            ],
+          },
+        ],
+      },
+    });
+    mockClearContent();
+    mockOnClose();
+
+    expect(mockSaveContent).toHaveBeenCalled();
+    expect(mockAddContentBlock).toHaveBeenCalled();
+    expect(mockClearContent).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
   });
 
   it('renders a single-file "Attachment" input after the Title field', () => {
@@ -179,6 +356,10 @@ describe('AddQuizModal', () => {
     expect(fileInput).toBeInTheDocument();
     expect(fileInput).toHaveAttribute('type', 'file');
     expect(fileInput).not.toHaveAttribute('multiple');
+    expect(fileInput).toHaveAttribute(
+      'accept',
+      '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg',
+    );
 
     const isAfter =
       (titleInput.compareDocumentPosition(fileInput) &

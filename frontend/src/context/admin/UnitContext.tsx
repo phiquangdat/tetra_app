@@ -50,6 +50,13 @@ export interface ContentBlock {
   isDirty: boolean;
   isSaving: boolean;
   error: string | null;
+
+  fileName?: string;
+  fileSize?: number;
+  fileMime?: string;
+  fileId?: string | null;
+  fileBlob?: File | null;
+  fileError?: string | null;
 }
 
 export type UnitContextEntry = {
@@ -363,6 +370,13 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
             isDirty: false,
             isSaving: false,
             error: null,
+
+            fileName: undefined,
+            fileSize: undefined,
+            fileMime: undefined,
+            fileId: null,
+            fileBlob: null,
+            fileError: null,
           }))
           .sort((a, b) => a.sortOrder - b.sortOrder);
         setUnitState(unitNumber, { content: blocks });

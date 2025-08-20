@@ -320,7 +320,6 @@ export const ModuleProgressProvider = ({
   async function finalizeUnitIfComplete(unitId: string, moduleId: string) {
     // Fetch all content items for the unit
     const contents = await fetchUnitContentById(unitId);
-    console.log('Updating unit progress!');
 
     // Fetch all content progress for that unit
     const progressList = await getContentProgressByUnitId(unitId);
@@ -345,7 +344,6 @@ export const ModuleProgressProvider = ({
       });
       setUnitProgress(updated);
       setUnitProgressStatus('completed');
-      console.log('Unit progress was updated as COMPLETED');
     }
     return true;
   }

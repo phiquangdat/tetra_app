@@ -13,6 +13,7 @@ import {
   type ContentProgress,
 } from '../../../services/userProgress/userProgressApi';
 import { CheckIcon } from '../../common/Icons';
+import toast from 'react-hot-toast';
 
 interface ArticlePageProps {
   id: string;
@@ -61,6 +62,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
             : prev,
         );
         console.log('[updateContentProgress]', response);
+        toast.success(`Complete reading! + ${article.points}`);
       } catch (error) {
         console.error('Error updating progress:', error);
       }

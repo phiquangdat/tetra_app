@@ -14,6 +14,8 @@ import {
 } from '../../../services/userProgress/userProgressApi';
 import { useModuleProgress } from '../../../context/user/ModuleProgressContext.tsx';
 import { UploadAltIcon, CheckIcon } from '../../common/Icons';
+import toast from 'react-hot-toast';
+
 declare global {
   var YT: any;
   interface Window {
@@ -130,9 +132,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         points: video.points || 0,
       });
       setContentProgress((prev) =>
-        prev ? { ...prev, status: 'COMPLETED' } : prev,
+        prev
+          ? { ...prev, status: 'COMPLETED', points: video.points || 0 }
+          : prev,
       );
       console.log('[updateContentProgress]', response);
+      toast.success(`Complete watching! + ${video.points} points`);
     } catch (error) {
       console.error('Error updating progress:', error);
     }
@@ -205,8 +210,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
                   if (progress >= 90) {
                     clearInterval(progressIntervalRef.current!);
                     progressIntervalRef.current = null;
-
-                    markAsCompleted();
+                    await markAsCompleted();
                   }
                 }
               }, 1000);

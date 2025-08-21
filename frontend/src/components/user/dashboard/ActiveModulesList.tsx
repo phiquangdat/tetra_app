@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import ActiveModuleCard, {
   type ActiveModuleStatus,
@@ -8,6 +8,10 @@ import {
   type BackendModuleProgress,
 } from '../../../services/user/userModuleProgressApi';
 import { fetchModuleById } from '../../../services/module/moduleApi';
+import {
+  getUnitProgressByModuleId,
+  type UnitProgress,
+} from '../../../services/userProgress/userProgressApi';
 
 type UiModule = BackendModuleProgress & { topic?: string };
 
@@ -20,6 +24,7 @@ const LIMIT = 3;
 
 const ActiveModulesList = () => {
   const [items, setItems] = useState<UiModule[]>([]);
+  const [unitsProgress, setUnitsProgress] = useState<UnitProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -35,6 +40,11 @@ const ActiveModulesList = () => {
         progressData.map(async (module) => {
           try {
             const mod = await fetchModuleById(module.moduleId);
+            const unitProgresses = await getUnitProgressByModuleId(
+              module.moduleId,
+            );
+
+            setUnitsProgress((prev) => [...prev, ...unitProgresses]);
             return { ...module, topic: mod.topic } as UiModule;
           } catch (e) {
             console.warn(
@@ -64,7 +74,16 @@ const ActiveModulesList = () => {
     navigate(`/user/modules/${moduleId}`);
   };
 
-  let percent = 60; //Placeholder
+  const percent = useMemo(() => {
+    if (unitsProgress.length === 0) return 0;
+    let count = unitsProgress.filter(
+      (progress) => progress.status === 'COMPLETED',
+    ).length;
+
+    console.log('Data used inside percent calculation:', unitsProgress);
+
+    return Math.round((count / unitsProgress.length) * 100);
+  }, [unitsProgress]);
   return (
     <div className="rounded-2xl bg-cardBackground p-6 my-12 shadow-lg">
       <div className="mb-8">

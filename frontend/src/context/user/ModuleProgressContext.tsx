@@ -52,10 +52,7 @@ interface ModuleProgressContextProps {
     contents: UnitContent[];
   } | null>;
   continueFromLastVisited: () => Promise<void>;
-  finalizeUnitIfComplete: (
-    unitId: string,
-    moduleId: string,
-  ) => Promise<boolean>;
+  finalizeUnitIfComplete: (unitId: string, moduleId: string) => Promise<void>;
 }
 
 const ModuleProgressContext = createContext<
@@ -141,7 +138,7 @@ export const ModuleProgressProvider = ({
         }
       }
 
-      updateProgress();
+      await updateProgress();
     } else {
       navigate(`/user/modules/${moduleId}`);
     }
@@ -333,10 +330,10 @@ export const ModuleProgressProvider = ({
         return p && String(p.status).toUpperCase() === 'COMPLETED';
       });
 
-    if (!allCompleted) return false;
+    if (!allCompleted) return;
 
     // Mark the unit as COMPLETED if not already
-    if (unitProgress?.status?.toUpperCase() !== 'COMPLETED') {
+    if (unitProgress && unitProgress.status?.toUpperCase() !== 'COMPLETED') {
       const updated = await updateUnitProgress(unitProgress?.id as string, {
         moduleId,
         unitId,
@@ -345,7 +342,7 @@ export const ModuleProgressProvider = ({
       setUnitProgress(updated);
       setUnitProgressStatus('completed');
     }
-    return true;
+    return;
   }
 
   return (

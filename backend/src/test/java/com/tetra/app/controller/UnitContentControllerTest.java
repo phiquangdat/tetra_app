@@ -52,6 +52,8 @@ public class UnitContentControllerTest {
     private com.tetra.app.security.JwtUtil jwtUtil;
     @MockBean
     private com.tetra.app.repository.BlacklistedTokenRepository blacklistedTokenRepository;
+    @MockBean
+    private com.tetra.app.repository.AttachmentRepository attachmentRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -271,6 +273,10 @@ public class UnitContentControllerTest {
         @Bean
         public com.tetra.app.security.JwtUtil jwtUtil() {
             return mock(com.tetra.app.security.JwtUtil.class);
+        }
+        @Bean
+        public com.tetra.app.repository.AttachmentRepository attachmentRepository() {
+            return mock(com.tetra.app.repository.AttachmentRepository.class);
         }
     }
 }

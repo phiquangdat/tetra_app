@@ -6,6 +6,7 @@ const BASE_URL =
 
 export interface UnitContent {
   id: string;
+  unit_id: string;
   title: string;
   content_type: string;
   content: string;
@@ -23,6 +24,7 @@ export interface UnitDetailsResponse {
 
 export interface Video {
   id: string;
+  unit_id: string;
   title: string;
   content: string;
   url: string;
@@ -31,6 +33,7 @@ export interface Video {
 
 export interface Article {
   id: string;
+  unit_id: string;
   title: string;
   content: string;
   points: number;
@@ -123,7 +126,6 @@ export async function fetchVideoContentById(id: string): Promise<Video> {
   }
 
   const data: Video = await response.json();
-  console.log('fetched video data is', data);
   return data;
 }
 
@@ -134,7 +136,6 @@ export async function fetchArticleContentById(id: string): Promise<Article> {
   }
 
   const data: Article = await response.json();
-  console.log('fetched article data is', data);
   return data;
 }
 

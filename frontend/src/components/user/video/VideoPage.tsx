@@ -14,6 +14,8 @@ import {
 } from '../../../services/userProgress/userProgressApi';
 import { useModuleProgress } from '../../../context/user/ModuleProgressContext.tsx';
 import { UploadAltIcon, CheckIcon } from '../../common/Icons';
+import toast from 'react-hot-toast';
+
 declare global {
   var YT: any;
   interface Window {
@@ -130,9 +132,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         points: video.points || 0,
       });
       setContentProgress((prev) =>
-        prev ? { ...prev, status: 'COMPLETED' } : prev,
+        prev
+          ? { ...prev, status: 'COMPLETED', points: video.points || 0 }
+          : prev,
       );
       console.log('[updateContentProgress]', response);
+      toast.success(`Complete watching! + ${video.points} points`);
     } catch (error) {
       console.error('Error updating progress:', error);
     }
@@ -205,8 +210,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
                   if (progress >= 90) {
                     clearInterval(progressIntervalRef.current!);
                     progressIntervalRef.current = null;
-
-                    markAsCompleted();
+                    await markAsCompleted();
                   }
                 }
               }, 1000);
@@ -256,13 +260,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
             <div className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
               <CheckIcon width={16} height={16} color="white" />
             </div>
+
             <div className="flex-1">
               <span className="text-green-600 text-sm">
                 You've viewed this before. Feel free to review it again!
               </span>
             </div>
-            <div className="flex items-center gap-1 px-3 py-1 bg-white text-green-700 rounded-full text-sm font-medium border border-green-200 shadow-sm">
-              + {contentProgress?.points ?? 0} pts
+
+            <div className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-full text-xs font-bold shadow-sm">
+              {contentProgress?.points ?? 0} PTS
             </div>
           </div>
         </div>

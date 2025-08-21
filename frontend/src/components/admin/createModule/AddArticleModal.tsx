@@ -27,6 +27,8 @@ function AddArticleModal({
     isSaving,
     clearContent,
     setContentState,
+    setSelectedFile,
+    clearSelectedFile,
   } = useContentBlockContext();
   const {
     addContentBlock,
@@ -46,7 +48,8 @@ function AddArticleModal({
   const canSave =
     data.title.trim() !== '' &&
     (editorContent?.trim() ?? '') !== '' &&
-    !isSaving;
+    !isSaving &&
+    !fileError;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -78,8 +81,19 @@ function AddArticleModal({
       });
       setFileError(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
+      clearSelectedFile();
     }
-  }, [isOpen, editingBlock, getUnitState, unitId, unitNumber]);
+  }, [
+    isOpen,
+    editingBlock,
+    getUnitState,
+    unitId,
+    unitNumber,
+    getNextSortOrder,
+    clearContent,
+    setContentState,
+    clearSelectedFile,
+  ]);
 
   const handleSave = async () => {
     if (!canSave) return;
@@ -116,6 +130,7 @@ function AddArticleModal({
 
   const handleClose = () => {
     clearContent();
+    clearSelectedFile();
     setFileError(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
     onClose();
@@ -132,7 +147,7 @@ function AddArticleModal({
 
     if (!file) {
       setFileError(null);
-      // Placeholder for clearing the file input in context
+      clearSelectedFile();
       return;
     }
 
@@ -140,11 +155,25 @@ function AddArticleModal({
 
     if (result.ok) {
       setFileError(null);
-      // Placeholder for updating the file in context
+      setSelectedFile(file);
     } else {
       setFileError(result.message);
       if (fileInputRef.current) fileInputRef.current.value = '';
-      // Placeholder for clearing the file input in context
+      clearSelectedFile();
+    }
+  };
+
+  const handleChangePoints = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    if (value === '') {
+      updateContentField('data', { ...data, points: '' });
+      return;
+    }
+
+    if (/^\d+$/.test(value)) {
+      const numValue = parseInt(value, 10);
+      updateContentField('data', { ...data, points: numValue });
     }
   };
 
@@ -241,6 +270,29 @@ function AddArticleModal({
                 Content
               </label>
               <EditorComposer initialHTML={data.content || '<p></p>'} />
+            </div>
+
+            <div className="mb-6">
+              <label
+                htmlFor="points"
+                className="block text-base font-semibold text-primary mb-2"
+              >
+                Points
+              </label>
+              <input
+                type="text"
+                id="points"
+                value={
+                  data.points !== undefined && data.points !== null
+                    ? String(data.points)
+                    : ''
+                }
+                onChange={handleChangePoints}
+                placeholder="Enter article points"
+                required
+                className="px-4 py-3 border border-primary/50 rounded-lg text-primary placeholder:text-primary/40 focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200"
+                aria-label="points"
+              />
             </div>
           </div>
 

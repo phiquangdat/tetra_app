@@ -10,7 +10,6 @@ const ModuleFormFields: React.FC = () => {
     title,
     description,
     topic,
-    pointsAwarded,
     coverPicture,
     updateModuleField,
     markModuleAsDirty,
@@ -58,20 +57,6 @@ const ModuleFormFields: React.FC = () => {
   const handleTopicChange = (e: ChangeEvent<HTMLSelectElement>) => {
     updateModuleField('topic', e.target.value);
     markModuleAsDirty();
-  };
-
-  const handlePointsChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value === '') {
-      updateModuleField('pointsAwarded', '');
-      markModuleAsDirty();
-      return;
-    }
-    if (/^\d+$/.test(value)) {
-      const numValue = parseInt(value, 10);
-      updateModuleField('pointsAwarded', numValue);
-      markModuleAsDirty();
-    }
   };
 
   const handleCoverPictureChange = async () => {
@@ -173,28 +158,6 @@ const ModuleFormFields: React.FC = () => {
             <option value="esg">ESG</option>
             <option value="occupational-safety">Occupational Safety</option>
           </select>
-        </div>
-
-        <div className="mb-2">
-          <label
-            htmlFor="pointsAwarded"
-            className="block mb-0 font-medium text-primary"
-          >
-            Points Awarded
-          </label>
-          <input
-            type="text"
-            id="pointsAwarded"
-            name="pointsAwarded"
-            value={
-              pointsAwarded !== undefined && pointsAwarded !== null
-                ? String(pointsAwarded)
-                : ''
-            }
-            onChange={handlePointsChange}
-            required
-            className={inputBase}
-          />
         </div>
       </div>
     </>

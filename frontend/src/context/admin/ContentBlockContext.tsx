@@ -5,10 +5,10 @@ import {
   useContext,
   useState,
 } from 'react';
-import type {
-  ContentBlock,
-  QuizQuestion,
-  QuizQuestionAnswer,
+import {
+  type ContentBlock,
+  type QuizQuestion,
+  type QuizQuestionAnswer,
 } from './UnitContext.tsx';
 import {
   saveVideoContent,
@@ -21,6 +21,8 @@ import {
   updateVideoContent,
   updateQuizContent,
 } from '../../services/unit/content/unitContentApi.ts';
+import { useModuleContext } from './ModuleContext';
+import { adjustModulePoints } from '../../utils/pointsHelpers.ts';
 
 interface ContextBlockType extends ContentBlock {
   updateContentField: (key: keyof ContentBlock, value: any) => void;
@@ -39,6 +41,11 @@ interface ContextBlockType extends ContentBlock {
     answerIndex: number,
     answer: QuizQuestionAnswer,
   ) => void;
+
+  setSelectedFile: (file: File) => void;
+  clearSelectedFile: () => void;
+  setFileError: (message: string | null) => void;
+  getFileError: () => string | null;
 }
 
 const createDefaultContentBlockState = (): ContentBlock => ({
@@ -49,12 +56,20 @@ const createDefaultContentBlockState = (): ContentBlock => ({
     url: '',
     points: 0,
     questions: [],
+
+    fileName: undefined,
+    fileSize: undefined,
+    fileMime: undefined,
+    fileId: null,
   },
   sortOrder: 0,
   unit_id: '',
   isDirty: false,
   isSaving: false,
   error: null,
+
+  fileBlob: null,
+  fileError: null,
 });
 
 export const ContentBlockContext = createContext<ContextBlockType | undefined>(
@@ -69,23 +84,32 @@ export const ContentBlockContextProvider = ({
   const [contentBlock, setContentBlock] = useState<ContentBlock>(
     createDefaultContentBlockState(),
   );
+  const { id: moduleId, updateModuleField } = useModuleContext();
+
+  const UI_KEYS: Array<keyof ContentBlock> = ['fileBlob', 'fileError'];
 
   const updateContentField = useCallback(
     (key: keyof ContentBlock, value: any) => {
       setContentBlock((prev) => {
         let isDirty = prev.isDirty;
 
-        if (
-          key === 'data' &&
-          value &&
-          typeof value === 'object' &&
-          'title' in value &&
-          'content' in value
-        ) {
-          const titleChanged = value.title?.trim() !== prev.data.title?.trim();
-          const contentChanged =
-            value.content?.trim() !== prev.data.content?.trim();
-          isDirty = titleChanged || contentChanged;
+        if (key === 'data' && value && typeof value === 'object') {
+          const changed = Object.keys(value).some((k) => {
+            return value[k] !== (prev.data as any)[k];
+          });
+          if (changed) isDirty = true;
+        }
+
+        if (key === 'fileBlob') {
+          isDirty = true;
+        }
+
+        if (UI_KEYS.includes(key) && key === 'fileError') {
+          return {
+            ...prev,
+            [key]: value,
+            isDirty,
+          };
         }
 
         return {
@@ -120,6 +144,8 @@ export const ContentBlockContextProvider = ({
         console.warn('[saveContent] Missing unit_id in contentBlock');
         return;
       }
+
+      if (!moduleId) throw new Error('[saveContent] Missing module id');
 
       const savedContent = contentBlock.data.content?.trim() ?? '';
       const newArticleContent = editorContent?.trim() ?? '';
@@ -158,7 +184,7 @@ export const ContentBlockContextProvider = ({
               title: title as string,
               content: content as string,
               url: url as string,
-              points: points as number,
+              points: (points as number) ?? 0,
               sort_order,
             };
 
@@ -166,8 +192,29 @@ export const ContentBlockContextProvider = ({
 
             try {
               if (contentBlock.id) {
+                const updatedModule = await adjustModulePoints(
+                  moduleId,
+                  'edit',
+                  payload.points ?? 0,
+                  contentBlock.id,
+                );
+                await updateModuleField(
+                  'pointsAwarded',
+                  updatedModule.points ?? 0,
+                );
+
                 result = await updateVideoContent(contentBlock.id, payload);
               } else {
+                const updatedModule = await adjustModulePoints(
+                  moduleId,
+                  'create',
+                  payload.points ?? 0,
+                );
+                await updateModuleField(
+                  'pointsAwarded',
+                  updatedModule.points ?? 0,
+                );
+
                 result = await saveVideoContent(payload);
               }
               console.log(
@@ -198,7 +245,7 @@ export const ContentBlockContextProvider = ({
             break;
           }
           case 'article': {
-            const title = contentBlock.data.title;
+            const { title, points } = contentBlock.data;
             const content = newArticleContent;
             const sort_order = contentBlock.sortOrder;
 
@@ -211,14 +258,36 @@ export const ContentBlockContextProvider = ({
               content_type: 'article',
               title: title as string,
               content: content as string,
+              points: points as number,
               sort_order,
             };
 
             let result: { id: string };
             try {
               if (contentBlock.id) {
+                const updatedModule = await adjustModulePoints(
+                  moduleId,
+                  'edit',
+                  payload.points ?? 0,
+                  contentBlock.id,
+                );
+                await updateModuleField(
+                  'pointsAwarded',
+                  updatedModule.points ?? 0,
+                );
+
                 result = await updateArticleContent(contentBlock.id, payload);
               } else {
+                const updatedModule = await adjustModulePoints(
+                  moduleId,
+                  'create',
+                  payload.points ?? 0,
+                );
+                await updateModuleField(
+                  'pointsAwarded',
+                  updatedModule.points ?? 0,
+                );
+
                 result = await saveArticleContent(payload);
               }
               console.log(
@@ -273,8 +342,29 @@ export const ContentBlockContextProvider = ({
 
             try {
               if (contentBlock.id) {
+                const updatedModule = await adjustModulePoints(
+                  moduleId,
+                  'edit',
+                  payload.points ?? 0,
+                  contentBlock.id,
+                );
+                await updateModuleField(
+                  'pointsAwarded',
+                  updatedModule.points ?? 0,
+                );
+
                 result = await updateQuizContent(contentBlock.id, payload);
               } else {
+                const updatedModule = await adjustModulePoints(
+                  moduleId,
+                  'create',
+                  payload.points ?? 0,
+                );
+                await updateModuleField(
+                  'pointsAwarded',
+                  updatedModule.points ?? 0,
+                );
+
                 result = await saveQuizContent(payload);
               }
               console.log(
@@ -371,6 +461,48 @@ export const ContentBlockContextProvider = ({
     [],
   );
 
+  const setSelectedFile = useCallback((file: File) => {
+    setContentBlock((prev) => ({
+      ...prev,
+      data: {
+        ...prev.data,
+        fileName: file.name,
+        fileSize: file.size,
+        fileMime: file.type || undefined,
+      },
+      fileBlob: file,
+      fileError: null,
+      isDirty: true,
+    }));
+  }, []);
+
+  const clearSelectedFile = useCallback(() => {
+    setContentBlock((prev) => ({
+      ...prev,
+      data: {
+        ...prev.data,
+        fileName: undefined,
+        fileSize: undefined,
+        fileMime: undefined,
+        fileId: null,
+      },
+      fileBlob: null,
+      fileError: null,
+      isDirty: true,
+    }));
+  }, []);
+
+  const setFileError = useCallback((message: string | null) => {
+    setContentBlock((prev) => ({
+      ...prev,
+      fileError: message,
+    }));
+  }, []);
+
+  const getFileError = useCallback(() => {
+    return contentBlock.fileError ?? null;
+  }, [contentBlock.fileError]);
+
   const contextValue: ContextBlockType = {
     ...contentBlock,
     updateContentField,
@@ -381,6 +513,11 @@ export const ContentBlockContextProvider = ({
     clearContent,
     updateQuestion,
     updateAnswer,
+
+    setSelectedFile,
+    clearSelectedFile,
+    setFileError,
+    getFileError,
   };
 
   return (

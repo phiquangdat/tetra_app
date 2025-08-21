@@ -45,6 +45,9 @@ public class UnitContentControllerPutTest {
     @MockBean
     private com.tetra.app.repository.UnitRepository unitRepository;
 
+    @MockBean
+    private com.tetra.app.repository.AttachmentRepository attachmentRepository;
+
     @Autowired
     private ObjectMapper objectMapper;
 

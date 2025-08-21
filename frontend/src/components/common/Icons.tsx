@@ -21,34 +21,6 @@ export const HamburgerIcon: React.FC<IconProps> = ({
   </svg>
 );
 
-export const LogoIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-  <svg
-    width="36"
-    height="36"
-    viewBox="0 0 36 36"
-    fill="none"
-    className="mr-3"
-    {...props}
-  >
-    <rect
-      x="3"
-      y="5"
-      width="30"
-      height="26"
-      rx="8"
-      stroke="#998FC7"
-      strokeWidth="2"
-    />
-    <path
-      d="M12 18l5 5 7-9"
-      stroke="#998FC7"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
 export const ChevronDownIcon: React.FC<IconProps> = ({
   width = 24,
   height = 24,

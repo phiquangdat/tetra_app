@@ -2,6 +2,7 @@ package com.tetra.app.controller;
 
 import com.tetra.app.repository.TrainingModuleRepository;
 import com.tetra.app.repository.UserRepository;
+import com.tetra.app.repository.UserModuleProgressRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -28,6 +29,9 @@ public class AdminStatsControllerTest {
     @MockBean
     private TrainingModuleRepository trainingModuleRepository;
 
+    @MockBean
+    private UserModuleProgressRepository userModuleProgressRepository;
+
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void returnsStatsWhenUserHasAdminRole() throws Exception {
@@ -41,6 +45,30 @@ public class AdminStatsControllerTest {
                 .andExpect(jsonPath("$.total_users").value(348))
                 .andExpect(jsonPath("$.total_points_issued").value(125000))
                 .andExpect(jsonPath("$.active_modules").value(45));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void returnsModuleCompletionsByTopic() throws Exception {
+        var mockResult = java.util.List.of(
+            new UserModuleProgressRepository.TopicCompletionsProjection() {
+                public String getTopic() { return "Cybersecurity"; }
+                public Long getCompletions() { return 123L; }
+            },
+            new UserModuleProgressRepository.TopicCompletionsProjection() {
+                public String getTopic() { return "AI"; }
+                public Long getCompletions() { return 0L; }
+            }
+        );
+        org.mockito.Mockito.when(userModuleProgressRepository.findModuleCompletionsPerTopic()).thenReturn(mockResult);
+
+        mockMvc.perform(get("/api/admin/stats/module-completions-by-topic"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$[0].topic").value("Cybersecurity"))
+            .andExpect(jsonPath("$[0].completions").value(123))
+            .andExpect(jsonPath("$[1].topic").value("AI"))
+            .andExpect(jsonPath("$[1].completions").value(0));
     }
 
     @Test

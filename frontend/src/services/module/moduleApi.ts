@@ -23,6 +23,13 @@ export interface Module {
   status: string; // Add this line to match the expected type in components
 }
 
+export type ModuleUpdateInput = Partial<
+  Pick<
+    Module,
+    'title' | 'topic' | 'description' | 'coverUrl' | 'status' | 'points'
+  >
+>;
+
 export type ModuleInput = Omit<Module, 'id'>;
 
 export async function fetchModuleById(id: string): Promise<Module> {
@@ -117,7 +124,7 @@ export async function createModule(module: ModuleInput): Promise<Module> {
 
 export async function updateModule(
   id: string,
-  module: ModuleInput,
+  module: ModuleUpdateInput,
 ): Promise<Module> {
   const url = `${BASE_URL}/modules/${id}`;
   console.log('[updateModule] Updating:', url, 'Payload:', module);

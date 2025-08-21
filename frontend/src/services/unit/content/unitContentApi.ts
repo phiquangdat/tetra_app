@@ -26,6 +26,7 @@ export interface SaveArticleRequest {
   content_type: 'article';
   title: string;
   content: string;
+  points: number;
   sort_order: number;
 }
 

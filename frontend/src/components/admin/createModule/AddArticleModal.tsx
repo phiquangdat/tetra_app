@@ -163,6 +163,20 @@ function AddArticleModal({
     }
   };
 
+  const handleChangePoints = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    if (value === '') {
+      updateContentField('data', { ...data, points: '' });
+      return;
+    }
+
+    if (/^\d+$/.test(value)) {
+      const numValue = parseInt(value, 10);
+      updateContentField('data', { ...data, points: numValue });
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -256,6 +270,29 @@ function AddArticleModal({
                 Content
               </label>
               <EditorComposer initialHTML={data.content || '<p></p>'} />
+            </div>
+
+            <div className="mb-6">
+              <label
+                htmlFor="points"
+                className="block text-base font-semibold text-primary mb-2"
+              >
+                Points
+              </label>
+              <input
+                type="text"
+                id="points"
+                value={
+                  data.points !== undefined && data.points !== null
+                    ? String(data.points)
+                    : ''
+                }
+                onChange={handleChangePoints}
+                placeholder="Enter article points"
+                required
+                className="px-4 py-3 border border-primary/50 rounded-lg text-primary placeholder:text-primary/40 focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200"
+                aria-label="points"
+              />
             </div>
           </div>
 

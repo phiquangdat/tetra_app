@@ -12,6 +12,7 @@ export interface UnitContent {
   sort_order: number;
   status: string;
   points: number;
+  hasProgress?: boolean;
 }
 
 export interface UnitDetailsResponse {

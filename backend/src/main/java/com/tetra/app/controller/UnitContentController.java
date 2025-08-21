@@ -4,9 +4,11 @@ import com.tetra.app.model.UnitContent;
 import com.tetra.app.model.Question;
 import com.tetra.app.model.Answer;
 import com.tetra.app.model.Unit;
+import com.tetra.app.model.Attachment;
 import com.tetra.app.repository.UnitContentRepository;
 import com.tetra.app.repository.QuestionRepository;
 import com.tetra.app.repository.AnswerRepository;
+import com.tetra.app.repository.AttachmentRepository;
 import com.tetra.app.security.JwtUtil;
 import com.tetra.app.repository.BlacklistedTokenRepository;
 import org.springframework.http.HttpStatus;
@@ -39,6 +41,7 @@ public class UnitContentController {
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final com.tetra.app.repository.UnitRepository unitRepository;
+    private final AttachmentRepository attachmentRepository;
     private final JwtUtil jwtUtil;
     private final BlacklistedTokenRepository blacklistedTokenRepository;
 
@@ -47,6 +50,7 @@ public class UnitContentController {
         QuestionRepository questionRepository,
         AnswerRepository answerRepository,
         com.tetra.app.repository.UnitRepository unitRepository,
+        AttachmentRepository attachmentRepository,
         JwtUtil jwtUtil,
         BlacklistedTokenRepository blacklistedTokenRepository
     ) {
@@ -54,6 +58,7 @@ public class UnitContentController {
         this.questionRepository = questionRepository;
         this.answerRepository = answerRepository;
         this.unitRepository = unitRepository;
+        this.attachmentRepository = attachmentRepository;
         this.jwtUtil = jwtUtil;
         this.blacklistedTokenRepository = blacklistedTokenRepository;
     }
@@ -228,6 +233,19 @@ public class UnitContentController {
             unitContent.setSortOrder(sortOrder);
             unitContent.setPoints(points);
             unitContent.setQuestionsNumber(questionsNumber);
+
+            if (body.containsKey("attachment_id") && body.get("attachment_id") != null) {
+                try {
+                    UUID attachmentId = UUID.fromString(String.valueOf(body.get("attachment_id")));
+                    Optional<Attachment> optAttachment = attachmentRepository.findById(attachmentId);
+                    if (optAttachment.isEmpty()) {
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Attachment not found");
+                    }
+                    unitContent.setAttachment(optAttachment.get());
+                } catch (Exception e) {
+                    return ResponseEntity.badRequest().body("attachment_id must be a valid UUID");
+                }
+            }
             unitContent = unitContentRepository.saveAndFlush(unitContent);
 
             List<Map<String, Object>> questionsData = (List<Map<String, Object>>) body.get("questions");
@@ -278,6 +296,7 @@ public class UnitContentController {
             response.put("sort_order", unitContent.getSortOrder());
             response.put("points", unitContent.getPoints());
             response.put("questions_number", unitContent.getQuestionsNumber());
+            response.put("attachment_id", unitContent.getAttachmentId());
 
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
@@ -362,6 +381,19 @@ public class UnitContentController {
             unitContent.setSortOrder(sortOrder);
             unitContent.setPoints(points);
 
+            if (body.containsKey("attachment_id") && body.get("attachment_id") != null) {
+                try {
+                    UUID attachmentId = UUID.fromString(String.valueOf(body.get("attachment_id")));
+                    Optional<Attachment> optAttachment = attachmentRepository.findById(attachmentId);
+                    if (optAttachment.isEmpty()) {
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Attachment not found");
+                    }
+                    unitContent.setAttachment(optAttachment.get());
+                } catch (Exception e) {
+                    return ResponseEntity.badRequest().body("attachment_id must be a valid UUID");
+                }
+            }
+
             unitContent = unitContentRepository.saveAndFlush(unitContent);
 
             Map<String, Object> response = new HashMap<>();
@@ -372,6 +404,7 @@ public class UnitContentController {
             response.put("content", unitContent.getContent());
             response.put("sort_order", unitContent.getSortOrder());
             response.put("points", unitContent.getPoints());
+            response.put("attachment_id", unitContent.getAttachmentId());
 
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
@@ -458,6 +491,19 @@ public class UnitContentController {
             unitContent.setSortOrder(sortOrder);
             unitContent.setPoints(points); 
 
+            if (body.containsKey("attachment_id") && body.get("attachment_id") != null) {
+                try {
+                    UUID attachmentId = UUID.fromString(String.valueOf(body.get("attachment_id")));
+                    Optional<Attachment> optAttachment = attachmentRepository.findById(attachmentId);
+                    if (optAttachment.isEmpty()) {
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Attachment not found");
+                    }
+                    unitContent.setAttachment(optAttachment.get());
+                } catch (Exception e) {
+                    return ResponseEntity.badRequest().body("attachment_id must be a valid UUID");
+                }
+            }
+
             unitContent = unitContentRepository.saveAndFlush(unitContent);
 
             Map<String, Object> response = new HashMap<>();
@@ -469,6 +515,7 @@ public class UnitContentController {
             response.put("url", unitContent.getUrl());
             response.put("sort_order", unitContent.getSortOrder());
             response.put("points", unitContent.getPoints()); 
+            response.put("attachment_id", unitContent.getAttachmentId());
 
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
@@ -508,6 +555,18 @@ public class UnitContentController {
         if (body.containsKey("title")) content.setTitle(String.valueOf(body.get("title")));
         if (body.containsKey("content")) content.setContent(String.valueOf(body.get("content")));
         if (body.containsKey("url")) content.setUrl(String.valueOf(body.get("url")));
+        if (body.containsKey("attachment_id") && body.get("attachment_id") != null) {
+            try {
+                UUID attachmentId = UUID.fromString(String.valueOf(body.get("attachment_id")));
+                Optional<Attachment> optAttachment = attachmentRepository.findById(attachmentId);
+                if (optAttachment.isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Attachment not found");
+                }
+                content.setAttachment(optAttachment.get());
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("attachment_id must be a valid UUID");
+            }
+        }
         if (body.containsKey("sort_order")) {
             Object sortOrderObj = body.get("sort_order");
             try {
@@ -538,6 +597,7 @@ public class UnitContentController {
         response.put("url", content.getUrl());
         response.put("sort_order", content.getSortOrder());
         response.put("points", content.getPoints());
+        response.put("attachment_id", content.getAttachmentId());
         return ResponseEntity.ok(response);
     }
 
@@ -574,6 +634,18 @@ public class UnitContentController {
         
         if (body.containsKey("title")) quiz.setTitle(String.valueOf(body.get("title")));
         if (body.containsKey("content")) quiz.setContent(String.valueOf(body.get("content")));
+        if (body.containsKey("attachment_id") && body.get("attachment_id") != null) {
+            try {
+                UUID attachmentId = UUID.fromString(String.valueOf(body.get("attachment_id")));
+                Optional<Attachment> optAttachment = attachmentRepository.findById(attachmentId);
+                if (optAttachment.isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Attachment not found");
+                }
+                quiz.setAttachment(optAttachment.get());
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("attachment_id must be a valid UUID");
+            }
+        }
         if (body.containsKey("sort_order")) {
             Object sortOrderObj = body.get("sort_order");
             try {
@@ -711,6 +783,7 @@ public class UnitContentController {
         result.put("sort_order", quiz.getSortOrder());
         result.put("points", quiz.getPoints());
         result.put("questions_number", quiz.getQuestionsNumber());
+        result.put("attachment_id", quiz.getAttachmentId());
 
         List<Question> questions = questionRepository.findByUnitContent_Id(quiz.getId());
         List<Map<String, Object>> questionsList = questions.stream().map(q -> {
@@ -774,6 +847,19 @@ public class UnitContentController {
             content.setContent(String.valueOf(body.get("content")));
         }
 
+        if (body.containsKey("attachment_id") && body.get("attachment_id") != null) {
+            try {
+                UUID attachmentId = UUID.fromString(String.valueOf(body.get("attachment_id")));
+                Optional<Attachment> optAttachment = attachmentRepository.findById(attachmentId);
+                if (optAttachment.isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Attachment not found");
+                }
+                content.setAttachment(optAttachment.get());
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("attachment_id must be a valid UUID");
+            }
+        }
+
         if (body.containsKey("sort_order")) {
             Object sortOrderObj = body.get("sort_order");
             try {
@@ -808,6 +894,7 @@ public class UnitContentController {
         response.put("title", content.getTitle());
         response.put("content", content.getContent());
         response.put("sort_order", content.getSortOrder());
+        response.put("attachment_id", content.getAttachmentId());
         return ResponseEntity.ok(response);
     }
 

@@ -200,7 +200,7 @@ public class TrainingModuleController {
             trainingModuleRepository.deleteById(id);
             return ResponseEntity.ok("Module deleted successfully");
         } catch (Exception e) {
-            // Log the error for debugging
+            
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Failed to delete module and all related content: " + e.getMessage());

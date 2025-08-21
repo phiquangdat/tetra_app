@@ -94,6 +94,20 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
   const isValidUrl =
     data.url && (data.url.endsWith('.mp4') || isYouTubeUrl(data.url));
 
+  const handleChangePoints = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    if (value === '') {
+      updateContentField('data', { ...data, points: '' });
+      return;
+    }
+
+    if (/^\d+$/.test(value)) {
+      const numValue = parseInt(value, 10);
+      updateContentField('data', { ...data, points: numValue });
+    }
+  };
+
   const handleSave = async () => {
     if (!canSave) return;
     try {
@@ -271,6 +285,29 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
               className="w-full px-4 py-3 border border-primary/50 rounded-lg text-primary placeholder:text-primary/40 focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200"
               required
               disabled={isSaving}
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="points"
+              className="block text-base font-semibold text-primary mb-2"
+            >
+              Points
+            </label>
+            <input
+              type="text"
+              id="points"
+              value={
+                data.points !== undefined && data.points !== null
+                  ? String(data.points)
+                  : ''
+              }
+              onChange={handleChangePoints}
+              placeholder="Enter video points"
+              required
+              className="px-4 py-3 border border-primary/50 rounded-lg text-primary placeholder:text-primary/40 focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200"
+              aria-label="points"
             />
           </div>
         </div>

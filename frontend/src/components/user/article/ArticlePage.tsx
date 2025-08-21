@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  fetchUnitContentDetails,
+  fetchArticleContentById,
   type Article,
 } from '../../../services/unit/unitApi';
 import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
@@ -97,7 +97,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await fetchUnitContentDetails(id);
+      const data = await fetchArticleContentById(id);
       setArticle(data);
 
       try {

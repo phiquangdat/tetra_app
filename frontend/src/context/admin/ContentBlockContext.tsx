@@ -198,7 +198,7 @@ export const ContentBlockContextProvider = ({
             break;
           }
           case 'article': {
-            const title = contentBlock.data.title;
+            const { title, points } = contentBlock.data;
             const content = newArticleContent;
             const sort_order = contentBlock.sortOrder;
 
@@ -211,6 +211,7 @@ export const ContentBlockContextProvider = ({
               content_type: 'article',
               title: title as string,
               content: content as string,
+              points: points as number,
               sort_order,
             };
 

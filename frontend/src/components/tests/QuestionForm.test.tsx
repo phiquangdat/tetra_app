@@ -1,9 +1,19 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import React from 'react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import QuestionForm from '../admin/createModule/QuestionForm';
 import { ContentBlockContext } from '../../context/admin/ContentBlockContext';
-import { UnitContextProvider } from '../../context/admin/UnitContext';
-import React from 'react';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+
+vi.mock('../admin/createModule/QuestionOption', () => ({
+  default: ({
+    questionIndex,
+    answerIndex,
+  }: {
+    questionIndex: number;
+    answerIndex: number;
+  }) => <input aria-label={`option-${questionIndex}-${answerIndex}`} />,
+}));
 
 const mockUpdateQuestion = vi.fn();
 
@@ -22,25 +32,23 @@ const mockData = {
   ],
 };
 
-const renderWithProviders = (ui: React.ReactNode) => {
+const renderWithProviders = (ui: React.ReactNode, data = mockData) => {
   return render(
-    <UnitContextProvider>
-      <ContentBlockContext.Provider
-        value={{
-          data: mockData,
-          updateQuestion: mockUpdateQuestion,
-          updateAnswer: vi.fn(),
-          updateContentField: vi.fn(),
-          markContentAsDirty: vi.fn(),
-          setContentState: vi.fn(),
-          getContentState: () => mockData as any,
-          saveContent: vi.fn(),
-          clearContent: vi.fn(),
-        }}
-      >
-        {ui}
-      </ContentBlockContext.Provider>
-    </UnitContextProvider>,
+    <ContentBlockContext.Provider
+      value={{
+        data,
+        updateQuestion: mockUpdateQuestion,
+        updateAnswer: vi.fn(),
+        updateContentField: vi.fn(),
+        markContentAsDirty: vi.fn(),
+        setContentState: vi.fn(),
+        getContentState: () => data as any,
+        saveContent: vi.fn(),
+        clearContent: vi.fn(),
+      }}
+    >
+      {ui}
+    </ContentBlockContext.Provider>,
   );
 };
 
@@ -105,7 +113,7 @@ describe('QuestionForm', () => {
     expect(mockUpdateQuestion).toHaveBeenCalledWith(
       0,
       expect.objectContaining({
-        answers: expect.any(Array),
+        answers: expect.any(Array), // now length should be 2 internally
       }),
     );
   });
@@ -124,34 +132,21 @@ describe('QuestionForm', () => {
       ],
     };
 
-    render(
-      <UnitContextProvider>
-        <ContentBlockContext.Provider
-          value={{
-            data: tfData,
-            updateQuestion: mockUpdateQuestion,
-            updateAnswer: vi.fn(),
-            updateContentField: vi.fn(),
-            markContentAsDirty: vi.fn(),
-            setContentState: vi.fn(),
-            getContentState: () => tfData as any,
-            saveContent: vi.fn(),
-            clearContent: vi.fn(),
-          }}
-        >
-          <QuestionForm
-            questionNumber={1}
-            questionType="true/false"
-            onClose={onClose}
-          />
-        </ContentBlockContext.Provider>
-      </UnitContextProvider>,
+    renderWithProviders(
+      <QuestionForm
+        questionNumber={1}
+        questionType="true/false"
+        onClose={onClose}
+      />,
+      tfData,
     );
 
-    const inputs = screen
+    // Only count the mocked option inputs, not the textarea
+    const optionInputs = screen
       .getAllByRole('textbox')
-      .filter((el) => el.tagName === 'INPUT');
-    expect(inputs.length).toBe(2);
+      .filter((el) => el.tagName.toLowerCase() === 'input');
+
+    expect(optionInputs).toHaveLength(2);
   });
 
   it('calls onClose when the close button is clicked', async () => {

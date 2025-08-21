@@ -1,104 +1,121 @@
-// src/components/tests/admin/ContentBlockItem.test.tsx
 import React, { useEffect } from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { describe, it, vi } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { vi, describe, it } from 'vitest';
 
-import ContentBlockItem from '../../../components/admin/module/ContentBlockItem';
+import ContentBlockList from '../../../components/admin/module/ContentBlockList';
 import {
   UnitContextProvider,
   useUnitContext,
 } from '../../../context/admin/UnitContext';
 
-// Mock implementations of the block components
-vi.mock('../../../components/admin/module/VideoBlock', () => ({
-  __esModule: true,
-  default: () => <div>Mock Video Block</div>,
+vi.mock('../../../context/admin/ModuleContext.tsx', () => ({
+  useModuleContext: () => ({
+    id: undefined,
+    updateModuleField: vi.fn(),
+    setModuleState: vi.fn(),
+    isEditing: false,
+    setIsEditing: vi.fn(),
+    isDirty: false,
+  }),
+  ModuleContextProvider: ({ children }: any) => children,
 }));
 
-vi.mock('../../../components/admin/module/ArticleBlock', () => ({
+vi.mock('../../../components/admin/module/ContentBlockItem', () => ({
   __esModule: true,
-  default: () => <div>Mock Article Block</div>,
+  default: ({ blockIndex, type, isOpen }: any) =>
+    isOpen ? (
+      <div data-testid={`content-item-${blockIndex}`}>{`${type}:open`}</div>
+    ) : null,
 }));
 
-vi.mock('../../../components/admin/module/QuizBlock', () => ({
-  __esModule: true,
-  default: () => <div>Mock Quiz Block</div>,
-}));
-
-// Helper component to inject unit context before test
-const SetupUnitContext: React.FC = () => {
-  const { setUnitStatesRaw } = useUnitContext();
+const SeedUnit: React.FC<{
+  unitNumber: number;
+  blocks: Array<{
+    id?: string;
+    type: 'video' | 'article' | 'quiz';
+    title: string;
+    content?: string;
+  }>;
+}> = ({ unitNumber, blocks, children }) => {
+  const { setUnitState } = useUnitContext();
   useEffect(() => {
-    setUnitStatesRaw({
-      1: {
-        id: 'unit1',
-        title: 'Title',
-        description: 'Description',
+    setUnitState(unitNumber, {
+      id: `unit-${unitNumber}`,
+      title: `Unit ${unitNumber}`,
+      description: 'desc',
+      content: blocks.map((b, idx) => ({
+        id: b.id ?? `${b.type}-${idx}`,
+        type: b.type,
+        data: { title: b.title, content: b.content ?? '' },
+        sortOrder: idx * 10,
+        unit_id: `unit-${unitNumber}`,
         isDirty: false,
         isSaving: false,
         error: null,
-        content: [
-          {
-            id: 'block1',
-            type: 'video',
-            sortOrder: 1,
-            unit_id: 'unit1',
-            isDirty: false,
-            isSaving: false,
-            error: null,
-            data: { content: 'some content' },
-          },
-        ],
-      },
+      })),
+      isDirty: false,
+      isSaving: false,
+      error: null,
+      isEditing: false,
     });
-  }, []);
-  return null;
+  }, [setUnitState, unitNumber, blocks]);
+  return <>{children}</>;
 };
 
-const renderWithContext = (component: React.ReactNode) => {
-  return render(
-    <UnitContextProvider>
-      <SetupUnitContext />
-      {component}
-    </UnitContextProvider>,
-  );
-};
+const renderWithProviders = (ui: React.ReactNode) =>
+  render(<UnitContextProvider>{ui}</UnitContextProvider>);
 
-describe('ContentBlockItem', () => {
-  it('returns null when closed', () => {
-    const { container } = renderWithContext(
-      <ContentBlockItem
-        type="video"
-        isOpen={false}
-        unitNumber={1}
-        blockIndex={0}
-      />,
+describe('ContentBlockList', () => {
+  it('shows empty state when there are no blocks', () => {
+    renderWithProviders(
+      <SeedUnit unitNumber={1} blocks={[]}>
+        <ContentBlockList unitNumber={1} />
+      </SeedUnit>,
     );
-    expect(container.firstChild).toBeNull();
+
+    expect(
+      screen.getByRole('heading', { level: 3, name: /content blocks/i }),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(/no content blocks available/i),
+    ).toBeInTheDocument();
   });
 
-  it('renders video block when open and type is video', () => {
-    renderWithContext(
-      <ContentBlockItem
-        type="video"
-        isOpen={true}
-        unitNumber={1}
-        blockIndex={0}
-      />,
-    );
-    expect(screen.getByText('Mock Video Block')).toBeInTheDocument();
-  });
+  it('renders rows for each block and toggles open/close on click', async () => {
+    const user = userEvent.setup();
 
-  it('renders article block when type is article', () => {
-    renderWithContext(
-      <ContentBlockItem type="article" isOpen={true} id="a1" />,
+    renderWithProviders(
+      <SeedUnit
+        unitNumber={2}
+        blocks={[
+          { type: 'video', title: 'Intro Video', content: 'v1' },
+          { type: 'article', title: 'Getting Started', content: 'a1' },
+          { type: 'quiz', title: 'Quick Check' },
+        ]}
+      >
+        <ContentBlockList unitNumber={2} />
+      </SeedUnit>,
     );
-    expect(screen.getByText('Mock Article Block')).toBeInTheDocument();
-  });
 
-  it('renders fallback for unsupported type', () => {
-    renderWithContext(<ContentBlockItem type="unsupported" isOpen={true} />);
-    expect(screen.getByText('Unsupported content type')).toBeInTheDocument();
+    expect(screen.getByText('Intro Video')).toBeInTheDocument();
+    expect(screen.getByText('Getting Started')).toBeInTheDocument();
+    expect(screen.getByText('Quick Check')).toBeInTheDocument();
+
+    expect(screen.queryByTestId('content-item-0')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('content-item-1')).not.toBeInTheDocument();
+
+    await user.click(screen.getByText('Intro Video'));
+    expect(screen.getByTestId('content-item-0')).toBeInTheDocument();
+    expect(screen.queryByTestId('content-item-1')).not.toBeInTheDocument();
+
+    await user.click(screen.getByText('Getting Started'));
+    expect(screen.queryByTestId('content-item-0')).not.toBeInTheDocument();
+    expect(screen.getByTestId('content-item-1')).toBeInTheDocument();
+
+    await user.click(screen.getByText('Getting Started'));
+    expect(screen.queryByTestId('content-item-1')).not.toBeInTheDocument();
   });
 });

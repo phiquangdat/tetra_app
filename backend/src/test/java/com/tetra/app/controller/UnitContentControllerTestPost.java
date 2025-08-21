@@ -53,6 +53,9 @@ public class UnitContentControllerTestPost {
     @MockBean
     private com.tetra.app.security.JwtUtil jwtUtil;
 
+    @MockBean
+    private com.tetra.app.repository.AttachmentRepository attachmentRepository;
+
     @Autowired
     private ObjectMapper objectMapper;
 

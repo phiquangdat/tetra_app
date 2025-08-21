@@ -16,12 +16,6 @@ import {
 import toast from 'react-hot-toast';
 import { deleteUnitContent } from '../../services/unit/content/unitContentApi.ts';
 
-export type EditingBlock = {
-  unitNumber: number;
-  blockIndex: number;
-  type: ContentBlock['type'];
-};
-
 export type QuizQuestionAnswer = {
   title: string;
   is_correct: boolean;
@@ -44,6 +38,11 @@ export interface ContentBlock {
     url?: string; // for video
     points?: number; // for quiz
     questions?: QuizQuestion[]; // for quiz
+
+    fileName?: string;
+    fileSize?: number;
+    fileMime?: string;
+    fileId?: string | null;
   };
   sortOrder: number;
   unit_id?: string;
@@ -51,13 +50,15 @@ export interface ContentBlock {
   isSaving: boolean;
   error: string | null;
 
-  fileName?: string;
-  fileSize?: number;
-  fileMime?: string;
-  fileId?: string | null;
   fileBlob?: File | null;
   fileError?: string | null;
 }
+
+export type EditingBlock = {
+  unitNumber: number;
+  blockIndex: number;
+  type: ContentBlock['type'];
+};
 
 export type UnitContextEntry = {
   id: string | null;
@@ -371,10 +372,6 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
             isSaving: false,
             error: null,
 
-            fileName: undefined,
-            fileSize: undefined,
-            fileMime: undefined,
-            fileId: null,
             fileBlob: null,
             fileError: null,
           }))

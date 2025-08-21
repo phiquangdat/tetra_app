@@ -6,8 +6,36 @@ import AddArticleModal from '../admin/createModule/AddArticleModal';
 import { ContentBlockContextProvider } from '../../context/admin/ContentBlockContext';
 import { UnitContextProvider } from '../../context/admin/UnitContext';
 import { EditorStateProvider } from '../../utils/editor/contexts/EditorStateContext';
+import { useEffect } from 'react';
 
-// Mock the content save API used by ContentBlockContext.saveContent
+vi.mock('../../context/admin/ModuleContext', () => ({
+  useModuleContext: () => ({
+    id: 'module-1',
+    updateModuleField: vi.fn(),
+    setModuleState: vi.fn(),
+  }),
+}));
+
+vi.mock('../../utils/pointsHelpers.ts', () => ({
+  adjustModulePoints: vi.fn(async () => ({ id: 'module-1', points: 1234 })),
+}));
+
+vi.mock('../../../utils/editor/EditorComposer.tsx', async () => {
+  const React = await import('react');
+  const { useEditorStateContext } = await import(
+    '../../utils/editor/contexts/EditorStateContext'
+  );
+  return {
+    default: function MockEditor() {
+      const { setEditorContent } = useEditorStateContext();
+      useEffect(() => {
+        setEditorContent('Some article content');
+      }, [setEditorContent]);
+      return <div role="textbox" data-lexical-editor="true" />;
+    },
+  };
+});
+
 vi.mock('../../services/unit/content/unitContentApi.ts', () => ({
   saveArticleContent: vi.fn(async () => ({ id: 'new-article-id' })),
   updateArticleContent: vi.fn(),
@@ -45,7 +73,7 @@ describe('AddArticleModal (new version)', () => {
     );
 
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(
-      'Article',
+      /Add New Article/i,
     );
   });
 

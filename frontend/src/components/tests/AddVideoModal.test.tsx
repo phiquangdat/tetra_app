@@ -7,6 +7,20 @@ import AddVideoModal from '../admin/createModule/AddVideoModal';
 import { UnitContextProvider } from '../../context/admin/UnitContext';
 import { ContentBlockContextProvider } from '../../context/admin/ContentBlockContext';
 
+// Mock ModuleContext hook
+vi.mock('../../context/admin/ModuleContext', () => ({
+  useModuleContext: () => ({
+    id: 'module-1',
+    updateModuleField: vi.fn(),
+    setModuleState: vi.fn(),
+  }),
+}));
+
+// Mock points helper
+vi.mock('../../utils/pointsHelpers.ts', () => ({
+  adjustModulePoints: vi.fn(async () => ({ id: 'module-1', points: 1234 })),
+}));
+
 // Mock the content save API used by ContentBlockContext.saveContent
 vi.mock('../../services/unit/content/unitContentApi.ts', () => ({
   saveVideoContent: vi.fn(async () => ({ id: 'new-video-id' })),

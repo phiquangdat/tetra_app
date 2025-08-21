@@ -16,4 +16,7 @@ public interface UserContentProgressRepository extends JpaRepository<UserContent
 
     @Query("SELECT COALESCE(SUM(u.points), 0) FROM UserContentProgress u WHERE u.user.id = :userId AND UPPER(u.status) = 'COMPLETED'")
     int sumCompletedPointsByUserId(@Param("userId") UUID userId);
+
+    @Query("SELECT COALESCE(SUM(u.points), 0) FROM UserContentProgress u WHERE UPPER(u.status) = 'COMPLETED'")
+    long sumAllCompletedPoints();
 }

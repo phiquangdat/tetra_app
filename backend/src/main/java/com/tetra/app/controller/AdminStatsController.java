@@ -2,6 +2,8 @@ package com.tetra.app.controller;
 
 import com.tetra.app.repository.UserRepository;
 import com.tetra.app.repository.TrainingModuleRepository;
+import com.tetra.app.repository.UserModuleProgressRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,10 +19,13 @@ public class AdminStatsController {
 
     private final UserRepository userRepository;
     private final TrainingModuleRepository trainingModuleRepository;
+    private final UserModuleProgressRepository userModuleProgressRepository;
 
-    public AdminStatsController(UserRepository userRepository, TrainingModuleRepository trainingModuleRepository) {
+    @Autowired
+    public AdminStatsController(UserRepository userRepository, TrainingModuleRepository trainingModuleRepository, UserModuleProgressRepository userModuleProgressRepository) {
         this.userRepository = userRepository;
         this.trainingModuleRepository = trainingModuleRepository;
+        this.userModuleProgressRepository = userModuleProgressRepository;
     }
 
     @GetMapping
@@ -36,5 +41,19 @@ public class AdminStatsController {
         stats.put("active_modules", activeModules);
 
         return ResponseEntity.ok(stats);
+    }
+
+    @GetMapping("/module-completions-by-topic")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getModuleCompletionsByTopic() {
+        var results = userModuleProgressRepository.findModuleCompletionsPerTopic();
+        var response = new java.util.ArrayList<java.util.Map<String, Object>>();
+        for (var row : results) {
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("topic", row.getTopic());
+            map.put("completions", row.getCompletions());
+            response.add(map);
+        }
+        return ResponseEntity.ok(response);
     }
 }

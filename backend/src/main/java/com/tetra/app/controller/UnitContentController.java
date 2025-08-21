@@ -161,7 +161,8 @@ public class UnitContentController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Content block is not of type video");
         }
         Map<String, Object> result = new HashMap<>();
-        result.put("id", content.getId());
+    result.put("id", content.getId());
+    result.put("unit_id", content.getUnitId());
         result.put("title", content.getTitle());
         result.put("content", content.getContentData());
         result.put("url", content.getUrl());
@@ -175,7 +176,8 @@ public class UnitContentController {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Content block does not exist or is not of type article"));
         Map<String, Object> result = new HashMap<>();
-        result.put("id", content.getId());
+    result.put("id", content.getId());
+    result.put("unit_id", content.getUnitId());
         result.put("title", content.getTitle());
         result.put("content", content.getContentData());
         result.put("points", content.getPoints());

@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
-// import { useUnitContent } from '../../../context/user/UnitContentContext.tsx';
 import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
 import { CircularProgressIcon } from '../../common/Icons';
 import {
@@ -13,6 +12,7 @@ import { useQuiz } from '../../../context/user/QuizContext';
 import { calculateQuizResults } from '../../../utils/quizResults';
 import {
   getContentProgress,
+  patchModuleProgress,
   updateContentProgress,
 } from '../../../services/userProgress/userProgressApi';
 
@@ -23,10 +23,12 @@ const QuizSummaryPage: React.FC = () => {
     goToNextContent,
     isNextContent,
     finalizeUnitIfComplete,
+    moduleProgress,
+    setModuleProgress,
   } = useModuleProgress();
   const { quizId } = useParams();
-  // const { unitId } = useUnitContent();
   const navigate = useNavigate();
+  const [quizUnitId, setQuizUnitId] = useState<string | null>(null);
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -46,6 +48,8 @@ const QuizSummaryPage: React.FC = () => {
 
   const { userAnswers } = useQuiz();
 
+  const resolveUnitId = () => unitId || quizUnitId || '';
+
   useEffect(() => {
     if (!quizId) {
       setLoadError('Missing quiz id');
@@ -64,6 +68,7 @@ const QuizSummaryPage: React.FC = () => {
         if (!cancelled) {
           setQuizTitle(quiz.title);
           setTotalPoints(quiz.points);
+          setQuizUnitId(quiz.unit_id || null);
         }
 
         const qs = await fetchQuizQuestionsByQuizId(quizId, true);
@@ -111,6 +116,7 @@ const QuizSummaryPage: React.FC = () => {
     const samePoints = (contentProgressPoints ?? 0) === pointsEarned;
 
     if (alreadyCompleted && samePoints) return;
+    if (!moduleProgress) return;
 
     (async () => {
       try {
@@ -118,11 +124,32 @@ const QuizSummaryPage: React.FC = () => {
           status: 'COMPLETED',
           points: pointsEarned,
         });
-        await finalizeUnitIfComplete(unitId, moduleId);
+        await finalizeUnitIfComplete(resolveUnitId(), moduleId);
         setContentProgressStatus('COMPLETED');
         setContentProgressPoints(pointsEarned);
       } catch (e) {
         console.error('[QuizSummary] updateContentProgress failed:', e);
+      }
+
+      try {
+        const response = await patchModuleProgress(moduleProgress?.id, {
+          earnedPoints: moduleProgress?.earned_points + pointsEarned || 0,
+        });
+        const progressArg = {
+          id: response.id,
+          status: response.status,
+          last_visited_unit_id: response.lastVisitedUnit.id || '',
+          last_visited_content_id: response.lastVisitedContent.id || '',
+          earned_points: response.earnedPoints || 0,
+        };
+
+        console.log('[patchModuleProgress], Update Total Points: ', response);
+        setModuleProgress(progressArg);
+      } catch (error) {
+        console.error(
+          '[patchModuleProgress] Failed to increment module points',
+          error,
+        );
       }
     })();
   }, [
@@ -132,6 +159,7 @@ const QuizSummaryPage: React.FC = () => {
     contentProgressPoints,
     questions.length,
     pointsEarned,
+    quizUnitId,
   ]);
 
   const summaryHeadline =
@@ -150,7 +178,7 @@ const QuizSummaryPage: React.FC = () => {
     <div className="bg-white min-h-screen py-8 px-6">
       <div className="mb-4">
         <a
-          onClick={() => navigate(`/user/unit/${unitId}`)}
+          onClick={() => navigate(`/user/unit/${resolveUnitId()}`)}
           className="inline-flex items-center text-gray-500 hover:text-black px-3 py-1 rounded-lg hover:bg-gray-100 hover:border hover:border-gray-300 active:bg-gray-200 transition-all cursor-pointer"
         >
           <span className="mr-2 text-xl">←</span>

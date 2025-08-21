@@ -33,6 +33,7 @@ const QuizStartModal = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [quizDetails, setQuizDetails] = useState<Quiz>({
     id: '',
+    unit_id: '',
     title: '',
     content: '',
     points: 0,

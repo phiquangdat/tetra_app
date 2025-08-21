@@ -1,3 +1,4 @@
+import React from 'react';
 import { renderHook, act } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import toast from 'react-hot-toast';
@@ -8,29 +9,57 @@ import {
 } from '../../../context/admin/UnitContext';
 
 import * as unitApi from '../../../services/unit/unitApi';
-import * as contentApi from '../../../services/unit/content/unitContentApi'; // ✅ correct module
+import * as contentApi from '../../../services/unit/content/unitContentApi';
 
 // Mock toast
 vi.mock('react-hot-toast', () => ({
-  default: {
-    success: vi.fn(),
-    error: vi.fn(),
-  },
+  default: { success: vi.fn(), error: vi.fn() },
   success: vi.fn(),
   error: vi.fn(),
 }));
 
-vi.mock('../../../services/unit/unitApi', async () => {
+vi.mock('../../../services/unit/unitApi', () => ({
+  deleteUnit: vi.fn(),
+}));
+vi.mock('../../../services/unit/content/unitContentApi', () => ({
+  deleteUnitContent: vi.fn(),
+}));
+
+vi.mock('../../../context/admin/ModuleContext.tsx', () => {
+  const updateModuleField = vi.fn();
   return {
-    deleteUnit: vi.fn(),
+    useModuleContext: () => ({
+      id: undefined, // keep undefined so adjustModulePoints path is skipped
+      updateModuleField, // no-op
+      setModuleState: vi.fn(),
+      isEditing: false,
+      setIsEditing: vi.fn(),
+      isDirty: false,
+    }),
+    ModuleContextProvider: ({ children }: any) => children,
+    initialModuleState: {
+      id: null,
+      title: '',
+      description: '',
+      topic: '',
+      pointsAwarded: 0,
+      coverPictureUrl: '',
+      isDirty: false,
+      isSaving: false,
+      error: null,
+      isEditing: true,
+      status: 'draft',
+    },
   };
 });
 
-vi.mock('../../../services/unit/content/unitContentApi', async () => {
-  return {
-    deleteUnitContent: vi.fn(),
-  };
-});
+vi.mock('../../../utils/pointsHelpers.ts', () => ({
+  adjustModulePoints: vi.fn(async () => ({ points: 0 })),
+}));
+
+const Wrapper = ({ children }: { children: React.ReactNode }) => (
+  <UnitContextProvider>{children}</UnitContextProvider>
+);
 
 describe('UnitContext - removeUnit', () => {
   beforeEach(() => {
@@ -43,11 +72,7 @@ describe('UnitContext - removeUnit', () => {
     >;
     mockDelete.mockResolvedValueOnce('Unit deleted');
 
-    const { result } = renderHook(() => useUnitContext(), {
-      wrapper: ({ children }) => (
-        <UnitContextProvider>{children}</UnitContextProvider>
-      ),
-    });
+    const { result } = renderHook(() => useUnitContext(), { wrapper: Wrapper });
 
     act(() => {
       result.current.setUnitState(1, {
@@ -62,12 +87,12 @@ describe('UnitContext - removeUnit', () => {
       });
     });
 
-    let success: boolean;
+    let success!: boolean;
     await act(async () => {
       success = await result.current.removeUnit(1);
     });
 
-    expect(success!).toBe(true);
+    expect(success).toBe(true);
     expect(mockDelete).toHaveBeenCalledWith('unit-id-1');
     expect(toast.success).toHaveBeenCalledWith('Unit deleted successfully');
   });
@@ -78,11 +103,7 @@ describe('UnitContext - removeUnit', () => {
     >;
     mockDelete.mockRejectedValueOnce(new Error('Server error'));
 
-    const { result } = renderHook(() => useUnitContext(), {
-      wrapper: ({ children }) => (
-        <UnitContextProvider>{children}</UnitContextProvider>
-      ),
-    });
+    const { result } = renderHook(() => useUnitContext(), { wrapper: Wrapper });
 
     act(() => {
       result.current.setUnitState(1, {
@@ -97,12 +118,12 @@ describe('UnitContext - removeUnit', () => {
       });
     });
 
-    let success: boolean;
+    let success!: boolean;
     await act(async () => {
       success = await result.current.removeUnit(1);
     });
 
-    expect(success!).toBe(false);
+    expect(success).toBe(false);
     expect(toast.error).toHaveBeenCalledWith(
       'Failed to delete unit. Please try again later.',
     );
@@ -113,11 +134,7 @@ describe('UnitContext - removeUnit', () => {
       typeof vi.fn
     >;
 
-    const { result } = renderHook(() => useUnitContext(), {
-      wrapper: ({ children }) => (
-        <UnitContextProvider>{children}</UnitContextProvider>
-      ),
-    });
+    const { result } = renderHook(() => useUnitContext(), { wrapper: Wrapper });
 
     act(() => {
       result.current.setUnitState(1, {
@@ -132,28 +149,24 @@ describe('UnitContext - removeUnit', () => {
       });
     });
 
-    let success: boolean;
+    let success!: boolean;
     await act(async () => {
       success = await result.current.removeUnit(1);
     });
 
-    expect(success!).toBe(true);
+    expect(success).toBe(true);
     expect(mockDelete).not.toHaveBeenCalled();
   });
 
   it('returns false if unit number is not in state', async () => {
-    const { result } = renderHook(() => useUnitContext(), {
-      wrapper: ({ children }) => (
-        <UnitContextProvider>{children}</UnitContextProvider>
-      ),
-    });
+    const { result } = renderHook(() => useUnitContext(), { wrapper: Wrapper });
 
-    let success: boolean;
+    let success!: boolean;
     await act(async () => {
       success = await result.current.removeUnit(42);
     });
 
-    expect(success!).toBe(false);
+    expect(success).toBe(false);
   });
 });
 
@@ -167,11 +180,7 @@ describe('UnitContext - removeUnitContent', () => {
       contentApi.deleteUnitContent as unknown as ReturnType<typeof vi.fn>;
     mockDeleteContent.mockResolvedValueOnce('Content deleted');
 
-    const { result } = renderHook(() => useUnitContext(), {
-      wrapper: ({ children }) => (
-        <UnitContextProvider>{children}</UnitContextProvider>
-      ),
-    });
+    const { result } = renderHook(() => useUnitContext(), { wrapper: Wrapper });
 
     act(() => {
       result.current.setUnitState(1, {
@@ -197,12 +206,12 @@ describe('UnitContext - removeUnitContent', () => {
       });
     });
 
-    let resultSuccess: boolean;
+    let ok!: boolean;
     await act(async () => {
-      resultSuccess = await result.current.removeUnitContent(1, 0);
+      ok = await result.current.removeUnitContent(1, 0);
     });
 
-    expect(resultSuccess!).toBe(true);
+    expect(ok).toBe(true);
     expect(mockDeleteContent).toHaveBeenCalledWith('block-1');
     expect(result.current.getUnitState(1)!.content.length).toBe(0);
     expect(toast.success).toHaveBeenCalledWith(
@@ -215,11 +224,7 @@ describe('UnitContext - removeUnitContent', () => {
       contentApi.deleteUnitContent as unknown as ReturnType<typeof vi.fn>;
     mockDeleteContent.mockRejectedValueOnce(new Error('Delete failed'));
 
-    const { result } = renderHook(() => useUnitContext(), {
-      wrapper: ({ children }) => (
-        <UnitContextProvider>{children}</UnitContextProvider>
-      ),
-    });
+    const { result } = renderHook(() => useUnitContext(), { wrapper: Wrapper });
 
     act(() => {
       result.current.setUnitState(1, {
@@ -245,12 +250,12 @@ describe('UnitContext - removeUnitContent', () => {
       });
     });
 
-    let resultSuccess: boolean;
+    let ok!: boolean;
     await act(async () => {
-      resultSuccess = await result.current.removeUnitContent(1, 0);
+      ok = await result.current.removeUnitContent(1, 0);
     });
 
-    expect(resultSuccess!).toBe(false);
+    expect(ok).toBe(false);
     expect(mockDeleteContent).toHaveBeenCalledWith('block-1');
     expect(result.current.getUnitState(1)!.content.length).toBe(1);
     expect(toast.error).toHaveBeenCalledWith(
@@ -259,26 +264,18 @@ describe('UnitContext - removeUnitContent', () => {
   });
 
   it('does nothing and returns false if unit number is invalid', async () => {
-    const { result } = renderHook(() => useUnitContext(), {
-      wrapper: ({ children }) => (
-        <UnitContextProvider>{children}</UnitContextProvider>
-      ),
-    });
+    const { result } = renderHook(() => useUnitContext(), { wrapper: Wrapper });
 
-    let success: boolean;
+    let ok!: boolean;
     await act(async () => {
-      success = await result.current.removeUnitContent(99, 0);
+      ok = await result.current.removeUnitContent(99, 0);
     });
 
-    expect(success!).toBe(false);
+    expect(ok).toBe(false);
   });
 
   it('does nothing and returns false if block index is invalid', async () => {
-    const { result } = renderHook(() => useUnitContext(), {
-      wrapper: ({ children }) => (
-        <UnitContextProvider>{children}</UnitContextProvider>
-      ),
-    });
+    const { result } = renderHook(() => useUnitContext(), { wrapper: Wrapper });
 
     act(() => {
       result.current.setUnitState(1, {
@@ -293,11 +290,11 @@ describe('UnitContext - removeUnitContent', () => {
       });
     });
 
-    let success: boolean;
+    let ok!: boolean;
     await act(async () => {
-      success = await result.current.removeUnitContent(1, 5);
+      ok = await result.current.removeUnitContent(1, 5);
     });
 
-    expect(success!).toBe(false);
+    expect(ok).toBe(false);
   });
 });

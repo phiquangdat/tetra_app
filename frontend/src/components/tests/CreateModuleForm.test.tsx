@@ -19,11 +19,11 @@ vi.mock('../../services/module/moduleApi.ts', () => ({
 const renderWithProviders = () =>
   render(
     <MemoryRouter>
-      <UnitContextProvider>
-        <ModuleContextProvider>
+      <ModuleContextProvider>
+        <UnitContextProvider>
           <CreateModuleForm />
-        </ModuleContextProvider>
-      </UnitContextProvider>
+        </UnitContextProvider>
+      </ModuleContextProvider>
     </MemoryRouter>,
   );
 
@@ -42,7 +42,6 @@ describe('CreateModuleForm', () => {
     expect(screen.getByLabelText(/module title/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/module description/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/module topic/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/points awarded/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/cover picture url/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /save/i })).toBeInTheDocument();
   });
@@ -101,9 +100,6 @@ describe('CreateModuleForm', () => {
       screen.getByLabelText(/module topic/i),
       'cybersecurity',
     );
-    const points = screen.getByLabelText(/points awarded/i);
-    await user.clear(points);
-    await user.type(points, '10');
     const cover = screen.getByLabelText(/cover picture url/i);
     await user.clear(cover);
     await user.type(cover, 'https://example.com/image.jpg');
@@ -133,9 +129,6 @@ describe('CreateModuleForm', () => {
       screen.getByLabelText(/module topic/i),
       'cybersecurity',
     );
-    const points = screen.getByLabelText(/points awarded/i);
-    await user.clear(points);
-    await user.type(points, '5');
     await user.type(
       screen.getByLabelText(/cover picture url/i),
       'https://example.com/image.jpg',

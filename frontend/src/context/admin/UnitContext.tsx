@@ -15,6 +15,8 @@ import {
 } from '../../services/unit/unitApi';
 import toast from 'react-hot-toast';
 import { deleteUnitContent } from '../../services/unit/content/unitContentApi.ts';
+import { useModuleContext } from './ModuleContext.tsx';
+import { adjustModulePoints } from '../../utils/pointsHelpers.ts';
 
 export type EditingBlock = {
   unitNumber: number;
@@ -42,7 +44,7 @@ export interface ContentBlock {
     title: string;
     content?: string;
     url?: string; // for video
-    points?: number; // for quiz
+    points?: number;
     questions?: QuizQuestion[]; // for quiz
   };
   sortOrder: number;
@@ -122,6 +124,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
     Record<number, UnitContextEntry>
   >({});
   const [editingBlock, setEditingBlock] = useState<EditingBlock | null>(null);
+  const { id: moduleId, updateModuleField } = useModuleContext();
 
   const updateUnitField = useCallback(
     (unitNumber: number, key: keyof UnitContextEntry, value: any) => {
@@ -329,6 +332,16 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
 
       if (block.id) {
         try {
+          if (moduleId) {
+            const updatedModule = await adjustModulePoints(
+              moduleId,
+              'delete',
+              0,
+              block.id,
+            );
+            await updateModuleField('pointsAwarded', updatedModule.points ?? 0);
+          }
+
           await deleteUnitContent(block.id);
           toast.success('Content block deleted successfully');
         } catch (err) {

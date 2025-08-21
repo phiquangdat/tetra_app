@@ -58,6 +58,7 @@ const VideoBlock: React.FC<VideoBlockProps> = ({
                 content: fetched.content,
                 title: fetched.title,
                 url: fetched.url,
+                points: fetched.points,
               },
             };
 
@@ -80,6 +81,7 @@ const VideoBlock: React.FC<VideoBlockProps> = ({
         title: video?.title,
         content: video?.content,
         url: video?.url,
+        points: video?.points,
       };
 
   const { isValid, isYouTube, embedUrl } = validateVideoUrl(data?.url);
@@ -126,6 +128,11 @@ const VideoBlock: React.FC<VideoBlockProps> = ({
         <div>
           <p className="text-sm font-semibold">About</p>
           <p>{data?.content || 'No description provided'}</p>
+        </div>
+
+        <div>
+          <p className="text-sm font-semibold">Points</p>
+          <p>{data?.points}</p>
         </div>
 
         <div className="flex gap-4">

@@ -150,15 +150,6 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
               required
             />
           </div>
-          <div className="flex justify-end">
-            <a
-              href="#"
-              tabIndex={0}
-              className="text-sm text-[#231942] hover:underline focus:underline"
-            >
-              Forgot your password?
-            </a>
-          </div>
           <button
             type="submit"
             className="w-1/2 bg-[#14248A] hover:bg-[#101e72] text-white px-5 py-3 rounded-lg text-sm font-medium transition block mx-auto"

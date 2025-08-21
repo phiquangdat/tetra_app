@@ -1,14 +1,27 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import ArticleBlock from '../../../components/admin/module/ArticleBlock';
-import { fetchArticleContentById } from '../../../services/unit/unitApi';
 import { describe, it, vi, beforeEach } from 'vitest';
-import { UnitContextProvider } from '../../../context/admin/UnitContext';
+
+vi.mock('../../../context/admin/ModuleContext.tsx', () => ({
+  useModuleContext: () => ({
+    id: undefined,
+    updateModuleField: vi.fn(),
+    setModuleState: vi.fn(),
+    isEditing: false,
+    setIsEditing: vi.fn(),
+    isDirty: false,
+  }),
+  ModuleContextProvider: ({ children }: any) => children,
+}));
 
 vi.mock('../../../services/unit/unitApi', () => ({
   fetchArticleContentById: vi.fn(),
 }));
+
+import { UnitContextProvider } from '../../../context/admin/UnitContext';
+import ArticleBlock from '../../../components/admin/module/ArticleBlock';
+import { fetchArticleContentById } from '../../../services/unit/unitApi';
 
 describe('ArticleBlock', () => {
   beforeEach(() => {
@@ -16,10 +29,11 @@ describe('ArticleBlock', () => {
   });
 
   it('fetches and displays article content', async () => {
-    (fetchArticleContentById as any).mockResolvedValueOnce({
+    (fetchArticleContentById as unknown as vi.Mock).mockResolvedValueOnce({
       id: '2',
       title: 'Article Title',
       content: '<p>Article content</p>',
+      points: 5,
     });
 
     render(
@@ -28,11 +42,9 @@ describe('ArticleBlock', () => {
       </UnitContextProvider>,
     );
 
-    // we should see the fetched title & content
-    await waitFor(() => {
-      expect(screen.getByText('Article title')).toBeInTheDocument();
-      expect(screen.getByText('Article Title')).toBeInTheDocument();
-      expect(screen.getByText('Article content')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Article title')).toBeInTheDocument();
+
+    expect(await screen.findByText('Article Title')).toBeInTheDocument();
+    expect(await screen.findByText('Article content')).toBeInTheDocument();
   });
 });

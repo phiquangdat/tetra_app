@@ -12,6 +12,7 @@ export interface UnitContent {
   sort_order: number;
   status: string;
   points: number;
+  hasProgress?: boolean;
 }
 
 export interface UnitDetailsResponse {
@@ -26,6 +27,7 @@ export interface Video {
   title: string;
   content: string;
   url: string;
+  points: number;
 }
 
 export interface Article {

@@ -1,9 +1,12 @@
 import { EditIcon, CloseIcon } from '../../common/Icons';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
 import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
 import EditorComposer from '../../../utils/editor/EditorComposer.tsx';
 import { useEditorStateContext } from '../../../utils/editor/contexts/EditorStateContext.tsx';
+
+import { validateAttachment } from '../../../utils/validateAttachment.ts';
+
 interface ArticleModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -24,6 +27,8 @@ function AddArticleModal({
     isSaving,
     clearContent,
     setContentState,
+    setSelectedFile,
+    clearSelectedFile,
   } = useContentBlockContext();
   const {
     addContentBlock,
@@ -37,10 +42,14 @@ function AddArticleModal({
 
   const modalRef = useRef<HTMLDivElement>(null);
 
+  const [fileError, setFileError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const canSave =
     data.title.trim() !== '' &&
     (editorContent?.trim() ?? '') !== '' &&
-    !isSaving;
+    !isSaving &&
+    !fileError;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -58,6 +67,7 @@ function AddArticleModal({
         isSaving: false,
         error: null,
       });
+      setFileError(null);
     } else {
       const nextSortOrder = getNextSortOrder(unitNumber);
       clearContent();
@@ -69,8 +79,21 @@ function AddArticleModal({
         isSaving: false,
         error: null,
       });
+      setFileError(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      clearSelectedFile();
     }
-  }, [isOpen, editingBlock, getUnitState, unitId, unitNumber]);
+  }, [
+    isOpen,
+    editingBlock,
+    getUnitState,
+    unitId,
+    unitNumber,
+    getNextSortOrder,
+    clearContent,
+    setContentState,
+    clearSelectedFile,
+  ]);
 
   const handleSave = async () => {
     if (!canSave) return;
@@ -107,12 +130,50 @@ function AddArticleModal({
 
   const handleClose = () => {
     clearContent();
+    clearSelectedFile();
+    setFileError(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
     onClose();
   };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
       handleClose();
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      setFileError(null);
+      clearSelectedFile();
+      return;
+    }
+
+    const result = validateAttachment(file);
+
+    if (result.ok) {
+      setFileError(null);
+      setSelectedFile(file);
+    } else {
+      setFileError(result.message);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      clearSelectedFile();
+    }
+  };
+
+  const handleChangePoints = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    if (value === '') {
+      updateContentField('data', { ...data, points: '' });
+      return;
+    }
+
+    if (/^\d+$/.test(value)) {
+      const numValue = parseInt(value, 10);
+      updateContentField('data', { ...data, points: numValue });
     }
   };
 
@@ -182,11 +243,26 @@ function AddArticleModal({
                 Attachment
               </label>
               <input
+                ref={fileInputRef}
                 type="file"
                 id="attachment"
                 name="attachment"
+                onChange={handleFileChange}
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg"
                 className="w-full px-4 py-3 border border-primary/50 rounded-lg text-primary focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-surface file:text-background file:cursor-pointer hover:file:bg-surfaceHover"
+                aria-describedby="attachment-error"
+                aria-invalid={fileError ? true : false}
               />
+              {fileError && (
+                <p
+                  id="attachment-error"
+                  className="mt-2 text-sm text-red-500"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  {fileError}
+                </p>
+              )}
             </div>
 
             <div className="mb-6">
@@ -194,6 +270,29 @@ function AddArticleModal({
                 Content
               </label>
               <EditorComposer initialHTML={data.content || '<p></p>'} />
+            </div>
+
+            <div className="mb-6">
+              <label
+                htmlFor="points"
+                className="block text-base font-semibold text-primary mb-2"
+              >
+                Points
+              </label>
+              <input
+                type="text"
+                id="points"
+                value={
+                  data.points !== undefined && data.points !== null
+                    ? String(data.points)
+                    : ''
+                }
+                onChange={handleChangePoints}
+                placeholder="Enter article points"
+                required
+                className="px-4 py-3 border border-primary/50 rounded-lg text-primary placeholder:text-primary/40 focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200"
+                aria-label="points"
+              />
             </div>
           </div>
 

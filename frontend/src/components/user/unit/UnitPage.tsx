@@ -113,7 +113,8 @@ const UnitPage = ({ id }: UnitPageProps) => {
         } catch (progressError) {
           if (
             progressError instanceof Error &&
-            progressError.message.includes('404')
+            (progressError.message.includes('404') ||
+              progressError.message.includes('401'))
           ) {
             console.error('[getContentProgress] No progress records found');
             contentProgress = [];
@@ -125,7 +126,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
 
         setUnitContent(details.id, content);
 
-        const updatedContent = content.map((item) => {
+        const updatedContent = content.map((item, index) => {
           // Merge content with progress
           const progress = contentProgress.find(
             (p) => p.unitContentId === item.id,
@@ -134,6 +135,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
             ...item,
             status: progress ? progress.status : 'not_started',
             points: progress ? progress.points : 0,
+            hasProgress: progress !== undefined || index === 0, // First item enabled if no progress
           };
         });
 
@@ -163,17 +165,15 @@ const UnitPage = ({ id }: UnitPageProps) => {
 
   const handleRowClick = (idx: number) => {
     // Skip redirecting on click if it's quiz
-    if (unitContentList[idx].content_type == 'quiz') {
+    const content = unitContentList[idx];
+    if (!content.hasProgress || content.content_type === 'quiz') {
       return;
     }
 
     setCheckedIndex((current) => (current === idx ? null : idx));
-    navigate(
-      `/user/${unitContentList[idx].content_type}/${unitContentList[idx].id}`,
-      {
-        state: { unitId: unitDetails.id },
-      },
-    );
+    navigate(`/user/${content.content_type}/${content.id}`, {
+      state: { unitId: unitDetails.id },
+    });
   };
 
   const handleStart = async () => {
@@ -281,17 +281,19 @@ const UnitPage = ({ id }: UnitPageProps) => {
           unitContentList.map((content, index) => (
             <div
               key={content.id}
-              className={`grid grid-cols-[24px_80px_1fr_auto] gap-4 items-center p-4 rounded-xl cursor-pointer transition-colors 
-                hover:bg-[#D4C2FC] ${
-                  checkedIndex === index
-                    ? 'bg-[#998FC7]/30'
-                    : content.status?.toLowerCase() === 'completed'
-                      ? 'bg-green-100/70 border border-green-300'
-                      : 'bg-white'
-                }`}
-              onClick={() => handleRowClick(index)}
+              className={`grid grid-cols-[24px_80px_1fr_auto] gap-4 items-center p-4 rounded-xl cursor-pointer transition-colors
+              ${
+                !content.hasProgress
+                  ? 'bg-gray-100 border border-gray-200 !cursor-not-allowed'
+                  : content.status?.toLowerCase() === 'completed'
+                    ? 'bg-green-100/70 border border-green-300'
+                    : 'bg-white hover:bg-[#D4C2FC]'
+              }`}
+              onClick={() => content.hasProgress && handleRowClick(index)}
             >
-              <div className="w-6 h-6 flex items-center justify-center">
+              <div
+                className={`w-6 h-6 flex items-center justify-center ${!content.hasProgress && 'opacity-60'}`}
+              >
                 {content.content_type === 'video' && (
                   <VideoIcon width={24} height={24} />
                 )}
@@ -302,12 +304,22 @@ const UnitPage = ({ id }: UnitPageProps) => {
                   <PuzzleIcon width={24} height={24} />
                 )}
               </div>
-              <div className="capitalize text-base font-medium text-[#231942]">
+              <div
+                className={`capitalize text-base font-medium ${
+                  content.hasProgress ? '' : 'text-[#231942]/40'
+                }`}
+              >
                 {content.content_type}
               </div>
-              <div className="text-[#231942] text-base">{content.title}</div>
+              <div
+                className={`text-base ${
+                  content.hasProgress ? 'text-[#231942]' : 'text-[#231942]/40'
+                }`}
+              >
+                {content.title}
+              </div>
               <div className="flex justify-end items-center">
-                {content.content_type === 'quiz' && (
+                {content.content_type === 'quiz' && content.hasProgress && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

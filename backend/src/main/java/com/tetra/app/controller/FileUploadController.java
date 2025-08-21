@@ -16,6 +16,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import java.util.Optional;
+import com.tetra.app.dto.FileDownloadInfoDTO;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,6 +50,65 @@ public class FileUploadController {
         this.attachmentRepository = attachmentRepository;
         this.jwtUtil = jwtUtil;
         this.blacklistedTokenRepository = blacklistedTokenRepository;
+    }
+
+    @GetMapping("/uploads/{id}")
+    @Operation(summary = "Download a previously uploaded file by ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "File returned successfully"),
+        @ApiResponse(responseCode = "404", description = "File not found"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<?> getFile(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @PathVariable("id") java.util.UUID id
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(java.util.Map.of("error", "Missing or invalid Authorization header"));
+        }
+        String token = authHeader.substring(7);
+        if (blacklistedTokenRepository.existsByToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(java.util.Map.of("error", "Token is blacklisted (logged out)"));
+        }
+        try {
+            jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(java.util.Map.of("error", "Invalid token"));
+        }
+
+        java.util.Optional<Attachment> attachmentOpt = attachmentRepository.findById(id);
+        if (attachmentOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(java.util.Map.of("error", "File not found"));
+        }
+        Attachment attachment = attachmentOpt.get();
+        java.nio.file.Path filePath = java.nio.file.Paths.get(uploadDir).resolve(attachment.getStoragePath());
+        if (!java.nio.file.Files.exists(filePath)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(java.util.Map.of("error", "File not found"));
+        }
+        try {
+            InputStreamResource resource = new InputStreamResource(java.nio.file.Files.newInputStream(filePath));
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + attachment.getName() + "\"");
+            headers.add(HttpHeaders.CONTENT_TYPE, attachment.getMime());
+            headers.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(attachment.getSize()));
+            FileDownloadInfoDTO dto = new FileDownloadInfoDTO(
+                attachment.getId(),
+                attachment.getName(),
+                attachment.getMime(),
+                attachment.getSize()
+            );
+            headers.add("X-File-Id", dto.getId().toString());
+            headers.add("X-File-Name", dto.getName());
+            headers.add("X-File-Mime", dto.getMime());
+            headers.add("X-File-Size", String.valueOf(dto.getSize()));
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(resource);
+        } catch (java.io.IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(java.util.Map.of("error", "Failed to read file: " + e.getMessage()));
+        }
     }
 
     @PostMapping(value = "/uploads", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

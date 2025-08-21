@@ -45,8 +45,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
-  const { goToNextContent, isNextContent, moduleProgress, setModuleProgress } =
-    useModuleProgress();
+  const {
+    moduleId,
+    unitId,
+    goToNextContent,
+    isNextContent,
+    moduleProgress,
+    setModuleProgress,
+    finalizeUnitIfComplete,
+  } = useModuleProgress();
+
+  const resolveUnitId = (v?: Video | null) =>
+    unitIdFromState || unitId || v?.unit_id || '';
 
   const playerRef = useRef<any>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -70,8 +80,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
 
         setContentProgress(progress);
 
+        const resolvedUnitId = resolveUnitId(video);
+
         if (
-          (moduleProgress?.last_visited_unit_id !== unitIdFromState ||
+          (moduleProgress?.last_visited_unit_id !== resolvedUnitId ||
             moduleProgress?.last_visited_content_id !== id) &&
           progress.status !== 'COMPLETED'
         ) {
@@ -79,7 +91,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
             const response = await patchModuleProgress(
               moduleProgress?.id as string,
               {
-                lastVisitedUnit: unitIdFromState,
+                lastVisitedUnit: resolvedUnitId,
                 lastVisitedContent: id,
               },
             );
@@ -99,8 +111,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         }
       } catch (error) {
         if (error instanceof Error && error.message.includes('404')) {
+          const resolvedUnitId = resolveUnitId(video);
+
           const progress = await createContentProgress({
-            unitId: unitIdFromState as string,
+            unitId: resolvedUnitId,
             unitContentId: id,
             status: 'IN_PROGRESS',
             points: 0,
@@ -115,7 +129,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     };
 
     fetchData();
-  }, [id, unitIdFromState]);
+  }, [id, unitIdFromState, unitId]);
 
   const markAsCompleted = async () => {
     if (
@@ -131,6 +145,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         status: 'COMPLETED',
         points: video.points || 0,
       });
+
+      const resolvedUnitId = resolveUnitId(video);
+      await finalizeUnitIfComplete(resolvedUnitId, moduleId);
       setContentProgress((prev) =>
         prev
           ? { ...prev, status: 'COMPLETED', points: video.points || 0 }
@@ -246,7 +263,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <div className="w-full max-w-4xl mb-6 text-left">
         <a
-          onClick={() => navigate(`/user/unit/${unitIdFromState}`)}
+          onClick={() => navigate(`/user/unit/${resolveUnitId(video)}`)}
           className="inline-flex items-center text-secondary hover:text-primary px-3 py-1 rounded-lg hover:bg-cardBackground hover:border hover:border-highlight active:bg-highlight transition-all cursor-pointer"
         >
           <span className="mr-2 text-xl">←</span>

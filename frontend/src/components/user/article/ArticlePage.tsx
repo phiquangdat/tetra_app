@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  fetchUnitContentDetails,
+  fetchArticleContentById,
   type Article,
 } from '../../../services/unit/unitApi';
 import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
@@ -25,8 +25,18 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
   const [contentProgress, setContentProgress] = useState<ContentProgress>();
-  const { goToNextContent, isNextContent, moduleProgress, setModuleProgress } =
-    useModuleProgress();
+  const {
+    moduleId,
+    unitId,
+    goToNextContent,
+    isNextContent,
+    moduleProgress,
+    setModuleProgress,
+    finalizeUnitIfComplete,
+  } = useModuleProgress();
+
+  const resolveUnitId = (a?: Article | null) =>
+    unitIdFromState || unitId || a?.unit_id || '';
 
   const calculateScrollPercent = useCallback(() => {
     const scrollTop = window.scrollY;
@@ -56,6 +66,10 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
           status: 'COMPLETED',
           points: article.points || 0,
         });
+
+        const resolvedUnitId = resolveUnitId(article);
+        console.log('effectiveUnitId', resolvedUnitId);
+        await finalizeUnitIfComplete(resolvedUnitId, moduleId);
         setContentProgress((prev) =>
           prev
             ? { ...prev, status: 'COMPLETED', points: article.points }
@@ -91,8 +105,11 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await fetchUnitContentDetails(id);
+      const data = await fetchArticleContentById(id);
       setArticle(data);
+
+      const resolvedUnitId = resolveUnitId(data);
+      console.log('effectiveUnitId', resolvedUnitId);
 
       try {
         const progress = await getContentProgress(id);
@@ -109,7 +126,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
             const response = await patchModuleProgress(
               moduleProgress?.id as string,
               {
-                lastVisitedUnit: unitIdFromState,
+                lastVisitedUnit: resolvedUnitId,
                 lastVisitedContent: id,
               },
             );
@@ -162,7 +179,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
     <div className="mx-auto px-8 py-8 min-h-screen text-left">
       <div className="mb-6">
         <a
-          onClick={() => navigate(`/user/unit/${unitIdFromState}`)}
+          onClick={() => navigate(`/user/unit/${resolveUnitId(article)}`)}
           className="inline-flex items-center text-secondary hover:text-primary px-3 py-1 rounded-lg hover:bg-cardBackground hover:border hover:border-highlight active:bg-highlight transition-all cursor-pointer"
         >
           <span className="mr-2 text-xl">←</span>

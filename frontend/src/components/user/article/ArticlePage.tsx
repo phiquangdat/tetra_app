@@ -34,6 +34,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     size?: number;
   } | null>(null);
 
+  const articleRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
@@ -81,15 +82,28 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
   const [hasNext, setHasNext] = useState(false);
 
   const calculateScrollPercent = useCallback(() => {
+    const element = articleRef.current;
+    if (!element) return 0;
+
+    // How far the top of the viewport is from the top of the document
     const scrollTop = window.scrollY;
-    const scrollHeight = document.documentElement.scrollHeight;
-    const clientHeight = window.innerHeight;
 
-    const scrollableHeight = scrollHeight - clientHeight;
-    if (scrollableHeight <= 0) return 100;
+    // Height of the viewport
+    const viewportHeight = window.innerHeight;
 
-    const percent = (scrollTop / scrollableHeight) * 100;
-    return Math.round(percent);
+    // Bottom of the viewport relative to the document
+    const scrollBottom = scrollTop + viewportHeight;
+
+    // Distance from the top of the document to the start of the article
+    const articleTop = element.offsetTop;
+
+    // Total height of the article itself
+    const articleHeight = element.scrollHeight;
+
+    // How far into the article the bottom of the viewport has reached
+    const scrolledInside = scrollBottom - articleTop;
+
+    return Math.min(Math.round((scrolledInside / articleHeight) * 100), 100); // No greater than 100
   }, []);
 
   const handleScroll = useCallback(async () => {
@@ -254,10 +268,15 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
   ]);
 
   useEffect(() => {
-    if (contentProgress?.status?.toLowerCase() == 'completed') return;
+    if (
+      !articleRef.current ||
+      contentProgress?.status?.toLowerCase() == 'completed'
+    )
+      return;
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
+    window.addEventListener('scroll', handleScroll, {
+      passive: true,
+    });
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
@@ -319,7 +338,10 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
         </div>
       )}
 
-      <div className="bg-cardBackground rounded-3xl p-10 sm:p-14 shadow-xl w-full md:w-3/4 mx-auto border-l-8 border-accent">
+      <div
+        ref={articleRef}
+        className="bg-cardBackground rounded-3xl p-10 sm:p-14 shadow-xl w-full md:w-3/4 mx-auto border-l-8 border-accent"
+      >
         <div
           className="prose prose-lg max-w-none leading-relaxed text-primary/90 text-justify"
           dangerouslySetInnerHTML={{ __html: article?.content || '' }}

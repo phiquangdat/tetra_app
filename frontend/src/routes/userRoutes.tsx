@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import type { RouteObject } from 'react-router-dom';
-import { useParams } from 'react-router-dom';
+import { useParams, Navigate } from 'react-router-dom';
+import { getAuthToken } from '../utils/authHelpers';
 
 import UserLayout from '../layouts/UserLayout';
 const ModuleCards = lazy(
@@ -61,9 +62,18 @@ function ArticlePageWrapper() {
   );
 }
 
+function ProtectedWrapper({ children }: { children: React.ReactNode }) {
+  const isLoggedIn = Boolean(getAuthToken());
+  return isLoggedIn ? children : <Navigate to="/login" replace />;
+}
+
 export const userRoutes: RouteObject = {
   path: '/user',
-  element: <UserLayout />,
+  element: (
+    <ProtectedWrapper>
+      <UserLayout />
+    </ProtectedWrapper>
+  ),
   children: [
     {
       index: true,

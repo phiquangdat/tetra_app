@@ -41,6 +41,11 @@ interface ContextBlockType extends ContentBlock {
     answerIndex: number,
     answer: QuizQuestionAnswer,
   ) => void;
+
+  setSelectedFile: (file: File) => void;
+  clearSelectedFile: () => void;
+  setFileError: (message: string | null) => void;
+  getFileError: () => string | null;
 }
 
 const createDefaultContentBlockState = (): ContentBlock => ({
@@ -51,12 +56,20 @@ const createDefaultContentBlockState = (): ContentBlock => ({
     url: '',
     points: 0,
     questions: [],
+
+    fileName: undefined,
+    fileSize: undefined,
+    fileMime: undefined,
+    fileId: null,
   },
   sortOrder: 0,
   unit_id: '',
   isDirty: false,
   isSaving: false,
   error: null,
+
+  fileBlob: null,
+  fileError: null,
 });
 
 export const ContentBlockContext = createContext<ContextBlockType | undefined>(
@@ -73,13 +86,30 @@ export const ContentBlockContextProvider = ({
   );
   const { id: moduleId, updateModuleField } = useModuleContext();
 
+  const UI_KEYS: Array<keyof ContentBlock> = ['fileBlob', 'fileError'];
+
   const updateContentField = useCallback(
     (key: keyof ContentBlock, value: any) => {
       setContentBlock((prev) => {
         let isDirty = prev.isDirty;
 
-        if (key === 'data' && typeof value === 'object') {
+        if (key === 'data' && value && typeof value === 'object') {
+          const changed = Object.keys(value).some((k) => {
+            return value[k] !== (prev.data as any)[k];
+          });
+          if (changed) isDirty = true;
+        }
+
+        if (key === 'fileBlob') {
           isDirty = true;
+        }
+
+        if (UI_KEYS.includes(key) && key === 'fileError') {
+          return {
+            ...prev,
+            [key]: value,
+            isDirty,
+          };
         }
 
         return {
@@ -431,6 +461,48 @@ export const ContentBlockContextProvider = ({
     [],
   );
 
+  const setSelectedFile = useCallback((file: File) => {
+    setContentBlock((prev) => ({
+      ...prev,
+      data: {
+        ...prev.data,
+        fileName: file.name,
+        fileSize: file.size,
+        fileMime: file.type || undefined,
+      },
+      fileBlob: file,
+      fileError: null,
+      isDirty: true,
+    }));
+  }, []);
+
+  const clearSelectedFile = useCallback(() => {
+    setContentBlock((prev) => ({
+      ...prev,
+      data: {
+        ...prev.data,
+        fileName: undefined,
+        fileSize: undefined,
+        fileMime: undefined,
+        fileId: null,
+      },
+      fileBlob: null,
+      fileError: null,
+      isDirty: true,
+    }));
+  }, []);
+
+  const setFileError = useCallback((message: string | null) => {
+    setContentBlock((prev) => ({
+      ...prev,
+      fileError: message,
+    }));
+  }, []);
+
+  const getFileError = useCallback(() => {
+    return contentBlock.fileError ?? null;
+  }, [contentBlock.fileError]);
+
   const contextValue: ContextBlockType = {
     ...contentBlock,
     updateContentField,
@@ -441,6 +513,11 @@ export const ContentBlockContextProvider = ({
     clearContent,
     updateQuestion,
     updateAnswer,
+
+    setSelectedFile,
+    clearSelectedFile,
+    setFileError,
+    getFileError,
   };
 
   return (

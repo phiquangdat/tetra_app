@@ -25,6 +25,8 @@ function AddQuizModal({
     isSaving,
     clearContent,
     setContentState,
+    setSelectedFile,
+    clearSelectedFile,
   } = useContentBlockContext();
 
   const {
@@ -76,8 +78,19 @@ function AddQuizModal({
       });
       setFileError(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
+      clearSelectedFile();
     }
-  }, [isOpen]);
+  }, [
+    isOpen,
+    editingBlock,
+    getUnitState,
+    unitId,
+    unitNumber,
+    getNextSortOrder,
+    clearContent,
+    setContentState,
+    clearSelectedFile,
+  ]);
 
   const validateQuiz = () => {
     const newErrors: string[] = [];
@@ -219,6 +232,7 @@ function AddQuizModal({
     setFileError(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
     clearContent();
+    clearSelectedFile();
     setEditingBlock(null);
     onClose();
   };
@@ -255,7 +269,7 @@ function AddQuizModal({
 
     if (!file) {
       setFileError(null);
-      // Placeholder for clearing the file input in context
+      clearSelectedFile();
       return;
     }
 
@@ -263,11 +277,11 @@ function AddQuizModal({
 
     if (result.ok) {
       setFileError(null);
-      // Placeholder for updating the file in context
+      setSelectedFile(file);
     } else {
       setFileError(result.message);
       if (fileInputRef.current) fileInputRef.current.value = '';
-      // Placeholder for clearing the file input in context
+      clearSelectedFile();
     }
   };
 

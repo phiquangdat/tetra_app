@@ -18,12 +18,6 @@ import { deleteUnitContent } from '../../services/unit/content/unitContentApi.ts
 import { useModuleContext } from './ModuleContext.tsx';
 import { adjustModulePoints } from '../../utils/pointsHelpers.ts';
 
-export type EditingBlock = {
-  unitNumber: number;
-  blockIndex: number;
-  type: ContentBlock['type'];
-};
-
 export type QuizQuestionAnswer = {
   title: string;
   is_correct: boolean;
@@ -46,13 +40,27 @@ export interface ContentBlock {
     url?: string; // for video
     points?: number;
     questions?: QuizQuestion[]; // for quiz
+
+    fileName?: string;
+    fileSize?: number;
+    fileMime?: string;
+    fileId?: string | null;
   };
   sortOrder: number;
   unit_id?: string;
   isDirty: boolean;
   isSaving: boolean;
   error: string | null;
+
+  fileBlob?: File | null;
+  fileError?: string | null;
 }
+
+export type EditingBlock = {
+  unitNumber: number;
+  blockIndex: number;
+  type: ContentBlock['type'];
+};
 
 export type UnitContextEntry = {
   id: string | null;
@@ -376,6 +384,9 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
             isDirty: false,
             isSaving: false,
             error: null,
+
+            fileBlob: null,
+            fileError: null,
           }))
           .sort((a, b) => a.sortOrder - b.sortOrder);
         setUnitState(unitNumber, { content: blocks });

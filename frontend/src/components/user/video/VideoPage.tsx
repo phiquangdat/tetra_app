@@ -38,6 +38,7 @@ interface VideoPageProps {
 
 const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   const [video, setVideo] = useState<Video | null>(null);
+  const [isCompleted, setIsCompleted] = useState(false); // Ensure Finish button triggers navigation if completion hasn’t occurred
   const [contentProgress, setContentProgress] = useState<ContentProgress>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -60,6 +61,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         fetchVideoContentById(id).then((data) => setVideo(data));
       }
 
+      setIsCompleted(true);
       try {
         const progress = await getContentProgress(id);
         console.log('[getContentProgress]', progress);
@@ -87,7 +89,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
               earned_points: response.earnedPoints || 0,
             };
 
-            console.log('[patchModuleProgress]', response);
+            console.log('[patchModuleProgress], Update IDs:', response);
             setModuleProgress(progress);
           } catch (error) {
             console.error('[patchModuleProgress]', error);
@@ -114,11 +116,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   }, [id, unitIdFromState]);
 
   const markAsCompleted = async () => {
-    if (!(contentProgress && contentProgress.status !== 'COMPLETED')) return;
+    if (
+      !contentProgress ||
+      contentProgress.status === 'COMPLETED' ||
+      !moduleProgress ||
+      !video
+    )
+      return;
 
     try {
       const response = await updateContentProgress(contentProgress.id, {
         status: 'COMPLETED',
+        points: video.points || 0,
       });
       setContentProgress((prev) =>
         prev ? { ...prev, status: 'COMPLETED' } : prev,
@@ -126,6 +135,26 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
       console.log('[updateContentProgress]', response);
     } catch (error) {
       console.error('Error updating progress:', error);
+    }
+    try {
+      const response = await patchModuleProgress(moduleProgress.id, {
+        earnedPoints: moduleProgress.earned_points + video.points || 0,
+      });
+      const progressArg = {
+        id: response.id,
+        status: response.status,
+        last_visited_unit_id: response.lastVisitedUnit.id || '',
+        last_visited_content_id: response.lastVisitedContent.id || '',
+        earned_points: response.earnedPoints || 0,
+      };
+
+      console.log('[patchModuleProgress], Update Total Points: ', response);
+      setModuleProgress(progressArg);
+    } catch (error) {
+      console.error(
+        '[patchModuleProgress] Failed to increment module points',
+        error,
+      );
     }
   };
 
@@ -173,7 +202,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
                 if (duration > 0) {
                   const progress = Math.round((currentTime / duration) * 100);
 
-                  if (progress >= 90 && contentProgress) {
+                  if (progress >= 90) {
                     clearInterval(progressIntervalRef.current!);
                     progressIntervalRef.current = null;
 
@@ -233,7 +262,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
               </span>
             </div>
             <div className="flex items-center gap-1 px-3 py-1 bg-white text-green-700 rounded-full text-sm font-medium border border-green-200 shadow-sm">
-              + {contentProgress.points} pts
+              + {contentProgress?.points ?? 0} pts
             </div>
           </div>
         </div>
@@ -275,8 +304,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         <button
           className="bg-surface text-background font-semibold px-12 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition-all duration-200 w-fit"
           type="button"
-          onClick={() => {
-            markAsCompleted();
+          onClick={async () => {
+            if (!isCompleted) await markAsCompleted();
             goToNextContent(id);
           }}
         >

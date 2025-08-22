@@ -192,4 +192,62 @@ public class FileUploadController {
                     .body("Failed to upload file: " + e.getMessage());
         }
     }
+
+    @DeleteMapping("/uploads/{id}")
+    @Operation(summary = "Delete an attachment and its associated file")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Attachment and file deleted successfully"),
+        @ApiResponse(responseCode = "404", description = "Attachment not found"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden - Admin access required")
+    })
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<?> deleteAttachment(
+        @PathVariable UUID id,
+        @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        if (blacklistedTokenRepository.existsByToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is blacklisted (logged out)");
+        }
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
+
+        Optional<Attachment> attachmentOpt = attachmentRepository.findById(id);
+        if (attachmentOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Attachment not found");
+        }
+
+        try {
+            Attachment attachment = attachmentOpt.get();
+            String storagePath = attachment.getStoragePath();
+            
+            // Delete the physical file
+            Path filePath = Paths.get(uploadDir).resolve(storagePath);
+            if (Files.exists(filePath)) {
+                Files.delete(filePath);
+            }
+            
+            // Delete the database record
+            attachmentRepository.deleteById(id);
+            
+            return ResponseEntity.ok("Attachment and file deleted successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to delete file: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to delete attachment: " + e.getMessage());
+        }
+    }
 }

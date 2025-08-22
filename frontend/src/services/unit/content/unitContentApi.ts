@@ -73,7 +73,7 @@ export async function uploadFile(file: File): Promise<{ id: string }> {
 
     if (!response.ok) {
       throw new Error(
-        `Failed to upload file: ${response.status} ${response.statusText}`
+        `Failed to upload file: ${response.status} ${response.statusText}`,
       );
     }
 
@@ -82,7 +82,7 @@ export async function uploadFile(file: File): Promise<{ id: string }> {
   } catch (error) {
     console.error(
       'Error uploading file:',
-      error instanceof Error ? error.message : 'Unknown error'
+      error instanceof Error ? error.message : 'Unknown error',
     );
     throw error instanceof Error ? error : new Error('Unknown error occurred');
   }

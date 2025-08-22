@@ -220,7 +220,8 @@ const UnitPage = ({ id }: UnitPageProps) => {
         <h1 className="text-2xl md:text-3xl font-extrabold text-[#231942] tracking-tight">
           {loading ? 'Loading...' : unitDetails.title}
         </h1>
-        {unitProgressStatus === 'in_progress' ? (
+
+        {unitProgressStatus === 'in_progress' && (
           <button
             className="bg-secondary text-white font-semibold px-14 py-3 rounded-full text-lg shadow-md hover:bg-secondaryHover focus:outline-none focus:ring-2 focus:ring-surface transition w-fit"
             type="button"
@@ -228,7 +229,9 @@ const UnitPage = ({ id }: UnitPageProps) => {
           >
             Continue
           </button>
-        ) : (
+        )}
+
+        {unitProgressStatus === 'not_started' && (
           <button
             className="bg-surface text-white font-semibold px-16 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition w-fit"
             type="button"
@@ -236,6 +239,12 @@ const UnitPage = ({ id }: UnitPageProps) => {
           >
             Start
           </button>
+        )}
+
+        {unitProgressStatus === 'completed' && (
+          <div className="self-start w-fit inline-flex items-center gap-2 text-sm font-semibold text-green-700 bg-green-50 border border-green-200 px-6 py-1.5 rounded-full shadow-sm">
+            <span>Unit Completed</span>
+          </div>
         )}
       </div>
 

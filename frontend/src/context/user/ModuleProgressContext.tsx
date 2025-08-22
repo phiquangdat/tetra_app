@@ -15,6 +15,9 @@ import {
   type UnitProgress,
   type ModuleProgress,
   getModuleProgress,
+  getContentProgressByUnitId,
+  getUnitProgressByModuleId,
+  patchModuleProgress,
 } from '../../services/userProgress/userProgressApi.tsx';
 
 interface Unit {
@@ -51,6 +54,8 @@ interface ModuleProgressContextProps {
     contents: UnitContent[];
   } | null>;
   continueFromLastVisited: () => Promise<void>;
+  finalizeUnitIfComplete: (unitId: string, moduleId: string) => Promise<void>;
+  finalizeModuleIfComplete: (moduleId: string) => Promise<boolean>;
 }
 
 const ModuleProgressContext = createContext<
@@ -136,7 +141,7 @@ export const ModuleProgressProvider = ({
         }
       }
 
-      updateProgress();
+      await updateProgress();
     } else {
       navigate(`/user/modules/${moduleId}`);
     }
@@ -209,7 +214,7 @@ export const ModuleProgressProvider = ({
     );
 
     if (lastContent) {
-      setUnitContent(lastContent.id, lastContentList);
+      setUnitContent(lastUnitId, lastContentList);
       if (lastContent.content_type === 'quiz') {
         await openModal(lastContent.id);
       } else {
@@ -312,6 +317,80 @@ export const ModuleProgressProvider = ({
     }
   };
 
+  async function finalizeUnitIfComplete(unitId: string, moduleId: string) {
+    // Fetch all content items for the unit
+    const contents = await fetchUnitContentById(unitId);
+
+    // Fetch all content progress for that unit
+    const progressList = await getContentProgressByUnitId(unitId);
+
+    // Determine if all content have a progress entry with status COMPLETED
+    const byId = new Map(progressList.map((p) => [p.unitContentId, p]));
+    const allCompleted =
+      contents.length > 0 &&
+      contents.every((c) => {
+        const p = byId.get(c.id);
+        return p && String(p.status).toUpperCase() === 'COMPLETED';
+      });
+
+    if (!allCompleted) return;
+
+    // Mark the unit as COMPLETED if not already
+    if (unitProgress && unitProgress.status?.toUpperCase() !== 'COMPLETED') {
+      const updated = await updateUnitProgress(unitProgress?.id as string, {
+        moduleId,
+        unitId,
+        status: 'COMPLETED',
+      });
+      await finalizeModuleIfComplete(moduleId);
+      setUnitProgress(updated);
+      setUnitProgressStatus('completed');
+    }
+    return;
+  }
+
+  async function finalizeModuleIfComplete(moduleId: string) {
+    // Fetch unit progress for the whole module
+    const unitProgresses = await getUnitProgressByModuleId(moduleId);
+
+    // Fetch units for the module (we already keep them in context; fall back to API if empty)
+    const list: Unit[] = units?.length
+      ? units
+      : await fetchUnitTitleByModuleId(moduleId);
+
+    // All units must exist and be COMPLETED
+    const byUnit = new Map(unitProgresses.map((u) => [u.unitId, u]));
+    const allCompleted =
+      list.length > 0 &&
+      list.every((u) => {
+        const up = byUnit.get(u.id);
+        return up && String(up.status).toUpperCase() === 'COMPLETED';
+      });
+    if (!allCompleted) return false;
+
+    // Patch module progress if not already completed
+    if (
+      !moduleProgress ||
+      moduleProgress.status?.toUpperCase() !== 'COMPLETED'
+    ) {
+      const progressId =
+        moduleProgress?.id ?? (await getModuleProgress(moduleId))?.id;
+      if (!progressId) return false;
+      const updated = await patchModuleProgress(progressId, {
+        status: 'COMPLETED',
+      });
+      setModuleProgress({
+        id: updated.id,
+        status: updated.status,
+        last_visited_unit_id: updated.lastVisitedUnit?.id || '',
+        last_visited_content_id: updated.lastVisitedContent?.id || '',
+        earned_points: updated.earnedPoints || 0,
+      });
+      setModuleProgressStatus('completed');
+    }
+    return true;
+  }
+
   return (
     <ModuleProgressContext.Provider
       value={{
@@ -336,6 +415,8 @@ export const ModuleProgressProvider = ({
         goToFirstContent,
         initFirstUnitAndContentProgress,
         continueFromLastVisited,
+        finalizeUnitIfComplete,
+        finalizeModuleIfComplete,
       }}
     >
       {children}

@@ -45,6 +45,8 @@ public class UnitContentControllerQuizPutTest {
     private BlacklistedTokenRepository blacklistedTokenRepository;
     @MockBean
     private com.tetra.app.repository.UnitRepository unitRepository;
+    @MockBean
+    private com.tetra.app.repository.AttachmentRepository attachmentRepository;
 
     @Autowired
     private ObjectMapper objectMapper;

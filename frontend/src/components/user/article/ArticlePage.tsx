@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  fetchUnitContentDetails,
+  fetchArticleContentById,
   type Article,
 } from '../../../services/unit/unitApi';
 import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
@@ -13,6 +13,7 @@ import {
   type ContentProgress,
 } from '../../../services/userProgress/userProgressApi';
 import { CheckIcon } from '../../common/Icons';
+import toast from 'react-hot-toast';
 
 interface ArticlePageProps {
   id: string;
@@ -24,8 +25,18 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
   const [contentProgress, setContentProgress] = useState<ContentProgress>();
-  const { goToNextContent, isNextContent, moduleProgress, setModuleProgress } =
-    useModuleProgress();
+  const {
+    moduleId,
+    unitId,
+    goToNextContent,
+    isNextContent,
+    moduleProgress,
+    setModuleProgress,
+    finalizeUnitIfComplete,
+  } = useModuleProgress();
+
+  const resolveUnitId = (a?: Article | null) =>
+    unitIdFromState || unitId || a?.unit_id || '';
 
   const calculateScrollPercent = useCallback(() => {
     const scrollTop = window.scrollY;
@@ -55,12 +66,17 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
           status: 'COMPLETED',
           points: article.points || 0,
         });
+
+        const resolvedUnitId = resolveUnitId(article);
+        console.log('effectiveUnitId', resolvedUnitId);
+        await finalizeUnitIfComplete(resolvedUnitId, moduleId);
         setContentProgress((prev) =>
           prev
             ? { ...prev, status: 'COMPLETED', points: article.points }
             : prev,
         );
         console.log('[updateContentProgress]', response);
+        toast.success(`Complete reading! + ${article.points}`);
       } catch (error) {
         console.error('Error updating progress:', error);
       }
@@ -89,8 +105,11 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await fetchUnitContentDetails(id);
+      const data = await fetchArticleContentById(id);
       setArticle(data);
+
+      const resolvedUnitId = resolveUnitId(data);
+      console.log('effectiveUnitId', resolvedUnitId);
 
       try {
         const progress = await getContentProgress(id);
@@ -107,7 +126,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
             const response = await patchModuleProgress(
               moduleProgress?.id as string,
               {
-                lastVisitedUnit: unitIdFromState,
+                lastVisitedUnit: resolvedUnitId,
                 lastVisitedContent: id,
               },
             );
@@ -160,7 +179,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
     <div className="mx-auto px-8 py-8 min-h-screen text-left">
       <div className="mb-6">
         <a
-          onClick={() => navigate(`/user/unit/${unitIdFromState}`)}
+          onClick={() => navigate(`/user/unit/${resolveUnitId(article)}`)}
           className="inline-flex items-center text-secondary hover:text-primary px-3 py-1 rounded-lg hover:bg-cardBackground hover:border hover:border-highlight active:bg-highlight transition-all cursor-pointer"
         >
           <span className="mr-2 text-xl">←</span>
@@ -168,19 +187,20 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
         </a>
       </div>
 
-      {contentProgress?.status?.toLowerCase() == 'completed' && (
+      {contentProgress?.status?.toLowerCase() === 'completed' && (
         <div className="mb-6 bg-green-50 max-w-xl mx-auto border border-green-200 rounded-xl p-4 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
               <CheckIcon width={16} height={16} color="white" />
             </div>
+
             <div className="flex-1">
               <span className="text-green-600 text-sm">
                 You've read this before. Feel free to review it again!
               </span>
             </div>
-            <div className="flex items-center gap-1 px-3 py-1 bg-white text-green-700 rounded-full text-sm font-medium border border-green-200 shadow-sm">
-              + {contentProgress?.points ?? 0} pts
+            <div className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-full text-xs font-bold shadow-sm">
+              {contentProgress?.points ?? 0} PTS
             </div>
           </div>
         </div>

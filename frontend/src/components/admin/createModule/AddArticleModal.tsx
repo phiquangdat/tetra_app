@@ -27,6 +27,8 @@ function AddArticleModal({
     isSaving,
     clearContent,
     setContentState,
+    setSelectedFile,
+    clearSelectedFile,
   } = useContentBlockContext();
   const {
     addContentBlock,
@@ -46,7 +48,8 @@ function AddArticleModal({
   const canSave =
     data.title.trim() !== '' &&
     (editorContent?.trim() ?? '') !== '' &&
-    !isSaving;
+    !isSaving &&
+    !fileError;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -78,8 +81,19 @@ function AddArticleModal({
       });
       setFileError(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
+      clearSelectedFile();
     }
-  }, [isOpen, editingBlock, getUnitState, unitId, unitNumber]);
+  }, [
+    isOpen,
+    editingBlock,
+    getUnitState,
+    unitId,
+    unitNumber,
+    getNextSortOrder,
+    clearContent,
+    setContentState,
+    clearSelectedFile,
+  ]);
 
   const handleSave = async () => {
     if (!canSave) return;
@@ -116,6 +130,7 @@ function AddArticleModal({
 
   const handleClose = () => {
     clearContent();
+    clearSelectedFile();
     setFileError(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
     onClose();
@@ -132,7 +147,7 @@ function AddArticleModal({
 
     if (!file) {
       setFileError(null);
-      // Placeholder for clearing the file input in context
+      clearSelectedFile();
       return;
     }
 
@@ -140,11 +155,11 @@ function AddArticleModal({
 
     if (result.ok) {
       setFileError(null);
-      // Placeholder for updating the file in context
+      setSelectedFile(file);
     } else {
       setFileError(result.message);
       if (fileInputRef.current) fileInputRef.current.value = '';
-      // Placeholder for clearing the file input in context
+      clearSelectedFile();
     }
   };
 

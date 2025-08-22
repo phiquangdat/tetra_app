@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { HamburgerIcon, LogoIcon, CloseIcon } from '../common/Icons';
+import { HamburgerIcon, CloseIcon } from '../common/Icons';
+import TetraLogo from '../../assets/logos/TETRA-APP.png';
 
 export type NavLink = { label: string; href: string };
 type CTAButton = { label: string; href: string; onClick?: () => void };
@@ -80,9 +81,15 @@ const Header: React.FC<HeaderProps> = ({
           </button>
         )}
 
-        <LogoIcon />
-        <span className="font-extrabold text-2xl text-white tracking-wide">
-          Gamify learning
+        <img
+          src={TetraLogo}
+          alt="Tetra Logo"
+          className="h-10 w-auto mr-2"
+          style={{ objectFit: 'contain' }}
+        />
+
+        <span className="font-bold text-3xl text-white tracking-wide">
+          TETRA
         </span>
       </div>
       <nav className="flex flex-1 justify-center">

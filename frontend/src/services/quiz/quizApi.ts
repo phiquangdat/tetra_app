@@ -4,6 +4,7 @@ const BASE_URL =
 
 export interface Quiz {
   id: string;
+  unit_id: string;
   title: string;
   content: string;
   points: number;

@@ -1,6 +1,7 @@
-import { type RouteObject, useParams } from 'react-router-dom';
+import { type RouteObject, useParams, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import AdminLayout from '../layouts/AdminLayout';
+import { getAuthToken } from '../utils/authHelpers';
 
 const AdminDashboard = lazy(() => import('../components/admin/dashboard'));
 const ModuleCards = lazy(
@@ -23,9 +24,18 @@ function ModulePageWrapper() {
   );
 }
 
+function ProtectedWrapper({ children }: { children: React.ReactNode }) {
+  const isLoggedIn = Boolean(getAuthToken());
+  return isLoggedIn ? children : <Navigate to="/login" replace />;
+}
+
 export const adminRoutes: RouteObject = {
   path: '/admin',
-  element: <AdminLayout />,
+  element: (
+    <ProtectedWrapper>
+      <AdminLayout />
+    </ProtectedWrapper>
+  ),
   children: [
     {
       index: true,

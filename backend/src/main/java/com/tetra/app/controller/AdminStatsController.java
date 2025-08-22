@@ -3,6 +3,7 @@ package com.tetra.app.controller;
 import com.tetra.app.repository.UserRepository;
 import com.tetra.app.repository.TrainingModuleRepository;
 import com.tetra.app.repository.UserModuleProgressRepository;
+import com.tetra.app.repository.UserContentProgressRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,19 +21,26 @@ public class AdminStatsController {
     private final UserRepository userRepository;
     private final TrainingModuleRepository trainingModuleRepository;
     private final UserModuleProgressRepository userModuleProgressRepository;
+    private final UserContentProgressRepository userContentProgressRepository;
 
     @Autowired
-    public AdminStatsController(UserRepository userRepository, TrainingModuleRepository trainingModuleRepository, UserModuleProgressRepository userModuleProgressRepository) {
+    public AdminStatsController(
+            UserRepository userRepository,
+            TrainingModuleRepository trainingModuleRepository,
+            UserModuleProgressRepository userModuleProgressRepository,
+            UserContentProgressRepository userContentProgressRepository
+    ) {
         this.userRepository = userRepository;
         this.trainingModuleRepository = trainingModuleRepository;
         this.userModuleProgressRepository = userModuleProgressRepository;
+        this.userContentProgressRepository = userContentProgressRepository;
     }
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getAdminStats() {
         long totalUsers = userRepository.count();
-        long totalPointsIssued = trainingModuleRepository.sumPoints();
+        long totalPointsIssued = userContentProgressRepository.sumAllCompletedPoints();
         long activeModules = trainingModuleRepository.countByStatus("published");
 
         Map<String, Object> stats = new HashMap<>();

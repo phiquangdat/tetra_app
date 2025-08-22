@@ -28,6 +28,7 @@ export interface SaveArticleRequest {
   content: string;
   points: number;
   sort_order: number;
+  attachment_id?: string | null;
 }
 
 export type QuizQuestionAnswer = {
@@ -52,6 +53,39 @@ export interface SaveQuizRequest {
   points: number;
   questions_number: number;
   questions: QuizQuestion[];
+  attachment_id?: string | null;
+}
+
+export async function uploadFile(file: File): Promise<{ id: string }> {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = getAuthToken();
+
+    const response = await fetch(`${BASE_URL}/uploads`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to upload file: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const result = await response.json();
+    return { id: result.id };
+  } catch (error) {
+    console.error(
+      'Error uploading file:',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
+    throw error instanceof Error ? error : new Error('Unknown error occurred');
+  }
 }
 
 export async function saveVideoContent(

@@ -76,8 +76,10 @@ class TrainingModuleControllerTest {
         module.setStatus("active");
 
         when(trainingModuleRepository.findAll()).thenReturn(Arrays.asList(module));
+        when(jwtUtil.extractRole(anyString())).thenReturn("ADMIN");
 
-        mockMvc.perform(get("/api/modules"))
+        mockMvc.perform(get("/api/modules")
+                .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Test"))
                 .andExpect(jsonPath("$[0].status").value("active"));
@@ -96,8 +98,10 @@ class TrainingModuleControllerTest {
         module.setStatus("active");
 
         when(trainingModuleRepository.findById(UUID.fromString("00000000-0000-0000-0000-000000000001"))).thenReturn(Optional.of(module));
+        when(jwtUtil.extractRole(anyString())).thenReturn("ADMIN");
 
-        mockMvc.perform(get("/api/modules/00000000-0000-0000-0000-000000000001"))
+        mockMvc.perform(get("/api/modules/00000000-0000-0000-0000-000000000001")
+                .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Test"))
                 .andExpect(jsonPath("$.status").value("active"));
@@ -107,8 +111,10 @@ class TrainingModuleControllerTest {
     @WithMockUser
     void testGetModuleById_notFound() throws Exception {
         when(trainingModuleRepository.findById(UUID.fromString("00000000-0000-0000-0000-000000000002"))).thenReturn(Optional.empty());
+        when(jwtUtil.extractRole(anyString())).thenReturn("ADMIN");
 
-        mockMvc.perform(get("/api/modules/00000000-0000-0000-0000-000000000002"))
+        mockMvc.perform(get("/api/modules/00000000-0000-0000-0000-000000000002")
+                .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isNotFound());
     }
 
@@ -133,8 +139,10 @@ class TrainingModuleControllerTest {
         savedModule.setStatus("draft");
 
         when(trainingModuleRepository.save(any(TrainingModule.class))).thenReturn(savedModule);
+        when(jwtUtil.extractRole(anyString())).thenReturn("ADMIN");
 
         mockMvc.perform(post("/api/modules")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(module)))
                 .andExpect(result -> {
@@ -150,8 +158,10 @@ class TrainingModuleControllerTest {
     @WithMockUser
     void testCreateModule_BadRequest() throws Exception {
         TrainingModule module = new TrainingModule();
+        when(jwtUtil.extractRole(anyString())).thenReturn("ADMIN");
 
         MvcResult result = mockMvc.perform(post("/api/modules")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(module)))
                 .andExpect(status().isBadRequest())
@@ -170,8 +180,10 @@ class TrainingModuleControllerTest {
         module.setPoints(null);
         module.setTopic(null);
         module.setCoverurl(null);
+        when(jwtUtil.extractRole(anyString())).thenReturn("ADMIN");
 
         MvcResult result = mockMvc.perform(post("/api/modules")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(module)))
                 .andExpect(status().isBadRequest())
@@ -214,8 +226,10 @@ class TrainingModuleControllerTest {
 
         when(trainingModuleRepository.findById(moduleId)).thenReturn(Optional.of(existing));
         when(trainingModuleRepository.save(any(TrainingModule.class))).thenReturn(saved);
+        when(jwtUtil.extractRole(anyString())).thenReturn("ADMIN");
 
         mockMvc.perform(put("/api/modules/" + moduleId)
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updated)))
                 .andExpect(status().isOk())
@@ -227,27 +241,29 @@ class TrainingModuleControllerTest {
     @Test
     @WithMockUser
     void testUpdateModule_MissingRequiredFields() throws Exception {
-    UUID moduleId = UUID.randomUUID();
+        UUID moduleId = UUID.randomUUID();
 
-    TrainingModule existing = new TrainingModule();
-    existing.setId(moduleId);
-    existing.setTitle("Old Title");
-    existing.setDescription("Old Desc");
-    existing.setTopic("Old Topic");
-    existing.setPoints(5);
-    existing.setCoverurl("old.jpg");
-    existing.setStatus("draft");
+        TrainingModule existing = new TrainingModule();
+        existing.setId(moduleId);
+        existing.setTitle("Old Title");
+        existing.setDescription("Old Desc");
+        existing.setTopic("Old Topic");
+        existing.setPoints(5);
+        existing.setCoverurl("old.jpg");
+        existing.setStatus("draft");
 
-    when(trainingModuleRepository.findById(moduleId)).thenReturn(Optional.of(existing));
-    when(trainingModuleRepository.save(any(TrainingModule.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(trainingModuleRepository.findById(moduleId)).thenReturn(Optional.of(existing));
+        when(trainingModuleRepository.save(any(TrainingModule.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(jwtUtil.extractRole(anyString())).thenReturn("ADMIN");
 
-    TrainingModule updated = new TrainingModule(); // No fields set
+        TrainingModule updated = new TrainingModule(); // No fields set
 
-    mockMvc.perform(put("/api/modules/" + moduleId)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(updated)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(moduleId.toString()));
+        mockMvc.perform(put("/api/modules/" + moduleId)
+                .header("Authorization", "Bearer test-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updated)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(moduleId.toString()));
     }
 
     @Test
@@ -264,8 +280,10 @@ class TrainingModuleControllerTest {
         updated.setStatus("draft");
 
         when(trainingModuleRepository.findById(moduleId)).thenReturn(Optional.empty());
+        when(jwtUtil.extractRole(anyString())).thenReturn("ADMIN");
 
         mockMvc.perform(put("/api/modules/" + moduleId)
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updated)))
                 .andExpect(status().isNotFound());
@@ -283,7 +301,7 @@ class TrainingModuleControllerTest {
         when(unitRepository.findByModule_Id(moduleId)).thenReturn(java.util.Collections.emptyList());
 
         mockMvc.perform(delete("/api/modules/" + moduleId)
-                .header("Authorization", "Bearer validtoken"))
+                .header("Authorization", "Bearer test-token"))
             .andExpect(status().isOk())
             .andExpect(content().string("Module deleted successfully"));
     }
@@ -295,7 +313,7 @@ class TrainingModuleControllerTest {
         when(jwtUtil.extractRole(anyString())).thenReturn("LEARNER");
 
         mockMvc.perform(delete("/api/modules/" + moduleId)
-                .header("Authorization", "Bearer sometoken"))
+                .header("Authorization", "Bearer test-token"))
             .andExpect(status().isForbidden())
             .andExpect(content().string("Access denied"));
     }
@@ -330,7 +348,7 @@ class TrainingModuleControllerTest {
         when(trainingModuleRepository.existsById(moduleId)).thenReturn(false);
 
         mockMvc.perform(delete("/api/modules/" + moduleId)
-                .header("Authorization", "Bearer validtoken"))
+                .header("Authorization", "Bearer test-token"))
             .andExpect(status().isNotFound())
             .andExpect(content().string("Module not found with id: " + moduleId));
     }

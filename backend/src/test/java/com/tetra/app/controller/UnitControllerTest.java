@@ -1,3 +1,4 @@
+
 package com.tetra.app.controller;
 
 import com.tetra.app.model.TrainingModule;
@@ -22,7 +23,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,145 +58,161 @@ public class UnitControllerTest {
 
     @Test
     void testGetUnitById_Success() {
-        UUID unitId = UUID.randomUUID();
-        Unit mockUnit = new Unit(null, "Unit 1", "Description 1");
+    UUID unitId = UUID.randomUUID();
+    Unit mockUnit = new Unit(null, "Unit 1", "Description 1");
 
-        when(unitRepository.findById(unitId)).thenReturn(Optional.of(mockUnit));
+    when(unitRepository.findById(unitId)).thenReturn(Optional.of(mockUnit));
+    String authHeader = "Bearer test-token";
+    when(jwtUtil.extractUserId("test-token")).thenReturn("user");
 
-        ResponseEntity<Unit> response = unitController.getUnitById(unitId.toString());
+    ResponseEntity<Unit> response = unitController.getUnitById(authHeader, unitId.toString());
 
-        assertEquals(200, response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals(mockUnit, response.getBody());
-        verify(unitRepository, times(1)).findById(unitId);
+    assertEquals(200, response.getStatusCode().value());
+    assertNotNull(response.getBody());
+    assertEquals(mockUnit, response.getBody());
+    verify(unitRepository, times(1)).findById(unitId);
     }
 
     @Test
     void testGetUnitById_NotFound() {
-        UUID unitId = UUID.randomUUID();
+    UUID unitId = UUID.randomUUID();
 
-        when(unitRepository.findById(unitId)).thenReturn(Optional.empty());
+    when(unitRepository.findById(unitId)).thenReturn(Optional.empty());
+    String authHeader = "Bearer test-token";
+    when(jwtUtil.extractUserId("test-token")).thenReturn("user");
 
-        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> unitController.getUnitById(unitId.toString()));
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> unitController.getUnitById(authHeader, unitId.toString()));
 
-        assertEquals(404, exception.getStatusCode().value());
-        assertEquals("Unit is not found with id: " + unitId, exception.getReason());
-        verify(unitRepository, times(1)).findById(unitId);
+    assertEquals(404, exception.getStatusCode().value());
+    assertEquals("Unit is not found with id: " + unitId, exception.getReason());
+    verify(unitRepository, times(1)).findById(unitId);
     }
 
     @Test
     void testGetUnitsByModuleId_ReturnsCorrectUnits() {
-        UUID moduleId = UUID.randomUUID();
-        Unit unit1 = new Unit();
-        unit1.setId(UUID.randomUUID());
-        unit1.setTitle("Unit 1");
-        Unit unit2 = new Unit();
-        unit2.setId(UUID.randomUUID());
-        unit2.setTitle("Unit 2");
+    UUID moduleId = UUID.randomUUID();
+    Unit unit1 = new Unit();
+    unit1.setId(UUID.randomUUID());
+    unit1.setTitle("Unit 1");
+    Unit unit2 = new Unit();
+    unit2.setId(UUID.randomUUID());
+    unit2.setTitle("Unit 2");
 
-        when(unitRepository.findByModule_Id(moduleId)).thenReturn(List.of(unit1, unit2));
+    when(unitRepository.findByModule_Id(moduleId)).thenReturn(List.of(unit1, unit2));
+    String authHeader = "Bearer test-token";
+    when(jwtUtil.extractUserId("test-token")).thenReturn("user");
 
-        ResponseEntity<?> response = unitController.getUnitsByModuleId(moduleId);
+    ResponseEntity<?> response = unitController.getUnitsByModuleId(authHeader, moduleId);
 
-        assertEquals(200, response.getStatusCode().value());
-        List<?> body = (List<?>) response.getBody();
-        assertEquals(2, body.size());
-        Map<?, ?> first = (Map<?, ?>) body.get(0);
-        assertTrue(first.containsKey("id"));
-        assertTrue(first.containsKey("title"));
+    assertEquals(200, response.getStatusCode().value());
+    List<?> body = (List<?>) response.getBody();
+    assertEquals(2, body.size());
+    Map<?, ?> first = (Map<?, ?>) body.get(0);
+    assertTrue(first.containsKey("id"));
+    assertTrue(first.containsKey("title"));
     }
 
     @Test
     void testGetUnitsByModuleId_MissingModuleId() {
-        Unit unit1 = new Unit();
-        unit1.setId(UUID.randomUUID());
-        unit1.setTitle("Unit 1");
-        Unit unit2 = new Unit();
-        unit2.setId(UUID.randomUUID());
-        unit2.setTitle("Unit 2");
+    Unit unit1 = new Unit();
+    unit1.setId(UUID.randomUUID());
+    unit1.setTitle("Unit 1");
+    Unit unit2 = new Unit();
+    unit2.setId(UUID.randomUUID());
+    unit2.setTitle("Unit 2");
 
-        when(unitRepository.findAll()).thenReturn(List.of(unit1, unit2));
+    when(unitRepository.findAll()).thenReturn(List.of(unit1, unit2));
+    String authHeader = "Bearer test-token";
+    when(jwtUtil.extractUserId("test-token")).thenReturn("user");
 
-        ResponseEntity<?> response = unitController.getUnitsByModuleId(null);
+    ResponseEntity<?> response = unitController.getUnitsByModuleId(authHeader, null);
 
-        assertEquals(200, response.getStatusCode().value());
-        List<?> body = (List<?>) response.getBody();
-        assertEquals(2, body.size());
+    assertEquals(200, response.getStatusCode().value());
+    List<?> body = (List<?>) response.getBody();
+    assertEquals(2, body.size());
     }
 
     @Test
     void testCreateUnit_Success() {
-        UUID moduleId = UUID.fromString("00000000-0000-0000-0000-000000000001");
-        TrainingModule module = new TrainingModule();
-        module.setId(moduleId);
+    UUID moduleId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+    TrainingModule module = new TrainingModule();
+    module.setId(moduleId);
 
-        when(trainingModuleRepository.findById(moduleId)).thenReturn(Optional.of(module));
+    when(trainingModuleRepository.findById(moduleId)).thenReturn(Optional.of(module));
+    String authHeader = "Bearer test-token";
+    when(jwtUtil.extractRole("test-token")).thenReturn("ADMIN");
 
-        Map<String, Object> body = Map.of(
-                "module_id", "00000000-0000-0000-0000-000000000001",
-                "title", "Test Unit",
-                "description", "Test Description"
-        );
+    Map<String, Object> body = Map.of(
+        "module_id", "00000000-0000-0000-0000-000000000001",
+        "title", "Test Unit",
+        "description", "Test Description"
+    );
 
-        Unit savedUnit = new Unit(module, "Test Unit", "Test Description");
-        when(unitRepository.save(any(Unit.class))).thenReturn(savedUnit);
+    Unit savedUnit = new Unit(module, "Test Unit", "Test Description");
+    when(unitRepository.save(any(Unit.class))).thenReturn(savedUnit);
 
-        ResponseEntity<?> response = unitController.createUnit(body);
+    ResponseEntity<?> response = unitController.createUnit(authHeader, body);
 
-        assertEquals(201, response.getStatusCode().value());
-        assertNotNull(response.getBody());
+    assertEquals(201, response.getStatusCode().value());
+    assertNotNull(response.getBody());
     }
 
     @Test
     void testCreateUnit_ModuleNotFound() {
-        UUID moduleId = UUID.fromString("00000000-0000-0000-0000-000000000002");
-        when(trainingModuleRepository.findById(moduleId)).thenReturn(Optional.empty());
+    UUID moduleId = UUID.fromString("00000000-0000-0000-0000-000000000002");
+    when(trainingModuleRepository.findById(moduleId)).thenReturn(Optional.empty());
+    String authHeader = "Bearer test-token";
+    when(jwtUtil.extractRole("test-token")).thenReturn("ADMIN");
 
-        Map<String, Object> body = Map.of(
-                "module_id", "00000000-0000-0000-0000-000000000002",
-                "title", "Test Unit",
-                "description", "Test Description"
-        );
+    Map<String, Object> body = Map.of(
+        "module_id", "00000000-0000-0000-0000-000000000002",
+        "title", "Test Unit",
+        "description", "Test Description"
+    );
 
-        ResponseEntity<?> response = unitController.createUnit(body);
+    ResponseEntity<?> response = unitController.createUnit(authHeader, body);
 
-        assertEquals(404, response.getStatusCode().value());
-        assertEquals("Module not found with id: " + moduleId, response.getBody());
+    assertEquals(404, response.getStatusCode().value());
+    assertEquals("Module not found with id: " + moduleId, response.getBody());
     }
 
     @Test
     void testCreateUnit_BadRequest() {
-        Map<String, Object> body = Map.of();
+    Map<String, Object> body = Map.of();
+    String authHeader = "Bearer test-token";
+    when(jwtUtil.extractRole("test-token")).thenReturn("ADMIN");
 
-        ResponseEntity<?> response = unitController.createUnit(body);
-        assertEquals(400, response.getStatusCode().value());
-        assertEquals("module_id, title, and description are required", response.getBody());
+    ResponseEntity<?> response = unitController.createUnit(authHeader, body);
+    assertEquals(400, response.getStatusCode().value());
+    assertEquals("module_id, title, and description are required", response.getBody());
     }
 
     
     @Test
     void testUpdateUnit_Success() {
-        UUID unitId = UUID.randomUUID();
-        Unit existingUnit = new Unit(null, "Old Title", "Old Description");
+    UUID unitId = UUID.randomUUID();
+    Unit existingUnit = new Unit(null, "Old Title", "Old Description");
 
-        when(unitRepository.findById(unitId)).thenReturn(Optional.of(existingUnit));
-        when(unitRepository.save(any(Unit.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    when(unitRepository.findById(unitId)).thenReturn(Optional.of(existingUnit));
+    when(unitRepository.save(any(Unit.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    String authHeader = "Bearer test-token";
+    when(jwtUtil.extractRole("test-token")).thenReturn("ADMIN");
 
-        Map<String, Object> updateBody = Map.of(
-                "title", "New Title",
-                "description", "New Description"
-        );
+    Map<String, Object> updateBody = Map.of(
+        "title", "New Title",
+        "description", "New Description"
+    );
 
-        ResponseEntity<?> response = unitController.updateUnit(unitId, updateBody);
+    ResponseEntity<?> response = unitController.updateUnit(unitId, authHeader, updateBody);
 
-        assertEquals(200, response.getStatusCodeValue());
-        Unit updatedUnit = (Unit) response.getBody();
-        assertNotNull(updatedUnit);
-        assertEquals("New Title", updatedUnit.getTitle());
-        assertEquals("New Description", updatedUnit.getDescription());
+    assertEquals(200, response.getStatusCodeValue());
+    Unit updatedUnit = (Unit) response.getBody();
+    assertNotNull(updatedUnit);
+    assertEquals("New Title", updatedUnit.getTitle());
+    assertEquals("New Description", updatedUnit.getDescription());
 
-        verify(unitRepository, times(1)).findById(unitId);
-        verify(unitRepository, times(1)).save(existingUnit);
+    verify(unitRepository, times(1)).findById(unitId);
+    verify(unitRepository, times(1)).save(existingUnit);
     }
 
     @Test
@@ -205,7 +225,9 @@ public class UnitControllerTest {
 
         Map<String, Object> updateBody = Map.of("title", "New Title");
 
-        ResponseEntity<?> response = unitController.updateUnit(unitId, updateBody);
+    String authHeader = "Bearer test-token";
+    when(jwtUtil.extractRole("test-token")).thenReturn("ADMIN");
+    ResponseEntity<?> response = unitController.updateUnit(unitId, authHeader, updateBody);
 
         assertEquals(200, response.getStatusCodeValue());
         Unit updatedUnit = (Unit) response.getBody();
@@ -227,7 +249,9 @@ public class UnitControllerTest {
 
         Map<String, Object> updateBody = Map.of("description", "New Description");
 
-        ResponseEntity<?> response = unitController.updateUnit(unitId, updateBody);
+    String authHeader = "Bearer test-token";
+    when(jwtUtil.extractRole("test-token")).thenReturn("ADMIN");
+    ResponseEntity<?> response = unitController.updateUnit(unitId, authHeader, updateBody);
 
         assertEquals(200, response.getStatusCodeValue());
         Unit updatedUnit = (Unit) response.getBody();
@@ -248,7 +272,9 @@ public class UnitControllerTest {
         Map<String, Object> updateBody = Map.of("title", "New Title");
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-            unitController.updateUnit(unitId, updateBody);
+            String authHeader = "Bearer test-token";
+            when(jwtUtil.extractRole("test-token")).thenReturn("ADMIN");
+            unitController.updateUnit(unitId, authHeader, updateBody);
         });
 
         assertEquals(404, exception.getStatusCode().value());

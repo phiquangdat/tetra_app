@@ -64,7 +64,16 @@ public class UnitContentController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UnitContent>> getAll() {
+    public ResponseEntity<?> getAll(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        try {
+            jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
         List<UnitContent> unitContent = unitContentRepository.findAll();
         if (unitContent == null || unitContent.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -73,16 +82,37 @@ public class UnitContentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UnitContent> getById(@PathVariable UUID id) {
+    public ResponseEntity<?> getById(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @PathVariable UUID id) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        try {
+            jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
         Optional<UnitContent> unitContent = unitContentRepository.findById(id);
         return unitContent.map(content -> new ResponseEntity<>(content, HttpStatus.OK))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Unit content is not found with id: " + id));
     }
 
     @GetMapping(params = "unitId")
-    public ResponseEntity<?> getByUnitId(@RequestParam("unitId") UUID unitId) {
+    public ResponseEntity<?> getByUnitId(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @RequestParam("unitId") UUID unitId) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        try {
+            jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
         List<UnitContent> unitContentList = unitContentRepository.findByUnit_Id(unitId);
-
         List<Map<String, Object>> result = unitContentList.stream()
                 .map(content -> {
                     Map<String, Object> item = new HashMap<>();
@@ -93,18 +123,27 @@ public class UnitContentController {
                     return item;
                 })
                 .collect(Collectors.toList());
-
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/quiz/{id}")
-    public ResponseEntity<?> getQuizPreview(@PathVariable UUID id) {
+    public ResponseEntity<?> getQuizPreview(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @PathVariable UUID id) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        try {
+            jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
         UnitContent content = unitContentRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz not found"));
         if (!"quiz".equalsIgnoreCase(content.getContentType())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz not found");
         }
-
         Map<String, Object> result = new HashMap<>();
         result.put("id", content.getId());
         result.put("unit_id", content.getUnitId());
@@ -114,7 +153,6 @@ public class UnitContentController {
         result.put("sort_order", content.getSortOrder());
         result.put("points", content.getPoints());
         result.put("questions_number", content.getQuestionsNumber());
-
         List<Question> questions = questionRepository.findByUnitContent_Id(content.getId());
         List<Map<String, Object>> questionsList = questions.stream().map(q -> {
             Map<String, Object> qMap = new HashMap<>();
@@ -135,14 +173,21 @@ public class UnitContentController {
             return qMap;
         }).collect(Collectors.toList());
         result.put("questions", questionsList);
-
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/video")
-    public ResponseEntity<?> getAllVideoContent() {
+    public ResponseEntity<?> getAllVideoContent(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        try {
+            jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
         List<UnitContent> videoContentList = unitContentRepository.findByContentTypeIgnoreCase("video");
-
         List<Map<String, Object>> result = videoContentList.stream()
                 .map(content -> {
                     Map<String, Object> item = new HashMap<>();
@@ -153,12 +198,22 @@ public class UnitContentController {
                     return item;
                 })
                 .collect(Collectors.toList());
-
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/video/{id}")
-    public ResponseEntity<?> getVideoContent(@PathVariable UUID id) {
+    public ResponseEntity<?> getVideoContent(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @PathVariable UUID id) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        try {
+            jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
         UnitContent content = unitContentRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Content block does not exist"));
@@ -166,8 +221,8 @@ public class UnitContentController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Content block is not of type video");
         }
         Map<String, Object> result = new HashMap<>();
-    result.put("id", content.getId());
-    result.put("unit_id", content.getUnitId());
+        result.put("id", content.getId());
+        result.put("unit_id", content.getUnitId());
         result.put("title", content.getTitle());
         result.put("content", content.getContentData());
         result.put("url", content.getUrl());
@@ -176,13 +231,24 @@ public class UnitContentController {
     }
 
     @GetMapping("/article/{id}")
-    public ResponseEntity<?> getArticleContent(@PathVariable UUID id) {
+    public ResponseEntity<?> getArticleContent(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @PathVariable UUID id) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        try {
+            jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
         UnitContent content = unitContentRepository.findByIdAndContentTypeIgnoreCase(id, "article")
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Content block does not exist or is not of type article"));
         Map<String, Object> result = new HashMap<>();
-    result.put("id", content.getId());
-    result.put("unit_id", content.getUnitId());
+        result.put("id", content.getId());
+        result.put("unit_id", content.getUnitId());
         result.put("title", content.getTitle());
         result.put("content", content.getContentData());
         result.put("points", content.getPoints());
@@ -191,7 +257,22 @@ public class UnitContentController {
 
     @PostMapping("/quiz")
     @Transactional
-    public ResponseEntity<?> createQuizContent(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> createQuizContent(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @RequestBody Map<String, Object> body) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
         try {
             String unitIdStr = (String) body.get("unit_id");
             if (unitIdStr == null || unitIdStr.isEmpty()) {
@@ -309,7 +390,22 @@ public class UnitContentController {
 
     @PostMapping("/article")
     @Transactional
-    public ResponseEntity<?> createArticleContent(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> createArticleContent(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @RequestBody Map<String, Object> body) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
         try {
             String unitIdStr = (String) body.get("unit_id");
             if (unitIdStr == null || unitIdStr.isEmpty()) {
@@ -417,7 +513,22 @@ public class UnitContentController {
 
     @PostMapping("/video")
     @Transactional
-    public ResponseEntity<?> createVideoContent(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> createVideoContent(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @RequestBody Map<String, Object> body) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
         try {
             String unitIdStr = (String) body.get("unit_id");
             if (unitIdStr == null || unitIdStr.isEmpty()) {

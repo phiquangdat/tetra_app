@@ -30,7 +30,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     moduleId,
     unitId,
     goToNextContent,
-    isNextContent,
+    isNextContentAsync,
     moduleProgress,
     setModuleProgress,
     finalizeUnitIfComplete,
@@ -40,6 +40,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
 
   const resolveUnitId = (a?: Article | null) =>
     unitIdFromState || unitId || a?.unit_id || '';
+  const [hasNext, setHasNext] = useState(false);
 
   const calculateScrollPercent = useCallback(() => {
     const scrollTop = window.scrollY;
@@ -113,6 +114,13 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
       // Hydrate context if missing
       if (!unitId || !moduleId) {
         await hydrateContextFromContent(id, { setUnitId, setModuleId });
+      }
+
+      try {
+        const next = await isNextContentAsync(id);
+        setHasNext(next);
+      } catch {
+        setHasNext(false);
       }
 
       const resolvedUnitId = resolveUnitId(data);
@@ -228,7 +236,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
           type="button"
           onClick={() => goToNextContent(id)}
         >
-          {isNextContent(id ?? '') ? 'Up next' : 'Finish'}
+          {hasNext ? 'Up next' : 'Finish'}
         </button>
       </div>
     </div>

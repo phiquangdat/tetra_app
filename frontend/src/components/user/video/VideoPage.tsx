@@ -50,7 +50,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     moduleId,
     unitId,
     goToNextContent,
-    isNextContent,
+    isNextContentAsync,
     moduleProgress,
     setModuleProgress,
     finalizeUnitIfComplete,
@@ -60,6 +60,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
 
   const resolveUnitId = (v?: Video | null) =>
     unitIdFromState || unitId || v?.unit_id || '';
+  const [hasNext, setHasNext] = useState(false);
 
   const playerRef = useRef<any>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -80,6 +81,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
       // Hydrate context if missing (after refresh)
       if (!unitId || !moduleId) {
         await hydrateContextFromContent(id, { setUnitId, setModuleId });
+      }
+
+      try {
+        const next = await isNextContentAsync(id);
+        setHasNext(next);
+      } catch {
+        setHasNext(false);
       }
 
       setIsCompleted(true);
@@ -341,7 +349,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
             goToNextContent(id);
           }}
         >
-          {isNextContent(id ?? '') ? 'Up next' : 'Finish'}
+          {hasNext ? 'Up next' : 'Finish'}
         </button>
       </div>
     </div>

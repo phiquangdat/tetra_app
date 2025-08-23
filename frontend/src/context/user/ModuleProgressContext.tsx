@@ -19,6 +19,7 @@ import {
   getContentProgressByUnitId,
   getUnitProgressByModuleId,
   patchModuleProgress,
+  getUnitProgress,
 } from '../../services/userProgress/userProgressApi.tsx';
 
 interface Unit {
@@ -32,6 +33,7 @@ interface ModuleProgressContextProps {
   setUnits: (units: Unit[]) => void;
   goToNextContent: (currentContentId: string) => void;
   isNextContent: (currentContentId: string) => boolean | undefined;
+  isNextContentAsync: (currentContentId: string) => Promise<boolean>;
   unitId: string;
   setUnitId: (id: string) => void;
   moduleId: string;
@@ -59,6 +61,8 @@ interface ModuleProgressContextProps {
   finalizeModuleIfComplete: (moduleId: string) => Promise<boolean>;
   ensureModuleStarted: () => Promise<void>;
   ensureUnitStarted: (unitId: string) => Promise<void>;
+  getOrCreateModuleProgress: () => Promise<ModuleProgress>;
+  getOrCreateUnitProgress: (targetUnitId?: string) => Promise<UnitProgress>;
 }
 
 const ModuleProgressContext = createContext<
@@ -100,8 +104,45 @@ export const ModuleProgressProvider = ({
   };
 
   const goToNextContent = async (currentContentId: string) => {
-    const currentUnitIndex = units.findIndex((u) => u.id === unitId);
-    if (currentUnitIndex === -1) return;
+    if (!unitId || !moduleId) {
+      console.warn('[goToNextContent] Missing unitId/moduleId in context');
+      return;
+    }
+
+    let unitList = units;
+    if (!unitList || unitList.length === 0) {
+      try {
+        unitList = await fetchUnitTitleByModuleId(moduleId);
+        setUnits(unitList);
+      } catch (e) {
+        console.error('[goToNextContent] Failed to hydrate units list:', e);
+        return;
+      }
+    }
+
+    let currentUnitIndex = unitList.findIndex((u) => u.id === unitId);
+    if (currentUnitIndex === -1) {
+      if (moduleProgress?.last_visited_unit_id) {
+        currentUnitIndex = unitList.findIndex(
+          (u) => u.id === moduleProgress.last_visited_unit_id,
+        );
+      }
+      if (currentUnitIndex === -1) {
+        console.warn('[goToNextContent] Could not resolve current unit index');
+        return;
+      }
+    }
+
+    let list = contentList;
+    if (!list || list.length === 0) {
+      try {
+        list = await fetchUnitContentById(unitId);
+        setUnitContent(unitId, list);
+      } catch (e) {
+        console.error('[goToNextContent] Failed to hydrate content list:', e);
+        return;
+      }
+    }
 
     const currentContentIndex = contentList.findIndex(
       (c) => c.id === currentContentId,
@@ -127,14 +168,14 @@ export const ModuleProgressProvider = ({
 
       async function updateProgress() {
         try {
-          const response = await updateUnitProgress(
-            unitProgress?.id as string,
-            {
-              moduleId,
-              unitId,
-              status: 'COMPLETED',
-            },
-          );
+          // Unit progress
+          const up = await getOrCreateUnitProgress(unitId);
+
+          const response = await updateUnitProgress(up.id as string, {
+            moduleId,
+            unitId,
+            status: 'COMPLETED',
+          });
           setUnitProgress(response);
           setUnitProgressStatus('completed');
 
@@ -146,6 +187,7 @@ export const ModuleProgressProvider = ({
 
       await updateProgress();
     } else {
+      console.log('Navigating to', moduleId);
       navigate(`/user/modules/${moduleId}`);
     }
   };
@@ -164,6 +206,30 @@ export const ModuleProgressProvider = ({
     }
 
     return false;
+  };
+
+  // 2) Add the async implementation inside ModuleProgressProvider
+  const isNextContentAsync = async (
+    currentContentId: string,
+  ): Promise<boolean> => {
+    if (!currentContentId) return false;
+    if (!unitId) return false;
+
+    let list = contentList;
+    if (!list || list.length === 0) {
+      try {
+        list = await fetchUnitContentById(unitId);
+        setUnitContent(unitId, list);
+      } catch (e) {
+        console.error('[isNextContentAsync] Failed to hydrate content:', e);
+        return false;
+      }
+    }
+
+    const idx = list.findIndex((c) => c.id === currentContentId);
+    if (idx === -1) return false;
+
+    return idx + 1 < list.length;
   };
 
   const goToStart = async (preloadedData?: {
@@ -397,18 +463,65 @@ export const ModuleProgressProvider = ({
     return true;
   }
 
-  async function ensureModuleStarted() {
-    if (
-      moduleProgressStatus === 'in_progress' ||
-      moduleProgressStatus === 'completed'
-    )
-      return;
+  const getOrCreateModuleProgress = async (): Promise<ModuleProgress> => {
+    if (moduleProgress?.id) return moduleProgress;
 
     try {
-      const resp = await createModuleProgress(moduleId, {
-        lastVisitedUnit: moduleProgress?.last_visited_unit_id,
-        lastVisitedContent: moduleProgress?.last_visited_content_id,
-      });
+      const mp = await getModuleProgress(moduleId);
+      setModuleProgress(mp);
+      setModuleProgressStatus(String(mp.status).toLowerCase());
+      return mp;
+    } catch (e: any) {
+      // if not found -> create
+      if (String(e?.message ?? '').includes('404')) {
+        const resp = await createModuleProgress(moduleId, {
+          lastVisitedUnit: moduleProgress?.last_visited_unit_id,
+          lastVisitedContent: moduleProgress?.last_visited_content_id,
+        });
+        const mp: ModuleProgress = {
+          id: resp.id,
+          status: resp.status,
+          last_visited_unit_id: resp.lastVisitedUnit?.id || '',
+          last_visited_content_id: resp.lastVisitedContent?.id || '',
+          earned_points: resp.earnedPoints || 0,
+        };
+        setModuleProgress(mp);
+        setModuleProgressStatus('in_progress');
+        return mp;
+      }
+      throw e;
+    }
+  };
+
+  const getOrCreateUnitProgress = async (
+    targetUnitId?: string,
+  ): Promise<UnitProgress> => {
+    const uid = targetUnitId ?? unitId;
+    if (unitProgress?.id && unitProgress.unitId === uid) return unitProgress;
+
+    try {
+      const up = await getUnitProgress(uid);
+      setUnitProgress(up);
+      setUnitProgressStatus(String(up.status).toLowerCase());
+      return up;
+    } catch (e: any) {
+      if (String(e?.message ?? '').includes('404')) {
+        const up = await createUnitProgress(uid, moduleId);
+        setUnitProgress(up);
+        setUnitProgressStatus('in_progress');
+        return up;
+      }
+      throw e;
+    }
+  };
+
+  async function ensureModuleStarted() {
+    const mp = await getOrCreateModuleProgress();
+    const status = String(mp.status || '').toLowerCase();
+    if (status === 'in_progress' || status === 'completed') return;
+
+    try {
+      const resp = await patchModuleProgress(mp.id, { status: 'IN_PROGRESS' });
 
       setModuleProgress({
         id: resp.id,
@@ -420,17 +533,32 @@ export const ModuleProgressProvider = ({
       setModuleProgressStatus('in_progress');
     } catch (e: any) {
       if (!String(e?.message ?? '').includes('409')) throw e;
+      // 409 means it exists — fetch to populate ID
+      try {
+        const mp = await getModuleProgress(moduleId);
+        setModuleProgress(mp);
+        setModuleProgressStatus(String(mp.status).toLowerCase());
+      } catch (err) {
+        console.warn('[ensureModuleStarted] 409 but GET failed:', err);
+      }
     }
   }
 
   async function ensureUnitStarted(targetUnitId: string) {
+    const up = await getOrCreateUnitProgress(targetUnitId);
+    const status = String(up.status || '').toLowerCase();
+    if (status === 'in_progress' || status === 'completed') return;
+
     try {
-      const resp = await createUnitProgress(targetUnitId, moduleId);
+      const resp = await updateUnitProgress(up.id, {
+        moduleId,
+        unitId: targetUnitId,
+        status: 'IN_PROGRESS',
+      });
       setUnitProgress(resp);
       setUnitProgressStatus('in_progress');
     } catch (e: any) {
-      if (!String(e?.message ?? '').includes('409')) throw e;
-      // On 409, treat as in_progress (someone else started it)
+      console.warn('[ensureUnitStarted] update to IN_PROGRESS failed:', e);
       if (unitProgressStatus === 'not_started')
         setUnitProgressStatus('in_progress');
     }
@@ -443,6 +571,7 @@ export const ModuleProgressProvider = ({
         setUnits,
         goToNextContent,
         isNextContent,
+        isNextContentAsync,
         unitId,
         setUnitId,
         moduleId,
@@ -462,6 +591,8 @@ export const ModuleProgressProvider = ({
         continueFromLastVisited,
         finalizeUnitIfComplete,
         finalizeModuleIfComplete,
+        getOrCreateModuleProgress,
+        getOrCreateUnitProgress,
         ensureModuleStarted,
         ensureUnitStarted,
       }}

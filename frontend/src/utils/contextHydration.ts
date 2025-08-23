@@ -11,7 +11,7 @@ export async function hydrateContextFromContent(
   }: { setUnitId: (id: string) => void; setModuleId: (id: string) => void },
 ) {
   const content = await fetchUnitContentDetails(contentId);
-  setUnitId(content.unit_id);
-  const unit = await fetchUnitById(content.unit_id);
+  setUnitId(content.unitId);
+  const unit = await fetchUnitById(content.unitId);
   setModuleId(unit.moduleId);
 }

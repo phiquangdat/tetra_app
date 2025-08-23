@@ -14,12 +14,13 @@ import {
 } from '../../../services/userProgress/userProgressApi';
 import { CheckIcon } from '../../common/Icons';
 import toast from 'react-hot-toast';
+import { hydrateContextFromContent } from '../../../utils/contextHydration';
 
 interface ArticlePageProps {
   id: string;
 }
 
-const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
+const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
   const [article, setArticle] = useState<Article | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -33,6 +34,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
     moduleProgress,
     setModuleProgress,
     finalizeUnitIfComplete,
+    setUnitId,
+    setModuleId,
   } = useModuleProgress();
 
   const resolveUnitId = (a?: Article | null) =>
@@ -68,7 +71,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
         });
 
         const resolvedUnitId = resolveUnitId(article);
-        console.log('effectiveUnitId', resolvedUnitId);
         await finalizeUnitIfComplete(resolvedUnitId, moduleId);
         setContentProgress((prev) =>
           prev
@@ -108,9 +110,12 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
       const data = await fetchArticleContentById(id);
       setArticle(data);
 
-      const resolvedUnitId = resolveUnitId(data);
-      console.log('effectiveUnitId', resolvedUnitId);
+      // Hydrate context if missing
+      if (!unitId || !moduleId) {
+        await hydrateContextFromContent(id, { setUnitId, setModuleId });
+      }
 
+      const resolvedUnitId = resolveUnitId(data);
       try {
         const progress = await getContentProgress(id);
         console.log('[getContentProgress]', progress);
@@ -162,7 +167,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }: ArticlePageProps) => {
     };
 
     fetchData();
-  }, [id, unitIdFromState]);
+  }, [id, unitIdFromState, unitId, moduleId]);
 
   useEffect(() => {
     if (contentProgress?.status?.toLowerCase() == 'completed') return;

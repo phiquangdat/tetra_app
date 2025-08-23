@@ -41,7 +41,8 @@ const QuizStartModal = () => {
   });
   const navigate = useNavigate();
   const { setQuestions, clearUserAnswers } = useQuiz();
-  const { unitId, moduleProgress } = useModuleProgress();
+  const { unitId, moduleProgress, ensureModuleStarted, ensureUnitStarted } =
+    useModuleProgress();
 
   const isVisible = isOpen && type === 'start' && !!quizId;
 
@@ -50,6 +51,11 @@ const QuizStartModal = () => {
 
     try {
       clearUserAnswers();
+
+      await ensureModuleStarted();
+      if (unitId) {
+        await ensureUnitStarted(unitId);
+      }
 
       let progress;
       // Ensure users-content-progress exists (create IN_PROGRESS if 404)

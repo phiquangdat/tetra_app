@@ -12,9 +12,10 @@ import {
   patchModuleProgress,
   type ContentProgress,
 } from '../../../services/userProgress/userProgressApi';
-import { useModuleProgress } from '../../../context/user/ModuleProgressContext.tsx';
+import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
 import { UploadAltIcon, CheckIcon } from '../../common/Icons';
 import toast from 'react-hot-toast';
+import { hydrateContextFromContent } from '../../../utils/contextHydration';
 
 declare global {
   var YT: any;
@@ -53,6 +54,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     moduleProgress,
     setModuleProgress,
     finalizeUnitIfComplete,
+    setUnitId,
+    setModuleId,
   } = useModuleProgress();
 
   const resolveUnitId = (v?: Video | null) =>
@@ -70,7 +73,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   useEffect(() => {
     const fetchData = async () => {
       if (id) {
-        fetchVideoContentById(id).then((data) => setVideo(data));
+        const data = await fetchVideoContentById(id);
+        setVideo(data);
+      }
+
+      // Hydrate context if missing (after refresh)
+      if (!unitId || !moduleId) {
+        await hydrateContextFromContent(id, { setUnitId, setModuleId });
       }
 
       setIsCompleted(true);
@@ -129,7 +138,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     };
 
     fetchData();
-  }, [id, unitIdFromState, unitId]);
+  }, [id, unitIdFromState, unitId, moduleId]);
 
   const markAsCompleted = async () => {
     if (

@@ -17,6 +17,15 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
+const ensureModuleStartedMock = vi.fn().mockResolvedValue(undefined);
+const setUnitIdMock = vi.fn();
+vi.mock('../../context/user/ModuleProgressContext', () => ({
+  useModuleProgress: () => ({
+    ensureModuleStarted: ensureModuleStartedMock,
+    setUnitId: setUnitIdMock,
+  }),
+}));
+
 describe('UnitItem Component', () => {
   const mockToggle = vi.fn();
 
@@ -44,6 +53,7 @@ describe('UnitItem Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    ensureModuleStartedMock.mockResolvedValue(undefined);
   });
 
   it('renders the unit title correctly', () => {
@@ -55,8 +65,12 @@ describe('UnitItem Component', () => {
 
   it('calls onToggle when the container is clicked', async () => {
     renderComponent();
-    const chevronPath = document.querySelector('path[d="M19 9l-7 7-7-7"]');
-    await userEvent.click(chevronPath!);
+
+    const headerRow = screen
+      .getByText(/Unit 1: AI in Business Strategies/i)
+      .closest('div')?.parentElement; // parent is the clickable row
+    await userEvent.click(headerRow!);
+
     expect(mockToggle).toHaveBeenCalledTimes(1);
   });
 
@@ -64,6 +78,10 @@ describe('UnitItem Component', () => {
     renderComponent();
     const title = screen.getByText(/Unit 1: AI in Business Strategies/i);
     await userEvent.click(title);
+    expect(ensureModuleStartedMock).toHaveBeenCalledTimes(1);
+    expect(setUnitIdMock).toHaveBeenCalledWith(
+      'b5a40228-6e30-499e-87c7-44eb7c542338',
+    );
     expect(mockNavigate).toHaveBeenCalledWith(
       '/user/unit/b5a40228-6e30-499e-87c7-44eb7c542338',
     );

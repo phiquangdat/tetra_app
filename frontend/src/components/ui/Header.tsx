@@ -81,16 +81,20 @@ const Header: React.FC<HeaderProps> = ({
           </button>
         )}
 
-        <img
-          src={TetraLogo}
-          alt="Tetra Logo"
-          className="h-10 w-auto mr-2"
-          style={{ objectFit: 'contain' }}
-        />
-
-        <span className="font-bold text-3xl text-white tracking-wide">
-          TETRA
-        </span>
+        <button
+          onClick={(e) => handleNavClick(e, '/')}
+          className="flex items-center gap-2 cursor-pointer focus:outline-none"
+        >
+          <img
+            src={TetraLogo}
+            alt="Tetra Logo"
+            className="h-10 w-auto mr-2"
+            style={{ objectFit: 'contain' }}
+          />
+          <span className="font-bold text-3xl text-white tracking-wide">
+            TETRA
+          </span>
+        </button>
       </div>
       <nav className="flex flex-1 justify-center">
         <ul className="flex gap-9 list-none m-0 p-0">

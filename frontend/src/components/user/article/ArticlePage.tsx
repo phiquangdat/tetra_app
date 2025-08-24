@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   fetchArticleContentById,
@@ -36,7 +36,30 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     finalizeUnitIfComplete,
     setUnitId,
     setModuleId,
+    getOrCreateModuleProgress,
   } = useModuleProgress();
+
+  // Keep hydrated IDs available everywhere without changing function shapes
+  const idsRef = useRef<{ unitId?: string; moduleId?: string }>({});
+
+  // Helper: ensures module progress id exists before PATCH and updates context
+  const safePatchModule = useCallback(
+    async (payload: Parameters<typeof patchModuleProgress>[1]) => {
+      const mid = idsRef.current.moduleId || moduleId;
+      if (!mid) throw new Error('[safePatchModule] Missing moduleId');
+      const mp = await getOrCreateModuleProgress(mid);
+      const resp = await patchModuleProgress(mp.id, payload);
+      setModuleProgress({
+        id: resp.id,
+        status: resp.status,
+        last_visited_unit_id: resp.lastVisitedUnit?.id || '',
+        last_visited_content_id: resp.lastVisitedContent?.id || '',
+        earned_points: resp.earnedPoints || 0,
+      });
+      return resp;
+    },
+    [getOrCreateModuleProgress, moduleId, setModuleProgress],
+  );
 
   const resolveUnitId = (a?: Article | null) =>
     unitIdFromState || unitId || a?.unit_id || '';
@@ -72,7 +95,10 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
         });
 
         const resolvedUnitId = resolveUnitId(article);
-        await finalizeUnitIfComplete(resolvedUnitId, moduleId);
+        await finalizeUnitIfComplete(
+          resolvedUnitId,
+          idsRef.current.moduleId || moduleId,
+        );
         setContentProgress((prev) =>
           prev
             ? { ...prev, status: 'COMPLETED', points: article.points }
@@ -84,8 +110,9 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
         console.error('Error updating progress:', error);
       }
       try {
-        const response = await patchModuleProgress(moduleProgress.id, {
-          earnedPoints: moduleProgress.earned_points + article.points || 0,
+        const response = await safePatchModule({
+          earnedPoints:
+            (moduleProgress.earned_points || 0) + (article.points || 0),
         });
         const progressArg = {
           id: response.id,
@@ -104,17 +131,35 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
         );
       }
     }
-  }, [calculateScrollPercent, contentProgress, article?.points]);
+  }, [
+    calculateScrollPercent,
+    contentProgress,
+    article?.points,
+    moduleProgress,
+    finalizeUnitIfComplete,
+    moduleId,
+    safePatchModule,
+    setModuleProgress,
+  ]);
 
   useEffect(() => {
     const fetchData = async () => {
       const data = await fetchArticleContentById(id);
       setArticle(data);
 
-      // Hydrate context if missing
-      if (!unitId || !moduleId) {
-        await hydrateContextFromContent(id, { setUnitId, setModuleId });
+      // Hydrate context if missing and cache IDs
+      let effectiveUnitId = unitId || data.unit_id || unitIdFromState || '';
+      let effectiveModuleId = moduleId;
+
+      if (!effectiveUnitId || !effectiveModuleId) {
+        const hydrated = await hydrateContextFromContent(id, {
+          setUnitId,
+          setModuleId,
+        });
+        effectiveUnitId ||= hydrated.unitId;
+        effectiveModuleId ||= hydrated.moduleId;
       }
+      idsRef.current = { unitId: effectiveUnitId, moduleId: effectiveModuleId };
 
       try {
         const next = await isNextContentAsync(id);
@@ -123,7 +168,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
         setHasNext(false);
       }
 
-      const resolvedUnitId = resolveUnitId(data);
+      const resolvedUnitId = resolveUnitId(data) || effectiveUnitId;
+
       try {
         const progress = await getContentProgress(id);
         console.log('[getContentProgress]', progress);
@@ -131,18 +177,15 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
         setContentProgress(progress);
 
         if (
-          (moduleProgress?.last_visited_unit_id !== unitIdFromState ||
+          (moduleProgress?.last_visited_unit_id !== resolvedUnitId ||
             moduleProgress?.last_visited_content_id !== id) &&
           progress.status !== 'COMPLETED'
         ) {
           try {
-            const response = await patchModuleProgress(
-              moduleProgress?.id as string,
-              {
-                lastVisitedUnit: resolvedUnitId,
-                lastVisitedContent: id,
-              },
-            );
+            const response = await safePatchModule({
+              lastVisitedUnit: resolvedUnitId,
+              lastVisitedContent: id,
+            });
             const progressArg = {
               id: response.id,
               status: response.status,
@@ -160,7 +203,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
       } catch (error) {
         if (error instanceof Error && error.message.includes('404')) {
           const progress = await createContentProgress({
-            unitId: unitIdFromState as string,
+            unitId: resolvedUnitId,
             unitContentId: id,
             status: 'IN_PROGRESS',
             points: 0,
@@ -175,7 +218,18 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     };
 
     fetchData();
-  }, [id, unitIdFromState, unitId, moduleId]);
+  }, [
+    id,
+    unitIdFromState,
+    unitId,
+    moduleId,
+    isNextContentAsync,
+    moduleProgress,
+    setUnitId,
+    setModuleId,
+    safePatchModule,
+    setModuleProgress,
+  ]);
 
   useEffect(() => {
     if (contentProgress?.status?.toLowerCase() == 'completed') return;
@@ -186,7 +240,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [handleScroll]);
+  }, [handleScroll, contentProgress?.status]);
 
   return (
     <div className="mx-auto px-8 py-8 min-h-screen text-left">

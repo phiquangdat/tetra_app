@@ -9,6 +9,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.mockito.Mockito.when;
@@ -59,16 +61,25 @@ class UserStatsControllerTest {
     }
 
     @Test
-    void shouldReturnTotalPointsSuccessfully() throws Exception {
+    void shouldReturnStatsSuccessfully() throws Exception {
         String token = "valid.token";
         UUID userId = UUID.randomUUID();
         when(jwtUtil.extractUserId(token)).thenReturn(userId.toString());
         when(userStatsService.getTotalPoints(userId)).thenReturn(120);
+        when(userStatsService.getTopicPoints(userId)).thenReturn(List.of(
+                Map.of("topic", "AI", "points", 100),
+                Map.of("topic", "ESG", "points", 20)
+        ));
 
         mockMvc.perform(get("/api/user-stats")
                         .header("Authorization", "Bearer " + token)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalPoints").value(120));
+                .andExpect(jsonPath("$.totalPoints").value(120))
+                .andExpect(jsonPath("$.topicPoints").isArray())
+                .andExpect(jsonPath("$.topicPoints[0].topic").value("AI"))
+                .andExpect(jsonPath("$.topicPoints[0].points").value(100))
+                .andExpect(jsonPath("$.topicPoints[1].topic").value("ESG"))
+                .andExpect(jsonPath("$.topicPoints[1].points").value(20));
     }
 }

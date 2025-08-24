@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
@@ -67,7 +66,10 @@ const UserStatCharts = () => {
             color: '#222',
             font: { weight: 'bold', size: 16 },
             formatter: (value: number, context: any) => {
-              const total = context.chart.data.datasets[0].data.reduce((a: number, b: number) => a + b, 0);
+              const total = context.chart.data.datasets[0].data.reduce(
+                (a: number, b: number) => a + b,
+                0,
+              );
               if (total === 0) return '';
               const percent = Math.round((value / total) * 100);
               return percent > 0 ? `${percent}%` : '';
@@ -90,15 +92,28 @@ const UserStatCharts = () => {
 
   let content;
   if (loading) {
-    content = <div className="w-full flex justify-center items-center h-64">Loading...</div>;
-  } else if (error) {
-    content = <div className="w-full flex justify-center items-center h-64 text-red-500">{error}</div>;
-  } else if (!stats || stats.topicPoints.filter((t) => t.points > 0).length === 0) {
-    content = <div className="w-full flex justify-center items-center h-64 text-gray-400">No points yet</div>;
-  } else {
     content = (
-      <canvas ref={doughnutRef} className="max-h-80" />
+      <div className="w-full flex justify-center items-center h-64">
+        Loading...
+      </div>
     );
+  } else if (error) {
+    content = (
+      <div className="w-full flex justify-center items-center h-64 text-red-500">
+        {error}
+      </div>
+    );
+  } else if (
+    !stats ||
+    stats.topicPoints.filter((t) => t.points > 0).length === 0
+  ) {
+    content = (
+      <div className="w-full flex justify-center items-center h-64 text-gray-400">
+        No points yet
+      </div>
+    );
+  } else {
+    content = <canvas ref={doughnutRef} className="max-h-80" />;
   }
 
   return (

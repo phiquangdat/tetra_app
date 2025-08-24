@@ -42,7 +42,10 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
   // Keep hydrated IDs available everywhere without changing function shapes
   const idsRef = useRef<{ unitId?: string; moduleId?: string }>({});
 
-  // Helper: ensures module progress id exists before PATCH and updates context
+  // Lock to prevent multiple triggers while past 90%
+  const completingRef = useRef(false);
+
+  // helper (already in your code path)
   const safePatchModule = useCallback(
     async (payload: Parameters<typeof patchModuleProgress>[1]) => {
       const mid = idsRef.current.moduleId || moduleId;
@@ -85,9 +88,15 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
       !article
     )
       return;
+
+    // Ignore additional scroll events once we're completing/completed
+    if (completingRef.current) return;
+
     const percent = calculateScrollPercent();
 
     if (percent >= 90) {
+      // lock before async work so multiple events don't re-enter
+      completingRef.current = true;
       try {
         const response = await updateContentProgress(contentProgress.id, {
           status: 'COMPLETED',
@@ -108,6 +117,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
         toast.success(`Complete reading! + ${article.points}`);
       } catch (error) {
         console.error('Error updating progress:', error);
+        // unlock on failure so user can retry
+        completingRef.current = false;
       }
       try {
         const response = await safePatchModule({
@@ -175,6 +186,11 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
         console.log('[getContentProgress]', progress);
 
         setContentProgress(progress);
+
+        // If already completed, prime the lock
+        if (String(progress.status).toUpperCase() === 'COMPLETED') {
+          completingRef.current = true;
+        }
 
         if (
           (moduleProgress?.last_visited_unit_id !== resolvedUnitId ||

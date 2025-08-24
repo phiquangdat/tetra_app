@@ -61,7 +61,9 @@ interface ModuleProgressContextProps {
   finalizeModuleIfComplete: (moduleId: string) => Promise<boolean>;
   ensureModuleStarted: () => Promise<void>;
   ensureUnitStarted: (unitId: string) => Promise<void>;
-  getOrCreateModuleProgress: () => Promise<ModuleProgress>;
+  getOrCreateModuleProgress: (
+    targetModuleId?: string,
+  ) => Promise<ModuleProgress>;
   getOrCreateUnitProgress: (targetUnitId?: string) => Promise<UnitProgress>;
 }
 
@@ -162,7 +164,7 @@ export const ModuleProgressProvider = ({
     }
 
     // CASE 2: go to first content in next unit
-    const nextUnit = units[currentUnitIndex + 1];
+    const nextUnit = unitList[currentUnitIndex + 1];
     if (nextUnit) {
       openUnitCompletionModal(nextUnit.id, moduleId);
 
@@ -463,18 +465,23 @@ export const ModuleProgressProvider = ({
     return true;
   }
 
-  const getOrCreateModuleProgress = async (): Promise<ModuleProgress> => {
-    if (moduleProgress?.id) return moduleProgress;
+  const getOrCreateModuleProgress = async (
+    targetModuleId?: string,
+  ): Promise<ModuleProgress> => {
+    const mid = targetModuleId || moduleId;
+    if (!mid) throw new Error('[getOrCreateModuleProgress] Missing moduleId');
+
+    if (moduleProgress?.id && moduleId === mid) return moduleProgress;
 
     try {
-      const mp = await getModuleProgress(moduleId);
+      const mp = await getModuleProgress(mid);
       setModuleProgress(mp);
       setModuleProgressStatus(String(mp.status).toLowerCase());
       return mp;
     } catch (e: any) {
       // if not found -> create
       if (String(e?.message ?? '').includes('404')) {
-        const resp = await createModuleProgress(moduleId, {
+        const resp = await createModuleProgress(mid, {
           lastVisitedUnit: moduleProgress?.last_visited_unit_id,
           lastVisitedContent: moduleProgress?.last_visited_content_id,
         });
@@ -532,15 +539,7 @@ export const ModuleProgressProvider = ({
       });
       setModuleProgressStatus('in_progress');
     } catch (e: any) {
-      if (!String(e?.message ?? '').includes('409')) throw e;
-      // 409 means it exists — fetch to populate ID
-      try {
-        const mp = await getModuleProgress(moduleId);
-        setModuleProgress(mp);
-        setModuleProgressStatus(String(mp.status).toLowerCase());
-      } catch (err) {
-        console.warn('[ensureModuleStarted] 409 but GET failed:', err);
-      }
+      console.warn('[ensureModuleStarted] failed to mark IN_PROGRESS:', e);
     }
   }
 

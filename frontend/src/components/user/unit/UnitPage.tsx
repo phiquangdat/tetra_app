@@ -77,6 +77,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
     ensureModuleStarted,
     ensureUnitStarted,
     moduleId,
+    getOrCreateModuleProgress,
   } = useModuleProgress();
   const [checkedIndex, setCheckedIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -108,6 +109,8 @@ const UnitPage = ({ id }: UnitPageProps) => {
         if (!moduleId && details.moduleId) {
           setModuleId(details.moduleId);
         }
+
+        await getOrCreateModuleProgress(details.moduleId);
 
         const content = await fetchUnitContentById(id);
         let contentProgress: ContentProgress[] = [];

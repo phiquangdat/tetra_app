@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { validateVideoUrl, getYouTubeId } from '../../../utils/videoHelpers';
 import {
@@ -43,9 +43,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   const [video, setVideo] = useState<Video | null>(null);
   const [isCompleted, setIsCompleted] = useState(false); // Ensure Finish button triggers navigation if completion hasn’t occurred
   const [contentProgress, setContentProgress] = useState<ContentProgress>();
+  const [hasNext, setHasNext] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
+
   const {
     moduleId,
     unitId,
@@ -56,11 +59,33 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     finalizeUnitIfComplete,
     setUnitId,
     setModuleId,
+    getOrCreateModuleProgress,
   } = useModuleProgress();
+
+  // Cache hydrated IDs for all later calls
+  const idsRef = useRef<{ unitId?: string; moduleId?: string }>({});
+
+  // Helper: ensures module progress id exists before PATCH and updates context
+  const safePatchModule = useCallback(
+    async (payload: Parameters<typeof patchModuleProgress>[1]) => {
+      const mid = idsRef.current.moduleId || moduleId;
+      if (!mid) throw new Error('[safePatchModule] Missing moduleId');
+      const mp = await getOrCreateModuleProgress(mid);
+      const resp = await patchModuleProgress(mp.id, payload);
+      setModuleProgress({
+        id: resp.id,
+        status: resp.status,
+        last_visited_unit_id: resp.lastVisitedUnit?.id || '',
+        last_visited_content_id: resp.lastVisitedContent?.id || '',
+        earned_points: resp.earnedPoints || 0,
+      });
+      return resp;
+    },
+    [getOrCreateModuleProgress, moduleId, setModuleProgress],
+  );
 
   const resolveUnitId = (v?: Video | null) =>
     unitIdFromState || unitId || v?.unit_id || '';
-  const [hasNext, setHasNext] = useState(false);
 
   const playerRef = useRef<any>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -78,10 +103,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         setVideo(data);
       }
 
-      // Hydrate context if missing (after refresh)
-      if (!unitId || !moduleId) {
-        await hydrateContextFromContent(id, { setUnitId, setModuleId });
+      // Hydrate context if missing (after refresh) and cache IDs
+      let effectiveUnitId = unitId || unitIdFromState || '';
+      let effectiveModuleId = moduleId;
+
+      if (!effectiveUnitId || !effectiveModuleId) {
+        const hydrated = await hydrateContextFromContent(id, {
+          setUnitId,
+          setModuleId,
+        });
+        effectiveUnitId ||= hydrated.unitId;
+        effectiveModuleId ||= hydrated.moduleId;
       }
+      idsRef.current = { unitId: effectiveUnitId, moduleId: effectiveModuleId };
 
       try {
         const next = await isNextContentAsync(id);
@@ -97,7 +131,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
 
         setContentProgress(progress);
 
-        const resolvedUnitId = resolveUnitId(video);
+        const resolvedUnitId = resolveUnitId(video) || effectiveUnitId;
 
         if (
           (moduleProgress?.last_visited_unit_id !== resolvedUnitId ||
@@ -105,14 +139,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
           progress.status !== 'COMPLETED'
         ) {
           try {
-            const response = await patchModuleProgress(
-              moduleProgress?.id as string,
-              {
-                lastVisitedUnit: resolvedUnitId,
-                lastVisitedContent: id,
-              },
-            );
-            const progress = {
+            const response = await safePatchModule({
+              lastVisitedUnit: resolvedUnitId,
+              lastVisitedContent: id,
+            });
+            const progressObj = {
               id: response.id,
               status: response.status,
               last_visited_unit_id: response.lastVisitedUnit.id || '',
@@ -121,17 +152,17 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
             };
 
             console.log('[patchModuleProgress], Update IDs:', response);
-            setModuleProgress(progress);
+            setModuleProgress(progressObj);
           } catch (error) {
             console.error('[patchModuleProgress]', error);
           }
         }
       } catch (error) {
         if (error instanceof Error && error.message.includes('404')) {
-          const resolvedUnitId = resolveUnitId(video);
+          const resolvedUnitId = idsRef.current.unitId || resolveUnitId(video);
 
           const progress = await createContentProgress({
-            unitId: resolvedUnitId,
+            unitId: resolvedUnitId as string,
             unitContentId: id,
             status: 'IN_PROGRESS',
             points: 0,
@@ -146,7 +177,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     };
 
     fetchData();
-  }, [id, unitIdFromState, unitId, moduleId]);
+  }, [
+    id,
+    unitIdFromState,
+    unitId,
+    moduleId,
+    isNextContentAsync,
+    moduleProgress,
+    setUnitId,
+    setModuleId,
+    safePatchModule,
+    setModuleProgress,
+  ]);
 
   const markAsCompleted = async () => {
     if (
@@ -163,8 +205,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         points: video.points || 0,
       });
 
-      const resolvedUnitId = resolveUnitId(video);
-      await finalizeUnitIfComplete(resolvedUnitId, moduleId);
+      const resolvedUnitId = resolveUnitId(video) || idsRef.current.unitId!;
+      await finalizeUnitIfComplete(
+        resolvedUnitId,
+        idsRef.current.moduleId || moduleId,
+      );
       setContentProgress((prev) =>
         prev
           ? { ...prev, status: 'COMPLETED', points: video.points || 0 }
@@ -176,8 +221,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
       console.error('Error updating progress:', error);
     }
     try {
-      const response = await patchModuleProgress(moduleProgress.id, {
-        earnedPoints: moduleProgress.earned_points + video.points || 0,
+      const response = await safePatchModule({
+        earnedPoints: (moduleProgress.earned_points || 0) + (video.points || 0),
       });
       const progressArg = {
         id: response.id,
@@ -274,7 +319,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         playerRef.current.destroy();
       }
     };
-  }, [video?.url, contentProgress?.id]);
+  }, [video?.url, contentProgress?.id, isValid, isYouTube, markAsCompleted]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">

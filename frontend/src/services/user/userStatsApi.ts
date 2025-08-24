@@ -4,12 +4,21 @@ const BASE_URL =
 
 import { fetchWithAuth } from '../../utils/authHelpers';
 
-export async function getUserTotalPoints(): Promise<number> {
-  const data = await fetchWithAuth(`${BASE_URL}/user-stats`, { method: 'GET' });
+export interface UserStats {
+  totalPoints: number;
+  topicPoints: { topic: string; points: number }[];
+}
 
-  const total = Number(data?.totalPoints);
-  if (!Number.isFinite(total)) {
+export async function getUserStats(): Promise<UserStats> {
+  const data = await fetchWithAuth(`${BASE_URL}/user-stats`, { method: 'GET' });
+  if (
+    typeof data?.totalPoints !== 'number' ||
+    !Array.isArray(data?.topicPoints)
+  ) {
     throw new Error('Invalid response from user stats API');
   }
-  return total;
+  return {
+    totalPoints: data.totalPoints,
+    topicPoints: data.topicPoints,
+  };
 }

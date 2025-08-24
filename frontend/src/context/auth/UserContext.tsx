@@ -7,7 +7,7 @@ import {
 } from 'react';
 import { useAuth } from './AuthContext';
 import { getUserById } from '../../services/user/userApi';
-import { getUserTotalPoints } from '../../services/user/userStatsApi';
+import { getUserStats } from '../../services/user/userStatsApi';
 
 interface UserContextType {
   userName: string | null;
@@ -60,8 +60,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       if (!cancelled) setPointsLoading(true);
 
       try {
-        const totalPoints = await getUserTotalPoints();
-        if (!cancelled) setPoints(totalPoints);
+        const stats = await getUserStats();
+        if (!cancelled) setPoints(stats.totalPoints);
       } catch (err) {
         if (!cancelled) {
           console.error('Failed to fetch user points:', err);

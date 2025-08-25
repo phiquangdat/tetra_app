@@ -5,10 +5,9 @@ import {
 } from '../../../services/module/moduleApi';
 import { fetchUnitTitleByModuleId } from '../../../services/unit/unitApi';
 import {
-  getModuleProgress,
   getUnitProgressByModuleId,
-  createModuleProgress,
   type UnitProgress,
+  getModuleProgress,
 } from '../../../services/userProgress/userProgressApi';
 import Syllabus from './syllabus/Syllabus';
 import { useNavigate } from 'react-router-dom';
@@ -44,6 +43,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
     goToStart,
     continueFromLastVisited,
     initFirstUnitAndContentProgress,
+    ensureModuleStarted,
   } = useModuleProgress();
   const { setUnitContent } = useUnitContent();
   const [module, setModule] = useState<Module | null>(null);
@@ -164,21 +164,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
       setIsStarting(true);
       setVisibleStatus(null);
 
-      const response = await createModuleProgress(id, {
-        lastVisitedContent: moduleProgress?.last_visited_content_id,
-        lastVisitedUnit: moduleProgress?.last_visited_unit_id,
-      });
-
-      const progress = {
-        id: response.id,
-        status: response.status,
-        last_visited_unit_id: response.lastVisitedUnit.id || '',
-        last_visited_content_id: response.lastVisitedContent.id || '',
-        earned_points: response.earnedPoints || 0,
-      };
-
-      setModuleProgress(progress);
-      setModuleProgressStatus('in_progress');
+      await ensureModuleStarted();
       const preload = await initFirstUnitAndContentProgress();
       await goToStart(preload ?? undefined);
     } catch (err) {

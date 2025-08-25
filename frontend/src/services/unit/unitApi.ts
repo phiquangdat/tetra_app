@@ -6,7 +6,7 @@ const BASE_URL =
 
 export interface UnitContent {
   id: string;
-  unit_id: string;
+  unitId: string;
   title: string;
   content_type: string;
   content: string;

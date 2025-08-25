@@ -371,12 +371,16 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
 
       <div className="w-full max-w-4xl mt-8 flex justify-end">
         <button
-          className="bg-surface text-background font-semibold px-12 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition-all duration-200 w-fit"
+          className="bg-surface text-background font-semibold px-12 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition-all duration-200 w-fit
+          disabled:bg-surface/50 disabled:cursor-not-allowed
+          "
           type="button"
           onClick={async () => {
             if (!isCompleted) await markAsCompleted();
             goToNextContent(id);
           }}
+          aria-disabled="Finish the video to continue."
+          disabled={contentProgress?.status !== 'COMPLETED'}
         >
           {hasNext ? 'Up next' : 'Finish'}
         </button>

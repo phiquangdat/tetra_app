@@ -8,6 +8,25 @@ import {
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import userEvent from '@testing-library/user-event';
 
+vi.mock('../../services/unit/unitApi', () => ({
+  fetchUnitTitleByModuleId: vi.fn(),
+  fetchUnitContentById: vi.fn(),
+}));
+
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => mockNavigate,
+}));
+
+const ensureModuleStartedMock = vi.fn().mockResolvedValue(undefined);
+const setUnitIdMock = vi.fn();
+vi.mock('../../context/user/ModuleProgressContext', () => ({
+  useModuleProgress: () => ({
+    ensureModuleStarted: ensureModuleStartedMock,
+    setUnitId: setUnitIdMock,
+  }),
+}));
+
 const mockModuleId = 'aaeacc19-4619-4f0a-8249-88ce37cf2a50';
 const mockUnitTitles = [
   {
@@ -24,27 +43,17 @@ const mockUnitContent = [
   { content_type: 'quiz', title: 'Quiz Yourself' },
 ];
 
-vi.mock('../../services/unit/unitApi', () => ({
-  fetchUnitTitleByModuleId: vi.fn(),
-  fetchUnitContentById: vi.fn(),
-}));
-
-const mockNavigate = vi.fn();
-
-vi.mock('react-router-dom', () => ({
-  useNavigate: () => mockNavigate,
-}));
-
 describe('Syllabus Component', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    (fetchUnitTitleByModuleId as Mock).mockResolvedValue(mockUnitTitles);
+    (fetchUnitContentById as Mock).mockResolvedValue(mockUnitContent);
+    ensureModuleStartedMock.mockResolvedValue(undefined);
   });
 
   const renderSyllabus = () => render(<Syllabus units={mockUnitTitles} />);
 
   it('renders unit titles after successful data fetch', async () => {
-    (fetchUnitTitleByModuleId as Mock).mockResolvedValueOnce(mockUnitTitles);
-
     renderSyllabus();
 
     await waitFor(() =>
@@ -63,38 +72,29 @@ describe('Syllabus Component', () => {
   });
 
   it('navigates to the correct unit URL when a unit title is clicked', async () => {
-    (fetchUnitTitleByModuleId as Mock).mockResolvedValueOnce(mockUnitTitles);
-
     renderSyllabus();
 
-    const unitTitle = await waitFor(() =>
-      screen.getByText('Unit 1: Cybersecurity Essentials'),
+    const unitTitle = await screen.findByText(
+      'Unit 1: Cybersecurity Essentials',
     );
+    await userEvent.click(unitTitle);
 
-    unitTitle.click();
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      '/user/unit/aaeacc19-4619-4f0a-8249-88ce37cf2a50',
-    );
+    await waitFor(() => {
+      expect(ensureModuleStartedMock).toHaveBeenCalledTimes(1);
+      expect(setUnitIdMock).toHaveBeenCalledWith(mockModuleId);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        '/user/unit/aaeacc19-4619-4f0a-8249-88ce37cf2a50',
+      );
+    });
   });
 
   it('fetches and renders unit content when unit is toggled', async () => {
-    (fetchUnitTitleByModuleId as Mock).mockResolvedValueOnce(mockUnitTitles);
-    (fetchUnitContentById as Mock).mockResolvedValueOnce(mockUnitContent);
-
     renderSyllabus();
 
-    await waitFor(() =>
-      expect(
-        screen.getByText('Unit 1: Cybersecurity Essentials'),
-      ).toBeInTheDocument(),
-    );
+    const title = await screen.findByText('Unit 1: Cybersecurity Essentials');
 
-    const outerContainer = screen
-      .getByText('Unit 1: Cybersecurity Essentials')
-      .closest('div')?.parentElement;
-
-    await userEvent.click(outerContainer!);
+    const clickableRow = title.closest('div')?.parentElement;
+    await userEvent.click(clickableRow!);
 
     await waitFor(() => {
       expect(screen.getByText(/Intro Video/i)).toBeInTheDocument();

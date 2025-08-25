@@ -12,6 +12,7 @@ import UnitCompletionModal from '../components/user/unit/UnitCompletionModal.tsx
 import { UnitCompletionModalProvider } from '../context/user/UnitCompletionModalContext.tsx';
 import { UserProvider } from '../context/auth/UserContext.tsx';
 import QuizPassedModal from '../components/user/quiz/QuizPassedModal.tsx';
+import ScrollToTop from '../components/common/ScrollToTop.tsx';
 
 export default function UserLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -25,6 +26,7 @@ export default function UserLayout() {
             <ModuleProgressProvider>
               <QuizProvider>
                 <div className="min-h-screen flex flex-col">
+                  <ScrollToTop />
                   <SharedHeader
                     onHamburgerClick={toggleSidebar}
                     isSidebarOpen={sidebarOpen}

@@ -17,7 +17,6 @@ import {
 } from '../../common/Icons.tsx';
 import {
   getUnitProgress,
-  createUnitProgress,
   getContentProgressByUnitId,
   type ContentProgress,
 } from '../../../services/userProgress/userProgressApi.tsx';
@@ -75,6 +74,8 @@ const UnitPage = ({ id }: UnitPageProps) => {
     setUnitProgressStatus,
     goToFirstContent,
     continueFromLastVisited,
+    ensureModuleStarted,
+    ensureUnitStarted,
   } = useModuleProgress();
   const [checkedIndex, setCheckedIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -163,12 +164,15 @@ const UnitPage = ({ id }: UnitPageProps) => {
     loadUnitDetails();
   }, [id]);
 
-  const handleRowClick = (idx: number) => {
+  const handleRowClick = async (idx: number) => {
     // Skip redirecting on click if it's quiz
     const content = unitContentList[idx];
     if (!content.hasProgress || content.content_type === 'quiz') {
       return;
     }
+
+    await ensureModuleStarted();
+    await ensureUnitStarted(unitDetails.id);
 
     setCheckedIndex((current) => (current === idx ? null : idx));
     navigate(`/user/${content.content_type}/${content.id}`, {
@@ -179,14 +183,9 @@ const UnitPage = ({ id }: UnitPageProps) => {
   const handleStart = async () => {
     try {
       if (unitDetails.id) {
-        const response = await createUnitProgress(
-          unitDetails.id,
-          unitDetails.moduleId,
-        );
+        await ensureModuleStarted();
+        await ensureUnitStarted(unitDetails.id);
 
-        setUnitProgress(response);
-        setUnitProgressStatus(response.status.toLowerCase());
-        console.log('[createUnitProgress] Unit progress created:', response);
         await goToFirstContent();
       }
     } catch (err) {

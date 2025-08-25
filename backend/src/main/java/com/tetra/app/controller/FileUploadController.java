@@ -4,6 +4,7 @@ import com.tetra.app.model.Attachment;
 import com.tetra.app.repository.AttachmentRepository;
 import com.tetra.app.repository.BlacklistedTokenRepository;
 import com.tetra.app.security.JwtUtil;
+import com.tetra.app.dto.UpdateAttachmentRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,6 +29,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api")
@@ -190,6 +192,64 @@ public class FileUploadController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to upload file: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/uploads/{id}")
+    @Operation(summary = "Update attachment metadata")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Attachment updated successfully"),
+        @ApiResponse(responseCode = "404", description = "Attachment not found"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden - Admin access required")
+    })
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<?> updateAttachment(
+        @PathVariable UUID id,
+        @Valid @RequestBody UpdateAttachmentRequest request,
+        @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        if (blacklistedTokenRepository.existsByToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is blacklisted (logged out)");
+        }
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
+
+        Optional<Attachment> attachmentOpt = attachmentRepository.findById(id);
+        if (attachmentOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Attachment not found");
+        }
+
+        try {
+            Attachment attachment = attachmentOpt.get();
+            attachment.setName(request.getName());
+            attachment.setMime(request.getMime());
+            attachment.setSize(request.getSize());
+
+            Attachment updatedAttachment = attachmentRepository.save(attachment);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", updatedAttachment.getId().toString());
+            response.put("name", updatedAttachment.getName());
+            response.put("mime", updatedAttachment.getMime());
+            response.put("size", updatedAttachment.getSize());
+            response.put("storage_path", updatedAttachment.getStoragePath());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to update attachment: " + e.getMessage());
         }
     }
 }

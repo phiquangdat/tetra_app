@@ -191,10 +191,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     )
       return;
 
+    const videoPoints = video.points ?? 0;
+
     try {
       const response = await updateContentProgress(contentProgress.id, {
         status: 'COMPLETED',
-        points: video.points || 0,
+        points: videoPoints,
       });
 
       const resolvedUnitId = resolveUnitId(video) || idsRef.current.unitId!;
@@ -203,12 +205,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         idsRef.current.moduleId || moduleId,
       );
       setContentProgress((prev) =>
-        prev
-          ? { ...prev, status: 'COMPLETED', points: video.points || 0 }
-          : prev,
+        prev ? { ...prev, status: 'COMPLETED', points: videoPoints } : prev,
       );
       console.log('[updateContentProgress]', response);
-      toast.success(`Complete watching! + ${video.points} points`);
+      toast.success(`Complete watching! + ${videoPoints} pts`);
     } catch (error) {
       console.error('Error updating progress:', error);
     }

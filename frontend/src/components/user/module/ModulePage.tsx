@@ -196,6 +196,11 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   if (error) return <div>Error: {error}</div>;
   if (!module) return <div>No module found.</div>;
 
+  const earnedPoints = moduleProgress?.earned_points ?? 0;
+  const totalPoints = module?.points ?? 0;
+  const progressPercent =
+    totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
+
   return (
     <div className="mx-auto px-8 py-8 min-h-screen bg-[#FFFFFF] text-left">
       <div className="mb-6">
@@ -278,41 +283,32 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
 
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-bold text-surface">
-                  {moduleProgress.earned_points}
+                  {earnedPoints}
                 </span>
                 <span className="text-sm text-surface/50">
-                  / {module?.points || 0} pts
+                  / {totalPoints} pts
                 </span>
               </div>
             </div>
 
-            {module?.points && (
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm text-surface/50">Progress</span>
-                  <span className="text-sm font-semibold text-surface">
-                    {Math.round(
-                      (moduleProgress.earned_points / module.points) * 100,
-                    )}
-                    %
-                  </span>
-                </div>
-                <div className="w-full bg-surface/10 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full transition-all duration-500 ${
-                      moduleProgressStatus === 'completed'
-                        ? 'bg-success'
-                        : 'bg-accent'
-                    }`}
-                    style={{
-                      width: `${
-                        (moduleProgress.earned_points / module.points) * 100
-                      }%`,
-                    }}
-                  />
-                </div>
+            <div>
+              <div className="flex justify-between mb-2">
+                <span className="text-sm text-surface/50">Progress</span>
+                <span className="text-sm font-semibold text-surface">
+                  {progressPercent}%
+                </span>
               </div>
-            )}
+              <div className="w-full bg-surface/10 rounded-full h-2">
+                <div
+                  className={`h-2 rounded-full transition-all duration-500 ${
+                    moduleProgressStatus === 'completed'
+                      ? 'bg-success'
+                      : 'bg-accent'
+                  }`}
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -352,7 +348,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
             <div className="flex flex-col items-start">
               <span className="text-[#231942]">Points available</span>
               <span className="text-xl font-bold text-[#14248A]">
-                {module.points}
+                {totalPoints}
               </span>
             </div>
           </div>

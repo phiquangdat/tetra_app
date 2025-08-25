@@ -64,6 +64,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   // Cache hydrated IDs for all later calls
   const idsRef = useRef<{ unitId?: string; moduleId?: string }>({});
 
+  // Refs to access latest values without triggering effects
+  const moduleProgressRef = useRef(moduleProgress);
+
+  // Update refs when values change
+  useEffect(() => {
+    moduleProgressRef.current = moduleProgress;
+  }, [moduleProgress]);
+
   // Helper: ensures module progress id exists before PATCH and updates context
   const safePatchModule = useCallback(
     async (payload: Parameters<typeof patchModuleProgress>[1]) => {
@@ -181,10 +189,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   ]);
 
   const markAsCompleted = useCallback(async () => {
+    const currentModuleProgress = moduleProgressRef.current;
+
     if (
       !contentProgress ||
       contentProgress.status === 'COMPLETED' ||
-      !moduleProgress ||
+      !currentModuleProgress ||
       !video
     )
       return;
@@ -212,7 +222,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     }
     try {
       const response = await safePatchModule({
-        earnedPoints: (moduleProgress.earned_points || 0) + (video.points || 0),
+        earnedPoints:
+          (currentModuleProgress.earned_points || 0) + (video.points || 0),
       });
 
       console.log('[patchModuleProgress], Update Total Points: ', response);

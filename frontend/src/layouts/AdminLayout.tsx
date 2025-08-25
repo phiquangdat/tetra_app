@@ -7,6 +7,7 @@ import { ModuleContextProvider } from '../context/admin/ModuleContext.tsx';
 import { UnitContextProvider } from '../context/admin/UnitContext.tsx';
 import { ContentBlockContextProvider } from '../context/admin/ContentBlockContext.tsx';
 import { EditorStateProvider } from '../utils/editor/contexts/EditorStateContext.tsx';
+import ScrollToTop from '../components/common/ScrollToTop.tsx';
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -18,6 +19,7 @@ const AdminLayout = () => {
         <ContentBlockContextProvider>
           <EditorStateProvider>
             <div className="min-h-screen flex flex-col">
+              <ScrollToTop />
               <SharedHeader
                 onHamburgerClick={toggleSidebar}
                 isSidebarOpen={sidebarOpen}

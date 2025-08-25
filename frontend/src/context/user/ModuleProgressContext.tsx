@@ -9,6 +9,7 @@ import { useUnitContent } from './UnitContentContext';
 import { useQuizModal } from './QuizModalContext.tsx';
 import { useUnitCompletionModal } from './UnitCompletionModalContext';
 import {
+  createModuleProgress,
   createContentProgress,
   createUnitProgress,
   updateUnitProgress,
@@ -56,6 +57,8 @@ interface ModuleProgressContextProps {
   continueFromLastVisited: () => Promise<void>;
   finalizeUnitIfComplete: (unitId: string, moduleId: string) => Promise<void>;
   finalizeModuleIfComplete: (moduleId: string) => Promise<boolean>;
+  ensureModuleStarted: () => Promise<void>;
+  ensureUnitStarted: (unitId: string) => Promise<void>;
 }
 
 const ModuleProgressContext = createContext<
@@ -228,8 +231,11 @@ export const ModuleProgressProvider = ({
   };
 
   const goToFirstContent = async () => {
-    const contentList = await fetchUnitContentById(unitId);
+    let contentList = await fetchUnitContentById(unitId);
     if (contentList && contentList.length > 0) {
+      contentList = [...contentList].sort(
+        (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
+      );
       const firstContent = contentList[0];
       setUnitContent(unitId, contentList);
       if (firstContent.content_type == 'quiz') {
@@ -391,6 +397,45 @@ export const ModuleProgressProvider = ({
     return true;
   }
 
+  async function ensureModuleStarted() {
+    if (
+      moduleProgressStatus === 'in_progress' ||
+      moduleProgressStatus === 'completed'
+    )
+      return;
+
+    try {
+      const resp = await createModuleProgress(moduleId, {
+        lastVisitedUnit: moduleProgress?.last_visited_unit_id,
+        lastVisitedContent: moduleProgress?.last_visited_content_id,
+      });
+
+      setModuleProgress({
+        id: resp.id,
+        status: resp.status,
+        last_visited_unit_id: resp.lastVisitedUnit?.id || '',
+        last_visited_content_id: resp.lastVisitedContent?.id || '',
+        earned_points: resp.earnedPoints || 0,
+      });
+      setModuleProgressStatus('in_progress');
+    } catch (e: any) {
+      if (!String(e?.message ?? '').includes('409')) throw e;
+    }
+  }
+
+  async function ensureUnitStarted(targetUnitId: string) {
+    try {
+      const resp = await createUnitProgress(targetUnitId, moduleId);
+      setUnitProgress(resp);
+      setUnitProgressStatus('in_progress');
+    } catch (e: any) {
+      if (!String(e?.message ?? '').includes('409')) throw e;
+      // On 409, treat as in_progress (someone else started it)
+      if (unitProgressStatus === 'not_started')
+        setUnitProgressStatus('in_progress');
+    }
+  }
+
   return (
     <ModuleProgressContext.Provider
       value={{
@@ -417,6 +462,8 @@ export const ModuleProgressProvider = ({
         continueFromLastVisited,
         finalizeUnitIfComplete,
         finalizeModuleIfComplete,
+        ensureModuleStarted,
+        ensureUnitStarted,
       }}
     >
       {children}

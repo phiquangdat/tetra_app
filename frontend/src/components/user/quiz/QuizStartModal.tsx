@@ -12,6 +12,7 @@ import {
   createContentProgress,
   patchModuleProgress,
 } from '../../../services/userProgress/userProgressApi';
+import { hydrateContextFromContent } from '../../../utils/contextHydration'; // ⬅️ add
 
 const isQuizValid = (quiz: Quiz): boolean => {
   return (
@@ -41,8 +42,16 @@ const QuizStartModal = () => {
   });
   const navigate = useNavigate();
   const { setQuestions, clearUserAnswers } = useQuiz();
-  const { unitId, moduleProgress, ensureModuleStarted, ensureUnitStarted } =
-    useModuleProgress();
+  const {
+    unitId,
+    moduleId,
+    setUnitId,
+    setModuleId,
+    moduleProgress,
+    ensureModuleStarted,
+    ensureUnitStarted,
+    getOrCreateModuleProgress,
+  } = useModuleProgress();
 
   const isVisible = isOpen && type === 'start' && !!quizId;
 
@@ -51,6 +60,10 @@ const QuizStartModal = () => {
 
     try {
       clearUserAnswers();
+
+      if (!unitId || !moduleId) {
+        await hydrateContextFromContent(quizId, { setUnitId, setModuleId });
+      }
 
       await ensureModuleStarted();
       if (unitId) {
@@ -62,9 +75,12 @@ const QuizStartModal = () => {
       try {
         progress = await getContentProgress(quizId);
       } catch (e: any) {
-        if (String(e?.message ?? '').includes('404') && unitId) {
+        if (
+          String(e?.message ?? '').includes('404') &&
+          (unitId || quizDetails.unit_id)
+        ) {
           progress = await createContentProgress({
-            unitId,
+            unitId: unitId || quizDetails.unit_id,
             unitContentId: quizId,
             status: 'IN_PROGRESS',
             points: 0,
@@ -76,14 +92,15 @@ const QuizStartModal = () => {
 
       // PATCH last visited in user-module-progress (if not already completed)
       if (
-        moduleProgress?.id &&
         progress?.status !== 'COMPLETED' &&
-        (moduleProgress.last_visited_unit_id !== unitId ||
-          moduleProgress.last_visited_content_id !== quizId)
+        (moduleProgress?.last_visited_unit_id !==
+          (unitId || quizDetails.unit_id) ||
+          moduleProgress?.last_visited_content_id !== quizId)
       ) {
+        const mp = await getOrCreateModuleProgress(moduleId);
         try {
-          await patchModuleProgress(moduleProgress.id, {
-            lastVisitedUnit: unitId,
+          await patchModuleProgress(mp.id, {
+            lastVisitedUnit: unitId || quizDetails.unit_id,
             lastVisitedContent: quizId,
             status: 'IN_PROGRESS',
           });

@@ -43,6 +43,7 @@ describe('ModulePage', () => {
   ];
 
   const mockUserProgress = {
+    id: 'mp-1',
     status: 'IN_PROGRESS',
     last_visited_unit_id: 'cfae7218-9602-4468-a884-4ebf9f7dc5ae',
     last_visited_content_id: '171ddada-d917-4090-a711-3e2b6891eef4',
@@ -157,6 +158,7 @@ describe('ModulePage', () => {
 
   it('renders no Start or Continue buttons when progress is completed', async () => {
     vi.spyOn(userProgressApi, 'getModuleProgress').mockResolvedValue({
+      id: 'mp-1',
       status: 'COMPLETED',
       last_visited_unit_id: 'unit1',
       last_visited_content_id: 'content1',

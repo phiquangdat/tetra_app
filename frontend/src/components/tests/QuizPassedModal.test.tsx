@@ -35,6 +35,13 @@ vi.mock('../../services/userProgress/userProgressApi', () => ({
   getContentProgress: vi.fn(),
 }));
 
+vi.mock('../../../utils/contextHydration', () => ({
+  hydrateContextFromContent: vi.fn().mockResolvedValue({
+    unitId: 'u1',
+    moduleId: 'm1',
+  }),
+}));
+
 const MOCK_QUIZ_ID = 'quiz-123';
 const MOCK_QUIZ = {
   id: MOCK_QUIZ_ID,
@@ -60,7 +67,12 @@ const setupModuleProgress = (
   overrides: Partial<ReturnType<typeof useModuleProgress>> = {},
 ) => {
   (useModuleProgress as unknown as vi.Mock).mockReturnValue({
+    unitId: 'u1',
+    moduleId: 'm1',
+    setUnitId: vi.fn(),
+    setModuleId: vi.fn(),
     goToNextContent: vi.fn(),
+    // allow tests to override any of the above
     ...overrides,
   });
 };

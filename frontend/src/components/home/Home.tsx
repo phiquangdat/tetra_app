@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import SharedHeader from '../common/SharedHeader';
 import Hero from './Hero';
@@ -37,6 +37,10 @@ const Home = () => {
       }
     }
   }, [location.pathname, navigate]);
+
+  useEffect(() => {
+    if (!authToken) setSidebarOpen(false);
+  }, [authToken]);
 
   return (
     <main className="min-h-screen flex flex-col">

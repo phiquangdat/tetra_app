@@ -143,16 +143,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
               lastVisitedUnit: resolvedUnitId,
               lastVisitedContent: id,
             });
-            const progressObj = {
-              id: response.id,
-              status: response.status,
-              last_visited_unit_id: response.lastVisitedUnit.id || '',
-              last_visited_content_id: response.lastVisitedContent.id || '',
-              earned_points: response.earnedPoints || 0,
-            };
 
             console.log('[patchModuleProgress], Update IDs:', response);
-            setModuleProgress(progressObj);
           } catch (error) {
             console.error('[patchModuleProgress]', error);
           }
@@ -224,16 +216,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
       const response = await safePatchModule({
         earnedPoints: (moduleProgress.earned_points || 0) + (video.points || 0),
       });
-      const progressArg = {
-        id: response.id,
-        status: response.status,
-        last_visited_unit_id: response.lastVisitedUnit.id || '',
-        last_visited_content_id: response.lastVisitedContent.id || '',
-        earned_points: response.earnedPoints || 0,
-      };
 
       console.log('[patchModuleProgress], Update Total Points: ', response);
-      setModuleProgress(progressArg);
     } catch (error) {
       console.error(
         '[patchModuleProgress] Failed to increment module points',

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   fetchUnitById,
   fetchUnitContentById,
+  fetchUnitTitleByModuleId,
   type UnitContent,
 } from '../../../services/unit/unitApi';
 import { useUnitContent } from '../../../context/user/UnitContentContext';
@@ -76,7 +77,6 @@ const UnitPage = ({ id }: UnitPageProps) => {
     continueFromLastVisited,
     ensureModuleStarted,
     ensureUnitStarted,
-    moduleId,
     getOrCreateModuleProgress,
   } = useModuleProgress();
   const [checkedIndex, setCheckedIndex] = useState<number | null>(null);
@@ -89,6 +89,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
     moduleId: '',
   });
   const [unitContentList, setUnitContentList] = useState<UnitContent[]>([]);
+  const [nextUnitId, setNextUnitId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { setUnitContent } = useUnitContent();
 
@@ -106,9 +107,7 @@ const UnitPage = ({ id }: UnitPageProps) => {
         const details = await fetchUnitDetails(id);
         setUnitDetails(details);
         setUnitId(id);
-        if (!moduleId && details.moduleId) {
-          setModuleId(details.moduleId);
-        }
+        setModuleId(details.moduleId);
 
         await getOrCreateModuleProgress(details.moduleId);
 
@@ -169,6 +168,30 @@ const UnitPage = ({ id }: UnitPageProps) => {
 
     loadUnitDetails();
   }, [id]);
+
+  // Compute the next unit (if any) and keep only the id
+  useEffect(() => {
+    if (!unitDetails.moduleId || !id) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const list = await fetchUnitTitleByModuleId(unitDetails.moduleId);
+        const typed = list as Array<{ id: string; title: string }>;
+        const idx = typed.findIndex((u) => u.id === id);
+        const next =
+          idx !== -1 && idx + 1 < typed.length ? typed[idx + 1] : null;
+        if (!cancelled) setNextUnitId(next ? next.id : null);
+      } catch (e) {
+        console.warn('[UnitPage] failed to compute next unit:', e);
+        if (!cancelled) setNextUnitId(null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, unitDetails.moduleId]);
 
   const handleRowClick = async (idx: number) => {
     // Skip redirecting on click if it's quiz
@@ -373,6 +396,24 @@ const UnitPage = ({ id }: UnitPageProps) => {
           </div>
         )}
       </div>
+
+      {unitProgressStatus === 'completed' && (
+        <div className="flex justify-end mt-12">
+          <button
+            className="bg-surface text-background font-semibold px-12 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition-all duration-200 w-fit"
+            type="button"
+            onClick={() => {
+              if (nextUnitId) {
+                navigate(`/user/unit/${nextUnitId}`);
+              } else {
+                navigate(`/user/modules/${unitDetails.moduleId}`);
+              }
+            }}
+          >
+            {nextUnitId ? 'Go to next unit' : 'Finish module'}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -316,6 +316,7 @@ export const ContentBlockContextProvider = ({
                 data: {
                   ...contentBlock.data,
                   content: content,
+                  fileId: attachment_id || contentBlock.data.fileId,
                 },
                 isDirty: false,
                 isSaving: false,
@@ -408,6 +409,7 @@ export const ContentBlockContextProvider = ({
                 data: {
                   ...contentBlock.data,
                   content: content,
+                  fileId: attachment_id || contentBlock.data.fileId,
                 },
                 isDirty: false,
                 isSaving: false,

@@ -78,7 +78,7 @@ export async function uploadFile(file: File): Promise<{ id: string }> {
     }
 
     const result = await response.json();
-    return { id: result.id };
+    return { id: result.file_id };
   } catch (error) {
     console.error(
       'Error uploading file:',

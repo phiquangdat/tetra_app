@@ -1,5 +1,6 @@
 import React from 'react';
 import { type Unit } from '../ModulePage';
+import { CheckIcon } from '../../../common/Icons.tsx';
 import { useNavigate } from 'react-router-dom';
 import UnitContentItem from './UnitContentItem';
 import { ChevronDownIcon, ChevronUpIcon } from '../../../common/Icons';
@@ -34,7 +35,11 @@ const UnitItem: React.FC<UnitItemProps> = ({
     <div key={unit.id} className="mb-4">
       <div
         className={`flex justify-between items-center p-4 rounded-xl cursor-pointer transition-colors ${
-          isOpen ? 'bg-[#D4C2FC]' : 'bg-white hover:bg-[#F9F5FF]'
+          isOpen
+            ? 'bg-[#D4C2FC]'
+            : unit.status?.toUpperCase() === 'COMPLETED'
+              ? 'bg-green-100/70 border border-green-300'
+              : 'bg-white hover:bg-[#F9F5FF]'
         }`}
         onClick={() => onToggle()}
       >
@@ -55,7 +60,14 @@ const UnitItem: React.FC<UnitItemProps> = ({
         >
           Unit {index + 1}: {unit.title}
         </div>
-        {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
+        <div className="flex items-center justify-center">
+          {unit.status?.toUpperCase() === 'COMPLETED' && (
+            <div className="mx-4 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
+              <CheckIcon width={14} height={14} color="white" />
+            </div>
+          )}
+          {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
+        </div>
       </div>
 
       {isOpen && unit.content && (

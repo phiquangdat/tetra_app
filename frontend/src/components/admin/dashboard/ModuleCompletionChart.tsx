@@ -18,15 +18,21 @@ const colors = [
 const ModuleCompletionChart = () => {
   const barRef = useRef<HTMLCanvasElement | null>(null);
   const [data, setData] = useState<ModuleCompletionsByTopic[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
         const result = await getModuleCompletionsByTopic();
         const filtered = result.filter((r) => r.completions > 0);
         setData(filtered);
-      } catch (error) {
-        console.error('Failed to fetch module completions:', error);
+        setError(false);
+      } catch {
+        setError(true);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -34,9 +40,9 @@ const ModuleCompletionChart = () => {
   }, []);
 
   useEffect(() => {
-    if (!barRef.current || data.length === 0) return;
+    if (!barRef.current || loading || error) return;
 
-    const maxY = Math.max(...data.map((d) => d.completions));
+    const maxY = Math.max(1, ...data.map((d) => d.completions));
 
     const barChart = new Chart(barRef.current, {
       type: 'bar',
@@ -45,7 +51,9 @@ const ModuleCompletionChart = () => {
         datasets: [
           {
             data: data.map((item) => item.completions),
-            backgroundColor: colors.slice(0, data.length),
+            backgroundColor: data.map(
+              (_, i) => colors[i % colors.length], // wrap colors when exceed length
+            ),
             borderRadius: 12,
             barThickness: Math.min(
               80,
@@ -98,19 +106,21 @@ const ModuleCompletionChart = () => {
       },
     });
 
-    return () => {
-      barChart.destroy();
-    };
-  }, [data]);
+    return () => barChart.destroy();
+  }, [data, loading, error]);
 
   return (
-    <>
-      <div className="bg-white rounded-2xl my-12 shadow-lg border border-highlight">
-        <div className="w-full p-8">
+    <div className="bg-white rounded-2xl my-12 shadow-lg border border-highlight">
+      <div className="w-full p-8">
+        {loading ? (
+          <div className="w-full h-[240px] bg-gray-100 animate-pulse rounded-lg" />
+        ) : error ? (
+          <div className="w-full h-[240px] bg-gray-100 rounded-lg" />
+        ) : (
           <canvas ref={barRef} />
-        </div>
+        )}
       </div>
-    </>
+    </div>
   );
 };
 

@@ -73,8 +73,7 @@ function ModuleCard({
             </h2>
             {progressStatus ? (
               <span
-                className={`mr-4 rounded-full px-3 py-1.5 text-xs font-medium text-white capitalize whitespace-nowrap ${
-                  progressStatus === 'COMPLETED' ? 'bg-success' : 'bg-amber-600'
+                className={`shadow-sm mr-4 rounded-full px-3 py-1.5 text-xs font-semibold text-white capitalize whitespace-nowrap ${progressStatus === 'COMPLETED' ? 'bg-success' : 'bg-accent'}
                 }`}
               >
                 {progressStatus.toLowerCase().replace('_', ' ')}

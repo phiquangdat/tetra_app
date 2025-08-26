@@ -38,6 +38,7 @@ export interface Article {
   title: string;
   content: string;
   points: number;
+  attachment_id?: string;
 }
 
 export interface Unit {

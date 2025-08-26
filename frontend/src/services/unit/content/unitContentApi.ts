@@ -92,10 +92,12 @@ export async function saveVideoContent(
   data: SaveVideoRequest,
 ): Promise<{ id: string }> {
   try {
+    const token = getAuthToken();
     const response = await fetch(`${BASE_URL}/unit_content/video`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify(data),
     });
@@ -121,10 +123,12 @@ export async function saveArticleContent(
   data: SaveArticleRequest,
 ): Promise<{ id: string }> {
   try {
+    const token = getAuthToken();
     const response = await fetch(`${BASE_URL}/unit_content/article`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify(data),
     });
@@ -150,10 +154,12 @@ export async function saveQuizContent(
   data: SaveQuizRequest,
 ): Promise<{ id: string }> {
   try {
+    const token = getAuthToken();
     const response = await fetch(`${BASE_URL}/unit_content/quiz`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify(data),
     });

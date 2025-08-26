@@ -29,14 +29,21 @@ function ModuleCards() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [resData, moduleProgressData] = await Promise.all([
-          fetchModules(),
-          getUserModuleProgress(),
-        ]);
+        const resData = await fetchModules();
 
-        setModuleProgressMap(
-          new Map(moduleProgressData.map((mp) => [mp.moduleId, mp])),
-        );
+        try {
+          const moduleProgressData = await getUserModuleProgress();
+          setModuleProgressMap(
+            new Map(moduleProgressData.map((mp) => [mp.moduleId, mp])),
+          );
+        } catch (error) {
+          if (error instanceof Error && error.message?.includes('401')) {
+            setModuleProgressMap(new Map());
+            setError(null);
+          } else {
+            console.error('[getUserModuleProgress]', error);
+          }
+        }
 
         if (resData && resData.length > 0) {
           setModules(resData);
@@ -47,12 +54,7 @@ function ModuleCards() {
           console.error('No modules found in the response');
         }
       } catch (err: any) {
-        if (err.response?.status === 401) {
-          setModuleProgressMap(new Map());
-          setError(null);
-        } else {
-          setError('Failed to fetch database');
-        }
+        setError('Failed to fetch database');
         console.error('Error fetching data:', err);
       }
     };

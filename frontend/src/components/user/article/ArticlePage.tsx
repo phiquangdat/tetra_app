@@ -15,6 +15,11 @@ import {
 import { CheckIcon } from '../../common/Icons';
 import toast from 'react-hot-toast';
 import { hydrateContextFromContent } from '../../../utils/contextHydration';
+import {
+  fetchFileById,
+  downloadFileById,
+  formatFileSize,
+} from '../../../utils/fileHelpers';
 
 interface ArticlePageProps {
   id: string;
@@ -22,6 +27,13 @@ interface ArticlePageProps {
 
 const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
   const [article, setArticle] = useState<Article | null>(null);
+  const [attachment, setAttachment] = useState<{
+    url: string;
+    originalName?: string;
+    mime?: string;
+    size?: number;
+  } | null>(null);
+
   const navigate = useNavigate();
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
@@ -150,6 +162,16 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
       const data = await fetchArticleContentById(id);
       setArticle(data);
 
+      if (data.attachment_id) {
+        try {
+          const file = await fetchFileById(data.attachment_id);
+          console.log('Fetched attachment metadata:', file);
+          setAttachment(file);
+        } catch (error) {
+          console.error('Failed to fetch attachment metadata:', error);
+        }
+      }
+
       // Hydrate context if missing and cache IDs
       let effectiveUnitId = unitId || data.unit_id || unitIdFromState || '';
       let effectiveModuleId = moduleId;
@@ -276,6 +298,26 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
       <h1 className="text-4xl font-extrabold mb-8 text-primary text-center">
         {article?.title}
       </h1>
+
+      {attachment && (
+        <div className="text-center mb-6">
+          <button
+            onClick={() =>
+              downloadFileById(article?.attachment_id!, attachment.originalName)
+            }
+            className="inline-flex items-center cursor-pointer gap-2 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-all"
+          >
+            ⬇️ {attachment.originalName ?? 'Download attachment'}
+          </button>
+          {(attachment.mime || attachment.size) && (
+            <div className="mt-2 text-sm text-primary/70">
+              {attachment.size && (
+                <span>{formatFileSize(attachment.size)}</span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="bg-cardBackground rounded-3xl p-10 sm:p-14 shadow-xl w-full md:w-3/4 mx-auto border-l-8 border-accent">
         <div

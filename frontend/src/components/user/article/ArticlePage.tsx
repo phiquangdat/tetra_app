@@ -97,10 +97,12 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     if (percent >= 90) {
       // lock before async work so multiple events don't re-enter
       completingRef.current = true;
+      const articlePoints = article.points ?? 0;
+
       try {
         const response = await updateContentProgress(contentProgress.id, {
           status: 'COMPLETED',
-          points: article.points || 0,
+          points: articlePoints,
         });
 
         const resolvedUnitId = resolveUnitId(article);
@@ -109,12 +111,10 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
           idsRef.current.moduleId || moduleId,
         );
         setContentProgress((prev) =>
-          prev
-            ? { ...prev, status: 'COMPLETED', points: article.points }
-            : prev,
+          prev ? { ...prev, status: 'COMPLETED', points: articlePoints } : prev,
         );
         console.log('[updateContentProgress]', response);
-        toast.success(`Complete reading! + ${article.points}`);
+        toast.success(`Complete reading! + ${articlePoints} pts`);
       } catch (error) {
         console.error('Error updating progress:', error);
         // unlock on failure so user can retry

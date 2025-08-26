@@ -9,6 +9,7 @@ export interface Quiz {
   content: string;
   points: number;
   questions_number: number;
+  attachment_id?: string;
 }
 
 export interface Answer {

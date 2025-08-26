@@ -12,6 +12,12 @@ import {
   createContentProgress,
   patchModuleProgress,
 } from '../../../services/userProgress/userProgressApi';
+import { hydrateContextFromContent } from '../../../utils/contextHydration'; // ⬅️ add
+import {
+  fetchFileById,
+  downloadFileById,
+  formatFileSize,
+} from '../../../utils/fileHelpers.ts';
 
 const isQuizValid = (quiz: Quiz): boolean => {
   return (
@@ -39,9 +45,25 @@ const QuizStartModal = () => {
     points: 0,
     questions_number: 0,
   });
+  const [attachment, setAttachment] = useState<{
+    url: string;
+    originalName?: string;
+    mime?: string;
+    size?: number;
+  } | null>(null);
+
   const navigate = useNavigate();
   const { setQuestions, clearUserAnswers } = useQuiz();
-  const { unitId, moduleProgress } = useModuleProgress();
+  const {
+    unitId,
+    moduleId,
+    setUnitId,
+    setModuleId,
+    moduleProgress,
+    ensureModuleStarted,
+    ensureUnitStarted,
+    getOrCreateModuleProgress,
+  } = useModuleProgress();
 
   const isVisible = isOpen && type === 'start' && !!quizId;
 
@@ -51,14 +73,26 @@ const QuizStartModal = () => {
     try {
       clearUserAnswers();
 
+      if (!unitId || !moduleId) {
+        await hydrateContextFromContent(quizId, { setUnitId, setModuleId });
+      }
+
+      await ensureModuleStarted();
+      if (unitId) {
+        await ensureUnitStarted(unitId);
+      }
+
       let progress;
       // Ensure users-content-progress exists (create IN_PROGRESS if 404)
       try {
         progress = await getContentProgress(quizId);
       } catch (e: any) {
-        if (String(e?.message ?? '').includes('404') && unitId) {
+        if (
+          String(e?.message ?? '').includes('404') &&
+          (unitId || quizDetails.unit_id)
+        ) {
           progress = await createContentProgress({
-            unitId,
+            unitId: unitId || quizDetails.unit_id,
             unitContentId: quizId,
             status: 'IN_PROGRESS',
             points: 0,
@@ -70,14 +104,15 @@ const QuizStartModal = () => {
 
       // PATCH last visited in user-module-progress (if not already completed)
       if (
-        moduleProgress?.id &&
         progress?.status !== 'COMPLETED' &&
-        (moduleProgress.last_visited_unit_id !== unitId ||
-          moduleProgress.last_visited_content_id !== quizId)
+        (moduleProgress?.last_visited_unit_id !==
+          (unitId || quizDetails.unit_id) ||
+          moduleProgress?.last_visited_content_id !== quizId)
       ) {
+        const mp = await getOrCreateModuleProgress(moduleId);
         try {
-          await patchModuleProgress(moduleProgress.id, {
-            lastVisitedUnit: unitId,
+          await patchModuleProgress(mp.id, {
+            lastVisitedUnit: unitId || quizDetails.unit_id,
             lastVisitedContent: quizId,
             status: 'IN_PROGRESS',
           });
@@ -106,6 +141,16 @@ const QuizStartModal = () => {
           throw new Error('Incomplete quiz data');
         }
         setQuizDetails(quiz);
+
+        if (quiz.attachment_id) {
+          try {
+            const file = await fetchFileById(quiz.attachment_id);
+            setAttachment(file);
+          } catch (err) {
+            console.error('Failed to fetch attachment metadata:', err);
+          }
+        }
+
         setError(null);
       } catch (err) {
         console.error('Failed to load quiz details:', err);
@@ -140,6 +185,29 @@ const QuizStartModal = () => {
             <h2 className="text-4xl font-extrabold mb-6 text-center text-primary">
               {loading ? 'Loading title...' : quizDetails?.title}
             </h2>
+
+            {attachment && (
+              <div className="text-center mb-6">
+                <button
+                  onClick={() =>
+                    downloadFileById(
+                      quizDetails?.attachment_id!,
+                      attachment.originalName,
+                    )
+                  }
+                  className="inline-flex items-center cursor-pointer gap-2 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-all"
+                >
+                  ⬇️ {attachment.originalName ?? 'Download attachment'}
+                </button>
+                {(attachment.mime || attachment.size) && (
+                  <div className="mt-2 text-sm text-primary/70">
+                    {attachment.size && (
+                      <span>{formatFileSize(attachment.size)}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Info row */}
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-10 mb-8 items-center justify-center">

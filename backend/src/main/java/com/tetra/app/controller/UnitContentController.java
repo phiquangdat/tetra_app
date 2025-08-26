@@ -95,8 +95,22 @@ public class UnitContentController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
         Optional<UnitContent> unitContent = unitContentRepository.findById(id);
-        return unitContent.map(content -> new ResponseEntity<>(content, HttpStatus.OK))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Unit content is not found with id: " + id));
+        if (unitContent.isPresent()) {
+            UnitContent content = unitContent.get();
+            Map<String, Object> result = new HashMap<>();
+            result.put("id", content.getId());
+            result.put("unit_id", content.getUnitId());
+            result.put("title", content.getTitle());
+            result.put("content_type", content.getContentType());
+            result.put("sort_order", content.getSortOrder());
+            result.put("content", content.getContent());
+            result.put("url", content.getUrl());
+            result.put("points", content.getPoints());
+            result.put("questions_number", content.getQuestionsNumber());
+            result.put("attachment_id", content.getAttachmentId());
+            return new ResponseEntity(result, HttpStatus.OK);
+        }
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Unit content is not found with id: " + id);
     }
 
     @GetMapping(params = "unitId")
@@ -153,6 +167,8 @@ public class UnitContentController {
         result.put("sort_order", content.getSortOrder());
         result.put("points", content.getPoints());
         result.put("questions_number", content.getQuestionsNumber());
+        result.put("attachment_id", content.getAttachmentId());
+
         List<Question> questions = questionRepository.findByUnitContent_Id(content.getId());
         List<Map<String, Object>> questionsList = questions.stream().map(q -> {
             Map<String, Object> qMap = new HashMap<>();
@@ -252,6 +268,7 @@ public class UnitContentController {
         result.put("title", content.getTitle());
         result.put("content", content.getContentData());
         result.put("points", content.getPoints());
+        result.put("attachment_id", content.getAttachmentId());
         return ResponseEntity.ok(result);
     }
 

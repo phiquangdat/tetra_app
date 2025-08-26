@@ -5,10 +5,9 @@ import {
 } from '../../../services/module/moduleApi';
 import { fetchUnitTitleByModuleId } from '../../../services/unit/unitApi';
 import {
-  getModuleProgress,
   getUnitProgressByModuleId,
-  createModuleProgress,
   type UnitProgress,
+  getModuleProgress,
 } from '../../../services/userProgress/userProgressApi';
 import Syllabus from './syllabus/Syllabus';
 import { useNavigate } from 'react-router-dom';
@@ -44,6 +43,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
     goToStart,
     continueFromLastVisited,
     initFirstUnitAndContentProgress,
+    ensureModuleStarted,
   } = useModuleProgress();
   const { setUnitContent } = useUnitContent();
   const [module, setModule] = useState<Module | null>(null);
@@ -164,21 +164,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
       setIsStarting(true);
       setVisibleStatus(null);
 
-      const response = await createModuleProgress(id, {
-        lastVisitedContent: moduleProgress?.last_visited_content_id,
-        lastVisitedUnit: moduleProgress?.last_visited_unit_id,
-      });
-
-      const progress = {
-        id: response.id,
-        status: response.status,
-        last_visited_unit_id: response.lastVisitedUnit.id || '',
-        last_visited_content_id: response.lastVisitedContent.id || '',
-        earned_points: response.earnedPoints || 0,
-      };
-
-      setModuleProgress(progress);
-      setModuleProgressStatus('in_progress');
+      await ensureModuleStarted();
       const preload = await initFirstUnitAndContentProgress();
       await goToStart(preload ?? undefined);
     } catch (err) {
@@ -210,6 +196,11 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   if (error) return <div>Error: {error}</div>;
   if (!module) return <div>No module found.</div>;
 
+  const earnedPoints = moduleProgress?.earned_points ?? 0;
+  const totalPoints = module?.points ?? 0;
+  const progressPercent =
+    totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
+
   return (
     <div className="mx-auto px-8 py-8 min-h-screen bg-[#FFFFFF] text-left">
       <div className="mb-6">
@@ -223,57 +214,102 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
         </button>
       </div>
 
-      <div className="flex flex-col gap-4 py-8 mb-6">
-        <h1 className="text-2xl md:text-3xl font-extrabold text-[#231942] tracking-tight">
-          {module.title}
-        </h1>
+      <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 py-8 mb-6">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#231942] tracking-tight">
+            {module.title}
+          </h1>
 
-        {isStarting && (
-          <button
-            className="bg-surface text-white font-semibold px-16 py-3 rounded-full text-lg shadow-md opacity-80 cursor-wait w-fit"
-            type="button"
-            disabled
-            aria-busy="true"
-          >
-            Starting…
-          </button>
-        )}
-        {isContinuing && (
-          <button
-            className="bg-secondary text-white font-semibold px-14 py-3 rounded-full text-lg shadow-md opacity-80 cursor-wait w-fit"
-            type="button"
-            disabled
-            aria-busy="true"
-          >
-            Continuing…
-          </button>
-        )}
+          {isStarting && (
+            <button
+              className="bg-surface text-white font-semibold px-16 py-3 rounded-full text-lg shadow-md opacity-80 cursor-wait w-fit"
+              type="button"
+              disabled
+              aria-busy="true"
+            >
+              Starting…
+            </button>
+          )}
+          {isContinuing && (
+            <button
+              className="bg-secondary text-white font-semibold px-14 py-3 rounded-full text-lg shadow-md opacity-80 cursor-wait w-fit"
+              type="button"
+              disabled
+              aria-busy="true"
+            >
+              Continuing…
+            </button>
+          )}
 
-        {!isStarting && !isContinuing && visibleStatus === 'not_started' && (
-          <button
-            className="bg-surface text-white font-semibold px-16 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition w-fit"
-            type="button"
-            onClick={handleStart}
-          >
-            Start
-          </button>
-        )}
+          {!isStarting && !isContinuing && visibleStatus === 'not_started' && (
+            <button
+              className="bg-surface text-white font-semibold px-16 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition w-fit"
+              type="button"
+              onClick={handleStart}
+            >
+              Start
+            </button>
+          )}
 
-        {!isStarting && !isContinuing && visibleStatus === 'in_progress' && (
-          <button
-            className="bg-secondary text-white font-semibold px-14 py-3 rounded-full text-lg shadow-md hover:bg-secondaryHover focus:outline-none focus:ring-2 focus:ring-surface transition w-fit"
-            type="button"
-            onClick={handleContinue}
-          >
-            Continue
-          </button>
-        )}
+          {!isStarting && !isContinuing && visibleStatus === 'in_progress' && (
+            <button
+              className="bg-secondary text-white font-semibold px-14 py-3 rounded-full text-lg shadow-md hover:bg-secondaryHover focus:outline-none focus:ring-2 focus:ring-surface transition w-fit"
+              type="button"
+              onClick={handleContinue}
+            >
+              Continue
+            </button>
+          )}
 
-        {!isStarting && !isContinuing && visibleStatus === 'completed' && (
-          <span className="self-start w-fit inline-flex items-center gap-2 text-sm font-semibold text-green-700 bg-green-50 border border-green-200 px-6 py-1.5 rounded-full shadow-sm">
-            <span aria-hidden>✓</span>
-            <span>Module completed</span>
-          </span>
+          {!isStarting && !isContinuing && visibleStatus === 'completed' && (
+            <span className="self-start w-fit inline-flex items-center gap-2 text-sm font-semibold text-green-700 bg-green-50 border border-green-200 px-6 py-1.5 rounded-full shadow-sm">
+              <span aria-hidden>✓</span>
+              <span>Module completed</span>
+            </span>
+          )}
+        </div>
+
+        {moduleProgress && (
+          <div className="rounded-2xl p-6 border border-surface mr-10">
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <span
+                className={`px-3 py-1 rounded-full text-xs text-white font-semibold capitalize tracking-wide
+          ${
+            moduleProgressStatus === 'completed' ? 'bg-success' : 'bg-accent/90'
+          }`}
+              >
+                {moduleProgressStatus.replace('_', ' ')}
+              </span>
+
+              <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-bold text-surface">
+                  {earnedPoints}
+                </span>
+                <span className="text-sm text-surface/50">
+                  / {totalPoints} pts
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex justify-between mb-2">
+                <span className="text-sm text-surface/50">Progress</span>
+                <span className="text-sm font-semibold text-surface">
+                  {progressPercent}%
+                </span>
+              </div>
+              <div className="w-full bg-surface/10 rounded-full h-2">
+                <div
+                  className={`h-2 rounded-full transition-all duration-500 ${
+                    moduleProgressStatus === 'completed'
+                      ? 'bg-success'
+                      : 'bg-accent'
+                  }`}
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+          </div>
         )}
       </div>
 
@@ -312,7 +348,7 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
             <div className="flex flex-col items-start">
               <span className="text-[#231942]">Points available</span>
               <span className="text-xl font-bold text-[#14248A]">
-                {module.points}
+                {totalPoints}
               </span>
             </div>
           </div>

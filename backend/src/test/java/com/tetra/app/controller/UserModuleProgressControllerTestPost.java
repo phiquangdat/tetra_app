@@ -88,6 +88,195 @@ public class UserModuleProgressControllerTestPost {
     }
 
     @Test
+    void createsProgressWithDefaultFirstUnitAndContent_singleUnitSingleContent() throws Exception {
+                UUID userId = UUID.randomUUID();
+                UUID moduleId = UUID.randomUUID();
+                UUID unitId = UUID.randomUUID();
+                UUID contentId = UUID.randomUUID();
+
+                User user = new User();
+                user.setId(userId);
+                TrainingModule module = new TrainingModule();
+                module.setId(moduleId);
+                Unit unit = new Unit();
+                unit.setId(unitId);
+                unit.setModule(module);
+                unit.setSortOrder(1);
+                UnitContent content = new UnitContent();
+                content.setId(contentId);
+                content.setUnit(unit);
+                content.setSortOrder(1);
+
+                Mockito.when(jwtUtil.extractUserId(anyString())).thenReturn(userId.toString());
+                Mockito.when(userModuleProgressRepository.findByUser_IdAndModule_Id(userId, moduleId)).thenReturn(Optional.empty());
+                Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+                Mockito.when(trainingModuleRepository.findById(moduleId)).thenReturn(Optional.of(module));
+                Mockito.when(unitRepository.findByModule_Id(moduleId)).thenReturn(List.of(unit));
+                Mockito.when(unitContentRepository.findByUnit_Id(unitId)).thenReturn(List.of(content));
+                Mockito.when(userModuleProgressRepository.save(any(UserModuleProgress.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+                Map<String, String> body = new HashMap<>();
+                body.put("moduleId", moduleId.toString());
+
+                mockMvc.perform(post("/api/user-module-progress")
+                                .header("Authorization", "Bearer sometoken")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(body)))
+                                .andExpect(status().isCreated())
+                                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+    }
+
+                @Test
+                void createsProgressWithDefaultFirstUnitAndContent_multipleUnitsSortOrder() throws Exception {
+                        UUID userId = UUID.randomUUID();
+                        UUID moduleId = UUID.randomUUID();
+                        UUID unitId1 = UUID.randomUUID();
+                        UUID unitId2 = UUID.randomUUID();
+                        UUID contentId1 = UUID.randomUUID();
+                        UUID contentId2 = UUID.randomUUID();
+
+                        User user = new User();
+                        user.setId(userId);
+                        TrainingModule module = new TrainingModule();
+                        module.setId(moduleId);
+                        Unit unit1 = new Unit();
+                        unit1.setId(unitId1);
+                        unit1.setModule(module);
+                        unit1.setSortOrder(1);
+                        Unit unit2 = new Unit();
+                        unit2.setId(unitId2);
+                        unit2.setModule(module);
+                        unit2.setSortOrder(2);
+                        UnitContent content1 = new UnitContent();
+                        content1.setId(contentId1);
+                        content1.setUnit(unit1);
+                        content1.setSortOrder(1);
+                        UnitContent content2 = new UnitContent();
+                        content2.setId(contentId2);
+                        content2.setUnit(unit2);
+                        content2.setSortOrder(1);
+
+                        Mockito.when(jwtUtil.extractUserId(anyString())).thenReturn(userId.toString());
+                        Mockito.when(userModuleProgressRepository.findByUser_IdAndModule_Id(userId, moduleId)).thenReturn(Optional.empty());
+                        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+                        Mockito.when(trainingModuleRepository.findById(moduleId)).thenReturn(Optional.of(module));
+                        Mockito.when(unitRepository.findByModule_Id(moduleId)).thenReturn(List.of(unit2, unit1)); // Unsorted input
+                        Mockito.when(unitContentRepository.findByUnit_Id(unitId1)).thenReturn(List.of(content1));
+                        Mockito.when(unitContentRepository.findByUnit_Id(unitId2)).thenReturn(List.of(content2));
+                        Mockito.when(userModuleProgressRepository.save(any(UserModuleProgress.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+                        Map<String, String> body = new HashMap<>();
+                        body.put("moduleId", moduleId.toString());
+
+                        // Проверяем, что выбрана unit1 и content1 (первая по sortOrder)
+                        mockMvc.perform(post("/api/user-module-progress")
+                                        .header("Authorization", "Bearer sometoken")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(body)))
+                                        .andExpect(status().isCreated())
+                                        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+                }
+
+        @Test
+        void returns400IfUnitHasNoContent() throws Exception {
+                UUID userId = UUID.randomUUID();
+                UUID moduleId = UUID.randomUUID();
+                UUID unitId = UUID.randomUUID();
+
+                User user = new User();
+                user.setId(userId);
+                TrainingModule module = new TrainingModule();
+                module.setId(moduleId);
+                Unit unit = new Unit();
+                unit.setId(unitId);
+                unit.setModule(module);
+                unit.setSortOrder(1);
+
+                Mockito.when(jwtUtil.extractUserId(anyString())).thenReturn(userId.toString());
+                Mockito.when(userModuleProgressRepository.findByUser_IdAndModule_Id(userId, moduleId)).thenReturn(Optional.empty());
+                Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+                Mockito.when(trainingModuleRepository.findById(moduleId)).thenReturn(Optional.of(module));
+                Mockito.when(unitRepository.findByModule_Id(moduleId)).thenReturn(List.of(unit));
+                Mockito.when(unitContentRepository.findByUnit_Id(unitId)).thenReturn(List.of());
+
+                Map<String, String> body = new HashMap<>();
+                body.put("moduleId", moduleId.toString());
+
+                mockMvc.perform(post("/api/user-module-progress")
+                                .header("Authorization", "Bearer sometoken")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(body)))
+                                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void returns400IfModuleHasNoUnits() throws Exception {
+                UUID userId = UUID.randomUUID();
+                UUID moduleId = UUID.randomUUID();
+
+                User user = new User();
+                user.setId(userId);
+                TrainingModule module = new TrainingModule();
+                module.setId(moduleId);
+
+                Mockito.when(jwtUtil.extractUserId(anyString())).thenReturn(userId.toString());
+                Mockito.when(userModuleProgressRepository.findByUser_IdAndModule_Id(userId, moduleId)).thenReturn(Optional.empty());
+                Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+                Mockito.when(trainingModuleRepository.findById(moduleId)).thenReturn(Optional.of(module));
+                Mockito.when(unitRepository.findByModule_Id(moduleId)).thenReturn(List.of());
+
+                Map<String, String> body = new HashMap<>();
+                body.put("moduleId", moduleId.toString());
+
+                mockMvc.perform(post("/api/user-module-progress")
+                                .header("Authorization", "Bearer sometoken")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(body)))
+                                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void usesExplicitUnitAndContentIfProvided() throws Exception {
+                UUID userId = UUID.randomUUID();
+                UUID moduleId = UUID.randomUUID();
+                UUID unitId = UUID.randomUUID();
+                UUID contentId = UUID.randomUUID();
+
+                User user = new User();
+                user.setId(userId);
+                TrainingModule module = new TrainingModule();
+                module.setId(moduleId);
+                Unit unit = new Unit();
+                unit.setId(unitId);
+                unit.setModule(module);
+                UnitContent content = new UnitContent();
+                content.setId(contentId);
+                content.setUnit(unit);
+
+                Mockito.when(jwtUtil.extractUserId(anyString())).thenReturn(userId.toString());
+                Mockito.when(userModuleProgressRepository.findByUser_IdAndModule_Id(userId, moduleId)).thenReturn(Optional.empty());
+                Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+                Mockito.when(trainingModuleRepository.findById(moduleId)).thenReturn(Optional.of(module));
+                Mockito.when(unitRepository.findById(unitId)).thenReturn(Optional.of(unit));
+                Mockito.when(unitRepository.findByModule_Id(moduleId)).thenReturn(List.of(unit));
+                Mockito.when(unitContentRepository.findById(contentId)).thenReturn(Optional.of(content));
+                Mockito.when(unitContentRepository.findByUnit_Id(unitId)).thenReturn(List.of(content));
+                Mockito.when(userModuleProgressRepository.save(any(UserModuleProgress.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+                Map<String, String> body = new HashMap<>();
+                body.put("moduleId", moduleId.toString());
+                body.put("lastVisitedUnitId", unitId.toString());
+                body.put("lastVisitedContent", contentId.toString());
+
+                mockMvc.perform(post("/api/user-module-progress")
+                                .header("Authorization", "Bearer sometoken")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(body)))
+                                .andExpect(status().isCreated())
+                                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+        }
+
+    @Test
     void returns404IfUserNotFound() throws Exception {
         UUID userId = UUID.randomUUID();
         UUID moduleId = UUID.randomUUID();

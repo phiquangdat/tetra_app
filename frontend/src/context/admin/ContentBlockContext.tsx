@@ -20,6 +20,7 @@ import {
   updateArticleContent,
   updateVideoContent,
   updateQuizContent,
+  uploadFile,
 } from '../../services/unit/content/unitContentApi.ts';
 import { useModuleContext } from './ModuleContext';
 import { adjustModulePoints } from '../../utils/pointsHelpers.ts';
@@ -253,6 +254,20 @@ export const ContentBlockContextProvider = ({
               throw new Error('Article title and content are required');
             }
 
+            let attachment_id: string | undefined;
+            if (contentBlock.fileBlob) {
+              try {
+                const uploaded = await uploadFile(contentBlock.fileBlob);
+                attachment_id = uploaded.id;
+              } catch (err) {
+                const error =
+                  err instanceof Error ? err.message : 'File upload failed';
+                console.error('[saveContent] Upload error:', error);
+                setContentState({ isSaving: false, fileError: error });
+                return;
+              }
+            }
+
             const payload: SaveArticleRequest = {
               unit_id: unitId,
               content_type: 'article',
@@ -260,6 +275,7 @@ export const ContentBlockContextProvider = ({
               content: content as string,
               points: points as number,
               sort_order,
+              attachment_id,
             };
 
             let result: { id: string };
@@ -300,6 +316,7 @@ export const ContentBlockContextProvider = ({
                 data: {
                   ...contentBlock.data,
                   content: content,
+                  fileId: attachment_id || contentBlock.data.fileId,
                 },
                 isDirty: false,
                 isSaving: false,
@@ -327,6 +344,20 @@ export const ContentBlockContextProvider = ({
               );
             }
 
+            let attachment_id: string | undefined;
+            if (contentBlock.fileBlob) {
+              try {
+                const uploaded = await uploadFile(contentBlock.fileBlob);
+                attachment_id = uploaded.id;
+              } catch (err) {
+                const error =
+                  err instanceof Error ? err.message : 'File upload failed';
+                console.error('[saveContent] Upload error:', error);
+                setContentState({ isSaving: false, fileError: error });
+                return;
+              }
+            }
+
             const payload: SaveQuizRequest = {
               unit_id: unitId,
               content_type: 'quiz',
@@ -336,6 +367,7 @@ export const ContentBlockContextProvider = ({
               points: points as number,
               questions_number: questions.length,
               questions: questions as QuizQuestion[],
+              attachment_id,
             };
 
             let result: { id: string };
@@ -377,6 +409,7 @@ export const ContentBlockContextProvider = ({
                 data: {
                   ...contentBlock.data,
                   content: content,
+                  fileId: attachment_id || contentBlock.data.fileId,
                 },
                 isDirty: false,
                 isSaving: false,

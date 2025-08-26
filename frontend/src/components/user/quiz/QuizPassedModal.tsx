@@ -4,10 +4,12 @@ import { fetchQuizById, type Quiz } from '../../../services/quiz/quizApi';
 import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
 import { getContentProgress } from '../../../services/userProgress/userProgressApi';
 import { CheckIcon, X } from 'lucide-react';
+import { hydrateContextFromContent } from '../../../utils/contextHydration'; // ⬅️ add
 
 const QuizPassedModal = () => {
   const { isOpen, type, quizId, closeModal } = useQuizModal();
-  const { goToNextContent } = useModuleProgress();
+  const { goToNextContent, setUnitId, setModuleId, unitId, moduleId } =
+    useModuleProgress(); // ⬅️ add setters
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [points, setPoints] = useState<number | null>(null);
   const isVisible = isOpen && type === 'passed' && !!quizId;
@@ -18,6 +20,10 @@ const QuizPassedModal = () => {
 
     (async () => {
       try {
+        if (!unitId || !moduleId) {
+          await hydrateContextFromContent(quizId, { setUnitId, setModuleId });
+        }
+
         const [q, progress] = await Promise.all([
           fetchQuizById(quizId),
           getContentProgress(quizId).catch((e: Error) => {
@@ -37,7 +43,7 @@ const QuizPassedModal = () => {
     return () => {
       cancelled = true;
     };
-  }, [isVisible, quizId]);
+  }, [isVisible, quizId, unitId, moduleId, setUnitId, setModuleId]);
 
   if (!isOpen || type !== 'passed' || !quizId) return null;
 

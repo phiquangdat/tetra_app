@@ -38,6 +38,10 @@ public class UserStatsController {
             return ResponseEntity.badRequest().body("Invalid userId in token");
         }
         int totalPoints = userStatsService.getTotalPoints(userId);
-        return ResponseEntity.ok(Map.of("totalPoints", totalPoints));
+        var topicPoints = userStatsService.getTopicPoints(userId);
+        return ResponseEntity.ok(Map.of(
+            "totalPoints", totalPoints,
+            "topicPoints", topicPoints
+        ));
     }
 }

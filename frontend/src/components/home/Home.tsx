@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import SharedHeader from '../common/SharedHeader';
 import Hero from './Hero';
@@ -38,31 +38,41 @@ const Home = () => {
     }
   }, [location.pathname, navigate]);
 
+  useEffect(() => {
+    if (!authToken) setSidebarOpen(false);
+  }, [authToken]);
+
   return (
-    <main>
+    <main className="min-h-screen flex flex-col">
       <SharedHeader
         showHamburger={!!authToken}
         isSidebarOpen={sidebarOpen}
         onHamburgerClick={toggleSidebar}
       />
+      <div className="flex flex-1 relative">
+        {sidebarOpen && (
+          <div
+            className="absolute z-50 h-full
+                    transform transition-transform duration-300 ease-in-out translate-x-0"
+          >
+            {userRole === 'admin' ? (
+              <AdminSidebar />
+            ) : userRole === 'learner' ? (
+              <UserSidebar />
+            ) : null}
+          </div>
+        )}
 
-      {sidebarOpen && (
-        <div className="fixed top-16 left-0 w-64 h-[calc(100%-4rem)] bg-gray-800 z-40">
-          {userRole === 'admin' ? (
-            <AdminSidebar />
-          ) : userRole === 'learner' ? (
-            <UserSidebar />
-          ) : null}
+        <div
+          className={`flex-1 transition-all duration-300 ease-in-out ${sidebarOpen ? 'ml-64' : ''}`}
+        >
+          <Hero onGetStarted={openLogin} />
+          <LoginModal isOpen={isLoginOpen} onClose={closeLogin} />
+          <About />
+          <Features />
         </div>
-      )}
-
-      <div className={`${sidebarOpen ? 'ml-64' : ''} transition-all`}>
-        <Hero onGetStarted={openLogin} />
-        <LoginModal isOpen={isLoginOpen} onClose={closeLogin} />
-        <About />
-        <Features />
-        <Footer />
       </div>
+      <Footer />
     </main>
   );
 };

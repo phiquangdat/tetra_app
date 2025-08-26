@@ -77,8 +77,13 @@ export async function updateUser(
   }>,
 ): Promise<User> {
   try {
+    const token = getAuthToken();
     return await fetchWithAuth(`${BASE_URL}/users/${id}`, {
       method: 'PUT',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(data),
     });
   } catch (error) {

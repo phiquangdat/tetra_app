@@ -27,8 +27,15 @@ export interface Question {
 }
 
 export async function fetchQuizById(id: string): Promise<Quiz> {
+  const token = sessionStorage.getItem('jwt_token');
   try {
-    const response = await fetch(`${BASE_URL}/unit_content/quiz/${id}`);
+    const response = await fetch(`${BASE_URL}/unit_content/quiz/${id}`,
+      {
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      }
+    );
 
     if (!response.ok) {
       throw new Error(
@@ -57,8 +64,14 @@ export async function fetchQuizQuestionsByQuizId(
       queryParams.append('includeCorrect', 'true');
     }
 
+    const token = sessionStorage.getItem('jwt_token');
     const response = await fetch(
       `${BASE_URL}/questions?${queryParams.toString()}`,
+      {
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      }
     );
     if (!response.ok) {
       throw new Error(`Failed to fetch QUIZ questions for ${quizId}`);

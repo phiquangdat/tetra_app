@@ -1,5 +1,6 @@
 package com.tetra.app.controller;
 
+
 import com.tetra.app.model.UserModuleProgress;
 import com.tetra.app.model.ProgressStatus;
 import com.tetra.app.model.User;
@@ -22,8 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
-import javax.annotation.processing.Generated;
+import java.lang.Exception;
+import java.lang.String;
 
 @RestController
 @RequestMapping("/api/user-module-progress")
@@ -113,21 +114,22 @@ public class UserModuleProgressController {
         }
         if (lastVisitedUnit == null) {
             var units = unitRepository.findByModule_Id(moduleId).stream()
-                    .sorted((u1, u2) -> u1.getId().compareTo(u2.getId()))
-                    .toList();
-            for (Unit u : units) {
-                var contents = unitContentRepository.findByUnit_Id(u.getId());
-                if (!contents.isEmpty()) {
-                    lastVisitedUnit = u;
-                    break;
-                }
+                .sorted((u1, u2) -> {
+                    Integer so1 = u1.getSortOrder() != null ? u1.getSortOrder() : 0;
+                    Integer so2 = u2.getSortOrder() != null ? u2.getSortOrder() : 0;
+                    int cmp = so1.compareTo(so2);
+                    return cmp != 0 ? cmp : u1.getId().compareTo(u2.getId());
+                })
+                .toList();
+            if (units.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Module has no units");
             }
-            if (lastVisitedUnit == null && !units.isEmpty()) {
-                lastVisitedUnit = units.get(0);
+            lastVisitedUnit = units.get(0);
+            var contents = unitContentRepository.findByUnit_Id(lastVisitedUnit.getId());
+            if (contents.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("No content found for unit " + lastVisitedUnit.getId());
             }
-        }
-        if (lastVisitedUnit == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Module has no units");
         }
 
         UnitContent lastVisitedContent = null;
@@ -139,10 +141,9 @@ public class UserModuleProgressController {
                 if (lastVisitedContent == null) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("lastVisitedContent not found");
                 }
-                if (lastVisitedContent.getUnit() == null ||
+                if (lastVisitedUnit == null || lastVisitedContent.getUnit() == null ||
                     !lastVisitedContent.getUnit().getId().equals(lastVisitedUnit.getId())) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body("lastVisitedContent does not belong to the specified unit");
+                    lastVisitedUnit = lastVisitedContent.getUnit();
                 }
                 if (lastVisitedContent.getUnit().getModule() == null ||
                     !lastVisitedContent.getUnit().getModule().getId().equals(moduleId)) {
@@ -326,7 +327,6 @@ public class UserModuleProgressController {
         }
         UserModuleProgress progress = progressOpt.get();
 
-        // Only the owner or ADMIN can delete
         if (!"ADMIN".equals(role) && !progress.getUser().getId().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
         }

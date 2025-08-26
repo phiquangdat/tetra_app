@@ -67,12 +67,33 @@ function ModuleCard({
       {/* Content */}
       <div className="w-62 h-54 border-l-2 border-gray-300 flex flex-col justify-between">
         <div className="text-start mt-4 ml-4 flex flex-col gap-2">
-          <h2 className="text-lg font-bold text-[#231942]">{title}</h2>
-          {details.map((detail, idx) => (
-            <p className="text-base text-[#14248A]" key={idx}>
-              <span>{detail.label}:</span> {detail.value}
-            </p>
-          ))}
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-lg font-bold text-[#231942] leading-tight">
+              {title}
+            </h2>
+            {progressStatus ? (
+              <span
+                className={`mr-4 rounded-full px-3 py-1.5 text-xs font-medium text-white capitalize whitespace-nowrap ${
+                  progressStatus === 'COMPLETED' ? 'bg-success' : 'bg-amber-600'
+                }`}
+              >
+                {progressStatus.toLowerCase().replace('_', ' ')}
+              </span>
+            ) : null}
+          </div>
+
+          <div className="space-y-2">
+            {details.map((detail, idx) => (
+              <p className="text-base text-[#14248A]" key={idx}>
+                <span>{detail.label}:</span> {detail.value}
+              </p>
+            ))}
+          </div>
+          {earnedPoints ? (
+            <span className="text-surface mb-2">
+              Earned: {earnedPoints} pts
+            </span>
+          ) : null}
         </div>
 
         {/* Action Button */}

@@ -94,7 +94,7 @@ function ModuleCards() {
                   coverUrl={visibleModule.coverUrl}
                   details={[
                     { label: 'Topic', value: visibleModule.topic },
-                    { label: 'Points', value: visibleModule.points },
+                    { label: 'Points', value: visibleModule.points ?? 0 },
                   ]}
                   buttonLabel="Open"
                   linkBasePath="/user/modules"

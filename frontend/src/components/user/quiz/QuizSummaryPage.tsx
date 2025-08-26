@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
@@ -15,6 +15,7 @@ import {
   patchModuleProgress,
   updateContentProgress,
 } from '../../../services/userProgress/userProgressApi';
+import { hydrateContextFromContent } from '../../../utils/contextHydration';
 
 const QuizSummaryPage: React.FC = () => {
   const {
@@ -25,6 +26,8 @@ const QuizSummaryPage: React.FC = () => {
     finalizeUnitIfComplete,
     moduleProgress,
     setModuleProgress,
+    setUnitId,
+    setModuleId,
   } = useModuleProgress();
   const { quizId } = useParams();
   const navigate = useNavigate();
@@ -49,6 +52,34 @@ const QuizSummaryPage: React.FC = () => {
   const { userAnswers } = useQuiz();
 
   const resolveUnitId = () => unitId || quizUnitId || '';
+
+  // Redirect to UnitPage on refresh (no quiz answers in memory)
+  const redirectedRef = useRef(false);
+  useEffect(() => {
+    if (!quizId) return;
+    if (redirectedRef.current) return;
+    if (userAnswers.length > 0) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const { unitId: targetUnitId } = await hydrateContextFromContent(
+          quizId,
+          { setUnitId, setModuleId },
+        );
+        if (!cancelled && targetUnitId) {
+          redirectedRef.current = true;
+          navigate(`/user/unit/${targetUnitId}`, { replace: true });
+        }
+      } catch (e) {
+        console.error('[QuizSummary] redirect hydrate failed:', e);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [quizId, userAnswers.length, navigate, setUnitId, setModuleId]);
 
   useEffect(() => {
     if (!quizId) {
@@ -108,6 +139,7 @@ const QuizSummaryPage: React.FC = () => {
 
   useEffect(() => {
     if (!quizId) return;
+    if (userAnswers.length === 0) return;
     if (!contentProgressId) return; // No progress record id -> skip
     if (questions.length === 0) return; // Nothing to finalize
 
@@ -160,6 +192,11 @@ const QuizSummaryPage: React.FC = () => {
     questions.length,
     pointsEarned,
     quizUnitId,
+    userAnswers.length,
+    moduleId,
+    moduleProgress,
+    finalizeUnitIfComplete,
+    setModuleProgress,
   ]);
 
   const summaryHeadline =

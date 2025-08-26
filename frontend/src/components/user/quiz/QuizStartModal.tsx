@@ -13,6 +13,11 @@ import {
   patchModuleProgress,
 } from '../../../services/userProgress/userProgressApi';
 import { hydrateContextFromContent } from '../../../utils/contextHydration'; // ⬅️ add
+import {
+  fetchFileById,
+  downloadFileById,
+  formatFileSize,
+} from '../../../utils/fileHelpers.ts';
 
 const isQuizValid = (quiz: Quiz): boolean => {
   return (
@@ -40,6 +45,13 @@ const QuizStartModal = () => {
     points: 0,
     questions_number: 0,
   });
+  const [attachment, setAttachment] = useState<{
+    url: string;
+    originalName?: string;
+    mime?: string;
+    size?: number;
+  } | null>(null);
+
   const navigate = useNavigate();
   const { setQuestions, clearUserAnswers } = useQuiz();
   const {
@@ -129,6 +141,16 @@ const QuizStartModal = () => {
           throw new Error('Incomplete quiz data');
         }
         setQuizDetails(quiz);
+
+        if (quiz.attachment_id) {
+          try {
+            const file = await fetchFileById(quiz.attachment_id);
+            setAttachment(file);
+          } catch (err) {
+            console.error('Failed to fetch attachment metadata:', err);
+          }
+        }
+
         setError(null);
       } catch (err) {
         console.error('Failed to load quiz details:', err);
@@ -163,6 +185,29 @@ const QuizStartModal = () => {
             <h2 className="text-4xl font-extrabold mb-6 text-center text-primary">
               {loading ? 'Loading title...' : quizDetails?.title}
             </h2>
+
+            {attachment && (
+              <div className="text-center mb-6">
+                <button
+                  onClick={() =>
+                    downloadFileById(
+                      quizDetails?.attachment_id!,
+                      attachment.originalName,
+                    )
+                  }
+                  className="inline-flex items-center cursor-pointer gap-2 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-all"
+                >
+                  ⬇️ {attachment.originalName ?? 'Download attachment'}
+                </button>
+                {(attachment.mime || attachment.size) && (
+                  <div className="mt-2 text-sm text-primary/70">
+                    {attachment.size && (
+                      <span>{formatFileSize(attachment.size)}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Info row */}
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-10 mb-8 items-center justify-center">

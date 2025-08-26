@@ -55,9 +55,16 @@ export interface CreateUnitResponse {
 }
 
 export async function fetchUnitTitleByModuleId(moduleId: string): Promise<any> {
+  const token = getAuthToken();
   try {
     const response = await fetch(
       `${BASE_URL}/units?moduleId=${encodeURIComponent(moduleId)}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      },
     );
     if (!response.ok) {
       throw new Error(
@@ -76,9 +83,16 @@ export async function fetchUnitTitleByModuleId(moduleId: string): Promise<any> {
 }
 
 export async function fetchUnitById(unitId: string): Promise<any> {
+  const token = getAuthToken();
   try {
     const response = await fetch(
       `${BASE_URL}/units/${encodeURIComponent(unitId)}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      },
     );
     if (!response.ok) {
       throw new Error(
@@ -99,7 +113,13 @@ export async function fetchUnitById(unitId: string): Promise<any> {
 export async function fetchUnitContentDetails(
   id: string,
 ): Promise<UnitContent> {
-  const response = await fetch(`${BASE_URL}/unit_content/${id}`);
+  const token = getAuthToken();
+  const response = await fetch(`${BASE_URL}/unit_content/${id}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
   if (!response.ok) {
     throw new Error('Failed to fetch unit content');
   }
@@ -110,7 +130,13 @@ export async function fetchUnitContentDetails(
 }
 
 export async function fetchUnitContentById(id: string): Promise<UnitContent[]> {
-  const response = await fetch(`${BASE_URL}/unit_content?unitId=${id}`);
+  const token = getAuthToken();
+  const response = await fetch(`${BASE_URL}/unit_content?unitId=${id}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
   if (!response.ok) {
     throw new Error('Failed to fetch unit content');
   }
@@ -121,7 +147,13 @@ export async function fetchUnitContentById(id: string): Promise<UnitContent[]> {
 }
 
 export async function fetchVideoContentById(id: string): Promise<Video> {
-  const response = await fetch(`${BASE_URL}/unit_content/video/${id}`);
+  const token = getAuthToken();
+  const response = await fetch(`${BASE_URL}/unit_content/video/${id}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
   if (!response.ok) {
     throw new Error('Failed to fetch video content');
   }
@@ -131,7 +163,13 @@ export async function fetchVideoContentById(id: string): Promise<Video> {
 }
 
 export async function fetchArticleContentById(id: string): Promise<Article> {
-  const response = await fetch(`${BASE_URL}/unit_content/article/${id}`);
+  const token = getAuthToken();
+  const response = await fetch(`${BASE_URL}/unit_content/article/${id}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
   if (!response.ok) {
     throw new Error('Failed to fetch article content');
   }
@@ -143,11 +181,13 @@ export async function fetchArticleContentById(id: string): Promise<Article> {
 export async function createUnit(
   unitData: UnitInput,
 ): Promise<CreateUnitResponse> {
+  const token = getAuthToken();
   try {
     const response = await fetch(`${BASE_URL}/units`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify(unitData),
     });
@@ -169,6 +209,7 @@ export async function createUnit(
 }
 
 export async function updateUnit(id: string, unit: UnitInput): Promise<Unit> {
+  const token = getAuthToken();
   const url = `${BASE_URL}/units/${id}`;
   console.log('[updateModule] Updating:', url, 'Payload:', unit);
 
@@ -177,6 +218,7 @@ export async function updateUnit(id: string, unit: UnitInput): Promise<Unit> {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify(unit),
     });

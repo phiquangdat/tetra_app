@@ -41,7 +41,6 @@ interface VideoPageProps {
 
 const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   const [video, setVideo] = useState<Video | null>(null);
-  const [isCompleted, setIsCompleted] = useState(false); // Ensure Finish button triggers navigation if completion hasn’t occurred
   const [contentProgress, setContentProgress] = useState<ContentProgress>();
   const [hasNext, setHasNext] = useState(false);
 
@@ -64,6 +63,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
 
   // Cache hydrated IDs for all later calls
   const idsRef = useRef<{ unitId?: string; moduleId?: string }>({});
+
+  // Refs to access latest values without triggering effects
+  const moduleProgressRef = useRef(moduleProgress);
+
+  // Update refs when values change
+  useEffect(() => {
+    moduleProgressRef.current = moduleProgress;
+  }, [moduleProgress]);
 
   // Helper: ensures module progress id exists before PATCH and updates context
   const safePatchModule = useCallback(
@@ -124,7 +131,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         setHasNext(false);
       }
 
-      setIsCompleted(true);
       try {
         const progress = await getContentProgress(id);
         console.log('[getContentProgress]', progress);
@@ -182,11 +188,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     setModuleProgress,
   ]);
 
-  const markAsCompleted = async () => {
+  const markAsCompleted = useCallback(async () => {
+    const currentModuleProgress = moduleProgressRef.current;
+
     if (
       !contentProgress ||
       contentProgress.status === 'COMPLETED' ||
-      !moduleProgress ||
+      !currentModuleProgress ||
       !video
     )
       return;
@@ -214,7 +222,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     }
     try {
       const response = await safePatchModule({
-        earnedPoints: (moduleProgress.earned_points || 0) + (video.points || 0),
+        earnedPoints:
+          (currentModuleProgress.earned_points || 0) + (video.points || 0),
       });
 
       console.log('[patchModuleProgress], Update Total Points: ', response);
@@ -224,7 +233,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         error,
       );
     }
-  };
+  }, [contentProgress?.id]);
 
   useEffect(() => {
     if (!video?.url || !isValid || !isYouTube) return;
@@ -305,6 +314,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     };
   }, [video?.url, contentProgress?.id, isValid, isYouTube, markAsCompleted]);
 
+  const isButtonDisabled = contentProgress?.status !== 'COMPLETED';
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <div className="w-full max-w-4xl mb-6 text-left">
@@ -370,16 +381,28 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
       </div>
 
       <div className="w-full max-w-4xl mt-8 flex justify-end">
-        <button
-          className="bg-surface text-background font-semibold px-12 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition-all duration-200 w-fit"
-          type="button"
-          onClick={async () => {
-            if (!isCompleted) await markAsCompleted();
-            goToNextContent(id);
-          }}
-        >
-          {hasNext ? 'Up next' : 'Finish'}
-        </button>
+        <div className="relative group">
+          <button
+            className="bg-surface text-background font-semibold px-12 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition-all duration-200 w-fit
+            disabled:bg-surface/50 disabled:cursor-not-allowed"
+            type="button"
+            onClick={async () => {
+              if (contentProgress?.status !== 'COMPLETED') {
+                await markAsCompleted();
+              }
+              goToNextContent(id);
+            }}
+            disabled={isButtonDisabled}
+            title={isButtonDisabled ? 'Finish the video to continue' : ''}
+          >
+            {hasNext ? 'Up next' : 'Finish'}
+          </button>
+          {isButtonDisabled && (
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-800 text-white text-sm rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+              Finish the video to continue
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

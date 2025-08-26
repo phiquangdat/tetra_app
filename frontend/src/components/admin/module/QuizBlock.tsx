@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  type ContentBlock,
   type QuizQuestion,
   useUnitContext,
 } from '../../../context/admin/UnitContext';
@@ -10,6 +11,11 @@ import {
   type Question,
 } from '../../../services/quiz/quizApi';
 import ConfirmationModal from '../createModule/ConfirmationModal.tsx';
+import {
+  downloadFileById,
+  fetchFileById,
+  formatFileSize,
+} from '../../../utils/fileHelpers.ts';
 
 interface QuizBlockProps {
   unitNumber?: number;
@@ -29,14 +35,14 @@ const QuizBlock: React.FC<QuizBlockProps> = ({
       ? getUnitState(unitNumber)?.content[blockIndex]
       : null;
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
-  const shouldUseContext =
-    Array.isArray(unitContent?.data?.questions) &&
-    unitContent.data?.questions.length > 0;
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+
+  const shouldUseContext =
+    Array.isArray(unitContent?.data?.questions) &&
+    unitContent.data?.questions.length > 0;
 
   useEffect(() => {
     if (!shouldUseContext && id) {
@@ -48,6 +54,21 @@ const QuizBlock: React.FC<QuizBlockProps> = ({
           ]);
           setQuiz(qz);
           setQuestions(qs);
+
+          let filePatch: Partial<ContentBlock['data']> = {};
+          if (qz.attachment_id) {
+            try {
+              const meta = await fetchFileById(qz.attachment_id);
+              filePatch = {
+                fileId: qz.attachment_id,
+                fileName: meta.originalName,
+                fileMime: meta.mime,
+                fileSize: meta.size,
+              };
+            } catch (e) {
+              console.warn('[QuizBlock] fetchFileById failed:', e);
+            }
+          }
 
           if (unitNumber != null && blockIndex != null) {
             const unit = getUnitState(unitNumber);
@@ -72,11 +93,12 @@ const QuizBlock: React.FC<QuizBlockProps> = ({
                     sort_order: q.sort_order,
                     answers: q.answers.map((a) => ({
                       title: a.title,
-                      is_correct: !!a.is_correct, // ← forces it to be a boolean
+                      is_correct: !!a.is_correct,
                       sort_order: a.sort_order,
                     })),
                   }),
                 ),
+                ...filePatch,
               },
             };
 
@@ -111,6 +133,24 @@ const QuizBlock: React.FC<QuizBlockProps> = ({
         questions,
       };
 
+  const attachmentId = shouldUseContext
+    ? unitContent?.data.fileId
+    : quiz?.attachment_id;
+
+  const onDownload = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!attachmentId) return;
+    try {
+      await downloadFileById(
+        attachmentId,
+        (shouldUseContext ? unitContent!.data.fileName : undefined) ||
+          'attachment',
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleConfirmDelete = async () => {
     if (unitNumber != null && blockIndex != null) {
       const success = await removeUnitContent(unitNumber, blockIndex);
@@ -127,6 +167,27 @@ const QuizBlock: React.FC<QuizBlockProps> = ({
           <p className="text-sm font-semibold">Quiz title</p>
           <p>{data?.title}</p>
         </div>
+
+        {/* Attachment (same simple approach as ArticleBlock) */}
+        {attachmentId && (
+          <div className="mt-2 mb-2">
+            <p className="text-sm font-semibold">Attachment</p>
+            <a
+              href="#"
+              onClick={onDownload}
+              className="text-secondary hover:text-primary underline"
+            >
+              {(shouldUseContext ? unitContent!.data.fileName : undefined) ||
+                'Download attachment'}
+            </a>
+            {shouldUseContext && unitContent!.data.fileSize ? (
+              <span className="ml-2 text-xs text-secondary">
+                ({formatFileSize(unitContent!.data.fileSize as number)})
+              </span>
+            ) : null}
+          </div>
+        )}
+
         <div>
           <p className="text-sm font-semibold">Description</p>
           <p>{data?.content}</p>
@@ -163,6 +224,7 @@ const QuizBlock: React.FC<QuizBlockProps> = ({
             ))}
           </div>
         </div>
+
         <div className="flex gap-4">
           <button
             className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondaryHover text-sm"

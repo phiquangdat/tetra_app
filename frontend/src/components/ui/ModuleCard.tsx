@@ -13,6 +13,8 @@ interface CardProps {
   details: CardDetail[];
   buttonLabel: string;
   linkBasePath: string;
+  earnedPoints?: number;
+  progressStatus?: 'IN_PROGRESS' | 'COMPLETED';
 }
 
 function ModuleCard({
@@ -22,6 +24,8 @@ function ModuleCard({
   details,
   buttonLabel,
   linkBasePath,
+  earnedPoints,
+  progressStatus,
 }: CardProps) {
   const [imgError, setImgError] = useState(false);
   const navigate = useNavigate();

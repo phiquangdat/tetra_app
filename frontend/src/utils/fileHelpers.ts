@@ -79,3 +79,25 @@ export function formatFileSize(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
+
+export async function deleteFileById(fileId: string): Promise<void> {
+  if (!fileId) throw new Error('deleteFileById: missing fileId');
+
+  const token = getAuthToken();
+  const url = `${BASE_URL}/uploads/${fileId}`;
+
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (!res.ok) {
+    if (res.status === 404) return;
+    const text = await res.text().catch(() => '');
+    throw new Error(
+      `deleteFileById failed: ${res.status} ${res.statusText} ${text}`,
+    );
+  }
+}

@@ -264,7 +264,29 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UnitContent'
+                type: object
+                properties:
+                  id:
+                    type: string
+                  unit_id:
+                    type: string
+                  title:
+                    type: string
+                  content_type:
+                    type: string
+                  sort_order:
+                    type: integer
+                  content:
+                    type: string
+                  url:
+                    type: string
+                  points:
+                    type: integer
+                  questions_number:
+                    type: integer
+                  attachment_id:
+                    type: string
+                    nullable: true
         '404':
           description: Unit content not found.
 
@@ -286,57 +308,33 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/QuizPreview'
-        '404':
-          description: Quiz not found.
-
-  /api/unit_content/video:
-    get:
-      summary: Get all video content
-      description: |
-        Returns all video content blocks.
-      responses:
-        '200':
-          description: List of video content blocks.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/VideoContentSummary'
-
-  /api/unit_content/video/{id}:
-    get:
-      summary: Get video content by ID
-      description: |
-        Returns a video content block by its unique identifier.
-      parameters:
-        - in: path
-          name: id
-          required: true
-          description: The UUID of the video content block.
-          schema:
-            type: string
-      responses:
-        '200':
-          description: The video content object.
-          content:
-            application/json:
-              schema:
                 type: object
                 properties:
                   id:
+                    type: string
+                  unit_id:
+                    type: string
+                  content_type:
                     type: string
                   title:
                     type: string
                   content:
                     type: string
-                  url:
-                    type: string
-                  points: 
+                  sort_order:
                     type: integer
+                  points:
+                    type: integer
+                  questions_number:
+                    type: integer
+                  attachment_id:
+                    type: string
+                    nullable: true
+                  questions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QuizQuestionWithAnswers'
         '404':
-          description: Video content not found.
+          description: Quiz not found.
 
   /api/unit_content/article/{id}:
     get:
@@ -356,7 +354,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ArticleContent'
+                type: object
+                properties:
+                  id:
+                    type: string
+                  unit_id:
+                    type: string
+                  title:
+                    type: string
+                  content:
+                    type: string
+                  points:
+                    type: integer
+                  attachment_id:
+                    type: string
+                    nullable: true
         '404':
           description: Article content not found.
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { validateVideoUrl, getYouTubeId } from '../../../utils/videoHelpers';
 import {
@@ -12,9 +12,10 @@ import {
   patchModuleProgress,
   type ContentProgress,
 } from '../../../services/userProgress/userProgressApi';
-import { useModuleProgress } from '../../../context/user/ModuleProgressContext.tsx';
+import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
 import { UploadAltIcon, CheckIcon } from '../../common/Icons';
 import toast from 'react-hot-toast';
+import { hydrateContextFromContent } from '../../../utils/contextHydration';
 
 declare global {
   var YT: any;
@@ -40,20 +41,55 @@ interface VideoPageProps {
 
 const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   const [video, setVideo] = useState<Video | null>(null);
-  const [isCompleted, setIsCompleted] = useState(false); // Ensure Finish button triggers navigation if completion hasn’t occurred
   const [contentProgress, setContentProgress] = useState<ContentProgress>();
+  const [hasNext, setHasNext] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
+
   const {
     moduleId,
     unitId,
     goToNextContent,
-    isNextContent,
+    isNextContentAsync,
     moduleProgress,
     setModuleProgress,
     finalizeUnitIfComplete,
+    setUnitId,
+    setModuleId,
+    getOrCreateModuleProgress,
   } = useModuleProgress();
+
+  // Cache hydrated IDs for all later calls
+  const idsRef = useRef<{ unitId?: string; moduleId?: string }>({});
+
+  // Refs to access latest values without triggering effects
+  const moduleProgressRef = useRef(moduleProgress);
+
+  // Update refs when values change
+  useEffect(() => {
+    moduleProgressRef.current = moduleProgress;
+  }, [moduleProgress]);
+
+  // Helper: ensures module progress id exists before PATCH and updates context
+  const safePatchModule = useCallback(
+    async (payload: Parameters<typeof patchModuleProgress>[1]) => {
+      const mid = idsRef.current.moduleId || moduleId;
+      if (!mid) throw new Error('[safePatchModule] Missing moduleId');
+      const mp = await getOrCreateModuleProgress(mid);
+      const resp = await patchModuleProgress(mp.id, payload);
+      setModuleProgress({
+        id: resp.id,
+        status: resp.status,
+        last_visited_unit_id: resp.lastVisitedUnit?.id || '',
+        last_visited_content_id: resp.lastVisitedContent?.id || '',
+        earned_points: resp.earnedPoints || 0,
+      });
+      return resp;
+    },
+    [getOrCreateModuleProgress, moduleId, setModuleProgress],
+  );
 
   const resolveUnitId = (v?: Video | null) =>
     unitIdFromState || unitId || v?.unit_id || '';
@@ -70,17 +106,38 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   useEffect(() => {
     const fetchData = async () => {
       if (id) {
-        fetchVideoContentById(id).then((data) => setVideo(data));
+        const data = await fetchVideoContentById(id);
+        setVideo(data);
       }
 
-      setIsCompleted(true);
+      // Hydrate context if missing (after refresh) and cache IDs
+      let effectiveUnitId = unitId || unitIdFromState || '';
+      let effectiveModuleId = moduleId;
+
+      if (!effectiveUnitId || !effectiveModuleId) {
+        const hydrated = await hydrateContextFromContent(id, {
+          setUnitId,
+          setModuleId,
+        });
+        effectiveUnitId ||= hydrated.unitId;
+        effectiveModuleId ||= hydrated.moduleId;
+      }
+      idsRef.current = { unitId: effectiveUnitId, moduleId: effectiveModuleId };
+
+      try {
+        const next = await isNextContentAsync(id);
+        setHasNext(next);
+      } catch {
+        setHasNext(false);
+      }
+
       try {
         const progress = await getContentProgress(id);
         console.log('[getContentProgress]', progress);
 
         setContentProgress(progress);
 
-        const resolvedUnitId = resolveUnitId(video);
+        const resolvedUnitId = resolveUnitId(video) || effectiveUnitId;
 
         if (
           (moduleProgress?.last_visited_unit_id !== resolvedUnitId ||
@@ -88,33 +145,22 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
           progress.status !== 'COMPLETED'
         ) {
           try {
-            const response = await patchModuleProgress(
-              moduleProgress?.id as string,
-              {
-                lastVisitedUnit: resolvedUnitId,
-                lastVisitedContent: id,
-              },
-            );
-            const progress = {
-              id: response.id,
-              status: response.status,
-              last_visited_unit_id: response.lastVisitedUnit.id || '',
-              last_visited_content_id: response.lastVisitedContent.id || '',
-              earned_points: response.earnedPoints || 0,
-            };
+            const response = await safePatchModule({
+              lastVisitedUnit: resolvedUnitId,
+              lastVisitedContent: id,
+            });
 
             console.log('[patchModuleProgress], Update IDs:', response);
-            setModuleProgress(progress);
           } catch (error) {
             console.error('[patchModuleProgress]', error);
           }
         }
       } catch (error) {
         if (error instanceof Error && error.message.includes('404')) {
-          const resolvedUnitId = resolveUnitId(video);
+          const resolvedUnitId = idsRef.current.unitId || resolveUnitId(video);
 
           const progress = await createContentProgress({
-            unitId: resolvedUnitId,
+            unitId: resolvedUnitId as string,
             unitContentId: id,
             status: 'IN_PROGRESS',
             points: 0,
@@ -129,56 +175,65 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     };
 
     fetchData();
-  }, [id, unitIdFromState, unitId]);
+  }, [
+    id,
+    unitIdFromState,
+    unitId,
+    moduleId,
+    isNextContentAsync,
+    moduleProgress,
+    setUnitId,
+    setModuleId,
+    safePatchModule,
+    setModuleProgress,
+  ]);
 
-  const markAsCompleted = async () => {
+  const markAsCompleted = useCallback(async () => {
+    const currentModuleProgress = moduleProgressRef.current;
+
     if (
       !contentProgress ||
       contentProgress.status === 'COMPLETED' ||
-      !moduleProgress ||
+      !currentModuleProgress ||
       !video
     )
       return;
 
+    const videoPoints = video.points ?? 0;
+
     try {
       const response = await updateContentProgress(contentProgress.id, {
         status: 'COMPLETED',
-        points: video.points || 0,
+        points: videoPoints,
       });
 
-      const resolvedUnitId = resolveUnitId(video);
-      await finalizeUnitIfComplete(resolvedUnitId, moduleId);
+      const resolvedUnitId = resolveUnitId(video) || idsRef.current.unitId!;
+      await finalizeUnitIfComplete(
+        resolvedUnitId,
+        idsRef.current.moduleId || moduleId,
+      );
       setContentProgress((prev) =>
-        prev
-          ? { ...prev, status: 'COMPLETED', points: video.points || 0 }
-          : prev,
+        prev ? { ...prev, status: 'COMPLETED', points: videoPoints } : prev,
       );
       console.log('[updateContentProgress]', response);
-      toast.success(`Complete watching! + ${video.points} points`);
+      toast.success(`Complete watching! + ${videoPoints} pts`);
     } catch (error) {
       console.error('Error updating progress:', error);
     }
     try {
-      const response = await patchModuleProgress(moduleProgress.id, {
-        earnedPoints: moduleProgress.earned_points + video.points || 0,
+      const response = await safePatchModule({
+        earnedPoints:
+          (currentModuleProgress.earned_points || 0) + (video.points || 0),
       });
-      const progressArg = {
-        id: response.id,
-        status: response.status,
-        last_visited_unit_id: response.lastVisitedUnit.id || '',
-        last_visited_content_id: response.lastVisitedContent.id || '',
-        earned_points: response.earnedPoints || 0,
-      };
 
       console.log('[patchModuleProgress], Update Total Points: ', response);
-      setModuleProgress(progressArg);
     } catch (error) {
       console.error(
         '[patchModuleProgress] Failed to increment module points',
         error,
       );
     }
-  };
+  }, [contentProgress?.id]);
 
   useEffect(() => {
     if (!video?.url || !isValid || !isYouTube) return;
@@ -257,7 +312,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         playerRef.current.destroy();
       }
     };
-  }, [video?.url, contentProgress?.id]);
+  }, [video?.url, contentProgress?.id, isValid, isYouTube, markAsCompleted]);
+
+  const isButtonDisabled = contentProgress?.status !== 'COMPLETED';
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
@@ -324,16 +381,28 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
       </div>
 
       <div className="w-full max-w-4xl mt-8 flex justify-end">
-        <button
-          className="bg-surface text-background font-semibold px-12 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition-all duration-200 w-fit"
-          type="button"
-          onClick={async () => {
-            if (!isCompleted) await markAsCompleted();
-            goToNextContent(id);
-          }}
-        >
-          {isNextContent(id ?? '') ? 'Up next' : 'Finish'}
-        </button>
+        <div className="relative group">
+          <button
+            className="bg-surface text-background font-semibold px-12 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition-all duration-200 w-fit
+            disabled:bg-surface/50 disabled:cursor-not-allowed"
+            type="button"
+            onClick={async () => {
+              if (contentProgress?.status !== 'COMPLETED') {
+                await markAsCompleted();
+              }
+              goToNextContent(id);
+            }}
+            disabled={isButtonDisabled}
+            title={isButtonDisabled ? 'Finish the video to continue' : ''}
+          >
+            {hasNext ? 'Up next' : 'Finish'}
+          </button>
+          {isButtonDisabled && (
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-800 text-white text-sm rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+              Finish the video to continue
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

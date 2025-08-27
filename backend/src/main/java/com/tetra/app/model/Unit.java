@@ -2,7 +2,7 @@ package com.tetra.app.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "units", indexes = {
@@ -27,6 +27,8 @@ public class Unit {
 
     @OneToMany(mappedBy = "unit", cascade = CascadeType.ALL, orphanRemoval = true)
     private java.util.List<UnitContent> unitContent;
+        @Column(name = "sort_order")
+        private Integer sortOrder;
 
     public Unit() {}
 
@@ -79,4 +81,12 @@ public class Unit {
     public void setUnitContent(java.util.List<UnitContent> unitContent) {
         this.unitContent = unitContent;
     }
+
+        public Integer getSortOrder() {
+            return sortOrder;
+        }
+
+        public void setSortOrder(Integer sortOrder) {
+            this.sortOrder = sortOrder;
+        }
 }

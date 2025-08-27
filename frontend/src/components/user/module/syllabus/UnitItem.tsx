@@ -3,6 +3,7 @@ import { type Unit } from '../ModulePage';
 import { useNavigate } from 'react-router-dom';
 import UnitContentItem from './UnitContentItem';
 import { ChevronDownIcon, ChevronUpIcon } from '../../../common/Icons';
+import { useModuleProgress } from '../../../../context/user/ModuleProgressContext';
 
 type UnitItemProps = {
   unit: Unit;
@@ -17,9 +18,15 @@ const UnitItem: React.FC<UnitItemProps> = ({
   onToggle,
   index,
 }) => {
+  const { ensureModuleStarted, setUnitId } = useModuleProgress();
   const navigate = useNavigate();
 
-  const handleTitleClick = (unitId: string) => {
+  const handleTitleClick = async (unitId: string) => {
+    // Ensure the module is started if user bypassed the Start button
+    await ensureModuleStarted();
+
+    setUnitId(unitId);
+
     navigate(`/user/unit/${unitId}`);
   };
 
@@ -32,10 +39,10 @@ const UnitItem: React.FC<UnitItemProps> = ({
         onClick={() => onToggle()}
       >
         <div
-          onClick={(e) => {
+          onClick={async (e) => {
             if (!unit.hasProgress) return;
             e.stopPropagation();
-            handleTitleClick(unit.id);
+            await handleTitleClick(unit.id);
           }}
           title={
             !unit.hasProgress ? 'Start the module to unlock this unit' : ''

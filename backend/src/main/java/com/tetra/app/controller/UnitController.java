@@ -82,6 +82,7 @@ public class UnitController {
                 Map<String, Object> map = new java.util.HashMap<>();
                 map.put("id", unit.getId());
                 map.put("title", unit.getTitle());
+                map.put("sort_order", unit.getSortOrder());
                 return map;
             })
             .toList();
@@ -126,6 +127,7 @@ public class UnitController {
         Object moduleIdObj = body.get("module_id");
         Object titleObj = body.get("title");
         Object descriptionObj = body.get("description");
+        Object sortOrderObj = body.get("sort_order");
 
         if (moduleIdObj == null || titleObj == null || descriptionObj == null) {
             return ResponseEntity.badRequest().body("module_id, title, and description are required");
@@ -147,6 +149,13 @@ public class UnitController {
         String description = descriptionObj.toString();
 
         Unit unit = new Unit(module, title, description);
+        if (sortOrderObj != null) {
+            try {
+                unit.setSortOrder(Integer.valueOf(sortOrderObj.toString()));
+            } catch (NumberFormatException nfe) {
+                return ResponseEntity.badRequest().body("Invalid sort_order; must be an integer");
+            }
+        }
         Unit saved = unitRepository.save(unit);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
@@ -175,9 +184,17 @@ public class UnitController {
 
         String title = body.get("title") != null ? body.get("title").toString() : null;
         String description = body.get("description") != null ? body.get("description").toString() : null;
+        Object sortOrderObj = body.get("sort_order");
 
         if (title != null) unit.setTitle(title);
         if (description != null) unit.setDescription(description);
+        if (sortOrderObj != null) {
+            try {
+                unit.setSortOrder(Integer.valueOf(sortOrderObj.toString()));
+            } catch (NumberFormatException nfe) {
+                return ResponseEntity.badRequest().body("Invalid sort_order; must be an integer");
+            }
+        }
 
         Unit updatedUnit = unitRepository.save(unit);
 

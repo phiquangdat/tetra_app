@@ -31,7 +31,10 @@ interface Unit {
 interface ModuleProgressContextProps {
   units: Unit[];
   setUnits: (units: Unit[]) => void;
-  goToNextContent: (currentContentId: string) => void;
+  goToNextContent: (
+    currentContentId: string,
+    opts?: { unitId?: string; moduleId?: string },
+  ) => Promise<void>;
   isNextContent: (currentContentId: string) => boolean | undefined;
   isNextContentAsync: (currentContentId: string) => Promise<boolean>;
   unitId: string;
@@ -105,16 +108,28 @@ export const ModuleProgressProvider = ({
     setUnitsState(units);
   };
 
-  const goToNextContent = async (currentContentId: string) => {
-    if (!unitId || !moduleId) {
-      console.warn('[goToNextContent] Missing unitId/moduleId in context');
+  const goToNextContent = async (
+    currentContentId: string,
+    opts?: { unitId?: string; moduleId?: string },
+  ): Promise<void> => {
+    // Prefer explicit overrides, then context, then last_visited fallback
+    const currentUnitId =
+      opts?.unitId || unitId || moduleProgress?.last_visited_unit_id;
+    const currentModuleId = opts?.moduleId || moduleId;
+
+    if (!currentUnitId || !currentModuleId) {
+      console.warn(
+        '[goToNextContent] Missing unitId/moduleId even after overrides',
+        { currentUnitId, currentModuleId },
+      );
       return;
     }
 
+    // 1) Ensure we have the units list
     let unitList = units;
     if (!unitList || unitList.length === 0) {
       try {
-        unitList = await fetchUnitTitleByModuleId(moduleId);
+        unitList = await fetchUnitTitleByModuleId(currentModuleId);
         setUnits(unitList);
       } catch (e) {
         console.error('[goToNextContent] Failed to hydrate units list:', e);
@@ -122,8 +137,10 @@ export const ModuleProgressProvider = ({
       }
     }
 
-    let currentUnitIndex = unitList.findIndex((u) => u.id === unitId);
+    // 2) Find current unit index (using the resolved currentUnitId)
+    let currentUnitIndex = unitList.findIndex((u) => u.id === currentUnitId);
     if (currentUnitIndex === -1) {
+      // last-visited fallback as a last resort
       if (moduleProgress?.last_visited_unit_id) {
         currentUnitIndex = unitList.findIndex(
           (u) => u.id === moduleProgress.last_visited_unit_id,
@@ -135,21 +152,24 @@ export const ModuleProgressProvider = ({
       }
     }
 
+    // 3) Ensure we have the content list for the *current* unit
     let list = contentList;
-    if (!list || list.length === 0) {
+    if (!list || list.length === 0 || unitId !== currentUnitId) {
       try {
-        list = await fetchUnitContentById(unitId);
-        setUnitContent(unitId, list);
+        list = await fetchUnitContentById(currentUnitId);
+        setUnitContent(currentUnitId, list);
       } catch (e) {
         console.error('[goToNextContent] Failed to hydrate content list:', e);
         return;
       }
     }
 
-    const currentContentIndex = contentList.findIndex(
+    // 4) Figure out "next content" inside the same unit
+    const currentContentIndex = list.findIndex(
       (c) => c.id === currentContentId,
     );
-    const nextContent = contentList[currentContentIndex + 1];
+    const nextContent =
+      currentContentIndex >= 0 ? list[currentContentIndex + 1] : undefined;
 
     if (nextContent) {
       // CASE 1: next content in current unit
@@ -157,40 +177,32 @@ export const ModuleProgressProvider = ({
         await openModal(nextContent.id); // Show quiz modal (don't navigate)
       } else {
         navigate(`/user/${nextContent.content_type}/${nextContent.id}`, {
-          state: { unitId },
+          state: { unitId: currentUnitId },
         });
       }
       return;
     }
 
-    // CASE 2: go to first content in next unit
+    // 5) No more content -> move to next unit or finish module
     const nextUnit = unitList[currentUnitIndex + 1];
     if (nextUnit) {
-      openUnitCompletionModal(nextUnit.id, moduleId);
+      openUnitCompletionModal(nextUnit.id, currentModuleId);
 
-      async function updateProgress() {
-        try {
-          // Unit progress
-          const up = await getOrCreateUnitProgress(unitId);
-
-          const response = await updateUnitProgress(up.id as string, {
-            moduleId,
-            unitId,
-            status: 'COMPLETED',
-          });
-          setUnitProgress(response);
-          setUnitProgressStatus('completed');
-
-          console.log('[updateUnitProgress]', response);
-        } catch (error) {
-          console.error('Error updating unit progress:', error);
-        }
+      try {
+        const up = await getOrCreateUnitProgress(currentUnitId);
+        const response = await updateUnitProgress(up.id as string, {
+          moduleId: currentModuleId,
+          unitId: currentUnitId,
+          status: 'COMPLETED',
+        });
+        setUnitProgress(response);
+        setUnitProgressStatus('completed');
+        console.log('[updateUnitProgress]', response);
+      } catch (error) {
+        console.error('Error updating unit progress:', error);
       }
-
-      await updateProgress();
     } else {
-      console.log('Navigating to', moduleId);
-      navigate(`/user/modules/${moduleId}`);
+      navigate(`/user/modules/${currentModuleId}`);
     }
   };
 

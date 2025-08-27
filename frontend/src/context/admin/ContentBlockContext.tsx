@@ -24,6 +24,7 @@ import {
 } from '../../services/unit/content/unitContentApi.ts';
 import { useModuleContext } from './ModuleContext';
 import { adjustModulePoints } from '../../utils/pointsHelpers.ts';
+import { deleteFileById } from '../../utils/fileHelpers.ts';
 
 interface ContextBlockType extends ContentBlock {
   updateContentField: (key: keyof ContentBlock, value: any) => void;
@@ -87,7 +88,11 @@ export const ContentBlockContextProvider = ({
   );
   const { id: moduleId, updateModuleField } = useModuleContext();
 
-  const UI_KEYS: Array<keyof ContentBlock> = ['fileBlob', 'fileError'];
+  const UI_KEYS: Array<keyof ContentBlock> = [
+    'fileBlob',
+    'fileError',
+    'fileIdToDelete',
+  ];
 
   const updateContentField = useCallback(
     (key: keyof ContentBlock, value: any) => {
@@ -254,18 +259,44 @@ export const ContentBlockContextProvider = ({
               throw new Error('Article title and content are required');
             }
 
-            let attachment_id: string | undefined;
-            if (contentBlock.fileBlob) {
-              try {
+            let attachment_id: string | undefined =
+              contentBlock.data.fileId ?? undefined;
+
+            try {
+              if (contentBlock.fileBlob) {
+                if (contentBlock.fileIdToDelete) {
+                  try {
+                    await deleteFileById(contentBlock.fileIdToDelete);
+                  } catch (e) {
+                    console.warn(
+                      '[saveContent] deleteFileById (replace) warning:',
+                      e,
+                    );
+                  }
+                }
+
                 const uploaded = await uploadFile(contentBlock.fileBlob);
                 attachment_id = uploaded.id;
-              } catch (err) {
-                const error =
-                  err instanceof Error ? err.message : 'File upload failed';
-                console.error('[saveContent] Upload error:', error);
-                setContentState({ isSaving: false, fileError: error });
-                return;
+              } else if (
+                !contentBlock.data.fileId &&
+                contentBlock.fileIdToDelete
+              ) {
+                try {
+                  await deleteFileById(contentBlock.fileIdToDelete);
+                } catch (e) {
+                  console.warn(
+                    '[saveContent] deleteFileById (remove) warning:',
+                    e,
+                  );
+                }
+                attachment_id = undefined;
               }
+            } catch (err) {
+              const error =
+                err instanceof Error ? err.message : 'File operation failed';
+              console.error('[saveContent] Attachment step failed:', error);
+              setContentState({ isSaving: false, fileError: error });
+              return;
             }
 
             const payload: SaveArticleRequest = {
@@ -275,7 +306,13 @@ export const ContentBlockContextProvider = ({
               content: content as string,
               points: points as number,
               sort_order,
-              attachment_id,
+              ...(contentBlock.fileBlob
+                ? { attachment_id }
+                : !contentBlock.data.fileId && contentBlock.fileIdToDelete
+                  ? { attachment_id: null }
+                  : attachment_id
+                    ? { attachment_id }
+                    : {}),
             };
 
             let result: { id: string };
@@ -313,14 +350,35 @@ export const ContentBlockContextProvider = ({
               const updatedBlock: ContentBlock = {
                 ...contentBlock,
                 id: result.id,
+                type: contentBlock.type,
+                sortOrder: contentBlock.sortOrder,
+                unit_id: contentBlock.unit_id,
                 data: {
                   ...contentBlock.data,
-                  content: content,
-                  fileId: attachment_id || contentBlock.data.fileId,
+                  content,
+                  fileId: attachment_id ?? null,
+                  fileName: contentBlock.fileBlob
+                    ? contentBlock.fileBlob.name
+                    : !contentBlock.data.fileId && contentBlock.fileIdToDelete
+                      ? undefined
+                      : contentBlock.data.fileName,
+                  fileMime: contentBlock.fileBlob
+                    ? contentBlock.fileBlob.type || undefined
+                    : !contentBlock.data.fileId && contentBlock.fileIdToDelete
+                      ? undefined
+                      : contentBlock.data.fileMime,
+                  fileSize: contentBlock.fileBlob
+                    ? contentBlock.fileBlob.size
+                    : !contentBlock.data.fileId && contentBlock.fileIdToDelete
+                      ? undefined
+                      : contentBlock.data.fileSize,
                 },
                 isDirty: false,
                 isSaving: false,
                 error: null,
+                fileBlob: null,
+                fileError: null,
+                fileIdToDelete: null,
               };
 
               setContentState(updatedBlock);
@@ -332,7 +390,6 @@ export const ContentBlockContextProvider = ({
               setContentState({ error });
               return;
             }
-            break;
           }
           case 'quiz': {
             const { title, content, points, questions } = contentBlock.data;
@@ -344,18 +401,43 @@ export const ContentBlockContextProvider = ({
               );
             }
 
-            let attachment_id: string | undefined;
-            if (contentBlock.fileBlob) {
-              try {
+            let attachment_id: string | undefined =
+              contentBlock.data.fileId ?? undefined;
+
+            try {
+              if (contentBlock.fileBlob) {
+                if (contentBlock.fileIdToDelete) {
+                  try {
+                    await deleteFileById(contentBlock.fileIdToDelete);
+                  } catch (e) {
+                    console.warn(
+                      '[saveContent] deleteFileById (replace) warning:',
+                      e,
+                    );
+                  }
+                }
                 const uploaded = await uploadFile(contentBlock.fileBlob);
                 attachment_id = uploaded.id;
-              } catch (err) {
-                const error =
-                  err instanceof Error ? err.message : 'File upload failed';
-                console.error('[saveContent] Upload error:', error);
-                setContentState({ isSaving: false, fileError: error });
-                return;
+              } else if (
+                !contentBlock.data.fileId &&
+                contentBlock.fileIdToDelete
+              ) {
+                try {
+                  await deleteFileById(contentBlock.fileIdToDelete);
+                } catch (e) {
+                  console.warn(
+                    '[saveContent] deleteFileById (remove) warning:',
+                    e,
+                  );
+                }
+                attachment_id = undefined;
               }
+            } catch (err) {
+              const error =
+                err instanceof Error ? err.message : 'File operation failed';
+              console.error('[saveContent] Attachment step failed:', error);
+              setContentState({ isSaving: false, fileError: error });
+              return;
             }
 
             const payload: SaveQuizRequest = {
@@ -406,11 +488,28 @@ export const ContentBlockContextProvider = ({
               const updatedBlock: ContentBlock = {
                 ...contentBlock,
                 id: result.id,
+                type: contentBlock.type,
+                sortOrder: contentBlock.sortOrder,
+                unit_id: contentBlock.unit_id,
                 data: {
                   ...contentBlock.data,
-                  content: content,
-                  fileId: attachment_id || contentBlock.data.fileId,
+                  content,
+                  fileId: attachment_id ?? null,
+                  fileName:
+                    contentBlock.fileBlob?.name ??
+                    contentBlock.data.fileName ??
+                    (attachment_id ? contentBlock.data.fileName : undefined),
+                  fileMime:
+                    contentBlock.fileBlob?.type ||
+                    contentBlock.data.fileMime ||
+                    undefined,
+                  fileSize:
+                    contentBlock.fileBlob?.size ??
+                    contentBlock.data.fileSize ??
+                    undefined,
                 },
+                fileBlob: null,
+                fileError: null,
                 isDirty: false,
                 isSaving: false,
                 error: null,
@@ -421,7 +520,7 @@ export const ContentBlockContextProvider = ({
             } catch (err) {
               const error =
                 err instanceof Error ? err.message : 'Unknown error occurred';
-              console.error('[saveContent] Failed to save article:', error);
+              console.error('[saveContent] Failed to save quiz:', error);
               setContentState({ error });
               return;
             }
@@ -497,6 +596,7 @@ export const ContentBlockContextProvider = ({
   const setSelectedFile = useCallback((file: File) => {
     setContentBlock((prev) => ({
       ...prev,
+      fileIdToDelete: prev.data.fileId || null,
       data: {
         ...prev.data,
         fileName: file.name,
@@ -512,6 +612,7 @@ export const ContentBlockContextProvider = ({
   const clearSelectedFile = useCallback(() => {
     setContentBlock((prev) => ({
       ...prev,
+      fileIdToDelete: prev.data.fileId || null,
       data: {
         ...prev.data,
         fileName: undefined,

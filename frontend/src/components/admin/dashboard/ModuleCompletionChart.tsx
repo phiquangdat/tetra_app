@@ -1,16 +1,9 @@
 import { Chart } from 'chart.js/auto';
-import { useEffect, useRef } from 'react';
-
-const labels = [
-  'Cybersecurity',
-  'AI',
-  'Safety',
-  'Communication',
-  'Leadership',
-  'Teamwork',
-];
-
-const completion = [100, 150, 130, 145, 170, 160];
+import { useEffect, useRef, useState } from 'react';
+import {
+  getModuleCompletionsByTopic,
+  type ModuleCompletionsByTopic,
+} from '../../../services/admin/adminApi';
 
 const colors = [
   'rgba(255, 99, 132)',
@@ -24,22 +17,53 @@ const colors = [
 
 const ModuleCompletionChart = () => {
   const barRef = useRef<HTMLCanvasElement | null>(null);
+  const [data, setData] = useState<ModuleCompletionsByTopic[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
   useEffect(() => {
-    if (!barRef.current) return;
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const result = await getModuleCompletionsByTopic();
+        const filtered = result.filter((r) => r.completions > 0);
+        setData(filtered);
+        setError(false);
+      } catch {
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (!barRef.current || loading || error) return;
+
+    const maxY = Math.max(1, ...data.map((d) => d.completions));
 
     const barChart = new Chart(barRef.current, {
       type: 'bar',
       data: {
-        labels: labels,
+        labels: data.map((item) => item.topic),
         datasets: [
           {
-            data: completion,
-            backgroundColor: colors,
-            borderRadius: 8,
+            data: data.map((item) => item.completions),
+            backgroundColor: data.map(
+              (_, i) => colors[i % colors.length], // wrap colors when exceed length
+            ),
+            borderRadius: 12,
+            barThickness: Math.min(
+              80,
+              Math.max(40, barRef.current.offsetWidth / (data.length * 2)),
+            ),
           },
         ],
       },
       options: {
+        responsive: true,
         plugins: {
           legend: { display: false },
           datalabels: {
@@ -51,13 +75,13 @@ const ModuleCompletionChart = () => {
             title: {
               display: true,
               text: 'Completions',
-              color: 'gray',
+              color: '#231942',
               font: { size: 20, weight: 'bold' },
             },
-            max: 200,
+            max: Math.ceil(maxY * 1.1),
             ticks: {
-              stepSize: 50,
-              color: '#A0AEC0',
+              stepSize: Math.max(1, Math.ceil(maxY / 8)),
+              color: '#14248a',
               font: { size: 16 },
               padding: 15,
             },
@@ -66,11 +90,11 @@ const ModuleCompletionChart = () => {
             title: {
               display: true,
               text: 'Modules',
-              color: 'gray',
+              color: '#231942',
               font: { size: 20, weight: 'bold' },
             },
             ticks: {
-              color: '#A0AEC0',
+              color: '#14248a',
               font: { size: 16 },
               padding: 15,
             },
@@ -82,19 +106,21 @@ const ModuleCompletionChart = () => {
       },
     });
 
-    return () => {
-      barChart.destroy();
-    };
-  }, []);
+    return () => barChart.destroy();
+  }, [data, loading, error]);
 
   return (
-    <>
-      <div className="bg-white rounded-2xl mt-16 shadow-lg border border-gray-100">
-        <div className="w-full p-6">
+    <div className="bg-white rounded-2xl my-12 shadow-lg border border-highlight">
+      <div className="w-full p-8">
+        {loading ? (
+          <div className="w-full h-[240px] bg-gray-100 animate-pulse rounded-lg" />
+        ) : error ? (
+          <div className="w-full h-[240px] bg-gray-100 rounded-lg" />
+        ) : (
           <canvas ref={barRef} />
-        </div>
+        )}
       </div>
-    </>
+    </div>
   );
 };
 

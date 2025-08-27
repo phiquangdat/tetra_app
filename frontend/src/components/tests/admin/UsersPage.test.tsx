@@ -6,6 +6,15 @@ import React from 'react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 
 vi.mock('../../../services/user/userApi');
+vi.mock('../../../context/auth/AuthContext', () => ({
+  useAuth: () => ({
+    authToken: 'test-token',
+    userId: 'admin-id',
+    userRole: 'admin',
+    logout: vi.fn(),
+    setAuth: vi.fn(),
+  }),
+}));
 
 describe('UsersPage', () => {
   afterEach(() => {

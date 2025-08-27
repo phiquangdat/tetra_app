@@ -102,3 +102,25 @@ export const updateUserPassword = async (
   oldPassword: string,
   password: string,
 ) => await updateUser(id, { oldPassword, password });
+
+export async function deleteUser(id: string): Promise<string> {
+  const token = getAuthToken();
+  const url = `${BASE_URL}/users/${id}`;
+  try {
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+
+    const text = await response.text();
+    if (!response.ok) {
+      throw new Error(text || 'Failed to delete user');
+    }
+    return text || 'User deleted successfully';
+  } catch (error) {
+    throw error instanceof Error ? error : new Error('Failed to delete user');
+  }
+}

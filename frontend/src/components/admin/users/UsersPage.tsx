@@ -1,14 +1,30 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import AddUserForm from './AddUserForm';
-import { getUsers, type User } from '../../../services/user/userApi';
+import {
+  getUsers,
+  deleteUser,
+  type User,
+} from '../../../services/user/userApi';
+import { useAuth } from '../../../context/auth/AuthContext';
+import toast from 'react-hot-toast';
+import { RemoveIcon } from '../../common/Icons';
+import ConfirmationModal from '../createModule/ConfirmationModal';
 
 const UserPage = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [data, setData] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const { userRole } = useAuth();
+  const isAdmin = (userRole || '').toLowerCase() === 'admin';
 
-  const headers = useMemo(() => ['Id', 'Name', 'Email', 'Role'], []);
+  const headers = useMemo(() => {
+    const base = ['Id', 'Name', 'Email', 'Role'];
+    return isAdmin ? [...base, 'Actions'] : base;
+  }, [isAdmin]);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -40,6 +56,30 @@ const UserPage = () => {
   const handleUserAdded = () => {
     fetchUsers();
     setIsOpen(false);
+  };
+
+  const openDeleteModal = (userId: string) => {
+    setSelectedUserId(userId);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedUserId || deleting) return;
+    try {
+      setDeleting(true);
+      await deleteUser(selectedUserId);
+      toast.success('User deleted successfully');
+      setShowDeleteModal(false);
+      setSelectedUserId(null);
+      fetchUsers();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Failed to delete user';
+      toast.error(message);
+      // keep modal open for retry
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -112,6 +152,18 @@ const UserPage = () => {
                   </td>
                   <td className="p-4 text-primary">{user.email}</td>
                   <td className="p-4 text-primary">{user.role}</td>
+                  {isAdmin && (
+                    <td className="p-4 text-primary">
+                      <span
+                        role="button"
+                        aria-label={`Delete user ${user.name}`}
+                        className="inline-flex items-center gap-2 cursor-pointer text-error hover:text-errorHover"
+                        onClick={() => openDeleteModal(user.id)}
+                      >
+                        <RemoveIcon width={25} height={25} />
+                      </span>
+                    </td>
+                  )}
                 </tr>
               ))
             )}
@@ -124,6 +176,16 @@ const UserPage = () => {
         onClose={() => setIsOpen(false)}
         onUserAdded={handleUserAdded}
       />
+
+      {showDeleteModal && (
+        <ConfirmationModal
+          onCancel={() => setShowDeleteModal(false)}
+          onConfirm={handleConfirmDelete}
+          title="Delete User"
+          description="Are you sure you want to delete this user? This cannot be undone."
+          confirmText={deleting ? 'Deleting…' : 'Delete'}
+        />
+      )}
     </div>
   );
 };

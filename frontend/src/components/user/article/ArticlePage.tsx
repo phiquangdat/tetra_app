@@ -57,6 +57,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
 
   // Lock to prevent multiple triggers while past 90%
   const completingRef = useRef(false);
+  const [hasNext, setHasNext] = useState(false);
 
   // helper (already in your code path)
   const safePatchModule = useCallback(
@@ -79,13 +80,11 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
 
   const resolveUnitId = (a?: Article | null) =>
     unitIdFromState || unitId || a?.unit_id || '';
-  const [hasNext, setHasNext] = useState(false);
 
   const calculateScrollPercent = useCallback(() => {
     const element = articleRef.current;
     if (!element) return 0;
 
-    // How far the top of the viewport is from the top of the document
     const scrollTop =
       window.scrollY ||
       window.pageYOffset ||
@@ -217,14 +216,25 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
   ]);
 
   useEffect(() => {
+    completingRef.current = false;
+  }, [id]);
+
+  useEffect(() => {
+    const done =
+      String(contentProgress?.status || '').toUpperCase() === 'COMPLETED';
+    completingRef.current = done ? true : false;
+  }, [contentProgress?.id, contentProgress?.status]);
+
+  useEffect(() => {
     const fetchData = async () => {
+      completingRef.current = false;
+
       const data = await fetchArticleContentById(id);
       setArticle(data);
 
       if (data.attachment_id) {
         try {
           const file = await fetchFileById(data.attachment_id);
-          console.log('Fetched attachment metadata:', file);
           setAttachment(file);
         } catch (error) {
           console.error('Failed to fetch attachment metadata:', error);
@@ -268,11 +278,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
 
         setContentProgress(progress);
 
-        // If already completed, prime the lock
-        if (String(progress.status).toUpperCase() === 'COMPLETED') {
-          completingRef.current = true;
-        }
-
+        // Patch last visited ONLY when first time (not completed yet)
         if (
           (moduleProgress?.last_visited_unit_id !== resolvedUnitId ||
             moduleProgress?.last_visited_content_id !== id) &&
@@ -299,7 +305,14 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
           });
           console.log('[createContentProgress]', progress);
 
-          setContentProgress(progress);
+          try {
+            await safePatchModule({
+              lastVisitedUnit: resolvedUnitId,
+              lastVisitedContent: id,
+            });
+          } catch (e) {
+            console.error('[patchModuleProgress after create]', e);
+          }
         } else {
           console.error(error);
         }
@@ -340,17 +353,12 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
   useEffect(() => {
     if (
       !articleRef.current ||
-      contentProgress?.status?.toLowerCase() == 'completed'
+      contentProgress?.status?.toLowerCase() === 'completed'
     )
       return;
 
-    window.addEventListener('scroll', handleScroll, {
-      passive: true,
-    });
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll, contentProgress?.status, article]);
 
   return (
@@ -422,7 +430,16 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
         <button
           className="bg-surface text-background font-semibold px-12 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition-all duration-200 w-fit"
           type="button"
-          onClick={() => goToNextContent(id)}
+          onClick={async () => {
+            if (
+              contentProgress &&
+              contentProgress.status !== 'COMPLETED' &&
+              isArticleShorterThanViewport()
+            ) {
+              await markAsCompleted();
+            }
+            await goToNextContent(id);
+          }}
         >
           {hasNext ? 'Up next' : 'Finish'}
         </button>

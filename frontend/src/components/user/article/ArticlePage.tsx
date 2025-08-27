@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   fetchArticleContentById,
   type Article,
+  fetchUnitById,
 } from '../../../services/unit/unitApi';
 import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
 import {
@@ -225,6 +226,60 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     completingRef.current = done ? true : false;
   }, [contentProgress?.id, contentProgress?.status]);
 
+  // ⬇️ NEW: robust id hydration like in VideoPage
+  const ensureIds = useCallback(async () => {
+    let u =
+      idsRef.current.unitId ||
+      unitId ||
+      unitIdFromState ||
+      article?.unit_id ||
+      '';
+    let m = idsRef.current.moduleId || moduleId || '';
+
+    // If we have unitId but no moduleId, fetch the unit to resolve moduleId
+    if (u && !m) {
+      try {
+        const unit = await fetchUnitById(u);
+        m = (unit as any).moduleId || (unit as any).module_id || '';
+        if (m) setModuleId(m);
+      } catch (e) {
+        console.warn('[ensureIds] fetchUnitById failed:', e);
+      }
+    }
+
+    // If still missing, hydrate from content
+    if (!u || !m) {
+      try {
+        const hydrated = await hydrateContextFromContent(id, {
+          setUnitId,
+          setModuleId,
+        });
+        u ||= hydrated.unitId;
+        m ||= hydrated.moduleId;
+      } catch (e) {
+        console.warn('[ensureIds] hydrateContextFromContent failed:', e);
+      }
+    }
+
+    // Write back to context + ref
+    if (u && !unitId) setUnitId(u);
+    if (m && !moduleId) setModuleId(m);
+    idsRef.current = { unitId: u || undefined, moduleId: m || undefined };
+
+    if (!u || !m) {
+      console.warn('[ensureIds] Missing ids after hydration', { u, m });
+    }
+    return { unitId: u, moduleId: m };
+  }, [
+    id,
+    unitId,
+    moduleId,
+    unitIdFromState,
+    article?.unit_id,
+    setUnitId,
+    setModuleId,
+  ]);
+
   useEffect(() => {
     const fetchData = async () => {
       completingRef.current = false;
@@ -241,27 +296,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
         }
       }
 
-      // Hydrate context if missing and cache IDs
-      let effectiveUnitId = unitId || data.unit_id || unitIdFromState || '';
-      let effectiveModuleId = moduleId;
-
-      if (!effectiveUnitId || !effectiveModuleId) {
-        try {
-          const hydrated = await hydrateContextFromContent(id, {
-            setUnitId,
-            setModuleId,
-          });
-          effectiveUnitId ||= hydrated.unitId;
-          effectiveModuleId ||= hydrated.moduleId;
-        } catch (error) {
-          console.log('Error while hydrating context', error);
-        }
-      }
-
-      idsRef.current = {
-        unitId: effectiveUnitId,
-        moduleId: effectiveModuleId,
-      };
+      // ✅ Hydrate IDs before anything that depends on unitId/moduleId
+      await ensureIds();
 
       try {
         const next = await isNextContentAsync(id);
@@ -270,7 +306,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
         setHasNext(false);
       }
 
-      const resolvedUnitId = resolveUnitId(data) || effectiveUnitId;
+      const resolvedUnitId = resolveUnitId(data) || idsRef.current.unitId || '';
 
       try {
         const progress = await getContentProgress(id);
@@ -323,8 +359,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
   }, [
     id,
     unitIdFromState,
-    unitId,
-    moduleId,
     isNextContentAsync,
     moduleProgress,
     setUnitId,
@@ -332,6 +366,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     safePatchModule,
     setModuleProgress,
     navigate,
+    ensureIds, // ⬅️ added
   ]);
 
   useEffect(() => {
@@ -438,7 +473,11 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
             ) {
               await markAsCompleted();
             }
-            await goToNextContent(id);
+            const ids = await ensureIds(); // ⬅️ ensure we have both ids before navigating
+            await goToNextContent(id, {
+              unitId: ids.unitId,
+              moduleId: ids.moduleId,
+            });
           }}
         >
           {hasNext ? 'Up next' : 'Finish'}

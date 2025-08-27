@@ -200,14 +200,22 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
       let effectiveModuleId = moduleId;
 
       if (!effectiveUnitId || !effectiveModuleId) {
-        const hydrated = await hydrateContextFromContent(id, {
-          setUnitId,
-          setModuleId,
-        });
-        effectiveUnitId ||= hydrated.unitId;
-        effectiveModuleId ||= hydrated.moduleId;
+        try {
+          const hydrated = await hydrateContextFromContent(id, {
+            setUnitId,
+            setModuleId,
+          });
+          effectiveUnitId ||= hydrated.unitId;
+          effectiveModuleId ||= hydrated.moduleId;
+        } catch (error) {
+          console.log('Error while hydrating context', error);
+        }
       }
-      idsRef.current = { unitId: effectiveUnitId, moduleId: effectiveModuleId };
+
+      idsRef.current = {
+        unitId: effectiveUnitId,
+        moduleId: effectiveModuleId,
+      };
 
       try {
         const next = await isNextContentAsync(id);
@@ -274,6 +282,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     setModuleId,
     safePatchModule,
     setModuleProgress,
+    navigate,
   ]);
 
   useEffect(() => {
@@ -290,7 +299,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [handleScroll, contentProgress?.status]);
+  }, [handleScroll, contentProgress?.status, article]);
 
   return (
     <div className="mx-auto px-8 py-8 min-h-screen text-left">

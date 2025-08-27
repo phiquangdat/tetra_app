@@ -187,7 +187,7 @@ const UserStatCharts = () => {
     );
   } else if (
     !stats ||
-    ((stats.modulesCompleted ?? 0) + (stats.modulesInProgress ?? 0)) === 0
+    (stats.modulesCompleted ?? 0) + (stats.modulesInProgress ?? 0) === 0
   ) {
     statusContent = (
       <div className="w-full flex justify-center items-center h-64 text-gray-400">

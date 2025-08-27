@@ -13,7 +13,9 @@ export interface UserStats {
 }
 
 export async function getUserStats(): Promise<UserStats> {
-  const response = await fetchWithAuth(`${BASE_URL}/user-stats`, { method: 'GET' });
+  const response = await fetchWithAuth(`${BASE_URL}/user-stats`, {
+    method: 'GET',
+  });
   if (
     typeof response?.totalPoints !== 'number' ||
     !Array.isArray(response?.topicPoints)

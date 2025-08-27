@@ -403,65 +403,68 @@ export const ModuleProgressProvider = ({
     }
   };
 
-  async function finalizeUnitIfComplete(unitId: string, moduleId: string) {
-    // Fetch all content items for the unit
-    const contents = await fetchUnitContentById(unitId);
+  async function finalizeUnitIfComplete(
+    targetUnitId: string,
+    targetModuleId: string,
+  ) {
+    // Fetch contents and their progress
+    const contents = await fetchUnitContentById(targetUnitId);
+    const progressList = await getContentProgressByUnitId(targetUnitId);
 
-    // Fetch all content progress for that unit
-    const progressList = await getContentProgressByUnitId(unitId);
+    // Handle API snake_case or camelCase transparently
+    const getContentId = (p: any) => p.unitContentId ?? p.unit_content_id;
+    const getStatus = (p: any) => (p.status ?? '').toString().toUpperCase();
 
     // Determine if all content have a progress entry with status COMPLETED
-    const byId = new Map(progressList.map((p) => [p.unitContentId, p]));
+    const byId = new Map(progressList.map((p: any) => [getContentId(p), p]));
     const allCompleted =
       contents.length > 0 &&
       contents.every((c) => {
         const p = byId.get(c.id);
-        return p && String(p.status).toUpperCase() === 'COMPLETED';
+        return p && getStatus(p) === 'COMPLETED';
       });
 
     if (!allCompleted) return;
 
-    // Mark the unit as COMPLETED if not already
-    if (unitProgress && unitProgress.status?.toUpperCase() !== 'COMPLETED') {
-      const updated = await updateUnitProgress(unitProgress?.id as string, {
-        moduleId,
-        unitId,
+    const up = await getOrCreateUnitProgress(targetUnitId);
+    if ((up.status ?? '').toString().toUpperCase() !== 'COMPLETED') {
+      const updated = await updateUnitProgress(up.id, {
+        moduleId: targetModuleId,
+        unitId: targetUnitId,
         status: 'COMPLETED',
       });
-      await finalizeModuleIfComplete(moduleId);
       setUnitProgress(updated);
       setUnitProgressStatus('completed');
     }
-    return;
+
+    await finalizeModuleIfComplete(targetModuleId);
   }
 
-  async function finalizeModuleIfComplete(moduleId: string) {
-    // Fetch unit progress for the whole module
-    const unitProgresses = await getUnitProgressByModuleId(moduleId);
-
-    // Fetch units for the module (we already keep them in context; fall back to API if empty)
+  async function finalizeModuleIfComplete(targetModuleId: string) {
+    const unitProgresses = await getUnitProgressByModuleId(targetModuleId);
     const list: Unit[] = units?.length
       ? units
-      : await fetchUnitTitleByModuleId(moduleId);
+      : await fetchUnitTitleByModuleId(targetModuleId);
 
-    // All units must exist and be COMPLETED
     const byUnit = new Map(unitProgresses.map((u) => [u.unitId, u]));
+    const isCompleted = (s?: string) =>
+      (s ?? '').toString().toUpperCase() === 'COMPLETED';
+
     const allCompleted =
       list.length > 0 &&
       list.every((u) => {
         const up = byUnit.get(u.id);
-        return up && String(up.status).toUpperCase() === 'COMPLETED';
+        return up && isCompleted(up.status);
       });
+
     if (!allCompleted) return false;
 
-    // Patch module progress if not already completed
-    if (
-      !moduleProgress ||
-      moduleProgress.status?.toUpperCase() !== 'COMPLETED'
-    ) {
-      const progressId =
-        moduleProgress?.id ?? (await getModuleProgress(moduleId))?.id;
-      if (!progressId) return false;
+    // Finalize module using the correct progress id
+    const progressId =
+      moduleProgress?.id ?? (await getModuleProgress(targetModuleId))?.id;
+    if (!progressId) return false;
+
+    if (!moduleProgress || !isCompleted(moduleProgress.status)) {
       const updated = await patchModuleProgress(progressId, {
         status: 'COMPLETED',
       });

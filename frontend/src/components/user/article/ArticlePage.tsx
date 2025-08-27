@@ -86,7 +86,10 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     if (!element) return 0;
 
     // How far the top of the viewport is from the top of the document
-    const scrollTop = window.scrollY;
+    const scrollTop =
+      window.scrollY ||
+      window.pageYOffset ||
+      document.documentElement.scrollTop;
 
     // Height of the viewport
     const viewportHeight = window.innerHeight;
@@ -98,7 +101,13 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     const articleTop = element.offsetTop;
 
     // Total height of the article itself
-    const articleHeight = element.scrollHeight;
+    const articleHeight = Math.max(
+      element.scrollHeight,
+      element.offsetHeight,
+      element.getBoundingClientRect().height,
+    );
+
+    if (articleHeight <= 0) return 0;
 
     // How far into the article the bottom of the viewport has reached
     const scrolledInside = scrollBottom - articleTop;

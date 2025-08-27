@@ -28,6 +28,7 @@ export type Unit = {
     title: string;
   }[];
   hasProgress?: boolean;
+  status?: string;
 };
 
 type ProgressStatus = 'not_started' | 'in_progress' | 'completed';
@@ -100,11 +101,14 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
           setUnitsProgress(progress);
           console.log('[getUnitProgressByModuleId]', progress);
 
-          const unitIdsWithProgress = new Set(progress.map((p) => p.unitId));
+          const unitIdsWithProgress = new Map(
+            progress.map((p) => [p.unitId, p.status]),
+          );
 
           const updatedUnits = units.map((u: Unit) => ({
             ...u,
             hasProgress: unitIdsWithProgress.has(u.id), //Set to true if the returned progress list has current unit ID
+            status: unitIdsWithProgress.get(u.id),
           }));
           setUnits(updatedUnits);
         } catch (err) {
@@ -199,7 +203,9 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
   const earnedPoints = moduleProgress?.earned_points ?? 0;
   const totalPoints = module?.points ?? 0;
   const progressPercent =
-    totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
+    totalPoints > 0
+      ? Math.min(Math.round((earnedPoints / totalPoints) * 100), 100)
+      : 0;
 
   return (
     <div className="mx-auto px-8 py-8 min-h-screen bg-[#FFFFFF] text-left">

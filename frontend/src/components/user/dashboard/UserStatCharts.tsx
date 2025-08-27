@@ -16,12 +16,19 @@ const PIE_COLORS = [
   'rgb(201, 203, 207)',
 ];
 
+const STATUS_COLORS = [
+  'rgb(76, 175, 80)', // Completed - green
+  'rgb(153, 102, 255)', // In Progress - purple
+];
+
 const UserStatCharts = () => {
   const doughnutRef = useRef<HTMLCanvasElement | null>(null);
+  const statusPieRef = useRef<HTMLCanvasElement | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [pieChart, setPieChart] = useState<Chart | null>(null);
+  const [statusPieChart, setStatusPieChart] = useState<Chart | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -37,14 +44,13 @@ const UserStatCharts = () => {
       });
     return () => {
       if (pieChart) pieChart.destroy();
+      if (statusPieChart) statusPieChart.destroy();
     };
   }, []);
 
   useEffect(() => {
     if (!doughnutRef.current) return;
-    if (pieChart) {
-      pieChart.destroy();
-    }
+    if (pieChart) pieChart.destroy();
     if (!stats) return;
     const filtered = stats.topicPoints.filter((t) => t.points > 0);
     if (filtered.length === 0) return;
@@ -90,15 +96,65 @@ const UserStatCharts = () => {
     setPieChart(chart);
   }, [stats]);
 
-  let content;
+  useEffect(() => {
+    if (!statusPieRef.current) return;
+    if (statusPieChart) statusPieChart.destroy();
+    if (!stats) return;
+    const completed = stats.modulesCompleted ?? 0;
+    const inProgress = stats.modulesInProgress ?? 0;
+    const total = completed + inProgress;
+    if (total === 0) return;
+    const chart = new Chart(statusPieRef.current, {
+      type: 'pie',
+      data: {
+        labels: ['Completed', 'In Progress'],
+        datasets: [
+          {
+            label: 'Modules',
+            data: [completed, inProgress],
+            backgroundColor: STATUS_COLORS,
+          },
+        ],
+      },
+      options: {
+        plugins: {
+          datalabels: {
+            color: '#222',
+            font: { weight: 'bold', size: 16 },
+            formatter: (value: number, context: any) => {
+              const total = context.chart.data.datasets[0].data.reduce(
+                (a: number, b: number) => a + b,
+                0,
+              );
+              if (total === 0) return '';
+              const percent = Math.round((value / total) * 100);
+              return percent > 0 ? `${percent}%` : '';
+            },
+            display: true,
+          },
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+              font: { size: 16 },
+            },
+          },
+        },
+      },
+      plugins: [ChartDataLabels],
+    });
+    setStatusPieChart(chart);
+  }, [stats]);
+
+  let topicContent;
   if (loading) {
-    content = (
+    topicContent = (
       <div className="w-full flex justify-center items-center h-64">
         Loading...
       </div>
     );
   } else if (error) {
-    content = (
+    topicContent = (
       <div className="w-full flex justify-center items-center h-64 text-red-500">
         {error}
       </div>
@@ -107,22 +163,56 @@ const UserStatCharts = () => {
     !stats ||
     stats.topicPoints.filter((t) => t.points > 0).length === 0
   ) {
-    content = (
+    topicContent = (
       <div className="w-full flex justify-center items-center h-64 text-gray-400">
         No points yet
       </div>
     );
   } else {
-    content = <canvas ref={doughnutRef} className="max-h-80" />;
+    topicContent = <canvas ref={doughnutRef} className="max-h-80 mb-6" />;
+  }
+
+  let statusContent;
+  if (loading) {
+    statusContent = (
+      <div className="w-full flex justify-center items-center h-64">
+        Loading...
+      </div>
+    );
+  } else if (error) {
+    statusContent = (
+      <div className="w-full flex justify-center items-center h-64 text-red-500">
+        {error}
+      </div>
+    );
+  } else if (
+    !stats ||
+    ((stats.modulesCompleted ?? 0) + (stats.modulesInProgress ?? 0)) === 0
+  ) {
+    statusContent = (
+      <div className="w-full flex justify-center items-center h-64 text-gray-400">
+        No module progress yet
+      </div>
+    );
+  } else {
+    statusContent = <canvas ref={statusPieRef} className="max-h-80 mb-6" />;
   }
 
   return (
-    <div className="rounded-2xl bg-gray-100 p-8 mt-16 shadow-lg">
-      <div className="text-xl font-semibold">Statistics</div>
-      <div className="flex flex-row justify-between my-6 gap-12 max-h-96">
-        <div className="w-1/2" />
-        <div className="w-1/2 bg-white rounded-2xl p-6 flex flex-col items-center">
-          {content}
+    <div className="rounded-2xl bg-cardBackground p-6 my-12 shadow-lg">
+      <div className="text-xl font-semibold mb-8">Statistics</div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 min-h-96">
+        <div className="bg-white rounded-2xl p-6 flex flex-col items-center">
+          <div className="mb-4 text-lg font-semibold text-[#231942] text-center">
+            Points by Topic
+          </div>
+          {topicContent}
+        </div>
+        <div className="bg-white rounded-2xl p-6 flex flex-col items-center">
+          <div className="mb-4 text-lg font-semibold text-[#231942] text-center">
+            Module Progress
+          </div>
+          {statusContent}
         </div>
       </div>
     </div>

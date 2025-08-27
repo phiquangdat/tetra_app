@@ -16,4 +16,12 @@ public class UserStatsService {
     public int getTotalPoints(UUID userId) {
         return userContentProgressRepository.sumCompletedPointsByUserId(userId);
     }
+
+    public int getCompletedModules(UUID userId) {
+        return userModuleProgressRepository.findByUser_IdAndStatus(userId, ProgressStatus.COMPLETED).size();
+    }
+
+    public int getInProgressModules(UUID userId) {
+        return userModuleProgressRepository.findByUser_IdAndStatus(userId, ProgressStatus.IN_PROGRESS).size();
+    }
 }

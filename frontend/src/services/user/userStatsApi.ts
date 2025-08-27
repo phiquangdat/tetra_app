@@ -6,19 +6,24 @@ import { fetchWithAuth } from '../../utils/authHelpers';
 
 export interface UserStats {
   totalPoints: number;
-  topicPoints: { topic: string; points: number }[];
+  topicPoints: Array<{ topic: string; points: number }>;
+
+  modulesCompleted: number;
+  modulesInProgress: number;
 }
 
 export async function getUserStats(): Promise<UserStats> {
-  const data = await fetchWithAuth(`${BASE_URL}/user-stats`, { method: 'GET' });
+  const response = await fetchWithAuth(`${BASE_URL}/user-stats`, { method: 'GET' });
   if (
-    typeof data?.totalPoints !== 'number' ||
-    !Array.isArray(data?.topicPoints)
+    typeof response?.totalPoints !== 'number' ||
+    !Array.isArray(response?.topicPoints)
   ) {
     throw new Error('Invalid response from user stats API');
   }
   return {
-    totalPoints: data.totalPoints,
-    topicPoints: data.topicPoints,
+    totalPoints: response.totalPoints,
+    topicPoints: response.topicPoints,
+    modulesCompleted: response.modulesCompleted,
+    modulesInProgress: response.modulesInProgress,
   };
 }

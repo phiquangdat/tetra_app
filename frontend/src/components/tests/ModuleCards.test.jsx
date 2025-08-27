@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, act } from '@testing-library/react';
 import { afterEach, beforeEach, vi } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 
@@ -31,6 +31,17 @@ vi.mock('../../services/module/moduleApi', () => ({
   ]),
 }));
 
+vi.mock('../../services/user/userModuleProgressApi', () => ({
+  getUserModuleProgress: vi.fn().mockResolvedValue([
+    {
+      moduleId: '1',
+      moduleTitle: 'Intro to Python',
+      status: 'IN_PROGRESS',
+      earned_points: 25,
+    },
+  ]),
+}));
+
 const renderWithRouter = (component) => {
   return render(<BrowserRouter>{component}</BrowserRouter>);
 };
@@ -42,14 +53,19 @@ describe('ModuleCards', () => {
     vi.clearAllMocks();
   });
 
-  it('renders header text', () => {
-    renderWithRouter(<ModuleCards />);
+  it('renders header text', async () => {
+    await act(async () => {
+      renderWithRouter(<ModuleCards />);
+    });
+
     const headerText = screen.getByText(/Learning Modules/i);
     expect(headerText).toBeInTheDocument();
   });
 
   it('renders a list of module cards', async () => {
-    renderWithRouter(<ModuleCards />);
+    await act(async () => {
+      renderWithRouter(<ModuleCards />);
+    });
 
     // Wait for the modules to be loaded
     await waitFor(() => screen.getByText(/Intro to Python/i));
@@ -64,7 +80,9 @@ describe('ModuleCards', () => {
   });
 
   it('displays the correct points for each module', async () => {
-    renderWithRouter(<ModuleCards />);
+    await act(async () => {
+      renderWithRouter(<ModuleCards />);
+    });
 
     // Wait for the modules to be loaded
     await waitFor(() => screen.queryByText(/Intro to Python/i));
@@ -83,7 +101,9 @@ describe('ModuleCards', () => {
   });
 
   it('displays module cover images correctly', async () => {
-    renderWithRouter(<ModuleCards />);
+    await act(async () => {
+      renderWithRouter(<ModuleCards />);
+    });
 
     // Wait for the modules to be loaded
     await waitFor(() => screen.getByAltText(/Intro to Python/i));
@@ -101,7 +121,9 @@ describe('ModuleCards', () => {
     // Mock fetchModules to return an error
     fetchModules.mockRejectedValue(new Error('Failed to fetch modules'));
 
-    renderWithRouter(<ModuleCards />);
+    await act(async () => {
+      renderWithRouter(<ModuleCards />);
+    });
 
     // Wait for error message to appear
     await waitFor(() => screen.getByText(/Failed to load data/i));

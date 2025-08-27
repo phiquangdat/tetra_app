@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import ModuleCard from '../../ui/ModuleCard';
 import { fetchModules } from '../../../services/module/moduleApi';
+import {
+  getUserModuleProgress,
+  type BackendModuleProgress,
+} from '../../../services/user/userModuleProgressApi';
 import LazyLoadModuleCards from '../../ui/LazyLoadModuleCards';
 
 interface Module {
@@ -16,6 +20,9 @@ const DEFAULT_ITEMS_NUMBER = 6;
 
 function ModuleCards() {
   const [modules, setModules] = useState<Module[]>([]); // Proper typing for modules
+  const [moduleProgressMap, setModuleProgressMap] = useState<
+    Map<string, BackendModuleProgress>
+  >(new Map());
   const [visibleCount, setVisibleCount] = useState(DEFAULT_ITEMS_NUMBER);
   const [error, setError] = useState<string | null>(null); // Store error message, not just boolean
 
@@ -23,6 +30,21 @@ function ModuleCards() {
     const fetchData = async () => {
       try {
         const resData = await fetchModules();
+
+        try {
+          const moduleProgressData = await getUserModuleProgress();
+          setModuleProgressMap(
+            new Map(moduleProgressData.map((mp) => [mp.moduleId, mp])),
+          );
+        } catch (error) {
+          if (error instanceof Error && error.message?.includes('401')) {
+            setModuleProgressMap(new Map());
+            setError(null);
+          } else {
+            console.error('[getUserModuleProgress]', error);
+          }
+        }
+
         if (resData && resData.length > 0) {
           setModules(resData);
           setError(null); // Reset error if data is fetched successfully
@@ -66,18 +88,25 @@ function ModuleCards() {
       ) : (
         <>
           <ul className="flex flex-wrap justify-center items-center gap-8 p-0">
-            {visibleModules.map(({ id, title, coverUrl, topic, points }) => (
-              <li key={id}>
+            {visibleModules.map((visibleModule) => (
+              <li key={visibleModule.id}>
                 <ModuleCard
-                  id={id}
-                  title={title}
-                  coverUrl={coverUrl}
+                  id={visibleModule.id}
+                  title={visibleModule.title}
+                  coverUrl={visibleModule.coverUrl}
                   details={[
-                    { label: 'Topic', value: topic },
-                    { label: 'Points', value: points },
+                    { label: 'Topic', value: visibleModule.topic },
+                    { label: 'Points', value: visibleModule.points ?? 0 },
                   ]}
                   buttonLabel="Open"
                   linkBasePath="/user/modules"
+                  progressStatus={
+                    moduleProgressMap.get(visibleModule.id as string)?.status
+                  }
+                  earnedPoints={
+                    moduleProgressMap.get(visibleModule.id as string)
+                      ?.earned_points
+                  }
                 />
               </li>
             ))}

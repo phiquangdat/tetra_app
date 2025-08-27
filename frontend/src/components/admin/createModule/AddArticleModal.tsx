@@ -6,6 +6,7 @@ import EditorComposer from '../../../utils/editor/EditorComposer.tsx';
 import { useEditorStateContext } from '../../../utils/editor/contexts/EditorStateContext.tsx';
 
 import { validateAttachment } from '../../../utils/validateAttachment.ts';
+import ConfirmationModal from './ConfirmationModal.tsx';
 
 interface ArticleModalProps {
   isOpen: boolean;
@@ -44,6 +45,7 @@ function AddArticleModal({
 
   const [fileError, setFileError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showConfirmClose, setShowConfirmClose] = useState(false);
 
   const canSave =
     data.title.trim() !== '' &&
@@ -52,7 +54,7 @@ function AddArticleModal({
     !fileError;
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (showConfirmClose || !isOpen) return;
 
     const block =
       editingBlock?.unitNumber === unitNumber && editingBlock.blockIndex != null
@@ -122,23 +124,37 @@ function AddArticleModal({
       // Step 5: Cleanup
       clearContent();
       setEditingBlock(null);
+      setShowConfirmClose(false);
       onClose();
     } catch (error) {
       console.error('Error saving article:', error);
     }
   };
 
+  const attemptClose = () => {
+    if (showConfirmClose) return;
+    if (
+      (editorContent?.trim() ?? '') !== '' ||
+      (data.title?.trim() ?? '') !== '' ||
+      (data.content?.trim() ?? '') !== ''
+    ) {
+      setShowConfirmClose(true);
+    } else {
+      handleClose();
+    }
+  };
   const handleClose = () => {
     clearContent();
     clearSelectedFile();
     setFileError(null);
+    setShowConfirmClose(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
     onClose();
   };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-      handleClose();
+      attemptClose();
     }
   };
 
@@ -199,7 +215,7 @@ function AddArticleModal({
           </div>
           <button
             type="button"
-            onClick={handleClose}
+            onClick={attemptClose}
             className="text-primary hover:text-secondaryHover transition-colors p-2 rounded-lg hover:bg-cardBackground"
             disabled={isSaving}
             aria-label="Close"
@@ -315,6 +331,21 @@ function AddArticleModal({
           </div>
         </div>
       </div>
+      {showConfirmClose && (
+        <ConfirmationModal
+          onCancel={() => {
+            setShowConfirmClose(false);
+          }}
+          onConfirm={() => {
+            setShowConfirmClose(false);
+            handleClose();
+          }}
+          title="Discard Changes?"
+          description="You have unsaved changes. Are you sure you want to close? This action cannot be undone."
+          confirmText="Discard"
+          buttonColor="bg-error hover:bg-errorHover"
+        />
+      )}
     </div>
   );
 }

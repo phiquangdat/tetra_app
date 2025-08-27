@@ -6,6 +6,7 @@ import {
 } from '../../common/Icons';
 import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
 import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
+import ConfirmationModal from './ConfirmationModal.tsx';
 
 type Props = {
   isOpen: boolean;
@@ -40,6 +41,7 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
   const [canSave, setCanSave] = useState(false);
 
   const modalRef = useRef<HTMLDivElement>(null);
+  const [showConfirmClose, setShowConfirmClose] = useState(false);
 
   useEffect(() => {
     setCanSave(
@@ -54,7 +56,7 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
   }, [data]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (showConfirmClose || !isOpen) return;
 
     const block =
       editingBlock?.unitNumber === unitNumber && editingBlock.blockIndex != null
@@ -125,20 +127,35 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
 
       clearContent();
       setEditingBlock(null);
+      setShowConfirmClose(false);
       onClose();
     } catch (error) {
       console.error('[AddVideoModal] Save failed:', error);
     }
   };
 
+  const attemptClose = () => {
+    if (showConfirmClose) return;
+    if (
+      (data.title?.trim() ?? '') !== '' ||
+      (data.content?.trim() ?? '') !== '' ||
+      (data.url?.trim() ?? '') !== ''
+    ) {
+      setShowConfirmClose(true);
+    } else {
+      handleClose();
+    }
+  };
+
   const handleClose = () => {
     clearContent();
+    setShowConfirmClose(false);
     onClose();
   };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-      handleClose();
+      attemptClose();
     }
   };
 
@@ -204,11 +221,13 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur flex items-center justify-center z-50 p-4">
+    <div
+      className="fixed inset-0 bg-black/60 backdrop-blur flex items-center justify-center z-50 p-4"
+      onClick={handleBackdropClick}
+    >
       <div
         ref={modalRef}
         className="bg-background rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
-        onClick={handleBackdropClick}
       >
         <div className="flex items-center justify-between bg-cardBackground px-8 py-4 border-b border-highlight/50">
           <div className="flex items-center gap-4">
@@ -221,7 +240,7 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
           </div>
           <button
             type="button"
-            onClick={handleClose}
+            onClick={attemptClose}
             className="text-primary hover:text-secondaryHover transition-colors p-2 rounded-lg hover:bg-cardBackground"
             disabled={isSaving}
             aria-label="Close"
@@ -317,7 +336,7 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
         <div className="flex items-center justify-end gap-4 px-8 py-4 border-t border-highlight bg-cardBackground">
           <button
             type="button"
-            onClick={handleClose}
+            onClick={attemptClose}
             className="bg-secondary hover:bg-secondaryHover text-background px-6 py-2.5 rounded-lg text-sm font-medium transition duration-200"
             disabled={isSaving}
           >
@@ -333,6 +352,21 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
           </button>
         </div>
       </div>
+      {showConfirmClose && (
+        <ConfirmationModal
+          onCancel={() => {
+            setShowConfirmClose(false);
+          }}
+          onConfirm={() => {
+            setShowConfirmClose(false);
+            handleClose();
+          }}
+          title="Discard Changes?"
+          description="You have unsaved changes. Are you sure you want to close? This action cannot be undone."
+          confirmText="Discard"
+          buttonColor="bg-error hover:bg-errorHover"
+        />
+      )}
     </div>
   );
 }

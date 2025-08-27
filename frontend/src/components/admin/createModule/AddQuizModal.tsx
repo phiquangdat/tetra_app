@@ -4,6 +4,7 @@ import { QuizIcon, CloseIcon } from '../../common/Icons';
 import { useContentBlockContext } from '../../../context/admin/ContentBlockContext.tsx';
 import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
 import { validateAttachment } from '../../../utils/validateAttachment.ts';
+import ConfirmationModal from './ConfirmationModal.tsx';
 
 interface AddQuizModalProps {
   isOpen: boolean;
@@ -45,12 +46,14 @@ function AddQuizModal({
   >({});
 
   const [fileError, setFileError] = useState<string | null>(null);
+  const [showConfirmClose, setShowConfirmClose] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || showConfirmClose) return;
 
     const block =
       editingBlock?.unitNumber === unitNumber && editingBlock.blockIndex != null
@@ -226,6 +229,19 @@ function AddQuizModal({
     }
   };
 
+  const attemptClose = () => {
+    if (showConfirmClose) return;
+
+    if (
+      data.title?.trim() ||
+      data.content?.trim() ||
+      (data.questions?.length ?? 0) > 0 ||
+      fileInputRef.current?.files?.length
+    )
+      setShowConfirmClose(true);
+    else handleClose();
+  };
+
   const handleClose = () => {
     setErrors([]);
     setQuestionErrors({});
@@ -234,12 +250,13 @@ function AddQuizModal({
     clearContent();
     clearSelectedFile();
     setEditingBlock(null);
+    setShowConfirmClose(false);
     onClose();
   };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-      handleClose();
+      attemptClose();
     }
   };
 
@@ -305,7 +322,7 @@ function AddQuizModal({
           </div>
           <button
             type="button"
-            onClick={handleClose}
+            onClick={attemptClose}
             className="text-primary hover:text-secondaryHover hover:bg-cardBackground rounded-lg transition-all p-2 duration-200"
             disabled={isSaving}
             aria-label="Close"
@@ -505,6 +522,22 @@ function AddQuizModal({
           </button>
         </div>
       </div>
+
+      {showConfirmClose && (
+        <ConfirmationModal
+          onCancel={() => {
+            setShowConfirmClose(false);
+          }}
+          onConfirm={() => {
+            setShowConfirmClose(false);
+            handleClose();
+          }}
+          title="Discard Changes?"
+          description="You have unsaved changes. Are you sure you want to close? This action cannot be undone."
+          confirmText="Discard"
+          buttonColor="bg-error hover:bg-errorHover"
+        />
+      )}
     </div>
   );
 }

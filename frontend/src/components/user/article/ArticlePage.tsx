@@ -115,7 +115,21 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     return Math.min(Math.round((scrolledInside / articleHeight) * 100), 100); // No greater than 100
   }, []);
 
-  const handleScroll = useCallback(async () => {
+  const isArticleShorterThanViewport = useCallback(() => {
+    const element = articleRef.current;
+    if (!element) return false;
+
+    const viewportHeight = window.innerHeight;
+    const articleHeight = Math.max(
+      element.scrollHeight,
+      element.offsetHeight,
+      element.getBoundingClientRect().height,
+    );
+
+    return articleHeight <= viewportHeight * 0.7;
+  }, []);
+
+  const markAsCompleted = useCallback(async () => {
     if (
       !contentProgress ||
       contentProgress.status === 'COMPLETED' ||
@@ -127,57 +141,79 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     // Ignore additional scroll events once we're completing/completed
     if (completingRef.current) return;
 
-    const percent = calculateScrollPercent();
+    // lock before async work so multiple events don't re-enter
+    completingRef.current = true;
+    const articlePoints = article.points ?? 0;
 
-    if (percent >= 90) {
-      // lock before async work so multiple events don't re-enter
-      completingRef.current = true;
-      const articlePoints = article.points ?? 0;
+    try {
+      const response = await updateContentProgress(contentProgress.id, {
+        status: 'COMPLETED',
+        points: articlePoints,
+      });
 
-      try {
-        const response = await updateContentProgress(contentProgress.id, {
-          status: 'COMPLETED',
-          points: articlePoints,
-        });
+      const resolvedUnitId = resolveUnitId(article);
+      await finalizeUnitIfComplete(
+        resolvedUnitId,
+        idsRef.current.moduleId || moduleId,
+      );
+      setContentProgress((prev) =>
+        prev ? { ...prev, status: 'COMPLETED', points: articlePoints } : prev,
+      );
+      console.log('[updateContentProgress]', response);
+      toast.success(`Complete reading! + ${articlePoints} pts`);
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      // unlock on failure so user can retry
+      completingRef.current = false;
+      return;
+    }
 
-        const resolvedUnitId = resolveUnitId(article);
-        await finalizeUnitIfComplete(
-          resolvedUnitId,
-          idsRef.current.moduleId || moduleId,
-        );
-        setContentProgress((prev) =>
-          prev ? { ...prev, status: 'COMPLETED', points: articlePoints } : prev,
-        );
-        console.log('[updateContentProgress]', response);
-        toast.success(`Complete reading! + ${articlePoints} pts`);
-      } catch (error) {
-        console.error('Error updating progress:', error);
-        // unlock on failure so user can retry
-        completingRef.current = false;
-      }
-      try {
-        const response = await safePatchModule({
-          earnedPoints:
-            (moduleProgress.earned_points || 0) + (article.points || 0),
-        });
+    try {
+      const response = await safePatchModule({
+        earnedPoints:
+          (moduleProgress.earned_points || 0) + (article.points || 0),
+      });
 
-        console.log('[patchModuleProgress], Update Total Points: ', response);
-      } catch (error) {
-        console.error(
-          '[patchModuleProgress] Failed to increment module points',
-          error,
-        );
-      }
+      console.log('[patchModuleProgress], Update Total Points: ', response);
+    } catch (error) {
+      console.error(
+        '[patchModuleProgress] Failed to increment module points',
+        error,
+      );
     }
   }, [
-    calculateScrollPercent,
     contentProgress,
-    article?.points,
     moduleProgress,
+    article,
+    resolveUnitId,
     finalizeUnitIfComplete,
     moduleId,
     safePatchModule,
     setModuleProgress,
+  ]);
+
+  const handleScroll = useCallback(async () => {
+    if (
+      !contentProgress ||
+      contentProgress.status === 'COMPLETED' ||
+      !moduleProgress ||
+      !article
+    )
+      return;
+
+    if (completingRef.current) return;
+
+    const percent = calculateScrollPercent();
+
+    if (percent >= 90) {
+      await markAsCompleted();
+    }
+  }, [
+    calculateScrollPercent,
+    markAsCompleted,
+    contentProgress,
+    moduleProgress,
+    article,
   ]);
 
   useEffect(() => {
@@ -284,6 +320,22 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     setModuleProgress,
     navigate,
   ]);
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (
+        contentProgress &&
+        contentProgress.status !== 'COMPLETED' &&
+        article &&
+        articleRef.current &&
+        isArticleShorterThanViewport()
+      ) {
+        await markAsCompleted();
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [contentProgress, article, isArticleShorterThanViewport, markAsCompleted]);
 
   useEffect(() => {
     if (

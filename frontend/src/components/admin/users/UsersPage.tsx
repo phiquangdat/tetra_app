@@ -73,7 +73,8 @@ const UserPage = () => {
       setSelectedUserId(null);
       fetchUsers();
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to delete user';
+      const message =
+        err instanceof Error ? err.message : 'Failed to delete user';
       toast.error(message);
       // keep modal open for retry
     } finally {
@@ -146,7 +147,9 @@ const UserPage = () => {
               data.map((user, index) => (
                 <tr key={user.id} className="border-t-2 border-background">
                   <td className="p-4 text-primary">{index + 1}</td>
-                  <td className="p-4 text-primary font-semibold">{user.name}</td>
+                  <td className="p-4 text-primary font-semibold">
+                    {user.name}
+                  </td>
                   <td className="p-4 text-primary">{user.email}</td>
                   <td className="p-4 text-primary">{user.role}</td>
                   {isAdmin && (

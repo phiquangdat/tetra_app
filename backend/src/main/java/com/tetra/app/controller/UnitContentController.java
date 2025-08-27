@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
+import com.tetra.app.events.AdminActionLogEvent;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +46,7 @@ public class UnitContentController {
     private final AttachmentRepository attachmentRepository;
     private final JwtUtil jwtUtil;
     private final BlacklistedTokenRepository blacklistedTokenRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public UnitContentController(
         UnitContentRepository unitContentRepository,
@@ -52,7 +55,8 @@ public class UnitContentController {
         com.tetra.app.repository.UnitRepository unitRepository,
         AttachmentRepository attachmentRepository,
         JwtUtil jwtUtil,
-        BlacklistedTokenRepository blacklistedTokenRepository
+        BlacklistedTokenRepository blacklistedTokenRepository,
+        ApplicationEventPublisher eventPublisher
     ) {
         this.unitContentRepository = unitContentRepository;
         this.questionRepository = questionRepository;
@@ -61,6 +65,7 @@ public class UnitContentController {
         this.attachmentRepository = attachmentRepository;
         this.jwtUtil = jwtUtil;
         this.blacklistedTokenRepository = blacklistedTokenRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @GetMapping
@@ -348,6 +353,25 @@ public class UnitContentController {
             }
             unitContent = unitContentRepository.saveAndFlush(unitContent);
 
+            String token = null;
+            String role = null;
+            UUID adminId = null;
+            if (body.containsKey("token")) {
+                token = (String) body.get("token");
+            }
+            if (token != null) {
+                try {
+                    role = jwtUtil.extractRole(token);
+                    adminId = UUID.fromString(jwtUtil.extractUserId(token));
+                } catch (Exception ignored) {}
+            } else {
+                adminId = com.tetra.app.controller.AuthController.lastAdminId;
+                role = com.tetra.app.controller.AuthController.lastAdminRole != null ? com.tetra.app.controller.AuthController.lastAdminRole.name() : null;
+            }
+            if (adminId != null && "ADMIN".equals(role)) {
+                eventPublisher.publishEvent(new com.tetra.app.events.AdminActionLogEvent(adminId, "create", unitContent.getId(), "unit_content"));
+            }
+
             List<Map<String, Object>> questionsData = (List<Map<String, Object>>) body.get("questions");
             if (questionsData != null) {
                 for (Map<String, Object> questionData : questionsData) {
@@ -510,6 +534,24 @@ public class UnitContentController {
             }
 
             unitContent = unitContentRepository.saveAndFlush(unitContent);
+            String token = null;
+            String role = null;
+            UUID adminId = null;
+            if (body.containsKey("token")) {
+                token = (String) body.get("token");
+            }
+            if (token != null) {
+                try {
+                    role = jwtUtil.extractRole(token);
+                    adminId = UUID.fromString(jwtUtil.extractUserId(token));
+                } catch (Exception ignored) {}
+            } else {
+                adminId = com.tetra.app.controller.AuthController.lastAdminId;
+                role = com.tetra.app.controller.AuthController.lastAdminRole != null ? com.tetra.app.controller.AuthController.lastAdminRole.name() : null;
+            }
+            if (adminId != null && "ADMIN".equals(role)) {
+                eventPublisher.publishEvent(new com.tetra.app.events.AdminActionLogEvent(adminId, "create", unitContent.getId(), "unit_content"));
+            }
 
             Map<String, Object> response = new HashMap<>();
             response.put("id", unitContent.getId());
@@ -635,6 +677,24 @@ public class UnitContentController {
             }
 
             unitContent = unitContentRepository.saveAndFlush(unitContent);
+            String token = null;
+            String role = null;
+            UUID adminId = null;
+            if (body.containsKey("token")) {
+                token = (String) body.get("token");
+            }
+            if (token != null) {
+                try {
+                    role = jwtUtil.extractRole(token);
+                    adminId = UUID.fromString(jwtUtil.extractUserId(token));
+                } catch (Exception ignored) {}
+            } else {
+                adminId = com.tetra.app.controller.AuthController.lastAdminId;
+                role = com.tetra.app.controller.AuthController.lastAdminRole != null ? com.tetra.app.controller.AuthController.lastAdminRole.name() : null;
+            }
+            if (adminId != null && "ADMIN".equals(role)) {
+                eventPublisher.publishEvent(new com.tetra.app.events.AdminActionLogEvent(adminId, "create", unitContent.getId(), "unit_content"));
+            }
 
             Map<String, Object> response = new HashMap<>();
             response.put("id", unitContent.getId());

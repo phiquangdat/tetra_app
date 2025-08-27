@@ -33,10 +33,15 @@ export type ModuleUpdateInput = Partial<
 export type ModuleInput = Omit<Module, 'id'>;
 
 export async function fetchModuleById(id: string): Promise<Module> {
+  const token = getAuthToken();
   const url = `${BASE_URL}/modules/${id}`;
   console.log(`[fetchModuleById] Fetching: ${url}`);
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
     console.log(`[fetchModuleById] Response status: ${response.status}`);
     console.log(
       `[fetchModuleById] Response headers:`,
@@ -57,11 +62,16 @@ export async function fetchModuleById(id: string): Promise<Module> {
 }
 
 export async function fetchModules(): Promise<Module[]> {
+  const token = getAuthToken();
   const url = `${BASE_URL}/modules`;
   console.log('[fetchModules] BASE_URL:', BASE_URL);
   console.log('[fetchModules] Fetching:', url);
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
     console.log(`[fetchModules] Response status: ${response.status}`);
     console.log(
       `[fetchModules] Response headers:`,
@@ -93,6 +103,7 @@ export async function fetchModules(): Promise<Module[]> {
 }
 
 export async function createModule(module: ModuleInput): Promise<Module> {
+  const token = getAuthToken();
   const url = `${BASE_URL}/modules`;
   console.log('[createModule] POST:', url, 'Payload:', module);
   try {
@@ -100,6 +111,7 @@ export async function createModule(module: ModuleInput): Promise<Module> {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify(module),
     });
@@ -129,11 +141,13 @@ export async function updateModule(
   const url = `${BASE_URL}/modules/${id}`;
   console.log('[updateModule] Updating:', url, 'Payload:', module);
 
+  const token = getAuthToken();
   try {
     const response = await fetch(url, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify(module),
     });

@@ -1,6 +1,7 @@
 package com.tetra.app.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.util.*;
 
@@ -82,6 +83,7 @@ public class Unit {
         this.unitContent = unitContent;
     }
 
+        @JsonProperty("sort_order")
         public Integer getSortOrder() {
             return sortOrder;
         }

@@ -353,18 +353,17 @@ public class UnitContentController {
             }
             unitContent = unitContentRepository.saveAndFlush(unitContent);
 
-            String token = null;
-            String role = null;
             UUID adminId = null;
             if (body.containsKey("token")) {
-                token = (String) body.get("token");
+                String tokenFromBody = (String) body.get("token");
+                if (tokenFromBody != null) {
+                    try {
+                        role = jwtUtil.extractRole(tokenFromBody);
+                        adminId = UUID.fromString(jwtUtil.extractUserId(tokenFromBody));
+                    } catch (Exception ignored) {}
+                }
             }
-            if (token != null) {
-                try {
-                    role = jwtUtil.extractRole(token);
-                    adminId = UUID.fromString(jwtUtil.extractUserId(token));
-                } catch (Exception ignored) {}
-            } else {
+            if (adminId == null) {
                 adminId = com.tetra.app.controller.AuthController.lastAdminId;
                 role = com.tetra.app.controller.AuthController.lastAdminRole != null ? com.tetra.app.controller.AuthController.lastAdminRole.name() : null;
             }
@@ -534,18 +533,17 @@ public class UnitContentController {
             }
 
             unitContent = unitContentRepository.saveAndFlush(unitContent);
-            String token = null;
-            String role = null;
             UUID adminId = null;
             if (body.containsKey("token")) {
-                token = (String) body.get("token");
+                String tokenFromBody = (String) body.get("token");
+                if (tokenFromBody != null) {
+                    try {
+                        role = jwtUtil.extractRole(tokenFromBody);
+                        adminId = UUID.fromString(jwtUtil.extractUserId(tokenFromBody));
+                    } catch (Exception ignored) {}
+                }
             }
-            if (token != null) {
-                try {
-                    role = jwtUtil.extractRole(token);
-                    adminId = UUID.fromString(jwtUtil.extractUserId(token));
-                } catch (Exception ignored) {}
-            } else {
+            if (adminId == null) {
                 adminId = com.tetra.app.controller.AuthController.lastAdminId;
                 role = com.tetra.app.controller.AuthController.lastAdminRole != null ? com.tetra.app.controller.AuthController.lastAdminRole.name() : null;
             }
@@ -677,18 +675,17 @@ public class UnitContentController {
             }
 
             unitContent = unitContentRepository.saveAndFlush(unitContent);
-            String token = null;
-            String role = null;
             UUID adminId = null;
             if (body.containsKey("token")) {
-                token = (String) body.get("token");
+                String tokenFromBody = (String) body.get("token");
+                if (tokenFromBody != null) {
+                    try {
+                        role = jwtUtil.extractRole(tokenFromBody);
+                        adminId = UUID.fromString(jwtUtil.extractUserId(tokenFromBody));
+                    } catch (Exception ignored) {}
+                }
             }
-            if (token != null) {
-                try {
-                    role = jwtUtil.extractRole(token);
-                    adminId = UUID.fromString(jwtUtil.extractUserId(token));
-                } catch (Exception ignored) {}
-            } else {
+            if (adminId == null) {
                 adminId = com.tetra.app.controller.AuthController.lastAdminId;
                 role = com.tetra.app.controller.AuthController.lastAdminRole != null ? com.tetra.app.controller.AuthController.lastAdminRole.name() : null;
             }

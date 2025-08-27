@@ -59,4 +59,12 @@ public class UserStatsService {
             })
             .collect(Collectors.toList());
     }
+
+    public int getCompletedModules(UUID userId) {
+        return userModuleProgressRepository.findByUser_IdAndStatus(userId, ProgressStatus.COMPLETED).size();
+    }
+
+    public int getInProgressModules(UUID userId) {
+        return userModuleProgressRepository.findByUser_IdAndStatus(userId, ProgressStatus.IN_PROGRESS).size();
+    }
 }

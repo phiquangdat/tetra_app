@@ -39,9 +39,13 @@ public class UserStatsController {
         }
         int totalPoints = userStatsService.getTotalPoints(userId);
         var topicPoints = userStatsService.getTopicPoints(userId);
+        int modulesCompleted = userStatsService.getCompletedModules(userId);
+        int modulesInProgress = userStatsService.getInProgressModules(userId);
         return ResponseEntity.ok(Map.of(
             "totalPoints", totalPoints,
-            "topicPoints", topicPoints
+            "topicPoints", topicPoints,
+            "modulesCompleted", modulesCompleted,
+            "modulesInProgress", modulesInProgress
         ));
     }
 }

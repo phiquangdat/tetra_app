@@ -1,107 +1,221 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { getUserStats } from '../../../services/user/userStatsApi';
+import type { UserStats } from '../../../services/user/userStatsApi';
 
 Chart.register(ChartDataLabels);
 
-const UserStatCharts = () => {
-  const barRef = useRef<HTMLCanvasElement | null>(null);
-  const doughnutRef = useRef<HTMLCanvasElement | null>(null);
-  useEffect(() => {
-    if (!barRef.current || !doughnutRef.current) return;
+const PIE_COLORS = [
+  'rgb(255, 99, 132)',
+  'rgb(54, 162, 235)',
+  'rgb(255, 205, 86)',
+  'rgb(75, 192, 192)',
+  'rgb(153, 102, 255)',
+  'rgb(255, 159, 64)',
+  'rgb(201, 203, 207)',
+];
 
-    const barChart = new Chart(barRef.current, {
-      type: 'bar',
+const STATUS_COLORS = [
+  'rgb(76, 175, 80)', // Completed - green
+  'rgb(153, 102, 255)', // In Progress - purple
+];
+
+const UserStatCharts = () => {
+  const doughnutRef = useRef<HTMLCanvasElement | null>(null);
+  const statusPieRef = useRef<HTMLCanvasElement | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState<UserStats | null>(null);
+  const [pieChart, setPieChart] = useState<Chart | null>(null);
+  const [statusPieChart, setStatusPieChart] = useState<Chart | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    getUserStats()
+      .then((data) => {
+        setStats(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError('Failed to load statistics');
+        setLoading(false);
+      });
+    return () => {
+      if (pieChart) pieChart.destroy();
+      if (statusPieChart) statusPieChart.destroy();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!doughnutRef.current) return;
+    if (pieChart) pieChart.destroy();
+    if (!stats) return;
+    const filtered = stats.topicPoints.filter((t) => t.points > 0);
+    if (filtered.length === 0) return;
+    const chart = new Chart(doughnutRef.current, {
+      type: 'pie',
       data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        labels: filtered.map((t) => t.topic),
         datasets: [
           {
-            data: [3.6, 4.2, 3.8, 4.1, 3.9, 4.3, 4.0],
-            backgroundColor: [
-              'rgba(255, 99, 132)',
-              'rgba(255, 159, 64)',
-              'rgba(255, 205, 86)',
-              'rgba(75, 192, 192)',
-              'rgba(54, 162, 235)',
-              'rgba(153, 102, 255)',
-              'rgba(201, 203, 207)',
-            ],
-            borderRadius: 8,
+            label: 'Points',
+            data: filtered.map((t) => t.points),
+            backgroundColor: PIE_COLORS.slice(0, filtered.length),
           },
         ],
       },
       options: {
         plugins: {
-          legend: { display: false },
           datalabels: {
-            display: false,
+            color: '#222',
+            font: { weight: 'bold', size: 16 },
+            formatter: (value: number, context: any) => {
+              const total = context.chart.data.datasets[0].data.reduce(
+                (a: number, b: number) => a + b,
+                0,
+              );
+              if (total === 0) return '';
+              const percent = Math.round((value / total) * 100);
+              return percent > 0 ? `${percent}%` : '';
+            },
+            display: true,
           },
-        },
-        scales: {
-          y: {
-            max: 5,
-            ticks: {
-              stepSize: 1,
-              callback: (value: string | number) =>
-                typeof value === 'number' ? `${value} hours` : value,
-              color: '#A0AEC0',
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
               font: { size: 16 },
-            },
-            grid: {
-              color: '#E2E8F0',
-            },
-          },
-          x: {
-            ticks: {
-              color: '#A0AEC0',
-              font: { size: 16 },
-            },
-            grid: {
-              display: false,
             },
           },
         },
       },
+      plugins: [ChartDataLabels],
     });
+    setPieChart(chart);
+  }, [stats]);
 
-    const pieChart = new Chart(doughnutRef.current, {
+  useEffect(() => {
+    if (!statusPieRef.current) return;
+    if (statusPieChart) statusPieChart.destroy();
+    if (!stats) return;
+    const completed = stats.modulesCompleted ?? 0;
+    const inProgress = stats.modulesInProgress ?? 0;
+    const total = completed + inProgress;
+    if (total === 0) return;
+    const chart = new Chart(statusPieRef.current, {
       type: 'pie',
       data: {
-        labels: ['Cybersecurity', 'AI', 'Safety'],
+        labels: ['Completed', 'In Progress'],
         datasets: [
           {
-            label: 'Points',
-            data: [40, 30, 30],
-            backgroundColor: [
-              'rgb(255, 99, 132)',
-              'rgb(54, 162, 235)',
-              'rgb(255, 205, 86)',
-            ],
+            label: 'Modules',
+            data: [completed, inProgress],
+            backgroundColor: STATUS_COLORS,
           },
         ],
       },
+      options: {
+        plugins: {
+          datalabels: {
+            color: '#222',
+            font: { weight: 'bold', size: 16 },
+            formatter: (value: number, context: any) => {
+              const total = context.chart.data.datasets[0].data.reduce(
+                (a: number, b: number) => a + b,
+                0,
+              );
+              if (total === 0) return '';
+              const percent = Math.round((value / total) * 100);
+              return percent > 0 ? `${percent}%` : '';
+            },
+            display: true,
+          },
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+              font: { size: 16 },
+            },
+          },
+        },
+      },
+      plugins: [ChartDataLabels],
     });
-    return () => {
-      barChart.destroy();
-      pieChart.destroy();
-    };
-  }, []);
+    setStatusPieChart(chart);
+  }, [stats]);
+
+  let topicContent;
+  if (loading) {
+    topicContent = (
+      <div className="w-full flex justify-center items-center h-64">
+        Loading...
+      </div>
+    );
+  } else if (error) {
+    topicContent = (
+      <div className="w-full flex justify-center items-center h-64 text-red-500">
+        {error}
+      </div>
+    );
+  } else if (
+    !stats ||
+    stats.topicPoints.filter((t) => t.points > 0).length === 0
+  ) {
+    topicContent = (
+      <div className="w-full flex justify-center items-center h-64 text-gray-400">
+        No points yet
+      </div>
+    );
+  } else {
+    topicContent = <canvas ref={doughnutRef} className="max-h-80 mb-6" />;
+  }
+
+  let statusContent;
+  if (loading) {
+    statusContent = (
+      <div className="w-full flex justify-center items-center h-64">
+        Loading...
+      </div>
+    );
+  } else if (error) {
+    statusContent = (
+      <div className="w-full flex justify-center items-center h-64 text-red-500">
+        {error}
+      </div>
+    );
+  } else if (
+    !stats ||
+    (stats.modulesCompleted ?? 0) + (stats.modulesInProgress ?? 0) === 0
+  ) {
+    statusContent = (
+      <div className="w-full flex justify-center items-center h-64 text-gray-400">
+        No module progress yet
+      </div>
+    );
+  } else {
+    statusContent = <canvas ref={statusPieRef} className="max-h-80 mb-6" />;
+  }
 
   return (
-    <>
-      <div className="rounded-2xl bg-gray-100 p-8 mt-16 shadow-lg">
-        <div className="text-xl font-semibold">Statistics</div>
-
-        <div className="flex flex-row justify-between my-6 gap-12 max-h-96">
-          <div className="w-1/2 bg-white rounded-2xl p-6 flex flex-col items-center">
-            <canvas ref={barRef} />
+    <div className="rounded-2xl bg-cardBackground p-6 my-12 shadow-lg">
+      <div className="text-xl font-semibold mb-8">Statistics</div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 min-h-96">
+        <div className="bg-white rounded-2xl p-6 flex flex-col items-center">
+          <div className="mb-4 text-lg font-semibold text-[#231942] text-center">
+            Points by Topic
           </div>
-          <div className="w-1/2 bg-white rounded-2xl p-6 flex flex-col items-center">
-            <canvas ref={doughnutRef} />
+          {topicContent}
+        </div>
+        <div className="bg-white rounded-2xl p-6 flex flex-col items-center">
+          <div className="mb-4 text-lg font-semibold text-[#231942] text-center">
+            Module Progress
           </div>
+          {statusContent}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

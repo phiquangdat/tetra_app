@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { validateVideoUrl, getYouTubeId } from '../../../utils/videoHelpers';
 import {
   fetchVideoContentById,
+  fetchUnitById,
   type Video,
 } from '../../../services/unit/unitApi';
 import {
@@ -43,6 +44,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   const [video, setVideo] = useState<Video | null>(null);
   const [contentProgress, setContentProgress] = useState<ContentProgress>();
   const [hasNext, setHasNext] = useState(false);
+  const [playbackError, setPlaybackError] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -61,13 +63,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     getOrCreateModuleProgress,
   } = useModuleProgress();
 
-  // Cache hydrated IDs for all later calls
+  // Cache hydrated IDs for later calls
   const idsRef = useRef<{ unitId?: string; moduleId?: string }>({});
 
-  // Refs to access latest values without triggering effects
+  // Keep latest moduleProgress for async
   const moduleProgressRef = useRef(moduleProgress);
-
-  // Update refs when values change
   useEffect(() => {
     moduleProgressRef.current = moduleProgress;
   }, [moduleProgress]);
@@ -99,30 +99,78 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
 
   const { isValid, isYouTube, embedUrl } = validateVideoUrl(video?.url);
 
-  if (!video?.url) {
-    console.warn('No Video URL provided');
-  }
+  // Flag no-URL as playback error immediately
+  useEffect(() => {
+    if (!video) return;
+    if (!video.url) {
+      console.warn('No Video URL provided');
+      setPlaybackError(true);
+    }
+  }, [video?.url]);
+
+  const ensureIds = useCallback(async () => {
+    let u =
+      idsRef.current.unitId ||
+      unitId ||
+      unitIdFromState ||
+      video?.unit_id ||
+      '';
+    let m = idsRef.current.moduleId || moduleId || '';
+
+    // If we have unitId but no moduleId, fetch the unit to derive moduleId
+    if (u && !m) {
+      try {
+        const unit = await fetchUnitById(u);
+        m = (unit as any).moduleId || (unit as any).module_id || '';
+        if (m) setModuleId(m);
+      } catch (e) {
+        console.warn('[ensureIds] fetchUnitById failed:', e);
+      }
+    }
+
+    // If still missing either, fall back to hydrateContextFromContent
+    if (!u || !m) {
+      try {
+        const hydrated = await hydrateContextFromContent(id, {
+          setUnitId,
+          setModuleId,
+        });
+        u ||= hydrated.unitId;
+        m ||= hydrated.moduleId;
+      } catch (e) {
+        console.warn('[ensureIds] hydrateContextFromContent failed:', e);
+      }
+    }
+
+    // Write back into refs and context if we resolved anything
+    if (u && !unitId) setUnitId(u);
+    if (m && !moduleId) setModuleId(m);
+    idsRef.current = { unitId: u || undefined, moduleId: m || undefined };
+
+    if (!u || !m) {
+      console.warn('[ensureIds] Missing ids after hydration', { u, m });
+    }
+    return { unitId: u, moduleId: m };
+  }, [
+    id,
+    moduleId,
+    setModuleId,
+    setUnitId,
+    unitId,
+    unitIdFromState,
+    video?.unit_id,
+  ]);
 
   useEffect(() => {
     const fetchData = async () => {
       if (id) {
         const data = await fetchVideoContentById(id);
         setVideo(data);
+        // Immediately flag as error if there’s no URL
+        if (!data?.url) setPlaybackError(true);
       }
 
-      // Hydrate context if missing (after refresh) and cache IDs
-      let effectiveUnitId = unitId || unitIdFromState || '';
-      let effectiveModuleId = moduleId;
-
-      if (!effectiveUnitId || !effectiveModuleId) {
-        const hydrated = await hydrateContextFromContent(id, {
-          setUnitId,
-          setModuleId,
-        });
-        effectiveUnitId ||= hydrated.unitId;
-        effectiveModuleId ||= hydrated.moduleId;
-      }
-      idsRef.current = { unitId: effectiveUnitId, moduleId: effectiveModuleId };
+      await ensureIds();
 
       try {
         const next = await isNextContentAsync(id);
@@ -137,9 +185,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
 
         setContentProgress(progress);
 
-        const resolvedUnitId = resolveUnitId(video) || effectiveUnitId;
+        const resolvedUnitId = resolveUnitId(video) || idsRef.current.unitId;
 
         if (
+          resolvedUnitId &&
           (moduleProgress?.last_visited_unit_id !== resolvedUnitId ||
             moduleProgress?.last_visited_content_id !== id) &&
           progress.status !== 'COMPLETED'
@@ -157,17 +206,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         }
       } catch (error) {
         if (error instanceof Error && error.message.includes('404')) {
-          const resolvedUnitId = idsRef.current.unitId || resolveUnitId(video);
-
-          const progress = await createContentProgress({
-            unitId: resolvedUnitId as string,
-            unitContentId: id,
-            status: 'IN_PROGRESS',
-            points: 0,
-          });
-          console.log('[createContentProgress]', progress);
-
-          setContentProgress(progress);
         } else {
           console.error(error);
         }
@@ -177,41 +215,68 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     fetchData();
   }, [
     id,
-    unitIdFromState,
-    unitId,
-    moduleId,
     isNextContentAsync,
     moduleProgress,
-    setUnitId,
-    setModuleId,
     safePatchModule,
     setModuleProgress,
+    ensureIds,
   ]);
+
+  useEffect(() => {
+    if (!video) return;
+    if (!isValid) setPlaybackError(true);
+  }, [video?.url, isValid]);
+
+  const ensureContentProgress = useCallback(async () => {
+    if (contentProgress) return contentProgress;
+
+    try {
+      const existing = await getContentProgress(id);
+      setContentProgress(existing);
+      return existing;
+    } catch (e: any) {
+      if (!String(e?.message ?? '').includes('404')) {
+        // non-404 -> bubble up
+        throw e;
+      }
+    }
+
+    const ids = await ensureIds();
+    const resolvedUnitId = ids.unitId || resolveUnitId(video);
+    if (!resolvedUnitId)
+      throw new Error('[ensureContentProgress] missing unitId');
+
+    const created = await createContentProgress({
+      unitId: resolvedUnitId as string,
+      unitContentId: id,
+      status: 'IN_PROGRESS',
+      points: 0,
+    });
+    setContentProgress(created);
+    return created;
+  }, [contentProgress, id, video, ensureIds]);
 
   const markAsCompleted = useCallback(async () => {
     const currentModuleProgress = moduleProgressRef.current;
+    if (!video) return;
 
-    if (
-      !contentProgress ||
-      contentProgress.status === 'COMPLETED' ||
-      !currentModuleProgress ||
-      !video
-    )
-      return;
+    const cp = await ensureContentProgress();
+    if (cp.status === 'COMPLETED' || !currentModuleProgress) return;
 
     const videoPoints = video.points ?? 0;
 
     try {
-      const response = await updateContentProgress(contentProgress.id, {
+      const response = await updateContentProgress(cp.id, {
         status: 'COMPLETED',
         points: videoPoints,
       });
 
-      const resolvedUnitId = resolveUnitId(video) || idsRef.current.unitId!;
-      await finalizeUnitIfComplete(
-        resolvedUnitId,
-        idsRef.current.moduleId || moduleId,
-      );
+      const ids = await ensureIds();
+      const resolvedUnitId = ids.unitId || resolveUnitId(video);
+      if (resolvedUnitId) {
+        await finalizeUnitIfComplete(resolvedUnitId, ids.moduleId || moduleId);
+      }
+
       setContentProgress((prev) =>
         prev ? { ...prev, status: 'COMPLETED', points: videoPoints } : prev,
       );
@@ -221,25 +286,71 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
       console.error('Error updating progress:', error);
     }
     try {
-      const response = await safePatchModule({
-        earnedPoints:
-          (currentModuleProgress.earned_points || 0) + (video.points || 0),
-      });
-
-      console.log('[patchModuleProgress], Update Total Points: ', response);
+      if (videoPoints > 0) {
+        const response = await safePatchModule({
+          earnedPoints:
+            (currentModuleProgress.earned_points || 0) + videoPoints,
+        });
+        console.log('[patchModuleProgress], Update Total Points: ', response);
+      }
     } catch (error) {
       console.error(
         '[patchModuleProgress] Failed to increment module points',
         error,
       );
     }
-  }, [contentProgress?.id]);
+  }, [
+    ensureContentProgress,
+    ensureIds,
+    finalizeUnitIfComplete,
+    moduleId,
+    video,
+  ]);
+
+  // Force-complete (0 pts) when video is unavailable or has no URL
+  const forceCompleteDueToError = useCallback(async () => {
+    try {
+      const cp = await ensureContentProgress();
+      if (cp.status !== 'COMPLETED') {
+        await updateContentProgress(cp.id, { status: 'COMPLETED', points: 0 });
+
+        const ids = await ensureIds();
+        const resolvedUnitId = ids.unitId || resolveUnitId(video);
+        if (resolvedUnitId) {
+          await finalizeUnitIfComplete(
+            resolvedUnitId,
+            ids.moduleId || moduleId,
+          );
+        }
+
+        setContentProgress((prev) =>
+          prev ? { ...prev, status: 'COMPLETED', points: 0 } : cp,
+        );
+        toast.error('Video unavailable. Marked as complete without points.');
+      }
+    } catch (err) {
+      console.error('[forceCompleteDueToError] failed:', err);
+    }
+  }, [
+    ensureContentProgress,
+    ensureIds,
+    finalizeUnitIfComplete,
+    moduleId,
+    video,
+  ]);
 
   useEffect(() => {
-    if (!video?.url || !isValid || !isYouTube) return;
+    const rawUrl = video?.url;
+    const ytId = rawUrl ? getYouTubeId(rawUrl) : '';
 
-    const loadYouTubeAPI = () => {
-      return new Promise<void>((resolve) => {
+    if (!rawUrl || !isValid || !isYouTube || !ytId) {
+      if (!rawUrl || !isValid || !isYouTube || !ytId)
+        setPlaybackError((prev) => prev || true);
+      return;
+    }
+
+    const loadYouTubeAPI = () =>
+      new Promise<void>((resolve) => {
         if (window.YT?.Player) {
           resolve();
           return;
@@ -247,7 +358,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
 
         window.onYouTubeIframeAPIReady = resolve;
       });
-    };
 
     const initPlayer = () => {
       if (progressIntervalRef.current) {
@@ -258,63 +368,63 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         playerRef.current.destroy();
       }
 
-      playerRef.current = new window.YT.Player('youtube', {
-        videoId: getYouTubeId(video.url),
-        playerVars: {
-          controls: 1,
-          modestbranding: 1,
-          rel: 0,
-        },
-        events: {
-          onStateChange: (event: any) => {
-            if (event.data === window.YT.PlayerState.PLAYING) {
-              if (progressIntervalRef.current) {
-                clearInterval(progressIntervalRef.current);
-              }
-
-              progressIntervalRef.current = setInterval(async () => {
-                const currentTime = playerRef.current?.getCurrentTime();
-                const duration = playerRef.current?.getDuration();
-
-                if (duration > 0) {
-                  const progress = Math.round((currentTime / duration) * 100);
-
-                  if (progress >= 90) {
-                    clearInterval(progressIntervalRef.current!);
-                    progressIntervalRef.current = null;
-                    await markAsCompleted();
-                  }
+      try {
+        playerRef.current = new window.YT.Player('youtube', {
+          videoId: ytId,
+          playerVars: { controls: 1, modestbranding: 1, rel: 0 },
+          events: {
+            onError: (event: any) => {
+              console.warn('[YouTube] onError:', event?.data);
+              setPlaybackError(true);
+            },
+            onStateChange: (event: any) => {
+              if (event.data === window.YT.PlayerState.PLAYING) {
+                if (progressIntervalRef.current) {
+                  clearInterval(progressIntervalRef.current);
                 }
-              }, 1000);
-            }
-
-            if (
-              event.data === window.YT.PlayerState.PAUSED ||
-              event.data === window.YT.PlayerState.ENDED
-            ) {
-              if (progressIntervalRef.current) {
-                clearInterval(progressIntervalRef.current);
-                progressIntervalRef.current = null;
+                progressIntervalRef.current = setInterval(async () => {
+                  const currentTime = playerRef.current?.getCurrentTime();
+                  const duration = playerRef.current?.getDuration();
+                  if (duration > 0) {
+                    const progress = Math.round((currentTime / duration) * 100);
+                    if (progress >= 90) {
+                      clearInterval(progressIntervalRef.current!);
+                      progressIntervalRef.current = null;
+                      await markAsCompleted();
+                    }
+                  }
+                }, 1000);
               }
-            }
+
+              if (
+                event.data === window.YT.PlayerState.PAUSED ||
+                event.data === window.YT.PlayerState.ENDED
+              ) {
+                if (progressIntervalRef.current) {
+                  clearInterval(progressIntervalRef.current);
+                  progressIntervalRef.current = null;
+                }
+              }
+            },
           },
-        },
-      });
+        });
+      } catch (e) {
+        console.warn('[YouTube] Player init failed:', e);
+        setPlaybackError(true);
+      }
     };
 
     loadYouTubeAPI().then(initPlayer);
 
     return () => {
-      if (progressIntervalRef.current) {
+      if (progressIntervalRef.current)
         clearInterval(progressIntervalRef.current);
-      }
-      if (playerRef.current?.destroy) {
-        playerRef.current.destroy();
-      }
+      if (playerRef.current?.destroy) playerRef.current.destroy();
     };
-  }, [video?.url, contentProgress?.id, isValid, isYouTube, markAsCompleted]);
+  }, [video?.url, isValid, isYouTube, markAsCompleted]);
 
-  const isButtonDisabled = contentProgress?.status !== 'COMPLETED';
+  const isButtonDisabled =
+    contentProgress?.status !== 'COMPLETED' && !playbackError;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
@@ -348,9 +458,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         </div>
       )}
 
+      {playbackError && (
+        <div className="mb-4 w-full max-w-4xl">
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-sm">
+            The video is unavailable right now. You can continue without points.
+          </div>
+        </div>
+      )}
+
       <h1 className="text-4xl font-extrabold mb-8 text-primary text-center">
         {video?.title}
       </h1>
+
       <div className="w-full max-w-4xl aspect-video rounded-3xl overflow-hidden shadow-xl bg-cardBackground flex items-center justify-center">
         {isValid ? (
           isYouTube ? (
@@ -364,6 +483,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
               className="w-full h-full object-cover"
               src={embedUrl}
               controls
+              onError={() => setPlaybackError(true)}
             >
               Your browser does not support the video tag.
             </video>
@@ -383,17 +503,32 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
       <div className="w-full max-w-4xl mt-8 flex justify-end">
         <div className="relative group">
           <button
-            className="bg-surface text-background font-semibold px-12 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition-all duration-200 w-fit
-            disabled:bg-surface/50 disabled:cursor-not-allowed"
+            className="bg-surface text-background font-semibold px-12 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition-all duration-200 w-fit disabled:bg-surface/50 disabled:cursor-not-allowed"
             type="button"
             onClick={async () => {
-              if (contentProgress?.status !== 'COMPLETED') {
+              const ids = await ensureIds();
+
+              await ensureContentProgress();
+
+              if (playbackError && contentProgress?.status !== 'COMPLETED') {
+                await forceCompleteDueToError();
+              } else if (contentProgress?.status !== 'COMPLETED') {
                 await markAsCompleted();
               }
-              goToNextContent(id);
+
+              await goToNextContent(id, {
+                unitId: ids.unitId,
+                moduleId: ids.moduleId,
+              });
             }}
             disabled={isButtonDisabled}
-            title={isButtonDisabled ? 'Finish the video to continue' : ''}
+            title={
+              isButtonDisabled
+                ? 'Finish the video to continue'
+                : playbackError
+                  ? 'Video unavailable — continue without points'
+                  : ''
+            }
           >
             {hasNext ? 'Up next' : 'Finish'}
           </button>

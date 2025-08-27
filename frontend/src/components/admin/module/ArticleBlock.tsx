@@ -1,10 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { useUnitContext } from '../../../context/admin/UnitContext';
+import {
+  type ContentBlock,
+  useUnitContext,
+} from '../../../context/admin/UnitContext';
 import {
   fetchArticleContentById,
   type Article,
 } from '../../../services/unit/unitApi';
 import ConfirmationModal from '../createModule/ConfirmationModal.tsx';
+import {
+  downloadFileById,
+  fetchFileById,
+  formatFileSize,
+} from '../../../utils/fileHelpers.ts';
 
 interface ArticleBlockProps {
   unitNumber?: number;
@@ -33,8 +41,24 @@ const ArticleBlock: React.FC<ArticleBlockProps> = ({
   useEffect(() => {
     if (!shouldUseContext && id) {
       fetchArticleContentById(id)
-        .then((fetched) => {
+        .then(async (fetched) => {
           setArticle(fetched);
+
+          let filePatch: Partial<ContentBlock['data']> = {};
+          if (fetched.attachment_id) {
+            try {
+              const meta = await fetchFileById(fetched.attachment_id);
+              console.log('Fetched attachment metadata:', meta);
+              filePatch = {
+                fileId: fetched.attachment_id,
+                fileName: meta.originalName,
+                fileMime: meta.mime,
+                fileSize: meta.size,
+              };
+            } catch (e) {
+              console.warn('[ArticleBlock] fetchFileById failed:', e);
+            }
+          }
 
           // 💡 Inject content into unit context
           if (unitNumber != null && blockIndex != null) {
@@ -47,6 +71,7 @@ const ArticleBlock: React.FC<ArticleBlockProps> = ({
                 ...unit.content[blockIndex].data,
                 content: fetched.content,
                 points: fetched.points,
+                ...filePatch,
               },
             };
 
@@ -85,6 +110,19 @@ const ArticleBlock: React.FC<ArticleBlockProps> = ({
     }
   };
 
+  const onDownload = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    try {
+      await downloadFileById(
+        shouldUseContext ? unitContent!.data.fileId! : article?.attachment_id!,
+        (shouldUseContext ? unitContent!.data.fileName : undefined) ||
+          'attachment',
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div className="px-6 pb-4 text-primary text-base">
       <div className="space-y-4 mt-4">
@@ -92,6 +130,28 @@ const ArticleBlock: React.FC<ArticleBlockProps> = ({
           <p className="text-sm font-semibold">Article title</p>
           <p>{title}</p>
         </div>
+
+        {(shouldUseContext
+          ? unitContent!.data.fileId
+          : article?.attachment_id) && (
+          <div className="mt-2 mb-2">
+            <p className="text-sm font-semibold">Attachment</p>
+            <a
+              href="#"
+              onClick={onDownload}
+              className="text-secondary hover:text-primary underline"
+            >
+              {(shouldUseContext ? unitContent!.data.fileName : undefined) ||
+                'Download attachment'}
+            </a>
+            {(shouldUseContext ? unitContent!.data.fileSize : undefined) ? (
+              <span className="ml-2 text-xs text-secondary">
+                ({formatFileSize(unitContent!.data.fileSize as number)})
+              </span>
+            ) : null}
+          </div>
+        )}
+
         <div className="prose prose-sm max-w-none bg-background border border-highlight rounded-xl p-6">
           <div dangerouslySetInnerHTML={{ __html: contentHtml }} />
         </div>

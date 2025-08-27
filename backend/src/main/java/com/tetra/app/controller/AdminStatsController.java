@@ -1,6 +1,7 @@
 package com.tetra.app.controller;
 
 import com.tetra.app.repository.UserRepository;
+import com.tetra.app.model.Role;
 import com.tetra.app.repository.TrainingModuleRepository;
 import com.tetra.app.repository.UserModuleProgressRepository;
 import com.tetra.app.repository.UserContentProgressRepository;
@@ -39,7 +40,7 @@ public class AdminStatsController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getAdminStats() {
-        long totalUsers = userRepository.count();
+        long totalUsers = userRepository.countByRole(Role.LEARNER);
         long totalPointsIssued = userContentProgressRepository.sumAllCompletedPoints();
         long activeModules = trainingModuleRepository.countByStatus("published");
 

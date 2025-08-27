@@ -5,6 +5,10 @@ import { useContentBlockContext } from '../../../context/admin/ContentBlockConte
 import { useUnitContext } from '../../../context/admin/UnitContext.tsx';
 import { validateAttachment } from '../../../utils/validateAttachment.ts';
 import ConfirmationModal from './ConfirmationModal.tsx';
+import {
+  downloadFileById,
+  formatFileSize,
+} from '../../../utils/fileHelpers.ts';
 
 interface AddQuizModalProps {
   isOpen: boolean;
@@ -49,6 +53,7 @@ function AddQuizModal({
   const [showConfirmClose, setShowConfirmClose] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const replaceInputRef = useRef<HTMLInputElement>(null);
 
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -394,27 +399,106 @@ function AddQuizModal({
                   >
                     Attachment
                   </label>
+
+                  {data.fileId || data.fileName ? (
+                    <div className="rounded-lg border border-highlight/60 bg-white p-3 flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm">
+                          <span className="font-medium">
+                            {data.fileName || 'attachment'}
+                          </span>
+                          {typeof data.fileSize === 'number' && (
+                            <span className="ml-2 text-secondary">
+                              ({formatFileSize(data.fileSize)})
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {data.fileId && (
+                            <button
+                              type="button"
+                              className="text-secondary hover:text-primary underline text-sm"
+                              onClick={() =>
+                                downloadFileById(
+                                  data.fileId!,
+                                  data.fileName || 'attachment',
+                                )
+                              }
+                            >
+                              Download
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className="text-sm px-3 py-1.5 rounded-md border border-primary/40 hover:bg-cardBackground"
+                            onClick={() => replaceInputRef.current?.click()}
+                          >
+                            Replace
+                          </button>
+                          <button
+                            type="button"
+                            className="text-sm px-3 py-1.5 rounded-md border border-error/40 text-error hover:bg-error/5"
+                            onClick={() => {
+                              setFileError(null);
+                              if (fileInputRef.current)
+                                fileInputRef.current.value = '';
+                              if (replaceInputRef.current)
+                                replaceInputRef.current.value = '';
+                              clearSelectedFile();
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                      {fileError && (
+                        <p
+                          id="quiz-attachment-error"
+                          className="text-sm text-red-500"
+                          role="alert"
+                          aria-live="polite"
+                        >
+                          {fileError}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        id="attachment"
+                        name="attachment"
+                        onChange={handleFileChange}
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg"
+                        className="w-full px-4 py-3 border border-primary/50 rounded-lg text-primary focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-surface file:text-background file:cursor-pointer hover:file:bg-surfaceHover"
+                        aria-describedby="quiz-attachment-error"
+                        aria-invalid={fileError ? true : false}
+                      />
+                      {fileError && (
+                        <p
+                          id="quiz-attachment-error"
+                          className="mt-2 text-sm text-red-500"
+                          role="alert"
+                          aria-live="polite"
+                        >
+                          {fileError}
+                        </p>
+                      )}
+                    </>
+                  )}
+
                   <input
-                    ref={fileInputRef}
+                    ref={replaceInputRef}
                     type="file"
-                    id="attachment"
-                    name="attachment"
+                    id="attachment-replace"
+                    name="attachment-replace"
                     onChange={handleFileChange}
                     accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg"
-                    className="w-full px-4 py-3 border border-primary/50 rounded-lg text-primary focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-surface file:text-background file:cursor-pointer hover:file:bg-surfaceHover"
-                    aria-describedby="quiz-attachment-error"
-                    aria-invalid={fileError ? true : false}
+                    className="absolute w-px h-px -m-px p-0 overflow-hidden whitespace-nowrap border-0 opacity-0"
+                    aria-hidden="true"
+                    tabIndex={-1}
                   />
-                  {fileError && (
-                    <p
-                      id="quiz-attachment-error"
-                      className="mt-2 text-sm text-red-500"
-                      role="alert"
-                      aria-live="polite"
-                    >
-                      {fileError}
-                    </p>
-                  )}
                 </div>
 
                 <div className="lg:col-span-2">

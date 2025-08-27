@@ -4,6 +4,7 @@ import com.tetra.app.repository.TrainingModuleRepository;
 import com.tetra.app.repository.UserRepository;
 import com.tetra.app.repository.UserModuleProgressRepository;
 import com.tetra.app.repository.UserContentProgressRepository;
+import com.tetra.app.model.Role;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -39,7 +40,7 @@ public class AdminStatsControllerTest {
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void returnsStatsWhenUserHasAdminRole() throws Exception {
-        when(userRepository.count()).thenReturn(348L);
+        when(userRepository.countByRole(Role.LEARNER)).thenReturn(348L);
         when(userContentProgressRepository.sumAllCompletedPoints()).thenReturn(125000L);
         when(trainingModuleRepository.countByStatus("published")).thenReturn(45L);
 
@@ -78,7 +79,7 @@ public class AdminStatsControllerTest {
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void ensuresCorrectContentTypeHeader() throws Exception {
-        when(userRepository.count()).thenReturn(100L);
+        when(userRepository.countByRole(Role.LEARNER)).thenReturn(100L);
         when(userContentProgressRepository.sumAllCompletedPoints()).thenReturn(5000L);
         when(trainingModuleRepository.countByStatus("published")).thenReturn(20L);
 

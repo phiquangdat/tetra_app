@@ -54,6 +54,7 @@ export interface ContentBlock {
 
   fileBlob?: File | null;
   fileError?: string | null;
+  fileIdToDelete?: string | null;
 }
 
 export type EditingBlock = {

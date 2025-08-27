@@ -17,7 +17,10 @@ const UnitsManager: React.FC = () => {
 
   const unitNumbers = Object.keys(unitStates)
     .map(Number)
-    .sort((a, b) => a - b);
+    .sort(
+      (a, b) =>
+        (unitStates[a]?.sort_order ?? 0) - (unitStates[b]?.sort_order ?? 0),
+    );
   const lastUnitNumber = unitNumbers[unitNumbers.length - 1];
   const lastUnit = unitStates[lastUnitNumber];
   const canAddUnit = unitNumbers.length === 0 || !!lastUnit?.id; // must be saved (have an ID) if not the first

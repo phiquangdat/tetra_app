@@ -80,7 +80,7 @@ describe('CreateModuleForm', () => {
 
     // The UI shows this exact message (from useModuleSave’s formErrors)
     expect(
-      await screen.findByText(/cover picture must be a valid url/i),
+      await screen.findByText(/Image URL is not accessible or invalid/i),
     ).toBeInTheDocument();
   });
 

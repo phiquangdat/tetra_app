@@ -11,7 +11,7 @@ import {
 } from '../../../services/userProgress/userProgressApi';
 import Syllabus from './syllabus/Syllabus';
 import { useNavigate } from 'react-router-dom';
-import { OpenBooksIcon, PuzzleIcon, StarIcon } from '../../common/Icons';
+import { OpenBooksIcon, StarIcon } from '../../common/Icons';
 import toast from 'react-hot-toast';
 
 interface ModulePageProps {
@@ -317,28 +317,18 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
         About this module
       </h2>
 
-      <div className="flex flex-col md:flex-row gap-10 items-stretch mb-8">
+      <div className="flex flex-col md:flex-row gap-24 items-stretch mb-8">
         <div className="flex-1 flex flex-col bg-[#F9F5FF] rounded-3xl p-6 text-[#231942] text-base shadow-sm justify-center">
           {module.description}
         </div>
 
-        <div className="border border-[#D4C2FC] rounded-3xl p-6 flex flex-row gap-8 min-w-[340px] bg-white hover:shadow-lg transition items-center">
+        <div className="border border-[#D4C2FC] rounded-3xl px-10 py-6 flex flex-row gap-8 min-w-[340px] bg-white hover:shadow-lg transition items-center">
           <div className="flex flex-row items-center gap-4">
             <OpenBooksIcon width={30} height={30} />
             <div className="flex flex-col items-start">
               <span className="text-[#231942]">Total content</span>
               <span className="text-xl font-bold text-[#14248A]">
                 {units.length} {units.length > 1 ? 'Units' : 'Unit'}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex flex-row items-center gap-4">
-            <PuzzleIcon width={30} height={30} />
-            <div className="flex flex-col items-start">
-              <span className="text-[#231942]">Quizzes</span>
-              <span className="text-xl font-bold text-[#14248A]">
-                Placeholder
               </span>
             </div>
           </div>

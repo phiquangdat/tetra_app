@@ -411,9 +411,10 @@ function AddQuizModal({
                     id="quizDescription"
                     value={data.content || ''}
                     onChange={handleChangeDescription}
-                    className="w-full max-w-md px-4 py-3 border border-primary/50 rounded-lg text-primary placeholder:text-primary/40 focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200"
+                    className="w-full px-4 py-3 border border-primary/50 rounded-lg text-primary placeholder:text-primary/40 focus:border-2 focus:border-surface/70 outline-none transition-colors duration-200"
                     placeholder="Enter quiz description"
                     aria-label="quiz description"
+                    rows={5}
                     required
                   />
                 </div>

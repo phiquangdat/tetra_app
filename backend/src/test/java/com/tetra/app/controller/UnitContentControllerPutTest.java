@@ -58,6 +58,12 @@ public class UnitContentControllerPutTest {
     private UnitContent articleContent;
 
     @BeforeEach
+    void mockJwtUtilForAllTests() {
+        org.mockito.Mockito.when(jwtUtil.extractUserId(org.mockito.ArgumentMatchers.anyString())).thenReturn("user");
+        org.mockito.Mockito.when(jwtUtil.extractRole(org.mockito.ArgumentMatchers.anyString())).thenReturn("ADMIN");
+    }
+
+    @BeforeEach
     void setup() {
         videoId = UUID.randomUUID();
         videoContent = new UnitContent();

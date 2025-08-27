@@ -15,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import com.tetra.app.security.JwtUtil;
 
 import java.util.*;
 
@@ -41,8 +42,12 @@ class QuestionControllerTest {
     @MockBean
     private AnswerRepository answerRepository;
 
+
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockBean
+    private JwtUtil jwtUtil;
 
     private Question question;
     private UUID questionId;
@@ -51,6 +56,9 @@ class QuestionControllerTest {
 
     @BeforeEach
     void setUp() {
+        // Mock JwtUtil for all tokens
+        org.mockito.Mockito.when(jwtUtil.extractUserId(org.mockito.ArgumentMatchers.anyString())).thenReturn("user");
+        org.mockito.Mockito.when(jwtUtil.extractRole(org.mockito.ArgumentMatchers.anyString())).thenReturn("ADMIN");
         contentId = UUID.randomUUID();
         questionId = UUID.randomUUID();
         unitContent = new UnitContent();
@@ -67,17 +75,19 @@ class QuestionControllerTest {
     @Test
     void testGetAll() throws Exception {
         when(questionRepository.findAll()).thenReturn(List.of(question));
-        mockMvc.perform(get("/api/questions"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("Sample Question"));
+        String authHeader = "Bearer test-token";
+        mockMvc.perform(get("/api/questions").header("Authorization", authHeader))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].title").value("Sample Question"));
     }
 
     @Test
     void testGetById() throws Exception {
         when(questionRepository.findById(questionId)).thenReturn(Optional.of(question));
-        mockMvc.perform(get("/api/questions/" + questionId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(questionId.toString()));
+        String authHeader = "Bearer test-token";
+        mockMvc.perform(get("/api/questions/" + questionId).header("Authorization", authHeader))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(questionId.toString()));
     }
 
     @Test
@@ -94,6 +104,7 @@ class QuestionControllerTest {
         questionMap.put("unitContent", unitContentMap);
 
         mockMvc.perform(post("/api/questions")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(questionMap)))
                 .andExpect(status().isOk())
@@ -109,6 +120,7 @@ class QuestionControllerTest {
         questionMap.put("unitContent", new HashMap<>());
 
         mockMvc.perform(post("/api/questions")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(questionMap)))
                 .andExpect(status().isBadRequest())
@@ -128,6 +140,7 @@ class QuestionControllerTest {
         questionMap.put("unitContent", unitContentMap);
 
         mockMvc.perform(post("/api/questions")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(questionMap)))
                 .andExpect(status().isBadRequest())
@@ -148,6 +161,7 @@ class QuestionControllerTest {
         questionMap.put("unitContent", unitContentMap);
 
         mockMvc.perform(put("/api/questions/" + questionId)
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(questionMap)))
                 .andExpect(status().isOk())
@@ -157,14 +171,16 @@ class QuestionControllerTest {
     @Test
     void testDelete() throws Exception {
         doNothing().when(questionRepository).deleteById(questionId);
-        mockMvc.perform(delete("/api/questions/" + questionId))
+        mockMvc.perform(delete("/api/questions/" + questionId)
+                        .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isOk());
     }
 
     @Test
     void testGetByContent() throws Exception {
         when(questionRepository.findByUnitContent_Id(contentId)).thenReturn(List.of(question));
-        mockMvc.perform(get("/api/questions/by-content/" + contentId))
+        mockMvc.perform(get("/api/questions/by-content/" + contentId)
+                        .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].unitContent.id").value(contentId.toString()));
     }
@@ -195,6 +211,7 @@ class QuestionControllerTest {
         when(answerRepository.findByQuestion_Id(q.getId())).thenReturn(List.of(a));
 
         mockMvc.perform(get("/api/questions")
+                        .header("Authorization", "Bearer test-token")
                         .param("contentId", quizId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.quizId").value(quizId.toString()))
@@ -227,6 +244,7 @@ class QuestionControllerTest {
         when(answerRepository.findByQuestion_Id(q.getId())).thenReturn(List.of(a));
 
         mockMvc.perform(get("/api/questions")
+                        .header("Authorization", "Bearer test-token")
                         .param("contentId", quizId.toString())
                         .param("includeCorrect", "true"))
                 .andExpect(status().isOk())
@@ -239,7 +257,9 @@ class QuestionControllerTest {
         UUID quizId = UUID.randomUUID();
         when(unitContentRepository.findById(quizId)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/questions").param("contentId", quizId.toString()))
+        mockMvc.perform(get("/api/questions")
+                        .header("Authorization", "Bearer test-token")
+                        .param("contentId", quizId.toString()))
                 .andExpect(status().isNotFound());
     }
 
@@ -252,7 +272,9 @@ class QuestionControllerTest {
 
         when(unitContentRepository.findById(quizId)).thenReturn(Optional.of(notQuiz));
 
-        mockMvc.perform(get("/api/questions").param("contentId", quizId.toString()))
+        mockMvc.perform(get("/api/questions")
+                        .header("Authorization", "Bearer test-token")
+                        .param("contentId", quizId.toString()))
                 .andExpect(status().isNotFound());
     }
 }

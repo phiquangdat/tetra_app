@@ -11,6 +11,7 @@ import com.tetra.app.repository.AnswerRepository;
 import com.tetra.app.repository.BlacklistedTokenRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -58,17 +59,22 @@ public class UnitContentControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @BeforeEach
+    void mockJwtUtil() {
+        org.mockito.Mockito.when(jwtUtil.extractUserId(org.mockito.ArgumentMatchers.anyString())).thenReturn("user");
+        org.mockito.Mockito.when(jwtUtil.extractRole(org.mockito.ArgumentMatchers.anyString())).thenReturn("ADMIN");
+    }
+
     @Test
     void testGetAllUnitContent() throws Exception {
-        
         UnitContent content1 = new UnitContent(null, 1, "text", "Title 1", "Content 1", "http://example.com/1", 0, 0);
         UnitContent content2 = new UnitContent(null, 2, "video", "Title 2", "Content 2", "http://example.com/2", 0, 0);
         List<UnitContent> mockUnitContent = List.of(content1, content2);
 
         when(unitContentRepository.findAll()).thenReturn(mockUnitContent);
 
-        
-        mockMvc.perform(get("/api/unit_content"))
+        mockMvc.perform(get("/api/unit_content")
+                .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Title 1"))
                 .andExpect(jsonPath("$[1].title").value("Title 2"));
@@ -76,33 +82,29 @@ public class UnitContentControllerTest {
 
     @Test
     void testGetUnitContentById_Success() throws Exception {
-        
         UUID contentId = UUID.randomUUID();
         UnitContent mockContent = new UnitContent(null, 1, "text", "Title 1", "Content 1", "http://example.com/1", 0, 0);
 
         when(unitContentRepository.findById(contentId)).thenReturn(Optional.of(mockContent));
 
-        
-        mockMvc.perform(get("/api/unit_content/" + contentId))
+        mockMvc.perform(get("/api/unit_content/" + contentId)
+                .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Title 1"));
     }
 
     @Test
     void testGetUnitContentById_NotFound() throws Exception {
-        
         UUID contentId = UUID.randomUUID();
-
         when(unitContentRepository.findById(contentId)).thenReturn(Optional.empty());
 
-        
-        mockMvc.perform(get("/api/unit_content/" + contentId))
+        mockMvc.perform(get("/api/unit_content/" + contentId)
+                .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void testGetUnitContentByUnitId_Success() throws Exception {
-        
         UUID unitId = UUID.randomUUID();
         Unit unit = new Unit();
         unit.setId(unitId);
@@ -116,8 +118,8 @@ public class UnitContentControllerTest {
 
         when(unitContentRepository.findByUnit_Id(unitId)).thenReturn(mockUnitContent);
 
-        
-        mockMvc.perform(get("/api/unit_content?unitId=" + unitId))
+        mockMvc.perform(get("/api/unit_content?unitId=" + unitId)
+                .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").exists())
                 .andExpect(jsonPath("$[0].title").value("Title 1"))
@@ -127,20 +129,17 @@ public class UnitContentControllerTest {
 
     @Test
     void testGetUnitContentByUnitId_NoContent() throws Exception {
-       
         UUID unitId = UUID.randomUUID();
-
         when(unitContentRepository.findByUnit_Id(unitId)).thenReturn(Collections.emptyList());
 
-        
-        mockMvc.perform(get("/api/unit_content?unitId=" + unitId))
+        mockMvc.perform(get("/api/unit_content?unitId=" + unitId)
+                .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("[]"));
     }
 
     @Test
     void testGetAllVideoContent_Success() throws Exception {
-        
         UUID videoId1 = UUID.randomUUID();
         UUID videoId2 = UUID.randomUUID();
         UnitContent video1 = new UnitContent(null, 1, "video", "Video Title 1", "video content 1", "http://example.com/video1.mp4", 0, 0);
@@ -151,8 +150,8 @@ public class UnitContentControllerTest {
 
         when(unitContentRepository.findByContentTypeIgnoreCase("video")).thenReturn(mockVideoContent);
 
-        
-        mockMvc.perform(get("/api/unit_content/video"))
+        mockMvc.perform(get("/api/unit_content/video")
+                .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Video Title 1"))
                 .andExpect(jsonPath("$[1].title").value("Video Title 2"));
@@ -160,26 +159,24 @@ public class UnitContentControllerTest {
 
     @Test
     void testGetAllVideoContent_NoContent() throws Exception {
-        
         when(unitContentRepository.findByContentTypeIgnoreCase("video")).thenReturn(Collections.emptyList());
 
-        
-        mockMvc.perform(get("/api/unit_content/video"))
+        mockMvc.perform(get("/api/unit_content/video")
+                .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("[]"));
     }
 
     @Test
     void testGetVideoContent_Success() throws Exception {
-        
         UUID videoId = UUID.randomUUID();
         UnitContent video = new UnitContent(null, 1, "video", "Video Title", "video content data", "http://example.com/video.mp4", 0, 0);
         video.setId(videoId);
 
         when(unitContentRepository.findById(videoId)).thenReturn(Optional.of(video));
 
-        
-        mockMvc.perform(get("/api/unit_content/video/" + videoId))
+        mockMvc.perform(get("/api/unit_content/video/" + videoId)
+                .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(videoId.toString()))
                 .andExpect(jsonPath("$.title").value("Video Title"))
@@ -189,26 +186,24 @@ public class UnitContentControllerTest {
 
     @Test
     void testGetVideoContent_NotFound() throws Exception {
-        
         UUID videoId = UUID.randomUUID();
         when(unitContentRepository.findById(videoId)).thenReturn(Optional.empty());
 
-        
-        mockMvc.perform(get("/api/unit_content/video/" + videoId))
+        mockMvc.perform(get("/api/unit_content/video/" + videoId)
+                .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void testGetVideoContent_NotVideoType() throws Exception {
-        
         UUID videoId = UUID.randomUUID();
         UnitContent notVideo = new UnitContent(null, 1, "text", "Not Video", "some content", "http://example.com/notvideo", 0, 0);
         notVideo.setId(videoId);
 
         when(unitContentRepository.findById(videoId)).thenReturn(Optional.of(notVideo));
 
-        
-        mockMvc.perform(get("/api/unit_content/video/" + videoId))
+        mockMvc.perform(get("/api/unit_content/video/" + videoId)
+                .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isNotFound());
     }
 
@@ -220,7 +215,8 @@ public class UnitContentControllerTest {
 
         when(unitContentRepository.findByIdAndContentTypeIgnoreCase(articleId, "article")).thenReturn(Optional.of(article));
 
-        mockMvc.perform(get("/api/unit_content/article/" + articleId))
+        mockMvc.perform(get("/api/unit_content/article/" + articleId)
+                .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(articleId.toString()))
                 .andExpect(jsonPath("$.title").value("Article Title"))
@@ -232,7 +228,8 @@ public class UnitContentControllerTest {
         UUID articleId = UUID.randomUUID();
         when(unitContentRepository.findByIdAndContentTypeIgnoreCase(articleId, "article")).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/unit_content/article/" + articleId))
+        mockMvc.perform(get("/api/unit_content/article/" + articleId)
+                .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isNotFound());
     }
 
@@ -244,7 +241,8 @@ public class UnitContentControllerTest {
 
         when(unitContentRepository.findByIdAndContentTypeIgnoreCase(articleId, "article")).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/unit_content/article/" + articleId))
+        mockMvc.perform(get("/api/unit_content/article/" + articleId)
+                .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isNotFound());
     }
 

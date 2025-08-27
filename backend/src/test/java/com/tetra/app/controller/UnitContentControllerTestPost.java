@@ -62,6 +62,12 @@ public class UnitContentControllerTestPost {
     private UUID unitId;
 
     @BeforeEach
+    void mockJwtUtilForAllTests() {
+        org.mockito.Mockito.when(jwtUtil.extractUserId(org.mockito.ArgumentMatchers.anyString())).thenReturn("user");
+        org.mockito.Mockito.when(jwtUtil.extractRole(org.mockito.ArgumentMatchers.anyString())).thenReturn("ADMIN");
+    }
+
+    @BeforeEach
     void setup() {
         unitId = UUID.randomUUID();
         Unit unit = new Unit();
@@ -115,6 +121,7 @@ public class UnitContentControllerTestPost {
         """.formatted(unitId);
 
         mockMvc.perform(post("/api/unit_content/quiz")
+                .header("Authorization", "Bearer test-token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())
@@ -144,6 +151,7 @@ public class UnitContentControllerTestPost {
         Mockito.when(unitRepository.findById(Mockito.any())).thenReturn(Optional.empty());
 
         mockMvc.perform(post("/api/unit_content/quiz")
+                .header("Authorization", "Bearer test-token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isNotFound())
@@ -168,6 +176,7 @@ public class UnitContentControllerTestPost {
         """.formatted(unitId);
 
         mockMvc.perform(post("/api/unit_content/quiz")
+                .header("Authorization", "Bearer test-token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isBadRequest())
@@ -193,6 +202,7 @@ public class UnitContentControllerTestPost {
         """.formatted(unitId);
 
         mockMvc.perform(post("/api/unit_content/quiz")
+                .header("Authorization", "Bearer test-token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isBadRequest())
@@ -219,6 +229,7 @@ public class UnitContentControllerTestPost {
         Mockito.when(unitContentRepository.findByUnit_Id(unitId)).thenReturn(java.util.Collections.emptyList());
 
         mockMvc.perform(post("/api/unit_content/article")
+                .header("Authorization", "Bearer test-token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())
@@ -242,6 +253,7 @@ public class UnitContentControllerTestPost {
         """.formatted(unitId);
 
         mockMvc.perform(post("/api/unit_content/article")
+                .header("Authorization", "Bearer test-token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isBadRequest())
@@ -265,6 +277,7 @@ public class UnitContentControllerTestPost {
         """.formatted(unitId);
 
         mockMvc.perform(post("/api/unit_content/article")
+                .header("Authorization", "Bearer test-token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isBadRequest())
@@ -293,6 +306,7 @@ public class UnitContentControllerTestPost {
         """.formatted(unitId);
 
         mockMvc.perform(post("/api/unit_content/article")
+                .header("Authorization", "Bearer test-token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isBadRequest())
@@ -319,6 +333,7 @@ public class UnitContentControllerTestPost {
         Mockito.when(unitContentRepository.findByUnit_Id(unitId)).thenReturn(java.util.Collections.emptyList());
 
         mockMvc.perform(post("/api/unit_content/video")
+                .header("Authorization", "Bearer test-token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isCreated())
@@ -344,6 +359,7 @@ public class UnitContentControllerTestPost {
         """.formatted(unitId);
 
         mockMvc.perform(post("/api/unit_content/video")
+                .header("Authorization", "Bearer test-token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isBadRequest())
@@ -367,6 +383,7 @@ public class UnitContentControllerTestPost {
         """.formatted(unitId);
 
         mockMvc.perform(post("/api/unit_content/video")
+                .header("Authorization", "Bearer test-token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isBadRequest())
@@ -391,6 +408,7 @@ public class UnitContentControllerTestPost {
         """.formatted(unitId);
 
         mockMvc.perform(post("/api/unit_content/video")
+                .header("Authorization", "Bearer test-token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isBadRequest())
@@ -419,6 +437,7 @@ public class UnitContentControllerTestPost {
         """.formatted(unitId);
 
         mockMvc.perform(post("/api/unit_content/video")
+                .header("Authorization", "Bearer test-token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isBadRequest())
@@ -446,6 +465,7 @@ public class UnitContentControllerTestPost {
         """.formatted(fakeUnitId);
 
         mockMvc.perform(post("/api/unit_content/video")
+                .header("Authorization", "Bearer test-token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isNotFound())

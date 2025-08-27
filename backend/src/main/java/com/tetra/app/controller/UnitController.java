@@ -1,4 +1,14 @@
+
 package com.tetra.app.controller;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import com.tetra.app.model.TrainingModule;
 import com.tetra.app.model.Unit;
@@ -50,7 +60,18 @@ public class UnitController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getUnitsByModuleId(@RequestParam(required = false) UUID moduleId) {
+    public ResponseEntity<?> getUnitsByModuleId(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @RequestParam(required = false) UUID moduleId) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        try {
+            jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
         if (moduleId == null) {
             List<Unit> units = unitRepository.findAll();
             return ResponseEntity.ok(units);
@@ -68,14 +89,40 @@ public class UnitController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Unit> getUnitById(@PathVariable String id) {
+    public ResponseEntity<Unit> getUnitById(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @PathVariable String id) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String token = authHeader.substring(7);
+        try {
+            jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         return unitRepository.findById(UUID.fromString(id))
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Unit is not found with id: " + id));
     }
 
     @PostMapping
-    public ResponseEntity<?> createUnit(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> createUnit(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @RequestBody Map<String, Object> body) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
         Object moduleIdObj = body.get("module_id");
         Object titleObj = body.get("title");
         Object descriptionObj = body.get("description");
@@ -106,7 +153,23 @@ public class UnitController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUnit(@PathVariable UUID id, @RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> updateUnit(
+        @PathVariable UUID id,
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @RequestBody Map<String, Object> body) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
         Unit unit = unitRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Unit not found with id: " + id));
 

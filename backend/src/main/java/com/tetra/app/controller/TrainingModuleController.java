@@ -63,18 +63,54 @@ public class TrainingModuleController {
     }
 
     @GetMapping
-    public List<TrainingModule> getAllModules() {
-        return trainingModuleRepository.findAll();
+    public ResponseEntity<?> getAllModules(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        try {
+            jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        return ResponseEntity.ok(trainingModuleRepository.findAll());
     }
 
     @GetMapping("/{id}")
-    public TrainingModule getModuleById(@PathVariable UUID id) {
+    public ResponseEntity<?> getModuleById(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @PathVariable UUID id) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        try {
+            jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
         return trainingModuleRepository.findById(id)
+                .map(ResponseEntity::ok)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Module not found with id: " + id));
     }
 
     @PostMapping
-    public ResponseEntity<?> createModule(@RequestBody TrainingModule module) {
+    public ResponseEntity<?> createModule(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @RequestBody TrainingModule module) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return new ResponseEntity<>("Missing or invalid Authorization header", HttpStatus.UNAUTHORIZED);
+        }
+        String token = authHeader.substring(7);
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Invalid token", HttpStatus.UNAUTHORIZED);
+        }
+        if (!"ADMIN".equals(role)) {
+            return new ResponseEntity<>("Access denied", HttpStatus.FORBIDDEN);
+        }
         if (module.getTitle() == null || module.getTitle().isEmpty()) {
             return new ResponseEntity<>("Title is required", HttpStatus.BAD_REQUEST);
         }
@@ -112,7 +148,23 @@ public class TrainingModuleController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateModule(@PathVariable UUID id, @RequestBody com.tetra.app.dto.UpdateTrainingModuleRequest updated) {
+    public ResponseEntity<?> updateModule(
+        @PathVariable UUID id,
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @RequestBody com.tetra.app.dto.UpdateTrainingModuleRequest updated) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return new ResponseEntity<>("Missing or invalid Authorization header", HttpStatus.UNAUTHORIZED);
+        }
+        String token = authHeader.substring(7);
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Invalid token", HttpStatus.UNAUTHORIZED);
+        }
+        if (!"ADMIN".equals(role)) {
+            return new ResponseEntity<>("Access denied", HttpStatus.FORBIDDEN);
+        }
         var existingOpt = trainingModuleRepository.findById(id);
         if (existingOpt.isEmpty()) {
             return new ResponseEntity<>("Module not found with id: " + id, HttpStatus.NOT_FOUND);
@@ -169,19 +221,16 @@ public class TrainingModuleController {
         }
 
         try {
-            // Delete user progress for this module
             List<UserModuleProgress> moduleProgresses = userModuleProgressRepository.findByModule_Id(id);
             userModuleProgressRepository.deleteAll(moduleProgresses);
 
             List<Unit> units = unitRepository.findByModule_Id(id);
             for (Unit unit : units) {
-                // Delete user unit progress for this unit
                 List<UserUnitProgress> unitProgresses = userUnitProgressRepository.findByUnit_Id(unit.getId());
                 userUnitProgressRepository.deleteAll(unitProgresses);
 
                 List<UnitContent> contents = unitContentRepository.findByUnit_Id(unit.getId());
                 for (UnitContent content : contents) {
-                    // Delete user content progress for this content
                     List<UserContentProgress> contentProgresses = userContentProgressRepository.findByUnitContent_Id(content.getId());
                     userContentProgressRepository.deleteAll(contentProgresses);
 

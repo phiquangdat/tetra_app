@@ -55,6 +55,12 @@ public class UnitContentControllerQuizPutTest {
     private UnitContent quizContent;
 
     @BeforeEach
+    void mockJwtUtilForAllTests() {
+        org.mockito.Mockito.when(jwtUtil.extractUserId(org.mockito.ArgumentMatchers.anyString())).thenReturn("user");
+        org.mockito.Mockito.when(jwtUtil.extractRole(org.mockito.ArgumentMatchers.anyString())).thenReturn("ADMIN");
+    }
+
+    @BeforeEach
     void setup() {
         quizId = UUID.randomUUID();
         quizContent = new UnitContent();

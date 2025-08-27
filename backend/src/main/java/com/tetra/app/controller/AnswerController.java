@@ -21,29 +21,77 @@ public class AnswerController {
 
     private final AnswerRepository answerRepository;
     private final QuestionRepository questionRepository;
+    private final com.tetra.app.security.JwtUtil jwtUtil;
 
-    public AnswerController(AnswerRepository answerRepository, QuestionRepository questionRepository) {
+    public AnswerController(AnswerRepository answerRepository, QuestionRepository questionRepository, com.tetra.app.security.JwtUtil jwtUtil) {
         this.answerRepository = answerRepository;
         this.questionRepository = questionRepository;
+        this.jwtUtil = jwtUtil;
     }
 
     @GetMapping
-    public List<Answer> getAll() {
-        return answerRepository.findAll();
+    public ResponseEntity<?> getAll(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        try {
+            jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        return ResponseEntity.ok(answerRepository.findAll());
     }
 
     @GetMapping("/by-question/{questionId}")
-    public List<Answer> getByQuestion(@PathVariable UUID questionId) {
-        return answerRepository.findByQuestion_Id(questionId);
+    public ResponseEntity<?> getByQuestion(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @PathVariable UUID questionId) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        try {
+            jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        return ResponseEntity.ok(answerRepository.findByQuestion_Id(questionId));
     }
 
     @GetMapping("/{id}")
-    public Answer getById(@PathVariable UUID id) {
-        return answerRepository.findById(id).orElse(null);
+    public ResponseEntity<?> getById(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @PathVariable UUID id) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        try {
+            jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        return ResponseEntity.ok(answerRepository.findById(id).orElse(null));
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> create(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @RequestBody Map<String, Object> body) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
         try {
             Object questionIdObj = body.get("question_id");
             Object titleObj = body.get("title");
@@ -104,7 +152,23 @@ public class AnswerController {
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-    public ResponseEntity<?> update(@PathVariable UUID id, @RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> update(
+        @PathVariable UUID id,
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @RequestBody Map<String, Object> body) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
         if (!body.containsKey("question_id") || !body.containsKey("title")
                 || !body.containsKey("is_correct") || !body.containsKey("sort_order")) {
             logger.error("Missing required fields");
@@ -169,7 +233,23 @@ public class AnswerController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable UUID id) {
+    public ResponseEntity<?> delete(
+        @PathVariable UUID id,
+        @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        String role;
+        try {
+            role = jwtUtil.extractRole(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
         answerRepository.deleteById(id);
+        return ResponseEntity.ok().build();
     }
 }

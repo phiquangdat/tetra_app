@@ -9,7 +9,7 @@ import { hydrateContextFromContent } from '../../../utils/contextHydration'; // 
 const QuizPassedModal = () => {
   const { isOpen, type, quizId, closeModal } = useQuizModal();
   const { goToNextContent, setUnitId, setModuleId, unitId, moduleId } =
-    useModuleProgress(); // ⬅️ add setters
+    useModuleProgress();
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [points, setPoints] = useState<number | null>(null);
   const isVisible = isOpen && type === 'passed' && !!quizId;

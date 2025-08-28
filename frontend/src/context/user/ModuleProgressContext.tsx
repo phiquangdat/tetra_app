@@ -456,10 +456,11 @@ export const ModuleProgressProvider = ({
       ? [...units].sort(
           (a: Unit, b: Unit) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
         )
-      : ((await fetchUnitTitleByModuleId(moduleId)) as Unit[]).sort(
+      : ((await fetchUnitTitleByModuleId(targetModuleId)) as Unit[]).sort(
           (a: Unit, b: Unit) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
         );
 
+    // All units must exist and be COMPLETED
     const byUnit = new Map(unitProgresses.map((u) => [u.unitId, u]));
     const isCompleted = (s?: string) =>
       (s ?? '').toString().toUpperCase() === 'COMPLETED';

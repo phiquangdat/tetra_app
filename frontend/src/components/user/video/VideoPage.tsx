@@ -179,35 +179,57 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         setHasNext(false);
       }
 
+      let progress: ContentProgress | undefined;
       try {
-        const progress = await getContentProgress(id);
-        console.log('[getContentProgress]', progress);
+        progress = await getContentProgress(id);
+      } catch (error: any) {
+        if (String(error?.message ?? '').includes('404')) {
+          try {
+            const ids = await ensureIds();
+            const resolvedUnitId =
+              ids.unitId || resolveUnitId(video) || idsRef.current.unitId;
+            if (resolvedUnitId) {
+              progress = await createContentProgress({
+                unitId: resolvedUnitId as string,
+                unitContentId: id,
+                status: 'IN_PROGRESS',
+                points: 0,
+              });
+            } else {
+              console.warn(
+                '[VideoPage] Unable to create content progress: missing unitId',
+              );
+            }
+          } catch (e) {
+            console.error('[VideoPage] createContentProgress failed:', e);
+          }
+        } else {
+          console.error(error);
+        }
+      }
 
+      if (progress) {
         setContentProgress(progress);
 
-        const resolvedUnitId = resolveUnitId(video) || idsRef.current.unitId;
+        const ids = idsRef.current;
+        const resolvedUnitId =
+          ids.unitId || resolveUnitId(video) || unitIdFromState || unitId;
 
         if (
           resolvedUnitId &&
           (moduleProgress?.last_visited_unit_id !== resolvedUnitId ||
             moduleProgress?.last_visited_content_id !== id) &&
-          progress.status !== 'COMPLETED'
+          String(progress.status || '').toUpperCase() !== 'COMPLETED'
         ) {
           try {
-            const response = await safePatchModule({
+            await safePatchModule({
               lastVisitedUnit: resolvedUnitId,
               lastVisitedContent: id,
+              // status omitted intentionally to respect your backend state machine
             });
-
-            console.log('[patchModuleProgress], Update IDs:', response);
           } catch (error) {
             console.error('[patchModuleProgress]', error);
           }
-        }
-      } catch (error) {
-        if (error instanceof Error && error.message.includes('404')) {
-        } else {
-          console.error(error);
         }
       }
     };

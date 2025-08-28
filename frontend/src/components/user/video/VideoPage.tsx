@@ -460,7 +460,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         clearInterval(progressIntervalRef.current);
       if (playerRef.current?.destroy) playerRef.current.destroy();
     };
-  }, [video?.url, isValid, isYouTube, markAsCompleted]);
+  }, [video?.url, isValid, isYouTube]);
 
   const isButtonDisabled =
     contentProgress?.status !== 'COMPLETED' && !playbackError;

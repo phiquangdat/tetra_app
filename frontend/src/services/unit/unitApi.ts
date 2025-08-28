@@ -46,6 +46,7 @@ export interface Unit {
   module_id: string;
   title: string;
   description: string;
+  sort_order: number;
 }
 
 export type UnitInput = Omit<Unit, 'id'>;
@@ -53,6 +54,7 @@ export type UnitInput = Omit<Unit, 'id'>;
 export interface CreateUnitResponse {
   id: string;
   title: string;
+  sort_order: number;
 }
 
 export async function fetchUnitTitleByModuleId(moduleId: string): Promise<any> {

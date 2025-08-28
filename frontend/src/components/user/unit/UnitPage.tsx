@@ -177,10 +177,16 @@ const UnitPage = ({ id }: UnitPageProps) => {
     (async () => {
       try {
         const list = await fetchUnitTitleByModuleId(unitDetails.moduleId);
-        const typed = list as Array<{ id: string; title: string }>;
-        const idx = typed.findIndex((u) => u.id === id);
+
+        const sortedList = [...list].sort(
+          (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
+        );
+
+        const idx = sortedList.findIndex((u) => u.id === id);
         const next =
-          idx !== -1 && idx + 1 < typed.length ? typed[idx + 1] : null;
+          idx !== -1 && idx + 1 < sortedList.length
+            ? sortedList[idx + 1]
+            : null;
         if (!cancelled) setNextUnitId(next ? next.id : null);
       } catch (e) {
         console.warn('[UnitPage] failed to compute next unit:', e);

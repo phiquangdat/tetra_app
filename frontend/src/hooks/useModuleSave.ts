@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useModuleContext } from '../context/admin/ModuleContext';
-import { isImageUrlRenderable, isValidImageUrl } from '../utils/validators';
+import { isImageUrlRenderable } from '../utils/validators';
 
 type FieldErrors = Partial<{
   title: string;
@@ -42,8 +42,6 @@ export const useModuleSave = () => {
 
     if (!coverPicture) {
       errors.coverPicture = 'Cover picture is required';
-    } else if (!isValidImageUrl(coverPicture)) {
-      errors.coverPicture = 'Cover picture must be a valid URL';
     } else {
       const isRenderable = await isImageUrlRenderable(coverPicture);
       if (!isRenderable) {
@@ -111,7 +109,7 @@ export const useModuleSave = () => {
 
   useEffect(() => {
     const checkCover = async () => {
-      if (coverPicture && isValidImageUrl(coverPicture)) {
+      if (coverPicture) {
         const isRenderable = await isImageUrlRenderable(coverPicture);
         if (isRenderable) {
           setFormErrors((prev) => {

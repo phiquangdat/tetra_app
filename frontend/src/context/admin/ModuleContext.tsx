@@ -12,7 +12,7 @@ import {
   type ModuleInput,
   deleteModule,
 } from '../../services/module/moduleApi';
-import { isValidImageUrl, isImageUrlRenderable } from '../../utils/validators';
+import { isImageUrlRenderable } from '../../utils/validators';
 import toast from 'react-hot-toast';
 
 interface ModuleContextProps {
@@ -26,7 +26,7 @@ interface ModuleContextProps {
   isSaving: boolean;
   isEditing: boolean;
   error: string | null;
-  status: string; // <-- Add this line with a default value where the object is created, e.g., status: 'draft'
+  status: string;
 }
 
 interface ModuleContextValue extends ModuleContextProps {
@@ -50,7 +50,7 @@ export const initialModuleState: ModuleContextProps = {
   isSaving: false,
   isEditing: true,
   error: null,
-  status: 'draft', // <-- Provide a default value here
+  status: 'draft',
 };
 
 const ModuleContext = createContext<ModuleContextValue | undefined>(undefined);
@@ -80,22 +80,19 @@ export const ModuleContextProvider = ({
   const updateModuleField = async (key: string, value: any): Promise<void> => {
     let error: string | null = null;
 
+    // Validate cover picture strictly by renderability (no format regex)
     if (
       key === 'coverPicture' &&
       typeof value === 'string' &&
       value.trim() !== ''
     ) {
       try {
-        if (!isValidImageUrl(value)) {
-          error = 'Invalid image URL format.';
-        } else {
-          const isRenderable = await isImageUrlRenderable(value);
-          if (!isRenderable) {
-            error =
-              'Image URL is not accessible or does not point to an actual image.';
-          }
+        const isRenderable = await isImageUrlRenderable(value);
+        if (!isRenderable) {
+          error =
+            'Image URL is not accessible or does not point to an actual image.';
         }
-      } catch (e) {
+      } catch {
         error = 'Failed to validate cover picture.';
       }
     }
@@ -121,8 +118,14 @@ export const ModuleContextProvider = ({
     setModule((prev) => ({ ...prev, isSaving: true, error: null }));
 
     try {
-      if (module.coverPicture && !isValidImageUrl(module.coverPicture)) {
-        throw new Error('Invalid image URL format for cover picture.');
+      // Guard at save time as well (in case saveModule is used elsewhere)
+      if (module.coverPicture) {
+        const ok = await isImageUrlRenderable(module.coverPicture);
+        if (!ok) {
+          throw new Error(
+            'Image URL is not accessible or does not point to an actual image.',
+          );
+        }
       }
 
       const moduleInput: ModuleInput = {
@@ -147,7 +150,7 @@ export const ModuleContextProvider = ({
         isDirty: false,
         isSaving: false,
         error: null,
-        status: responseModule.status, // Ensure status is preserved after save
+        status: responseModule.status,
       }));
     } catch (err) {
       setModule((prev) => ({
@@ -225,7 +228,7 @@ export const ModuleContextProvider = ({
       removeModule,
       publishModule,
     }),
-    [module, setModuleState, updateModuleField, markModuleAsDirty, saveModule],
+    [module, isEditing, setModuleState, updateModuleField],
   );
 
   return (

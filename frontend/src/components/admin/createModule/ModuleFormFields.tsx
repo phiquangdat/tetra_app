@@ -1,9 +1,6 @@
 import React, { type ChangeEvent, useEffect, useRef, useState } from 'react';
 import { useModuleContext } from '../../../context/admin/ModuleContext';
-import {
-  isImageUrlRenderable,
-  isValidImageUrl,
-} from '../../../utils/validators.ts';
+import { isImageUrlRenderable } from '../../../utils/validators.ts';
 
 const ModuleFormFields: React.FC = () => {
   const {
@@ -15,21 +12,26 @@ const ModuleFormFields: React.FC = () => {
     markModuleAsDirty,
   } = useModuleContext();
 
+  const [coverError, setCoverError] = useState<string | null>(null);
+
   useEffect(() => {
     let cancelled = false;
 
     const validateCoverPicture = async () => {
-      if (coverPicture && isValidImageUrl(coverPicture)) {
+      if (coverPicture) {
         const exists = await isImageUrlRenderable(coverPicture);
         if (!cancelled) {
           if (exists) {
             setCoverPreviewUrl(coverPicture);
+            setCoverError(null);
           } else {
             setCoverPreviewUrl(null);
+            setCoverError('Image could not be loaded. Please check the URL.');
           }
         }
       } else {
         setCoverPreviewUrl(null);
+        setCoverError(null);
       }
     };
 
@@ -94,8 +96,10 @@ const ModuleFormFields: React.FC = () => {
           placeholder="https://example.com/image.jpg"
           value={coverPicture ?? ''}
           onChange={handleCoverPictureChange}
-          className={`text-xs ${inputBase}`}
+          className={`text-xs ${inputBase} ${coverError ? 'border-red-500' : ''}`}
+          aria-invalid={!!coverError}
         />
+        {coverError && <p className="text-red-500 text-xs">{coverError}</p>}
       </div>
     );
   };

@@ -34,7 +34,6 @@ beforeAll(() => {
 
 describe('CreateModuleForm', () => {
   it('renders all form fields', async () => {
-    vi.spyOn(validators, 'isValidImageUrl').mockReturnValue(true);
     vi.spyOn(validators, 'isImageUrlRenderable').mockResolvedValue(true);
 
     renderWithProviders();
@@ -48,7 +47,6 @@ describe('CreateModuleForm', () => {
 
   it('lets the user input values into fields & see cover preview', async () => {
     const user = userEvent.setup();
-    vi.spyOn(validators, 'isValidImageUrl').mockReturnValue(true);
     vi.spyOn(validators, 'isImageUrlRenderable').mockResolvedValue(true);
 
     renderWithProviders();
@@ -63,10 +61,9 @@ describe('CreateModuleForm', () => {
     expect(topic).toHaveValue('cybersecurity');
   });
 
-  it('shows an error banner when invalid image URL is provided and user tries to save', async () => {
+  it('shows an error banner when image is not renderable and user tries to save', async () => {
     const user = userEvent.setup();
-    // Make URL invalid so the form validation (formErrors) kicks in
-    vi.spyOn(validators, 'isValidImageUrl').mockReturnValue(false);
+    // Only mock the new validator
     vi.spyOn(validators, 'isImageUrlRenderable').mockResolvedValue(false);
 
     renderWithProviders();
@@ -78,15 +75,14 @@ describe('CreateModuleForm', () => {
     // Click Save to trigger formErrors rendering
     await user.click(screen.getByRole('button', { name: /save/i }));
 
-    // The UI shows this exact message (from useModuleSave’s formErrors)
+    // Message from useModuleSave’s validation path
     expect(
-      await screen.findByText(/cover picture must be a valid url/i),
+      await screen.findByText(/image url is not accessible or invalid/i),
     ).toBeInTheDocument();
   });
 
   it('saves a new module (create) and shows success banner', async () => {
     const user = userEvent.setup();
-    vi.spyOn(validators, 'isValidImageUrl').mockReturnValue(true);
     vi.spyOn(validators, 'isImageUrlRenderable').mockResolvedValue(true);
 
     renderWithProviders();
@@ -114,7 +110,6 @@ describe('CreateModuleForm', () => {
 
   it('allows editing after initial save and saves updates (update)', async () => {
     const user = userEvent.setup();
-    vi.spyOn(validators, 'isValidImageUrl').mockReturnValue(true);
     vi.spyOn(validators, 'isImageUrlRenderable').mockResolvedValue(true);
 
     renderWithProviders();

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   fetchArticleContentById,
   type Article,
+  fetchUnitById,
 } from '../../../services/unit/unitApi';
 import { useModuleProgress } from '../../../context/user/ModuleProgressContext';
 import {
@@ -57,6 +58,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
 
   // Lock to prevent multiple triggers while past 90%
   const completingRef = useRef(false);
+  const [hasNext, setHasNext] = useState(false);
 
   // helper (already in your code path)
   const safePatchModule = useCallback(
@@ -79,13 +81,11 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
 
   const resolveUnitId = (a?: Article | null) =>
     unitIdFromState || unitId || a?.unit_id || '';
-  const [hasNext, setHasNext] = useState(false);
 
   const calculateScrollPercent = useCallback(() => {
     const element = articleRef.current;
     if (!element) return 0;
 
-    // How far the top of the viewport is from the top of the document
     const scrollTop =
       window.scrollY ||
       window.pageYOffset ||
@@ -217,41 +217,85 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
   ]);
 
   useEffect(() => {
+    completingRef.current = false;
+  }, [id]);
+
+  useEffect(() => {
+    const done =
+      String(contentProgress?.status || '').toUpperCase() === 'COMPLETED';
+    completingRef.current = done ? true : false;
+  }, [contentProgress?.id, contentProgress?.status]);
+
+  const ensureIds = useCallback(async () => {
+    let u =
+      idsRef.current.unitId ||
+      unitId ||
+      unitIdFromState ||
+      article?.unit_id ||
+      '';
+    let m = idsRef.current.moduleId || moduleId || '';
+
+    // If we have unitId but no moduleId, fetch the unit to resolve moduleId
+    if (u && !m) {
+      try {
+        const unit = await fetchUnitById(u);
+        m = (unit as any).moduleId || (unit as any).module_id || '';
+        if (m) setModuleId(m);
+      } catch (e) {
+        console.warn('[ensureIds] fetchUnitById failed:', e);
+      }
+    }
+
+    // If still missing, hydrate from content
+    if (!u || !m) {
+      try {
+        const hydrated = await hydrateContextFromContent(id, {
+          setUnitId,
+          setModuleId,
+        });
+        u ||= hydrated.unitId;
+        m ||= hydrated.moduleId;
+      } catch (e) {
+        console.warn('[ensureIds] hydrateContextFromContent failed:', e);
+      }
+    }
+
+    // Write back to context + ref
+    if (u && !unitId) setUnitId(u);
+    if (m && !moduleId) setModuleId(m);
+    idsRef.current = { unitId: u || undefined, moduleId: m || undefined };
+
+    if (!u || !m) {
+      console.warn('[ensureIds] Missing ids after hydration', { u, m });
+    }
+    return { unitId: u, moduleId: m };
+  }, [
+    id,
+    unitId,
+    moduleId,
+    unitIdFromState,
+    article?.unit_id,
+    setUnitId,
+    setModuleId,
+  ]);
+
+  useEffect(() => {
     const fetchData = async () => {
+      completingRef.current = false;
+
       const data = await fetchArticleContentById(id);
       setArticle(data);
 
       if (data.attachment_id) {
         try {
           const file = await fetchFileById(data.attachment_id);
-          console.log('Fetched attachment metadata:', file);
           setAttachment(file);
         } catch (error) {
           console.error('Failed to fetch attachment metadata:', error);
         }
       }
 
-      // Hydrate context if missing and cache IDs
-      let effectiveUnitId = unitId || data.unit_id || unitIdFromState || '';
-      let effectiveModuleId = moduleId;
-
-      if (!effectiveUnitId || !effectiveModuleId) {
-        try {
-          const hydrated = await hydrateContextFromContent(id, {
-            setUnitId,
-            setModuleId,
-          });
-          effectiveUnitId ||= hydrated.unitId;
-          effectiveModuleId ||= hydrated.moduleId;
-        } catch (error) {
-          console.log('Error while hydrating context', error);
-        }
-      }
-
-      idsRef.current = {
-        unitId: effectiveUnitId,
-        moduleId: effectiveModuleId,
-      };
+      await ensureIds();
 
       try {
         const next = await isNextContentAsync(id);
@@ -260,7 +304,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
         setHasNext(false);
       }
 
-      const resolvedUnitId = resolveUnitId(data) || effectiveUnitId;
+      const resolvedUnitId = resolveUnitId(data) || idsRef.current.unitId || '';
 
       try {
         const progress = await getContentProgress(id);
@@ -268,11 +312,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
 
         setContentProgress(progress);
 
-        // If already completed, prime the lock
-        if (String(progress.status).toUpperCase() === 'COMPLETED') {
-          completingRef.current = true;
-        }
-
+        // Patch last visited ONLY when first time (not completed yet)
         if (
           (moduleProgress?.last_visited_unit_id !== resolvedUnitId ||
             moduleProgress?.last_visited_content_id !== id) &&
@@ -299,7 +339,14 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
           });
           console.log('[createContentProgress]', progress);
 
-          setContentProgress(progress);
+          try {
+            await safePatchModule({
+              lastVisitedUnit: resolvedUnitId,
+              lastVisitedContent: id,
+            });
+          } catch (e) {
+            console.error('[patchModuleProgress after create]', e);
+          }
         } else {
           console.error(error);
         }
@@ -310,8 +357,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
   }, [
     id,
     unitIdFromState,
-    unitId,
-    moduleId,
     isNextContentAsync,
     moduleProgress,
     setUnitId,
@@ -319,6 +364,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     safePatchModule,
     setModuleProgress,
     navigate,
+    ensureIds,
   ]);
 
   useEffect(() => {
@@ -340,17 +386,12 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
   useEffect(() => {
     if (
       !articleRef.current ||
-      contentProgress?.status?.toLowerCase() == 'completed'
+      contentProgress?.status?.toLowerCase() === 'completed'
     )
       return;
 
-    window.addEventListener('scroll', handleScroll, {
-      passive: true,
-    });
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll, contentProgress?.status, article]);
 
   return (
@@ -422,7 +463,20 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
         <button
           className="bg-surface text-background font-semibold px-12 py-3 rounded-full text-lg shadow-md hover:bg-surfaceHover focus:outline-none focus:ring-2 focus:ring-secondary transition-all duration-200 w-fit"
           type="button"
-          onClick={() => goToNextContent(id)}
+          onClick={async () => {
+            if (
+              contentProgress &&
+              contentProgress.status !== 'COMPLETED' &&
+              isArticleShorterThanViewport()
+            ) {
+              await markAsCompleted();
+            }
+            const ids = await ensureIds();
+            await goToNextContent(id, {
+              unitId: ids.unitId,
+              moduleId: ids.moduleId,
+            });
+          }}
         >
           {hasNext ? 'Up next' : 'Finish'}
         </button>

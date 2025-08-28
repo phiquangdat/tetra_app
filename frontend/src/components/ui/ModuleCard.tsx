@@ -67,13 +67,14 @@ function ModuleCard({
       {/* Content */}
       <div className="w-62 h-54 border-l-2 border-gray-300 flex flex-col justify-between">
         <div className="text-start mt-4 ml-4 flex flex-col gap-2">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-lg font-bold text-[#231942] leading-tight">
-              {title}
-            </h2>
+          <div className="overflow-y-hidden">
+            <span className="text-lg font-bold text-[#231942] leading-tight">
+              {title.length > 60 ? `${title.substring(0, 59)}...` : title}
+            </span>
             {progressStatus ? (
               <span
-                className={`shadow-sm mr-4 rounded-full px-3 py-1.5 text-xs font-semibold text-white capitalize whitespace-nowrap ${progressStatus === 'COMPLETED' ? 'bg-success' : 'bg-accent'}
+                className={`inline-flex ml-1 shadow-sm rounded-full px-2.5 py-1.5 text-xs font-semibold text-white capitalize whitespace-nowrap ${
+                  progressStatus === 'COMPLETED' ? 'bg-success' : 'bg-accent'
                 }`}
               >
                 {progressStatus.toLowerCase().replace('_', ' ')}
@@ -84,15 +85,24 @@ function ModuleCard({
           <div className="space-y-2">
             {details.map((detail, idx) => (
               <p className="text-base text-[#14248A]" key={idx}>
-                <span>{detail.label}:</span> {detail.value}
+                {detail.label === 'Topic' && (
+                  <p className="text-base text-[#14248A]">
+                    <span className="font-medium">{detail.label}:</span>{' '}
+                    {detail.value}
+                  </p>
+                )}
+                {detail.label === 'Points' && (
+                  <p className="text-base text-[#14248A]">
+                    <span className="font-medium">
+                      {Boolean(earnedPoints) && <span>Earned </span>}
+                      {detail.label}:
+                    </span>{' '}
+                    {earnedPoints ?? detail.value}
+                  </p>
+                )}
               </p>
             ))}
           </div>
-          {earnedPoints ? (
-            <span className="text-surface mb-2">
-              Earned: {earnedPoints} pts
-            </span>
-          ) : null}
         </div>
 
         {/* Action Button */}

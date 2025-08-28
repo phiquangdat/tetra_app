@@ -341,13 +341,30 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
 
   useEffect(() => {
     const rawUrl = video?.url;
-    const ytId = rawUrl ? getYouTubeId(rawUrl) : '';
 
-    if (!rawUrl || !isValid || !isYouTube || !ytId) {
-      if (!rawUrl || !isValid || !isYouTube || !ytId)
-        setPlaybackError((prev) => prev || true);
+    if (!rawUrl) {
+      setPlaybackError(true);
       return;
     }
+    if (!isValid) {
+      setPlaybackError(true);
+      return;
+    }
+
+    // Non-YouTube but valid: let the <video> element handle real playback errors.
+    if (!isYouTube) {
+      setPlaybackError(false);
+      return;
+    }
+
+    const ytId = getYouTubeId(rawUrl);
+    if (!ytId) {
+      setPlaybackError(true);
+      return;
+    }
+
+    // At this point we have a valid YouTube ID — clear any previous error
+    setPlaybackError(false);
 
     const loadYouTubeAPI = () =>
       new Promise<void>((resolve) => {

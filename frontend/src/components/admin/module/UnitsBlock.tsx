@@ -30,7 +30,10 @@ const UnitsBlockUI: React.FC<UnitsBlockUIProps> = ({ moduleId }) => {
 
   const unitNumbers = Object.keys(unitStates)
     .map(Number)
-    .sort((a, b) => a - b);
+    .sort(
+      (a, b) =>
+        (unitStates[a]?.sort_order ?? 0) - (unitStates[b]?.sort_order ?? 0),
+    );
 
   const lastUnitNumber = unitNumbers[unitNumbers.length - 1];
   const lastUnit = unitStates[lastUnitNumber];
@@ -60,6 +63,7 @@ const UnitsBlockUI: React.FC<UnitsBlockUIProps> = ({ moduleId }) => {
             id: u.id,
             title: u.title,
             description: u.description ?? '',
+            sort_order: u.sort_order ?? i * 10,
           });
         });
 

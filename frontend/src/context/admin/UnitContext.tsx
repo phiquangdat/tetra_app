@@ -67,6 +67,7 @@ export type UnitContextEntry = {
   id: string | null;
   title: string;
   description: string;
+  sort_order: number;
   content: ContentBlock[];
   isDirty: boolean;
   isSaving: boolean;
@@ -116,6 +117,7 @@ export const initialUnitState = (): UnitContextEntry => ({
   id: null,
   title: '',
   description: '',
+  sort_order: 0,
   content: [],
   isDirty: false,
   isSaving: false,
@@ -201,9 +203,18 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
       const next = Object.keys(prev).length
         ? Math.max(...Object.keys(prev).map(Number)) + 1
         : 1;
+
+      const existingOrders = Object.values(prev).map((u) => u.sort_order);
+      const nextSortOrder =
+        existingOrders.length > 0 ? Math.max(...existingOrders) + 10 : 0;
+
       return {
         ...prev,
-        [next]: { ...initialUnitState(), wasJustCreated: true },
+        [next]: {
+          ...initialUnitState(),
+          wasJustCreated: true,
+          sort_order: nextSortOrder,
+        },
       };
     });
   }, []);
@@ -224,10 +235,21 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
       setUnitState(unitNumber, { isSaving: true, error: null });
 
       try {
+        let sortOrder = currentUnit.sort_order;
+        if (!currentUnit.id) {
+          // only for new units
+          const existingOrders = Object.values(unitStates)
+            .map((u) => u.sort_order)
+            .filter((n) => typeof n === 'number');
+          sortOrder =
+            existingOrders.length > 0 ? Math.max(...existingOrders) + 10 : 0;
+        }
+
         const unitData: UnitInput = {
           module_id: moduleId,
           title: currentUnit.title,
           description: currentUnit.description,
+          sort_order: sortOrder,
         };
 
         let response;
@@ -239,6 +261,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
 
         setUnitState(unitNumber, {
           id: response.id,
+          sort_order: response.sort_order,
           isDirty: false,
           error: null,
         });

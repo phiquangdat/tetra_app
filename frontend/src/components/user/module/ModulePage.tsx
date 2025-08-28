@@ -23,6 +23,7 @@ import { useUnitContent } from '../../../context/user/UnitContentContext.tsx';
 export type Unit = {
   id: string;
   title: string;
+  sort_order: number;
   content?: {
     type: 'video' | 'article' | 'quiz';
     title: string;
@@ -74,11 +75,15 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
           fetchUnitTitleByModuleId(id),
         ]);
 
+        const sortedUnits = [...units].sort(
+          (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
+        );
+
         console.log('Fetched module:', data); // Temporary log
-        console.log('Fetched units:', units);
+        console.log('Fetched units:', sortedUnits);
         setModule(data);
-        setUnits(units);
-        setModuleUnits(units);
+        setUnits(sortedUnits);
+        setModuleUnits(sortedUnits);
 
         try {
           const progress = await getModuleProgress(id);
@@ -98,6 +103,13 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
         try {
           const progress = await getUnitProgressByModuleId(id);
 
+          if (!progress || progress.length === 0) {
+            setUnits(
+              sortedUnits.map((u, i) => ({ ...u, hasProgress: i === 0 })),
+            );
+            return;
+          }
+
           setUnitsProgress(progress);
           console.log('[getUnitProgressByModuleId]', progress);
 
@@ -105,15 +117,15 @@ const ModulePage: React.FC<ModulePageProps> = ({ id }: ModulePageProps) => {
             progress.map((p) => [p.unitId, p.status]),
           );
 
-          const updatedUnits = units.map((u: Unit) => ({
+          const updatedUnits = sortedUnits.map((u: Unit) => ({
             ...u,
-            hasProgress: unitIdsWithProgress.has(u.id), //Set to true if the returned progress list has current unit ID
+            hasProgress: unitIdsWithProgress.has(u.id),
             status: unitIdsWithProgress.get(u.id),
           }));
           setUnits(updatedUnits);
         } catch (err) {
           const msg = err instanceof Error ? err.message.toLowerCase() : '';
-          const onlyFirstClickable = units.map((u: Unit, i: number) => ({
+          const onlyFirstClickable = sortedUnits.map((u: Unit, i: number) => ({
             ...u,
             hasProgress: i === 0, //Set clickable to first item
           }));

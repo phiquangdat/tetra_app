@@ -25,6 +25,7 @@ import {
 interface Unit {
   id: string;
   title: string;
+  sort_order: number;
   content?: UnitContent[];
 }
 
@@ -130,7 +131,10 @@ export const ModuleProgressProvider = ({
     if (!unitList || unitList.length === 0) {
       try {
         unitList = await fetchUnitTitleByModuleId(currentModuleId);
-        setUnits(unitList);
+        const sorted = [...unitList].sort(
+          (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
+        );
+        setUnits(sorted);
       } catch (e) {
         console.error('[goToNextContent] Failed to hydrate units list:', e);
         return;
@@ -258,8 +262,12 @@ export const ModuleProgressProvider = ({
       if (!apiUnits || !apiUnits.length) {
         throw new Error('This module has no units.');
       }
-      setUnits(apiUnits);
-      startUnitId = apiUnits[0].id;
+
+      const sorted = [...apiUnits].sort(
+        (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
+      );
+      setUnits(sorted);
+      startUnitId = sorted[0].id;
     }
 
     if (!startContents) {
@@ -334,7 +342,9 @@ export const ModuleProgressProvider = ({
     unitId: string;
     contents: UnitContent[];
   } | null> => {
-    const firstUnitId = units?.[0]?.id;
+    const firstUnitId = [...units].sort(
+      (a, b) => a.sort_order - b.sort_order,
+    )[0]?.id;
     if (!firstUnitId) return null;
 
     let contents: UnitContent[] =
@@ -443,9 +453,14 @@ export const ModuleProgressProvider = ({
   async function finalizeModuleIfComplete(targetModuleId: string) {
     const unitProgresses = await getUnitProgressByModuleId(targetModuleId);
     const list: Unit[] = units?.length
-      ? units
-      : await fetchUnitTitleByModuleId(targetModuleId);
+      ? [...units].sort(
+          (a: Unit, b: Unit) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
+        )
+      : ((await fetchUnitTitleByModuleId(targetModuleId)) as Unit[]).sort(
+          (a: Unit, b: Unit) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
+        );
 
+    // All units must exist and be COMPLETED
     const byUnit = new Map(unitProgresses.map((u) => [u.unitId, u]));
     const isCompleted = (s?: string) =>
       (s ?? '').toString().toUpperCase() === 'COMPLETED';

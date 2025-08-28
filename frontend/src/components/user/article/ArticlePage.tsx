@@ -226,7 +226,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     completingRef.current = done ? true : false;
   }, [contentProgress?.id, contentProgress?.status]);
 
-  // ⬇️ NEW: robust id hydration like in VideoPage
   const ensureIds = useCallback(async () => {
     let u =
       idsRef.current.unitId ||
@@ -296,7 +295,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
         }
       }
 
-      // ✅ Hydrate IDs before anything that depends on unitId/moduleId
       await ensureIds();
 
       try {
@@ -366,7 +364,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     safePatchModule,
     setModuleProgress,
     navigate,
-    ensureIds, // ⬅️ added
+    ensureIds,
   ]);
 
   useEffect(() => {
@@ -473,7 +471,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
             ) {
               await markAsCompleted();
             }
-            const ids = await ensureIds(); // ⬅️ ensure we have both ids before navigating
+            const ids = await ensureIds();
             await goToNextContent(id, {
               unitId: ids.unitId,
               moduleId: ids.moduleId,

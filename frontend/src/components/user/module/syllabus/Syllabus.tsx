@@ -22,7 +22,11 @@ const Syllabus: React.FC<SyllabusProps> = ({ units }) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    setUnitsWithContent(units);
+    const sorted = [...units].sort(
+      (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
+    );
+
+    setUnitsWithContent(sorted);
     if (!units || units.length === 0) {
       setErrorMessage('No units found');
     } else {

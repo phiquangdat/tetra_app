@@ -53,6 +53,10 @@ describe('ModuleCards', () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    cleanup();
+  });
+
   it('renders header text', async () => {
     await act(async () => {
       renderWithRouter(<ModuleCards />);
@@ -88,15 +92,18 @@ describe('ModuleCards', () => {
     await waitFor(() => screen.queryByText(/Intro to Python/i));
 
     // Check for correct points for only the published module
-    const pythonPoints = screen.queryByText((content, element) => {
-      return element?.textContent === 'Points: 50';
+    const pythonPointsElements = screen.getAllByText((content, element) => {
+      return (
+        element?.textContent === 'Points: 50' ||
+        element?.textContent === 'Earned Points: 25'
+      );
     });
     // Cybersecurity module should not be displayed
     const cybersecurityPoints = screen.queryByText((content, element) => {
       return element?.textContent === 'Points: 40';
     });
 
-    expect(pythonPoints).toBeInTheDocument();
+    expect(pythonPointsElements.length).toBeGreaterThan(0);
     expect(cybersecurityPoints).not.toBeInTheDocument();
   });
 

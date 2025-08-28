@@ -12,7 +12,6 @@ import { useQuizModal } from '../../../context/user/QuizModalContext.tsx';
 import {
   BookIcon,
   PuzzleIcon,
-  StarIcon,
   VideoIcon,
   CheckIcon,
 } from '../../common/Icons.tsx';
@@ -48,11 +47,6 @@ const stats = [
     icon: <PuzzleIcon width={30} height={30} />,
     label: 'Quizzes',
     type: 'quiz',
-  },
-  {
-    icon: <StarIcon width={30} height={30} color="#FFA726" />,
-    label: 'Points',
-    type: 'points',
   },
 ];
 

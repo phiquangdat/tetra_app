@@ -42,9 +42,9 @@ function renderAtIndex(
   const defaultCtx = {
     questions: mockQuestions,
     setQuestions: vi.fn(),
-    userAnswers: [] as Array<{ questionId: string; answerId: string }>,
+    userAnswers: [] as Array<{ questionId: string; answerIds: string[] }>,
     setUserAnswer: vi.fn(),
-    getUserAnswerFor: vi.fn(() => undefined),
+    getUserAnswerFor: vi.fn(() => undefined as string[] | undefined),
     clearUserAnswers: vi.fn(),
   };
 
@@ -85,9 +85,8 @@ describe('QuizQuestionPage', () => {
 
     renderAtIndex('1', { setUserAnswer });
 
-    // Simulate selecting the first answer
-    const firstRadio = screen.getByLabelText('Fake login prompt');
-    fireEvent.click(firstRadio);
+    const firstOption = screen.getByLabelText('Fake login prompt');
+    fireEvent.click(firstOption);
 
     const nextButton = screen.getByRole('button', { name: /next/i });
     fireEvent.click(nextButton);
@@ -97,8 +96,7 @@ describe('QuizQuestionPage', () => {
       '/user/quiz/test-quiz-id/question/2',
     );
 
-    // Should record answer
-    expect(setUserAnswer).toHaveBeenCalledWith('q1', 'a1');
+    expect(setUserAnswer).toHaveBeenCalledWith('q1', 'a1', expect.any(Boolean));
   });
 
   it('navigates back on "Previous"', () => {
@@ -119,7 +117,7 @@ describe('QuizQuestionPage', () => {
   it('preselects saved answer when returning to a previous question', () => {
     // Simulate having saved answer a2 for q1
     const getUserAnswerFor = vi.fn((qId: string) =>
-      qId === 'q1' ? 'a2' : undefined,
+      qId === 'q1' ? ['a2'] : undefined,
     );
 
     renderAtIndex('1', { getUserAnswerFor });

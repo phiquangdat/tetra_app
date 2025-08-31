@@ -66,6 +66,10 @@ function AddVideoModal({ isOpen, onClose, unitId, unitNumber }: Props) {
     if (block && block.type === 'video') {
       setContentState({
         ...block,
+        originalPoints:
+          typeof block.data.points === 'number'
+            ? block.data.points
+            : Number(block.data.points) || 0,
         isDirty: false,
         isSaving: false,
         error: null,

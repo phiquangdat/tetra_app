@@ -45,6 +45,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
   const [contentProgress, setContentProgress] = useState<ContentProgress>();
   const [hasNext, setHasNext] = useState(false);
   const [playbackError, setPlaybackError] = useState(false);
+  const [initialBanner, setInitialBanner] = useState<boolean | null>(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -211,6 +212,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
       if (progress) {
         setContentProgress(progress);
 
+        if (initialBanner === null) {
+          const wasCompleted =
+            String(progress.status || '').toUpperCase() === 'COMPLETED';
+          setInitialBanner(wasCompleted);
+        }
+
         const ids = idsRef.current;
         const resolvedUnitId =
           ids.unitId || resolveUnitId(video) || unitIdFromState || unitId;
@@ -231,6 +238,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
             console.error('[patchModuleProgress]', error);
           }
         }
+      } else {
+        if (initialBanner === null) setInitialBanner(false);
       }
     };
 
@@ -242,6 +251,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
     safePatchModule,
     setModuleProgress,
     ensureIds,
+    initialBanner,
   ]);
 
   useEffect(() => {
@@ -477,7 +487,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ id }: VideoPageProps) => {
         </a>
       </div>
 
-      {contentProgress?.status?.toLowerCase() === 'completed' && (
+      {initialBanner === true && (
         <div className="mb-6 bg-green-50 max-w-xl mx-auto border border-green-200 rounded-xl p-4 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shadow-sm">

@@ -65,7 +65,10 @@ const QuizSummaryPage: React.FC = () => {
       try {
         const { unitId: targetUnitId } = await hydrateContextFromContent(
           quizId,
-          { setUnitId, setModuleId },
+          {
+            setUnitId,
+            setModuleId,
+          },
         );
         if (!cancelled && targetUnitId) {
           redirectedRef.current = true;
@@ -133,9 +136,10 @@ const QuizSummaryPage: React.FC = () => {
     };
   }, [quizId]);
 
-  const { correct, incorrect, percentage, pointsEarned } = useMemo(() => {
-    return calculateQuizResults(questions, userAnswers, totalPoints);
-  }, [questions, userAnswers, totalPoints]);
+  const { correct, partial, incorrect, percentage, pointsEarned, perQuestion } =
+    useMemo(() => {
+      return calculateQuizResults(questions, userAnswers, totalPoints);
+    }, [questions, userAnswers, totalPoints]);
 
   useEffect(() => {
     if (!quizId) return;
@@ -146,7 +150,6 @@ const QuizSummaryPage: React.FC = () => {
     const alreadyCompleted =
       String(contentProgressStatus || '').toUpperCase() === 'COMPLETED';
     const samePoints = (contentProgressPoints ?? 0) === pointsEarned;
-
     if (alreadyCompleted && samePoints) return;
     if (!moduleProgress) return;
 
@@ -208,8 +211,8 @@ const QuizSummaryPage: React.FC = () => {
           ? 'Good effort! You covered quite a bit.'
           : 'Don’t worry! Learning takes time.';
 
-  const correctAnswers = correct;
-  const incorrectAnswers = incorrect;
+  const getFractionFor = (qid: string) =>
+    perQuestion.find((p) => p.questionId === qid)?.fraction ?? 0;
 
   return (
     <div className="bg-white min-h-screen py-8 px-6">
@@ -240,8 +243,9 @@ const QuizSummaryPage: React.FC = () => {
       </h2>
       <p className="text-center text-gray-700 mb-10">{summaryHeadline}</p>
 
+      {/* Top stats */}
       <div className="flex flex-col md:flex-row items-center justify-center gap-12 mb-12">
-        {/* Circular progress bar */}
+        {/* Circular progress bar — now uses fractional % */}
         <div className="relative w-32 h-32">
           <CircularProgressIcon percentage={percentage} />
           <div className="absolute inset-0 flex items-center justify-center text-xl font-bold text-surface">
@@ -249,16 +253,22 @@ const QuizSummaryPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Stats */}
         <div className="flex flex-col items-center text-primary">
           <div className="flex items-center text-lg mb-2">
-            <div className="flex items-center gap-2 pr-8 border-r border-highlight text-success">
+            <div className="flex items-center gap-2 pr-6 border-r border-highlight text-success">
               <CheckCircleIcon className="w-5 h-5" />
-              <strong>{correctAnswers}</strong> correct
+              <strong>{correct}</strong> correct
             </div>
-            <div className="flex items-center gap-2 pl-8 text-error">
+            <div className="flex items-center gap-2 px-6 text-amber-600">
+              {/* simple dot for partial */}
+              <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                <circle cx="10" cy="10" r="6" />
+              </svg>
+              <strong>{partial}</strong> partially correct
+            </div>
+            <div className="flex items-center gap-2 pl-6 text-error">
               <XCircleIcon className="w-5 h-5" />
-              <strong>{incorrectAnswers}</strong> incorrect
+              <strong>{incorrect}</strong> incorrect
             </div>
           </div>
           <div className="bg-accent text-white font-bold px-4 py-1 rounded-full text-center">
@@ -270,24 +280,48 @@ const QuizSummaryPage: React.FC = () => {
       {/* Questions list */}
       <div className="space-y-6 mb-12">
         {questions.map((q, index) => {
-          const userAnswerId = userAnswers.find(
-            (a) => a.questionId === q.id,
-          )?.answerId;
+          const userAnswerIds =
+            userAnswers.find((a) => a.questionId === q.id)?.answerIds || [];
+
+          const userIdSet = new Set(userAnswerIds);
+
+          const fraction = getFractionFor(q.id);
+          const statusLabel =
+            fraction === 1
+              ? 'Correct'
+              : fraction === 0
+                ? 'Incorrect'
+                : 'Partially correct';
+          const statusClass =
+            fraction === 1
+              ? 'bg-green-100 text-green-700 border-green-300'
+              : fraction === 0
+                ? 'bg-red-100 text-red-700 border-red-300'
+                : 'bg-amber-100 text-amber-700 border-amber-300';
 
           return (
             <div
               key={q.id}
               className="bg-[#F5F3F7] border border-gray-300 p-6 rounded-2xl shadow-sm"
             >
-              <h3 className="font-semibold text-primary mb-4">
-                Question {index + 1}: {q.title}
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-primary">
+                  Question {index + 1}: {q.title}
+                </h3>
+                <span
+                  className={`text-xs font-semibold px-2 py-1 rounded border ${statusClass}`}
+                >
+                  {statusLabel}
+                </span>
+              </div>
+
               <ul className="space-y-2">
                 {q.answers.map((ans) => {
                   const isCorrect = ans.is_correct === true;
-                  const isUserAnswer = ans.id === userAnswerId;
-                  const isIncorrect = isUserAnswer && !isCorrect;
-                  const isCorrectAndNotChosen = isCorrect && !isUserAnswer;
+                  const isUserAnswer = userIdSet.has(ans.id);
+                  const isIncorrectChoice = isUserAnswer && !isCorrect;
+                  const isCorrectAndChosen = isUserAnswer && isCorrect;
+                  const isCorrectAndNotChosen = !isUserAnswer && isCorrect;
 
                   let icon = null;
                   if (isUserAnswer) {
@@ -302,11 +336,11 @@ const QuizSummaryPage: React.FC = () => {
                   let textClass = '';
                   let borderClass = 'border';
 
-                  if (isUserAnswer && isIncorrect) {
+                  if (isIncorrectChoice) {
                     bgClass = 'bg-red-100';
                     textClass = 'text-error';
                     borderClass += ' border-2 border-dashed border-[#7E6BBE]';
-                  } else if (isUserAnswer && isCorrect) {
+                  } else if (isCorrectAndChosen) {
                     bgClass = 'bg-green-100';
                     textClass = 'text-success';
                     borderClass += ' border-2 border-dashed border-[#7E6BBE]';

@@ -40,6 +40,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
   const location = useLocation();
   const unitIdFromState = (location.state as { unitId?: string })?.unitId;
   const [contentProgress, setContentProgress] = useState<ContentProgress>();
+  const [initialBanner, setInitialBanner] = useState<boolean | null>(null);
+
   const {
     moduleId,
     unitId,
@@ -112,7 +114,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     // How far into the article the bottom of the viewport has reached
     const scrolledInside = scrollBottom - articleTop;
 
-    return Math.min(Math.round((scrolledInside / articleHeight) * 100), 100); // No greater than 100
+    return Math.min(Math.round((scrolledInside / articleHeight) * 100), 100);
   }, []);
 
   const isArticleShorterThanViewport = useCallback(() => {
@@ -218,6 +220,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
 
   useEffect(() => {
     completingRef.current = false;
+    setInitialBanner(null);
   }, [id]);
 
   useEffect(() => {
@@ -312,6 +315,12 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
 
         setContentProgress(progress);
 
+        if (initialBanner === null) {
+          const wasCompleted =
+            String(progress.status || '').toUpperCase() === 'COMPLETED';
+          setInitialBanner(wasCompleted);
+        }
+
         // Patch last visited ONLY when first time (not completed yet)
         if (
           (moduleProgress?.last_visited_unit_id !== resolvedUnitId ||
@@ -339,6 +348,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
           });
           console.log('[createContentProgress]', progress);
 
+          if (initialBanner === null) setInitialBanner(false);
+
           try {
             await safePatchModule({
               lastVisitedUnit: resolvedUnitId,
@@ -363,8 +374,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
     setModuleId,
     safePatchModule,
     setModuleProgress,
-    navigate,
     ensureIds,
+    initialBanner,
   ]);
 
   useEffect(() => {
@@ -409,7 +420,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
         </a>
       </div>
 
-      {contentProgress?.status?.toLowerCase() === 'completed' && (
+      {initialBanner === true && (
         <div className="mb-6 bg-green-50 max-w-xl mx-auto border border-green-200 rounded-xl p-4 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shadow-sm">

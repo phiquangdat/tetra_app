@@ -63,12 +63,6 @@ function AddArticleModal({
     !isSaving &&
     !fileError;
 
-  // const canSave =
-  //   data.title.trim() !== '' &&
-  //   (editorContent?.trim() ?? '') !== '' &&
-  //   !isSaving &&
-  //   !fileError;
-
   useEffect(() => {
     if (showConfirmClose || !isOpen) return;
 
@@ -81,6 +75,10 @@ function AddArticleModal({
       console.log('[AddArticleModal] Loaded block ID:', block.id);
       setContentState({
         ...block,
+        originalPoints:
+          typeof block.data.points === 'number'
+            ? block.data.points
+            : Number(block.data.points) || 0,
         isDirty: false,
         isSaving: false,
         error: null,

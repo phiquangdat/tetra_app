@@ -18,9 +18,10 @@ vi.mock('../../context/admin/ModuleContext', () => ({
 
 vi.mock('../../utils/pointsHelpers.ts', () => ({
   adjustModulePoints: vi.fn(async () => ({ id: 'module-1', points: 1234 })),
+  applyModulePointsDelta: vi.fn(async () => ({ id: 'module-1', points: 1234 })),
 }));
 
-vi.mock('../../../utils/editor/EditorComposer.tsx', async () => {
+vi.mock('../../utils/editor/EditorComposer.tsx', async () => {
   const React = await import('react');
   const { useEditorStateContext } = await import(
     '../../utils/editor/contexts/EditorStateContext'

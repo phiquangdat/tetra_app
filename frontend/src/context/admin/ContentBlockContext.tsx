@@ -23,8 +23,8 @@ import {
   uploadFile,
 } from '../../services/unit/content/unitContentApi.ts';
 import { useModuleContext } from './ModuleContext';
-import { adjustModulePoints } from '../../utils/pointsHelpers.ts';
 import { deleteFileById } from '../../utils/fileHelpers.ts';
+import { applyModulePointsDelta } from '../../utils/pointsHelpers.ts';
 
 interface ContextBlockType extends ContentBlock {
   updateContentField: (key: keyof ContentBlock, value: any) => void;
@@ -140,6 +140,11 @@ export const ContentBlockContextProvider = ({
     return contentBlock;
   }, [contentBlock]);
 
+  const toInt = (v: unknown): number => {
+    const num = Number(v);
+    return Number.isFinite(num) ? num : 0;
+  };
+
   const saveContent = useCallback(
     async (
       type: 'article' | 'video' | 'quiz',
@@ -197,31 +202,25 @@ export const ContentBlockContextProvider = ({
             let result: { id: string };
 
             try {
+              const pointsNum = toInt(payload.points);
               if (contentBlock.id) {
-                const updatedModule = await adjustModulePoints(
-                  moduleId,
-                  'edit',
-                  payload.points ?? 0,
-                  contentBlock.id,
-                );
-                await updateModuleField(
-                  'pointsAwarded',
-                  updatedModule.points ?? 0,
-                );
-
                 result = await updateVideoContent(contentBlock.id, payload);
-              } else {
-                const updatedModule = await adjustModulePoints(
-                  moduleId,
-                  'create',
-                  payload.points ?? 0,
-                );
-                await updateModuleField(
-                  'pointsAwarded',
-                  updatedModule.points ?? 0,
-                );
 
+                const old = toInt(
+                  contentBlock.originalPoints ?? contentBlock.data.points,
+                );
+                const { points } = await applyModulePointsDelta(
+                  moduleId,
+                  pointsNum - old,
+                );
+                await updateModuleField('pointsAwarded', points ?? 0);
+              } else {
                 result = await saveVideoContent(payload);
+                const { points } = await applyModulePointsDelta(
+                  moduleId,
+                  pointsNum,
+                );
+                await updateModuleField('pointsAwarded', points ?? 0);
               }
               console.log(
                 `[saveContent] Video created successfully, ID: ${result.id}`,
@@ -239,7 +238,10 @@ export const ContentBlockContextProvider = ({
                 error: null,
               };
 
-              setContentState(updatedBlock);
+              setContentState({
+                ...updatedBlock,
+                originalPoints: toInt(updatedBlock.data.points),
+              });
               return updatedBlock;
             } catch (err) {
               const error =
@@ -254,9 +256,15 @@ export const ContentBlockContextProvider = ({
             const { title, points } = contentBlock.data;
             const content = newArticleContent;
             const sort_order = contentBlock.sortOrder;
+            const pointsIsMissing =
+              points === undefined ||
+              points === null ||
+              Number.isNaN(Number(points));
 
-            if (!title || !content) {
-              throw new Error('Article title and content are required');
+            if (!title?.trim() || !content?.trim() || pointsIsMissing) {
+              throw new Error(
+                'Article title, content, and points are required',
+              );
             }
 
             let attachment_id: string | undefined =
@@ -316,32 +324,25 @@ export const ContentBlockContextProvider = ({
             };
 
             let result: { id: string };
+            const pointsNum = toInt(payload.points);
             try {
               if (contentBlock.id) {
-                const updatedModule = await adjustModulePoints(
-                  moduleId,
-                  'edit',
-                  payload.points ?? 0,
-                  contentBlock.id,
-                );
-                await updateModuleField(
-                  'pointsAwarded',
-                  updatedModule.points ?? 0,
-                );
-
                 result = await updateArticleContent(contentBlock.id, payload);
-              } else {
-                const updatedModule = await adjustModulePoints(
+                const old = toInt(
+                  contentBlock.originalPoints ?? contentBlock.data.points,
+                );
+                const { points } = await applyModulePointsDelta(
                   moduleId,
-                  'create',
-                  payload.points ?? 0,
+                  pointsNum - old,
                 );
-                await updateModuleField(
-                  'pointsAwarded',
-                  updatedModule.points ?? 0,
-                );
-
+                await updateModuleField('pointsAwarded', points ?? 0);
+              } else {
                 result = await saveArticleContent(payload);
+                const { points } = await applyModulePointsDelta(
+                  moduleId,
+                  pointsNum,
+                );
+                await updateModuleField('pointsAwarded', points ?? 0);
               }
               console.log(
                 `[saveContent] Article created successfully, ID: ${result.id}`,
@@ -381,7 +382,10 @@ export const ContentBlockContextProvider = ({
                 fileIdToDelete: null,
               };
 
-              setContentState(updatedBlock);
+              setContentState({
+                ...updatedBlock,
+                originalPoints: toInt(updatedBlock.data.points),
+              });
               return updatedBlock;
             } catch (err) {
               const error =
@@ -394,8 +398,17 @@ export const ContentBlockContextProvider = ({
           case 'quiz': {
             const { title, content, points, questions } = contentBlock.data;
             const sort_order = contentBlock.sortOrder;
+            const pointsIsMissing =
+              points === undefined ||
+              points === null ||
+              Number.isNaN(Number(points));
 
-            if (!title || !points || !questions || questions.length === 0) {
+            if (
+              !title?.trim() ||
+              pointsIsMissing ||
+              !Array.isArray(questions) ||
+              questions.length === 0
+            ) {
               throw new Error(
                 'Quiz title, points, and at least one question are required',
               );
@@ -453,33 +466,26 @@ export const ContentBlockContextProvider = ({
             };
 
             let result: { id: string };
+            const pointsNum = toInt(payload.points);
 
             try {
               if (contentBlock.id) {
-                const updatedModule = await adjustModulePoints(
-                  moduleId,
-                  'edit',
-                  payload.points ?? 0,
-                  contentBlock.id,
-                );
-                await updateModuleField(
-                  'pointsAwarded',
-                  updatedModule.points ?? 0,
-                );
-
                 result = await updateQuizContent(contentBlock.id, payload);
-              } else {
-                const updatedModule = await adjustModulePoints(
+                const old = toInt(
+                  contentBlock.originalPoints ?? contentBlock.data.points,
+                );
+                const { points } = await applyModulePointsDelta(
                   moduleId,
-                  'create',
-                  payload.points ?? 0,
+                  pointsNum - old,
                 );
-                await updateModuleField(
-                  'pointsAwarded',
-                  updatedModule.points ?? 0,
-                );
-
+                await updateModuleField('pointsAwarded', points ?? 0);
+              } else {
                 result = await saveQuizContent(payload);
+                const { points } = await applyModulePointsDelta(
+                  moduleId,
+                  pointsNum,
+                );
+                await updateModuleField('pointsAwarded', points ?? 0);
               }
               console.log(
                 `[saveContent] Quiz created successfully, ID: ${result.id}`,
@@ -515,7 +521,10 @@ export const ContentBlockContextProvider = ({
                 error: null,
               };
 
-              setContentState(updatedBlock);
+              setContentState({
+                ...updatedBlock,
+                originalPoints: toInt(updatedBlock.data.points),
+              });
               return updatedBlock;
             } catch (err) {
               const error =

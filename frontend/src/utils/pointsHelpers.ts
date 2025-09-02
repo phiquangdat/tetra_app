@@ -1,35 +1,33 @@
 import { fetchModuleById, updateModule } from '../services/module/moduleApi';
-import { fetchUnitContentDetails } from '../services/unit/unitApi';
 
-export async function adjustModulePoints(
+const locks = new Map<string, Promise<void>>();
+
+function withModuleLock<T>(
   moduleId: string,
-  action: 'create' | 'edit' | 'delete',
-  newBlockPoints: number,
-  blockId?: string,
-) {
-  // 1. Fetch current module points
-  const module = await fetchModuleById(moduleId);
-  let newPoints = module.points ?? 0;
+  task: () => Promise<T>,
+): Promise<T> {
+  const prev = locks.get(moduleId) ?? Promise.resolve();
+  let release!: () => void;
+  const next = new Promise<void>((res) => (release = res));
+  locks.set(
+    moduleId,
+    prev.then(() => next),
+  );
 
-  // 2. Handle each case
-  if (action === 'create') {
-    newPoints += newBlockPoints;
-  }
+  return prev.then(task).finally(() => release());
+}
 
-  if (action === 'edit' && blockId) {
-    // fetch old block data
-    const oldBlock = await fetchUnitContentDetails(blockId);
-    const oldPoints = oldBlock?.points ?? 0;
-    newPoints = newPoints - oldPoints + newBlockPoints;
-  }
+const n = (v: unknown) => {
+  const num = Number(v);
+  return Number.isFinite(num) ? num : 0;
+};
 
-  if (action === 'delete' && blockId) {
-    const oldBlock = await fetchUnitContentDetails(blockId);
-    const oldPoints = oldBlock?.points ?? 0;
-    newPoints -= oldPoints;
-  }
-
-  // 3. Save new points
-  const updated = await updateModule(moduleId, { points: newPoints });
-  return updated;
+export async function applyModulePointsDelta(moduleId: string, delta: number) {
+  return withModuleLock(moduleId, async () => {
+    const mod = await fetchModuleById(moduleId);
+    const current = n(mod.points);
+    let next = current + n(delta);
+    if (!Number.isFinite(next) || next < 0) next = 0;
+    return updateModule(moduleId, { points: next });
+  });
 }

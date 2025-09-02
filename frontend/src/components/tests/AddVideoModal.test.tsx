@@ -19,6 +19,7 @@ vi.mock('../../context/admin/ModuleContext', () => ({
 // Mock points helper
 vi.mock('../../utils/pointsHelpers.ts', () => ({
   adjustModulePoints: vi.fn(async () => ({ id: 'module-1', points: 1234 })),
+  applyModulePointsDelta: vi.fn(async () => ({ id: 'module-1', points: 1234 })),
 }));
 
 // Mock the content save API used by ContentBlockContext.saveContent

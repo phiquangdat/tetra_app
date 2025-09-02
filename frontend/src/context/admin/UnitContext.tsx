@@ -12,11 +12,12 @@ import {
   fetchUnitContentById,
   type UnitInput,
   updateUnit,
+  fetchUnitContentDetails,
 } from '../../services/unit/unitApi';
 import toast from 'react-hot-toast';
 import { deleteUnitContent } from '../../services/unit/content/unitContentApi.ts';
 import { useModuleContext } from './ModuleContext.tsx';
-import { adjustModulePoints } from '../../utils/pointsHelpers.ts';
+import { applyModulePointsDelta } from '../../utils/pointsHelpers';
 
 export type QuizQuestionAnswer = {
   title: string;
@@ -46,6 +47,7 @@ export interface ContentBlock {
     fileMime?: string;
     fileId?: string | null;
   };
+  originalPoints?: number | null;
   sortOrder: number;
   unit_id?: string;
   isDirty: boolean;
@@ -364,17 +366,33 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
 
       if (block.id) {
         try {
-          if (moduleId) {
-            const updatedModule = await adjustModulePoints(
-              moduleId,
-              'delete',
-              0,
-              block.id,
-            );
-            await updateModuleField('pointsAwarded', updatedModule.points ?? 0);
+          // 1) Determine the old points (from context when available; else fetch from backend)
+          let oldPoints = 0;
+          const localPoints = block.data?.points;
+          if (typeof localPoints === 'number') {
+            oldPoints = localPoints;
+          } else if (block.id) {
+            try {
+              const details = await fetchUnitContentDetails(block.id);
+              oldPoints = Number(details?.points) || 0;
+            } catch {
+              // If fetch fails, fall back to 0 to keep flow going
+              oldPoints = 0;
+            }
           }
 
+          // 2) Delete content on the server
           await deleteUnitContent(block.id);
+
+          // 3) Apply a negative delta to module points in a serialized way
+          if (moduleId) {
+            const { points } = await applyModulePointsDelta(
+              moduleId,
+              -oldPoints,
+            );
+            await updateModuleField('pointsAwarded', Number(points) || 0);
+          }
+
           toast.success('Content block deleted successfully');
         } catch (err) {
           console.error('Failed to delete content block:', err);
@@ -386,7 +404,7 @@ export const UnitContextProvider = ({ children }: { children: ReactNode }) => {
       removeContentBlockFromContext(unitNumber, blockIndex);
       return true;
     },
-    [unitStates, removeContentBlockFromContext],
+    [unitStates, removeContentBlockFromContext, moduleId, updateModuleField],
   );
 
   const setUnitStatesRaw = (newState: Record<number, UnitContextEntry>) => {

@@ -368,17 +368,20 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ id }) => {
   ]);
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      if (
-        contentProgress &&
-        contentProgress.status !== 'COMPLETED' &&
-        article &&
-        articleRef.current &&
-        isArticleShorterThanViewport()
-      ) {
-        await markAsCompleted();
-      }
-    }, 500);
+    const timer = setTimeout(
+      async () => {
+        if (
+          contentProgress &&
+          contentProgress.status !== 'COMPLETED' &&
+          article &&
+          articleRef.current &&
+          isArticleShorterThanViewport()
+        ) {
+          await markAsCompleted();
+        }
+      },
+      3 * 6 * 1000,
+    );
 
     return () => clearTimeout(timer);
   }, [contentProgress, article, isArticleShorterThanViewport, markAsCompleted]);

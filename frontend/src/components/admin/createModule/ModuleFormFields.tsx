@@ -161,6 +161,8 @@ const ModuleFormFields: React.FC = () => {
             </option>
             <option value="esg">ESG</option>
             <option value="occupational-safety">Occupational Safety</option>
+            <option value="digitalization">Digitalization</option>
+            <option value="other">Other</option>
           </select>
         </div>
       </div>

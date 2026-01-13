@@ -1,5 +1,5 @@
 # Stage: Build
-FROM openjdk:24-jdk-slim AS build
+FROM eclipse-temurin:24-jdk AS build
 
 WORKDIR /app
 
@@ -14,6 +14,8 @@ COPY src ./src
 # Make Gradle Wrapper executable
 RUN chmod +x gradlew
 
+ENV GRADLE_OPTS="-Dhttps.protocols=TLSv1.2,TLSv1.3 --add-opens=java.base/java.lang=ALL-UNNAMED"
+
 # Clean and build the application (creates `build/libs/*.jar`)
 RUN ./gradlew clean build --no-daemon
 
@@ -21,7 +23,7 @@ RUN ./gradlew clean build --no-daemon
 RUN jar tf build/libs/backend-1.0.0.jar | grep TrainingModuleController
 
 # Stage 2: Runtime
-FROM openjdk:24-jdk-slim AS runtime
+FROM eclipse-temurin:24-jdk AS runtime
 
 WORKDIR /app
 

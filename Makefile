@@ -37,9 +37,3 @@ db/recreate:
 		-e PGPASSWORD=$(DB_PASSWORD) \
 		postgres:16 \
 		psql -h localhost -p $(DB_PORT) -U $(DB_USER) -d postgres -c "CREATE DATABASE $(DB_NAME);" || true
-	docker run --rm \
-		--network=host \
-		-e PGPASSWORD=$(DB_PASSWORD) \
-		-v "$(CURRENT_DIR)":/backups \
-		postgres:16 \
-		pg_restore --no-owner --no-privileges -h localhost -p $(DB_PORT) -U $(DB_USER) -d $(DB_NAME) -v /backups/db_snapshot.dump || true

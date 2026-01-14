@@ -4,10 +4,9 @@ TETRA is a Learning Platform specifically architected for cybersecurity awarenes
 
 ## Demo
 
-<video src="preview.mp4" controls="controls" muted="muted" class="d-block rounded-bottom-2 border-top width-fit" style="max-height:640px; min-height: 200px">
-</video>
+[![Watch the Demo](https://img.youtube.com/vi/C979ng7IFpA/0.jpg)](https://youtu.be/C979ng7IFpA)
 
-> **Note:** The video above is hosted via Git LFS. If it doesn't play directly, you can [download it here](preview.mp4).
+> Click the image above to watch the walkthrough on YouTube.
 
 ## Tech Stack
 

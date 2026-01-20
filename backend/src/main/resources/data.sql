@@ -26,11 +26,11 @@ CREATE TABLE users (
 );
 
 INSERT INTO users (id, name, email, password, role) VALUES
-('11111111-0000-0000-0000-000000000001', 'Admin1', 'admin1@example.com', '$2a$10$9EcI8Jj/KW9WXINIxwbPAeOOH4xoS1XrUVn4QAXswgBceTbRCQONq', 'ADMIN'),
-('11111111-0000-0000-0000-000000000002', 'Admin2', 'admin2@example.com', '$2a$10$9EcI8Jj/KW9WXINIxwbPAeOOH4xoS1XrUVn4QAXswgBceTbRCQONq', 'ADMIN'),
-('11111111-0000-0000-0000-000000000003', 'Learner1', 'learner1@example.com', '$2a$10$9EcI8Jj/KW9WXINIxwbPAeOOH4xoS1XrUVn4QAXswgBceTbRCQONq', 'LEARNER'),
-('11111111-0000-0000-0000-000000000004', 'Learner2', 'learner2@example.com', '$2a$10$9EcI8Jj/KW9WXINIxwbPAeOOH4xoS1XrUVn4QAXswgBceTbRCQONq', 'LEARNER'),
-('11111111-0000-0000-0000-000000000005', 'Learner3', 'learner3@example.com', '$2a$10$9EcI8Jj/KW9WXINIxwbPAeOOH4xoS1XrUVn4QAXswgBceTbRCQONq', 'LEARNER');
+('11111111-0000-0000-0000-000000000001', 'Admin1', 'admin1@example.com', '$2a$10$jG5bNwH2YHStW2jT7je.2u0bzqF8bL1mKWgpi3q4dTYaEZHiqhEXS', 'ADMIN'),
+('11111111-0000-0000-0000-000000000002', 'Admin2', 'admin2@example.com', '$2a$10$jG5bNwH2YHStW2jT7je.2u0bzqF8bL1mKWgpi3q4dTYaEZHiqhEXS', 'ADMIN'),
+('11111111-0000-0000-0000-000000000003', 'Learner1', 'learner1@example.com', '$2a$10$jG5bNwH2YHStW2jT7je.2u0bzqF8bL1mKWgpi3q4dTYaEZHiqhEXS', 'LEARNER'),
+('11111111-0000-0000-0000-000000000004', 'Learner2', 'learner2@example.com', '$2a$10$jG5bNwH2YHStW2jT7je.2u0bzqF8bL1mKWgpi3q4dTYaEZHiqhEXS', 'LEARNER'),
+('11111111-0000-0000-0000-000000000005', 'Learner3', 'learner3@example.com', '$2a$10$jG5bNwH2YHStW2jT7je.2u0bzqF8bL1mKWgpi3q4dTYaEZHiqhEXS', 'LEARNER');
 
 CREATE TABLE training_modules (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
